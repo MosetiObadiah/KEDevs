@@ -1,7 +1,7 @@
 package org.moseti.kedevsapi.payments.service;
 
 import lombok.extern.slf4j.Slf4j;
-import com.fasterxml.jackson.databind.JsonNode;
+import org.moseti.kedevsapi.payments.dto.PaymentDtos;
 import org.moseti.kedevsapi.payments.dto.PaymentDtos.StkPushRequestBody;
 import org.moseti.kedevsapi.payments.dto.PaymentDtos.StkPushResponse;
 import org.moseti.kedevsapi.payments.exception.DarajaApiException;
@@ -12,6 +12,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -52,33 +53,28 @@ public class DarajaService {
         }
 
         String credentials = Base64.getEncoder().encodeToString(
-                (consumerKey + ":" + consumerSecret).getBytes(StandardCharsets.UTF_8)
+                (consumerKey + ":" + consumerSecret).getBytes()
         );
 
         try {
-            JsonNode response = webClient.get()
+            PaymentDtos.DarajaTokenResponse response = webClient.get()
                     .uri(Constants.DARAJA_AUTH_URL)
                     .header("Authorization", "Basic " + credentials)
                     .retrieve()
-                    .bodyToMono(JsonNode.class)
+                    .bodyToMono(PaymentDtos.DarajaTokenResponse.class)
                     .block();
 
-            String token = null;
-            if (response != null) {
-                if (response.has("access_token")) {
-                    token = response.get("access_token").asText();
-                } else if (response.has("access_token ")) {
-                    token = response.get("access_token ").asText();
-                }
-            }
-
-            if (token == null) {
+            if (response == null || response.accessToken() == null || response.accessToken().isBlank()) {
                 throw new DarajaApiException("Failed to retrieve Daraja access token");
             }
 
-            cachedToken = token;
-            // Token expires in 3600 seconds; cache for 3500 to be safe
+            cachedToken = response.accessToken();
             tokenExpiresAt = LocalDateTime.now().plusSeconds(3500);
+
+            System.out.println("================================");
+            System.out.println("DARAJA ACCESS TOKEN: " + cachedToken);
+            System.out.println("================================");
+
             return cachedToken;
 
         } catch (WebClientResponseException e) {
@@ -101,7 +97,7 @@ public class DarajaService {
         StkPushRequestBody requestBody = new StkPushRequestBody(
                 shortcode, password, timestamp,
                 "CustomerPayBillOnline",
-                amount.intValue(),
+                amount.setScale(0, RoundingMode.HALF_UP).intValue(),
                 formattedPhone, shortcode, formattedPhone,
                 callbackUrl, ref, desc
         );

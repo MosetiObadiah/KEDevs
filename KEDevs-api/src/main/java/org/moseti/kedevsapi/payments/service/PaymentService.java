@@ -86,6 +86,10 @@ public class PaymentService {
     @Transactional
     public PaymentInitiationResponse initiateAnnualMembership(UUID userId, String phoneNumber) {
         User user = getUser(userId);
+        if (subscriptionRepository.existsByUserIdAndTypeAndStatus(
+                userId, SubscriptionType.ANNUAL_MEMBERSHIP, SubscriptionStatus.ACTIVE)) {
+            throw new AlreadySubscribedException("You already have an active membership");
+        }
         String feeKey = user.getRole() == Role.DEVELOPER ? "ANNUAL_FEE_DEVELOPER" : "ANNUAL_FEE_EMPLOYER";
         BigDecimal amount = getSettingValue(feeKey);
 

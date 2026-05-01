@@ -3,6 +3,8 @@ package org.moseti.kedevsapi.payments.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.moseti.kedevsapi.shared.entity.BaseEntity;
 import org.moseti.kedevsapi.shared.enums.PaymentStatus;
 import org.moseti.kedevsapi.shared.enums.PaymentType;
@@ -43,6 +45,7 @@ public class Payment extends BaseEntity {
     @Column(name = "phone_number", nullable = false)
     private String phoneNumber;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private String metadata;
 
