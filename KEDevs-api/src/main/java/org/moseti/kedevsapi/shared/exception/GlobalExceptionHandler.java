@@ -7,6 +7,11 @@ import org.moseti.kedevsapi.auth.exception.InvalidCredentialsException;
 import org.moseti.kedevsapi.auth.exception.InvalidTokenException;
 import org.moseti.kedevsapi.auth.exception.InvalidVerificationCodeException;
 import org.moseti.kedevsapi.shared.dto.ApiResponse;
+import org.moseti.kedevsapi.users.exception.ContactRequestLimitExceededException;
+import org.moseti.kedevsapi.users.exception.EndorsementNotAllowedException;
+import org.moseti.kedevsapi.users.exception.NotProAccountException;
+import org.moseti.kedevsapi.users.exception.ProfileAlreadyExistsException;
+import org.moseti.kedevsapi.users.exception.ProfileNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -95,6 +100,41 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccountNotApprovedException.class)
     public ResponseEntity<ApiResponse<Void>> handleNotApproved(AccountNotApprovedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(ProfileAlreadyExistsException.class)
+    public ResponseEntity<ApiResponse<Void>> handleProfileAlreadyExists(ProfileAlreadyExistsException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(ProfileNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleProfileNotFound(ProfileNotFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(EndorsementNotAllowedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleEndorsementNotAllowed(EndorsementNotAllowedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(ContactRequestLimitExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleContactRequestLimit(ContactRequestLimitExceededException ex) {
+        return ResponseEntity
+                .status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(NotProAccountException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNotProAccount(NotProAccountException ex) {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .body(ApiResponse.error(ex.getMessage()));

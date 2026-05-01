@@ -1,0 +1,475 @@
+package org.moseti.kedevsapi.users.service;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.moseti.kedevsapi.shared.enums.AvailabilityStatus;
+import org.moseti.kedevsapi.shared.enums.ProfileVisibility;
+import org.moseti.kedevsapi.shared.exception.BadRequestException;
+import org.moseti.kedevsapi.shared.exception.ResourceNotFoundException;
+import org.moseti.kedevsapi.users.dto.UserDtos;
+import org.moseti.kedevsapi.users.entity.*;
+import org.moseti.kedevsapi.users.exception.EndorsementNotAllowedException;
+import org.moseti.kedevsapi.users.exception.ProfileAlreadyExistsException;
+import org.moseti.kedevsapi.users.exception.ProfileNotFoundException;
+import org.moseti.kedevsapi.users.repository.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.UUID;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class DeveloperProfileService {
+
+    private final DeveloperProfileRepository profileRepository;
+    private final DeveloperSkillRepository skillRepository;
+    private final DeveloperLanguageRepository languageRepository;
+    private final DeveloperEducationRepository educationRepository;
+    private final DeveloperCertificationRepository certificationRepository;
+    private final DeveloperOssContributionRepository ossRepository;
+    private final DeveloperAchievementRepository achievementRepository;
+    private final DeveloperProjectRepository projectRepository;
+    private final EndorsementRepository endorsementRepository;
+    private final UserRepository userRepository;
+
+    // ----------------------------------------------------------------
+    // Profile CRUD
+    // ----------------------------------------------------------------
+
+    @Transactional
+    public UserDtos.DeveloperProfileResponse createProfile(UUID userId, UserDtos.CreateDeveloperProfileRequest request) {
+        if (profileRepository.existsByUserId(userId)) {
+            throw new ProfileAlreadyExistsException("Developer profile already exists for this user");
+        }
+
+        DeveloperProfile profile = new DeveloperProfile();
+        profile.setUserId(userId);
+        applyCreateFields(profile, request);
+        profile = profileRepository.save(profile);
+
+        log.info("Developer profile created for userId={}", userId);
+        return toFullResponse(profile);
+    }
+
+    public UserDtos.DeveloperProfileResponse getProfileByUserId(UUID userId) {
+        DeveloperProfile profile = profileRepository.findByUserId(userId)
+                .orElseThrow(() -> new ProfileNotFoundException("Developer profile not found"));
+        return toFullResponse(profile);
+    }
+
+    public UserDtos.DeveloperProfileResponse getPublicProfile(UUID profileId) {
+        DeveloperProfile profile = profileRepository.findById(profileId)
+                .orElseThrow(() -> new ProfileNotFoundException("Profile not found"));
+        if (profile.getProfileVisibility() == ProfileVisibility.HIDDEN) {
+            throw new ProfileNotFoundException("Profile not found");
+        }
+        return toFullResponse(profile);
+    }
+
+    @Transactional
+    public UserDtos.DeveloperProfileResponse updateProfile(UUID userId, UserDtos.UpdateDeveloperProfileRequest request) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        applyUpdateFields(profile, request);
+        profile = profileRepository.save(profile);
+        log.info("Developer profile updated for userId={}", userId);
+        return toFullResponse(profile);
+    }
+
+    @Transactional
+    public void toggleAvailability(UUID userId, AvailabilityStatus status) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        profile.setAvailabilityStatus(status);
+        profileRepository.save(profile);
+        log.info("Availability updated to {} for userId={}", status, userId);
+    }
+
+    @Transactional
+    public void updateVisibility(UUID userId, ProfileVisibility visibility) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        profile.setProfileVisibility(visibility);
+        profileRepository.save(profile);
+        log.info("Profile visibility updated to {} for userId={}", visibility, userId);
+    }
+
+    // ----------------------------------------------------------------
+    // Skills
+    // ----------------------------------------------------------------
+
+    @Transactional
+    public void addSkill(UUID userId, String skill) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        DeveloperSkill developerSkill = new DeveloperSkill();
+        developerSkill.setDeveloperId(profile.getId());
+        developerSkill.setSkill(skill.trim());
+        skillRepository.save(developerSkill);
+    }
+
+    @Transactional
+    public void removeSkill(UUID userId, String skill) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        skillRepository.deleteByDeveloperIdAndSkillIgnoreCase(profile.getId(), skill);
+    }
+
+    // ----------------------------------------------------------------
+    // Languages
+    // ----------------------------------------------------------------
+
+    @Transactional
+    public void addLanguage(UUID userId, String language) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        DeveloperLanguage lang = new DeveloperLanguage();
+        lang.setDeveloperId(profile.getId());
+        lang.setLanguage(language.trim());
+        languageRepository.save(lang);
+    }
+
+    @Transactional
+    public void removeLanguage(UUID userId, String language) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        languageRepository.deleteByDeveloperIdAndLanguageIgnoreCase(profile.getId(), language);
+    }
+
+    // ----------------------------------------------------------------
+    // Education
+    // ----------------------------------------------------------------
+
+    @Transactional
+    public UserDtos.EducationResponse addEducation(UUID userId, UserDtos.AddEducationRequest request) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        DeveloperEducation education = new DeveloperEducation();
+        education.setDeveloperId(profile.getId());
+        education.setInstitution(request.institution());
+        education.setQualification(request.qualification());
+        education.setYearCompleted(request.yearCompleted());
+        education.setCertification(request.isCertification());
+        education = educationRepository.save(education);
+        return toEducationResponse(education);
+    }
+
+    @Transactional
+    public void deleteEducation(UUID userId, UUID educationId) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        DeveloperEducation education = educationRepository.findById(educationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Education record not found"));
+        if (!education.getDeveloperId().equals(profile.getId())) {
+            throw new BadRequestException("Education record does not belong to this profile");
+        }
+        educationRepository.delete(education);
+    }
+
+    // ----------------------------------------------------------------
+    // Certifications
+    // ----------------------------------------------------------------
+
+    @Transactional
+    public UserDtos.CertificationResponse addCertification(UUID userId, UserDtos.AddCertificationRequest request) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        DeveloperCertification cert = new DeveloperCertification();
+        cert.setDeveloperId(profile.getId());
+        cert.setName(request.name());
+        cert.setIssuedBy(request.issuedBy());
+        cert.setYearIssued(request.yearIssued());
+        cert.setCertUrl(request.certUrl());
+        cert = certificationRepository.save(cert);
+        return toCertificationResponse(cert);
+    }
+
+    @Transactional
+    public void deleteCertification(UUID userId, UUID certId) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        DeveloperCertification cert = certificationRepository.findById(certId)
+                .orElseThrow(() -> new ResourceNotFoundException("Certification not found"));
+        if (!cert.getDeveloperId().equals(profile.getId())) {
+            throw new BadRequestException("Certification does not belong to this profile");
+        }
+        certificationRepository.delete(cert);
+    }
+
+    // ----------------------------------------------------------------
+    // OSS Contributions
+    // ----------------------------------------------------------------
+
+    @Transactional
+    public UserDtos.OssContributionResponse addOssContribution(UUID userId, UserDtos.AddOssContributionRequest request) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        DeveloperOssContribution oss = new DeveloperOssContribution();
+        oss.setDeveloperId(profile.getId());
+        oss.setProjectName(request.projectName());
+        oss.setContributionUrl(request.contributionUrl());
+        oss.setDescription(request.description());
+        oss = ossRepository.save(oss);
+        return toOssResponse(oss);
+    }
+
+    @Transactional
+    public void deleteOssContribution(UUID userId, UUID ossId) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        DeveloperOssContribution oss = ossRepository.findById(ossId)
+                .orElseThrow(() -> new ResourceNotFoundException("OSS contribution not found"));
+        if (!oss.getDeveloperId().equals(profile.getId())) {
+            throw new BadRequestException("OSS contribution does not belong to this profile");
+        }
+        ossRepository.delete(oss);
+    }
+
+    // ----------------------------------------------------------------
+    // Achievements
+    // ----------------------------------------------------------------
+
+    @Transactional
+    public UserDtos.AchievementResponse addAchievement(UUID userId, UserDtos.AddAchievementRequest request) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        DeveloperAchievement achievement = new DeveloperAchievement();
+        achievement.setDeveloperId(profile.getId());
+        achievement.setTitle(request.title());
+        achievement.setDescription(request.description());
+        achievement.setYear(request.year());
+        achievement = achievementRepository.save(achievement);
+        return toAchievementResponse(achievement);
+    }
+
+    @Transactional
+    public void deleteAchievement(UUID userId, UUID achievementId) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        DeveloperAchievement achievement = achievementRepository.findById(achievementId)
+                .orElseThrow(() -> new ResourceNotFoundException("Achievement not found"));
+        if (!achievement.getDeveloperId().equals(profile.getId())) {
+            throw new BadRequestException("Achievement does not belong to this profile");
+        }
+        achievementRepository.delete(achievement);
+    }
+
+    // ----------------------------------------------------------------
+    // Projects
+    // ----------------------------------------------------------------
+
+    @Transactional
+    public UserDtos.DeveloperProjectResponse addProject(UUID userId, UserDtos.AddProjectRequest request) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        DeveloperProject project = new DeveloperProject();
+        project.setDeveloperId(profile.getId());
+        project.setTitle(request.title());
+        project.setDescription(request.description());
+        project.setTechStack(request.techStack());
+        project.setProjectUrl(request.projectUrl());
+        project.setRepoUrl(request.repoUrl());
+        project.setFeatured(request.isFeatured());
+        project = projectRepository.save(project);
+        return toProjectResponse(project);
+    }
+
+    @Transactional
+    public UserDtos.DeveloperProjectResponse updateProject(UUID userId, UUID projectId, UserDtos.AddProjectRequest request) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        DeveloperProject project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+        if (!project.getDeveloperId().equals(profile.getId())) {
+            throw new BadRequestException("Project does not belong to this profile");
+        }
+        project.setTitle(request.title());
+        project.setDescription(request.description());
+        project.setTechStack(request.techStack());
+        project.setProjectUrl(request.projectUrl());
+        project.setRepoUrl(request.repoUrl());
+        project.setFeatured(request.isFeatured());
+        project = projectRepository.save(project);
+        return toProjectResponse(project);
+    }
+
+    @Transactional
+    public void deleteProject(UUID userId, UUID projectId) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        DeveloperProject project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+        if (!project.getDeveloperId().equals(profile.getId())) {
+            throw new BadRequestException("Project does not belong to this profile");
+        }
+        projectRepository.delete(project);
+    }
+
+    @Transactional
+    public void toggleFeatured(UUID userId, UUID projectId) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        DeveloperProject project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+        if (!project.getDeveloperId().equals(profile.getId())) {
+            throw new BadRequestException("Project does not belong to this profile");
+        }
+        project.setFeatured(!project.isFeatured());
+        projectRepository.save(project);
+    }
+
+    // ----------------------------------------------------------------
+    // Endorsements
+    // ----------------------------------------------------------------
+
+    @Transactional
+    public UserDtos.EndorsementResponse addEndorsement(UUID authorUserId, UUID recipientProfileId, UserDtos.CreateEndorsementRequest request) {
+        DeveloperProfile recipient = profileRepository.findById(recipientProfileId)
+                .orElseThrow(() -> new ProfileNotFoundException("Developer profile not found"));
+
+        // Prevent self-endorsement
+        if (recipient.getUserId().equals(authorUserId)) {
+            throw new EndorsementNotAllowedException("You cannot endorse your own profile");
+        }
+
+        // Check author exists
+        userRepository.findById(authorUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Endorsement endorsement = new Endorsement();
+        endorsement.setRecipientId(recipientProfileId);
+        endorsement.setAuthorId(authorUserId);
+        endorsement.setContent(request.content());
+        endorsement = endorsementRepository.save(endorsement);
+
+        return toEndorsementResponse(endorsement, authorUserId);
+    }
+
+    // ----------------------------------------------------------------
+    // Public / Filtered Listings
+    // ----------------------------------------------------------------
+
+    public Page<UserDtos.DeveloperSummaryResponse> getPublicDevelopers(Pageable pageable) {
+        return profileRepository.findByProfileVisibility(ProfileVisibility.PUBLIC, pageable)
+                .map(this::toSummaryResponse);
+    }
+
+    public Page<UserDtos.DeveloperSummaryResponse> filterDevelopers(UserDtos.DeveloperFilterRequest filter, Pageable pageable) {
+        // For the initial implementation, filter by availability + public visibility
+        // Advanced multi-field filtering can be added via Specification/Criteria API
+        if (filter.availabilityStatus() != null) {
+            return profileRepository.findByAvailabilityStatusAndProfileVisibility(
+                            filter.availabilityStatus(), ProfileVisibility.PUBLIC, pageable)
+                    .map(this::toSummaryResponse);
+        }
+        return profileRepository.findByProfileVisibility(ProfileVisibility.PUBLIC, pageable)
+                .map(this::toSummaryResponse);
+    }
+
+    // ----------------------------------------------------------------
+    // Helpers
+    // ----------------------------------------------------------------
+
+    private DeveloperProfile getProfileEntityByUserId(UUID userId) {
+        return profileRepository.findByUserId(userId)
+                .orElseThrow(() -> new ProfileNotFoundException("Developer profile not found"));
+    }
+
+    private void applyCreateFields(DeveloperProfile profile, UserDtos.CreateDeveloperProfileRequest request) {
+        profile.setFirstName(request.firstName());
+        profile.setLastName(request.lastName());
+        profile.setProfilePhoto(request.profilePhoto());
+        profile.setBio(request.bio());
+        profile.setCurrentLastRole(request.currentLastRole());
+        profile.setYearsOfExperience(request.yearsOfExperience());
+        profile.setNumberOfProjects(request.numberOfProjects());
+        profile.setAvailabilityStatus(request.availabilityStatus() != null ? request.availabilityStatus() : AvailabilityStatus.NOT_AVAILABLE);
+        profile.setPreferredWorkType(request.preferredWorkType());
+        profile.setLocationCity(request.locationCity());
+        profile.setLocationCountry(request.locationCountry());
+        profile.setProfileVisibility(request.profileVisibility() != null ? request.profileVisibility() : ProfileVisibility.PUBLIC);
+        profile.setLinkedinUrl(request.linkedinUrl());
+        profile.setGithubUrl(request.githubUrl());
+        profile.setPortfolioUrl(request.portfolioUrl());
+        profile.setPublicEmail(request.publicEmail());
+        profile.setPublicPhone(request.publicPhone());
+    }
+
+    private void applyUpdateFields(DeveloperProfile profile, UserDtos.UpdateDeveloperProfileRequest request) {
+        if (request.firstName() != null) profile.setFirstName(request.firstName());
+        if (request.lastName() != null) profile.setLastName(request.lastName());
+        if (request.profilePhoto() != null) profile.setProfilePhoto(request.profilePhoto());
+        if (request.bio() != null) profile.setBio(request.bio());
+        if (request.currentLastRole() != null) profile.setCurrentLastRole(request.currentLastRole());
+        if (request.yearsOfExperience() != null) profile.setYearsOfExperience(request.yearsOfExperience());
+        profile.setNumberOfProjects(request.numberOfProjects());
+        if (request.preferredWorkType() != null) profile.setPreferredWorkType(request.preferredWorkType());
+        if (request.locationCity() != null) profile.setLocationCity(request.locationCity());
+        if (request.locationCountry() != null) profile.setLocationCountry(request.locationCountry());
+        if (request.linkedinUrl() != null) profile.setLinkedinUrl(request.linkedinUrl());
+        if (request.githubUrl() != null) profile.setGithubUrl(request.githubUrl());
+        if (request.portfolioUrl() != null) profile.setPortfolioUrl(request.portfolioUrl());
+        if (request.publicEmail() != null) profile.setPublicEmail(request.publicEmail());
+        if (request.publicPhone() != null) profile.setPublicPhone(request.publicPhone());
+    }
+
+    // ----------------------------------------------------------------
+    // Mappers
+    // ----------------------------------------------------------------
+
+    private UserDtos.DeveloperProfileResponse toFullResponse(DeveloperProfile profile) {
+        List<String> skills = skillRepository.findByDeveloperId(profile.getId())
+                .stream().map(DeveloperSkill::getSkill).toList();
+        List<String> languages = languageRepository.findByDeveloperId(profile.getId())
+                .stream().map(DeveloperLanguage::getLanguage).toList();
+        List<UserDtos.EducationResponse> education = educationRepository.findByDeveloperId(profile.getId())
+                .stream().map(this::toEducationResponse).toList();
+        List<UserDtos.CertificationResponse> certs = certificationRepository.findByDeveloperId(profile.getId())
+                .stream().map(this::toCertificationResponse).toList();
+        List<UserDtos.OssContributionResponse> oss = ossRepository.findByDeveloperId(profile.getId())
+                .stream().map(this::toOssResponse).toList();
+        List<UserDtos.AchievementResponse> achievements = achievementRepository.findByDeveloperId(profile.getId())
+                .stream().map(this::toAchievementResponse).toList();
+        List<UserDtos.DeveloperProjectResponse> projects = projectRepository.findByDeveloperId(profile.getId())
+                .stream().map(this::toProjectResponse).toList();
+
+        return new UserDtos.DeveloperProfileResponse(
+                profile.getId(), profile.getUserId(),
+                profile.getFirstName(), profile.getLastName(),
+                profile.getProfilePhoto(), profile.getBio(),
+                profile.getCurrentLastRole(), profile.getYearsOfExperience(),
+                profile.getNumberOfProjects(), profile.getAvailabilityStatus(),
+                profile.getPreferredWorkType(), profile.getLocationCity(),
+                profile.getLocationCountry(), profile.getProfileVisibility(),
+                profile.isVerified(), profile.getLinkedinUrl(),
+                profile.getGithubUrl(), profile.getPortfolioUrl(),
+                profile.getPublicEmail(), profile.getPublicPhone(),
+                skills, languages, education, certs, oss, achievements, projects,
+                profile.getCreatedAt()
+        );
+    }
+
+    private UserDtos.DeveloperSummaryResponse toSummaryResponse(DeveloperProfile profile) {
+        List<String> skills = skillRepository.findByDeveloperId(profile.getId())
+                .stream().map(DeveloperSkill::getSkill).toList();
+        return new UserDtos.DeveloperSummaryResponse(
+                profile.getId(),
+                profile.getFirstName(), profile.getLastName(),
+                profile.getProfilePhoto(), profile.getCurrentLastRole(),
+                skills, profile.getAvailabilityStatus(),
+                profile.isVerified(), profile.getLocationCity(), profile.getLocationCountry()
+        );
+    }
+
+    private UserDtos.EducationResponse toEducationResponse(DeveloperEducation e) {
+        return new UserDtos.EducationResponse(e.getId(), e.getInstitution(), e.getQualification(), e.getYearCompleted(), e.isCertification());
+    }
+
+    private UserDtos.CertificationResponse toCertificationResponse(DeveloperCertification c) {
+        return new UserDtos.CertificationResponse(c.getId(), c.getName(), c.getIssuedBy(), c.getYearIssued(), c.getCertUrl());
+    }
+
+    private UserDtos.OssContributionResponse toOssResponse(DeveloperOssContribution o) {
+        return new UserDtos.OssContributionResponse(o.getId(), o.getProjectName(), o.getContributionUrl(), o.getDescription());
+    }
+
+    private UserDtos.AchievementResponse toAchievementResponse(DeveloperAchievement a) {
+        return new UserDtos.AchievementResponse(a.getId(), a.getTitle(), a.getDescription(), a.getYear());
+    }
+
+    private UserDtos.DeveloperProjectResponse toProjectResponse(DeveloperProject p) {
+        return new UserDtos.DeveloperProjectResponse(p.getId(), p.getTitle(), p.getDescription(), p.getTechStack(), p.getProjectUrl(), p.getRepoUrl(), p.isFeatured(), p.getCreatedAt());
+    }
+
+    private UserDtos.EndorsementResponse toEndorsementResponse(Endorsement e, UUID authorUserId) {
+        User author = userRepository.findById(authorUserId).orElse(null);
+        String authorName = author != null ? author.getFullName() : "Unknown";
+        return new UserDtos.EndorsementResponse(e.getId(), e.getContent(), authorName, e.getAuthorId(), e.getCreatedAt());
+    }
+}
