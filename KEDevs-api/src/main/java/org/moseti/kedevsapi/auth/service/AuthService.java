@@ -32,6 +32,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final VerificationCodeService verificationCodeService;
     private final EmailService emailService;
+    private final GoogleOAuthService googleOAuthService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -213,11 +214,77 @@ public class AuthService {
 
     @Transactional
     public AuthResponse googleAuth(GoogleAuthRequest request) {
-        // TODO: Implement Google OAuth verification with Google API
-        // For now, throw not implemented
-        throw new org.moseti.kedevsapi.shared.exception.BadRequestException(
-                "Google OAuth integration coming soon"
-        );
+        // Verify the Google ID token
+        var tokenInfo = googleOAuthService.verifyToken(request.getIdToken());
+
+        // Check if user exists
+        var existingUser = userRepository.findByEmail(tokenInfo.getEmail());
+
+        if (existingUser.isPresent()) {
+            // User exists - log them in
+            User user = existingUser.get();
+
+            // Update Google ID if not set
+            if (user.getGoogleId() == null) {
+                user.setGoogleId(tokenInfo.getSub());
+                user.setAuthProvider(AuthProvider.GOOGLE);
+                user.setEmailVerified(true); // Google verified it
+            }
+
+            // Update last login
+            user.setLastLoginAt(LocalDateTime.now());
+            userRepository.save(user);
+
+            // Validate user can login
+            validateUserCanLogin(user);
+
+            // Generate tokens
+            String accessToken = jwtService.generateAccessToken(user.getId(), user.getEmail(), user.getRole());
+            String refreshToken = createRefreshToken(user.getId());
+
+            log.info("Google OAuth login successful for existing user: {}", user.getEmail());
+
+            return buildAuthResponse(user, accessToken, refreshToken);
+
+        } else {
+            // New user - create account
+            if (request.getRole() == null) {
+                throw new org.moseti.kedevsapi.shared.exception.BadRequestException(
+                        "Role is required for new user registration"
+                );
+            }
+
+            if (request.getRole() == Role.ADMIN) {
+                throw new org.moseti.kedevsapi.shared.exception.BadRequestException(
+                        "Cannot register as admin via Google OAuth"
+                );
+            }
+
+            User newUser = new User();
+            newUser.setEmail(tokenInfo.getEmail());
+            newUser.setFullName(tokenInfo.getName() != null ? tokenInfo.getName() : tokenInfo.getEmail());
+            newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString())); // Random password
+            newUser.setRole(request.getRole());
+            newUser.setAuthProvider(AuthProvider.GOOGLE);
+            newUser.setGoogleId(tokenInfo.getSub());
+            newUser.setEmailVerified(true); // Google already verified
+            newUser.setAccountStatus(AccountStatus.ACTIVE);
+            newUser.setApprovedByAdmin(request.getRole() == Role.DEVELOPER); // Employers need approval
+            newUser.setGracePeriodEndsAt(LocalDateTime.now().plusDays(Constants.GRACE_PERIOD_DAYS));
+
+            newUser = userRepository.save(newUser);
+
+            // Send welcome email (no verification needed)
+            emailService.sendWelcomeEmail(newUser.getEmail(), newUser.getFullName());
+
+            // Generate tokens
+            String accessToken = jwtService.generateAccessToken(newUser.getId(), newUser.getEmail(), newUser.getRole());
+            String refreshToken = createRefreshToken(newUser.getId());
+
+            log.info("Google OAuth registration successful for new user: {}", newUser.getEmail());
+
+            return buildAuthResponse(newUser, accessToken, refreshToken);
+        }
     }
 
     private String createRefreshToken(UUID userId) {
