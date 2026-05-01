@@ -12,6 +12,12 @@ import org.moseti.kedevsapi.users.exception.EndorsementNotAllowedException;
 import org.moseti.kedevsapi.users.exception.NotProAccountException;
 import org.moseti.kedevsapi.users.exception.ProfileAlreadyExistsException;
 import org.moseti.kedevsapi.users.exception.ProfileNotFoundException;
+import org.moseti.kedevsapi.forum.exception.CommentNotFoundException;
+import org.moseti.kedevsapi.forum.exception.CommentEditWindowExpiredException;
+import org.moseti.kedevsapi.forum.exception.CannotReplyToReplyException;
+import org.moseti.kedevsapi.forum.exception.CannotVoteOnOwnCommentException;
+import org.moseti.kedevsapi.forum.exception.CannotFlagOwnCommentException;
+import org.moseti.kedevsapi.forum.exception.AlreadyFlaggedCommentException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -137,6 +143,48 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleNotProAccount(NotProAccountException ex) {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(CommentNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleCommentNotFound(CommentNotFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(CommentEditWindowExpiredException.class)
+    public ResponseEntity<ApiResponse<Void>> handleCommentEditWindowExpired(CommentEditWindowExpiredException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(CannotReplyToReplyException.class)
+    public ResponseEntity<ApiResponse<Void>> handleCannotReplyToReply(CannotReplyToReplyException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(CannotVoteOnOwnCommentException.class)
+    public ResponseEntity<ApiResponse<Void>> handleCannotVoteOnOwnComment(CannotVoteOnOwnCommentException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(CannotFlagOwnCommentException.class)
+    public ResponseEntity<ApiResponse<Void>> handleCannotFlagOwnComment(CannotFlagOwnCommentException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(AlreadyFlaggedCommentException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAlreadyFlaggedComment(AlreadyFlaggedCommentException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(ex.getMessage()));
     }
 }
