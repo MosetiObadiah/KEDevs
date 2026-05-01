@@ -1,6 +1,5 @@
 package org.moseti.kedevsapi.users.service;
 
-import tools.jackson.core.JsonProcessingException;
 import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -283,7 +282,7 @@ public class EmployerProfileService {
         if (obj == null) return "{}";
         try {
             return objectMapper.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
             return "{}";
         }
     }
