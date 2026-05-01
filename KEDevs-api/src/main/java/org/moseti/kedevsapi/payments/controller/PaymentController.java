@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -24,7 +25,7 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     private UUID getCurrentUserId() {
-        return (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return (UUID) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
     }
 
     @PostMapping("/annual-membership")

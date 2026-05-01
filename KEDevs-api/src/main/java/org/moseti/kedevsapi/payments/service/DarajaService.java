@@ -1,7 +1,7 @@
 package org.moseti.kedevsapi.payments.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.moseti.kedevsapi.payments.dto.PaymentDtos.DarajaTokenResponse;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.moseti.kedevsapi.payments.dto.PaymentDtos.StkPushRequestBody;
 import org.moseti.kedevsapi.payments.dto.PaymentDtos.StkPushResponse;
 import org.moseti.kedevsapi.payments.exception.DarajaApiException;
@@ -56,18 +56,27 @@ public class DarajaService {
         );
 
         try {
-            DarajaTokenResponse response = webClient.get()
+            JsonNode response = webClient.get()
                     .uri(Constants.DARAJA_AUTH_URL)
                     .header("Authorization", "Basic " + credentials)
                     .retrieve()
-                    .bodyToMono(DarajaTokenResponse.class)
+                    .bodyToMono(JsonNode.class)
                     .block();
 
-            if (response == null || response.accessToken() == null) {
+            String token = null;
+            if (response != null) {
+                if (response.has("access_token")) {
+                    token = response.get("access_token").asText();
+                } else if (response.has("access_token ")) {
+                    token = response.get("access_token ").asText();
+                }
+            }
+
+            if (token == null) {
                 throw new DarajaApiException("Failed to retrieve Daraja access token");
             }
 
-            cachedToken = response.accessToken();
+            cachedToken = token;
             // Token expires in 3600 seconds; cache for 3500 to be safe
             tokenExpiresAt = LocalDateTime.now().plusSeconds(3500);
             return cachedToken;
