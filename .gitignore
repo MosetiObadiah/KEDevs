@@ -42,6 +42,10 @@ local.properties
 # CDT- autotools
 .autotools
 
+.env
+*.env
+/*//*env
+
 # Java annotation processor (APT)
 .factorypath
 
@@ -77,6 +81,10 @@ local.properties
 
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+
+# all markdown files
+*.md
+application.properties
 
 # Annotation Processing
 .apt_generated

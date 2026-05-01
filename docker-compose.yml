@@ -1,0 +1,16 @@
+services:
+  kedevs-db:
+    image: postgres:17-alpine
+    container_name: kedevs_postgres
+    environment:
+      POSTGRES_DB: kedevs_db
+      POSTGRES_USER: moseti
+      POSTGRES_PASSWORD: 123a456k
+    ports:
+      - "5432:5432"
+    volumes:
+      - kedevs_pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  kedevs_pgdata:
