@@ -1,7 +1,7 @@
 package org.moseti.kedevsapi.users.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JsonProcessingException;
+import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.moseti.kedevsapi.shared.enums.AvailabilityStatus;
@@ -27,13 +27,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class EmployerProfileService {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
     private final EmployerProfileRepository employerProfileRepository;
     private final DeveloperProfileRepository developerProfileRepository;
     private final SavedDeveloperSearchRepository savedSearchRepository;
     private final BookmarkedDeveloperRepository bookmarkRepository;
     private final ContactRequestRepository contactRequestRepository;
+    private final ObjectMapper objectMapper;
 
 
     // ----------------------------------------------------------------
@@ -283,7 +282,7 @@ public class EmployerProfileService {
     private String toJsonString(Object obj) {
         if (obj == null) return "{}";
         try {
-            return OBJECT_MAPPER.writeValueAsString(obj);
+            return objectMapper.writeValueAsString(obj);
         } catch (JsonProcessingException e) {
             return "{}";
         }

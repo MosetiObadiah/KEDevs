@@ -1,5 +1,6 @@
 package org.moseti.kedevsapi.users.service;
 
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,6 +36,7 @@ class EmployerProfileServiceTest {
     @Mock private SavedDeveloperSearchRepository savedSearchRepository;
     @Mock private BookmarkedDeveloperRepository bookmarkRepository;
     @Mock private ContactRequestRepository contactRequestRepository;
+    @Mock private ObjectMapper objectMapper;
 
     @InjectMocks
     private EmployerProfileService employerProfileService;
