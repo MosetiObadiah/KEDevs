@@ -5,5 +5,6 @@ public enum PaymentType {
     EMPLOYER_PRO,
     VERIFIED_BADGE,
     SPOTLIGHT_DAY,
-    SPOTLIGHT_WEEK
+    SPOTLIGHT_WEEK,
+    SEARCH_TOKEN
 }

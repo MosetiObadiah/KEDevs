@@ -1,0 +1,36 @@
+access token
+eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJkMWNiYmVhYi0wNmE3LTQzMmQtYmVmMi1kZTczMDFkNzg4YzQiLCJlbWFpbCI6ImRldkBrZWRldnMuY29tIiwicm9sZSI6IkRFVkVMT1BFUiIsImlhdCI6MTc3NzYzODI2MiwiZXhwIjoxNzc3NjQxODYyfQ.YBevS4v0F2kHPaTMvz1yz3oibN1iRp0mjpgHxx8OK_9Tq9G7iNnjiJH1qfuER6i52g0Cowx_zHxSLGCz_JpVmA
+
+email
+dev@kedevs.com
+
+pass
+123v456t
+
+userId
+d1cbbeab-06a7-432d-bef2-de7301d788c4
+
+verification code
+545995
+
+curl -X POST http://localhost:8080/api/v1/auth/verify-email/d1cbbeab-06a7-432d-bef2-de7301d788c4 \
+  -H "Content-Type: application/json" \
+  -d '{"code": "545995"}'
+  
+curl -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "dev@kedevs.com",
+    "password": "123v456t"
+  }'
+  
+  
+Login access token
+eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJkMWNiYmVhYi0wNmE3LTQzMmQtYmVmMi1kZTczMDFkNzg4YzQiLCJlbWFpbCI6ImRldkBrZWRldnMuY29tIiwicm9sZSI6IkRFVkVMT1BFUiIsImlhdCI6MTc3NzYzODY5OCwiZXhwIjoxNzc3NjQyMjk4fQ.YaZqktfE15OETw7Cv0xiXfalP0yFPk82C5XIKRywYqrv4vM0LSvI1PyD57vZFoqtLrmm7t2oGVRMgCW2zp0F_w
+
+
+initiate annual membership test
+curl -X POST http://localhost:8080/api/v1/payments/annual-membership \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJkMWNiYmVhYi0wNmE3LTQzMmQtYmVmMi1kZTczMDFkNzg4YzQiLCJlbWFpbCI6ImRldkBrZWRldnMuY29tIiwicm9sZSI6IkRFVkVMT1BFUiIsImlhdCI6MTc3NzYzODY5OCwiZXhwIjoxNzc3NjQyMjk4fQ.YaZqktfE15OETw7Cv0xiXfalP0yFPk82C5XIKRywYqrv4vM0LSvI1PyD57vZFoqtLrmm7t2oGVRMgCW2zp0F_w" \
+  -d '{"phoneNumber": "0708374149"}'

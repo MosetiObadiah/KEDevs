@@ -29,4 +29,21 @@ public class Constants {
     // Profile
     public static final int MAX_BIO_LENGTH = 300;
     public static final int MAX_ENDORSEMENT_LENGTH = 200;
+
+    // Pricing (loaded from platform_settings at runtime, these are fallback defaults only)
+    public static final int DEFAULT_DEVELOPER_ANNUAL_FEE = 100;
+    public static final int DEFAULT_EMPLOYER_ANNUAL_FEE = 200;
+    public static final int DEFAULT_EMPLOYER_PRO_ANNUAL_FEE = 2000;
+    public static final int DEFAULT_VERIFIED_BADGE_DEVELOPER = 250;
+    public static final int DEFAULT_VERIFIED_BADGE_EMPLOYER = 400;
+    public static final int DEFAULT_SPOTLIGHT_DAY_FEE = 100;
+    public static final int DEFAULT_SPOTLIGHT_WEEK_FEE = 400;
+    public static final int DEFAULT_SEARCH_TOKEN_FEE = 500;
+    public static final int DEFAULT_SEARCH_TOKEN_USES = 3;
+
+    // Daraja
+    public static final String DARAJA_AUTH_URL =
+            "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials";
+    public static final String DARAJA_STK_PUSH_URL =
+            "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest";
 }

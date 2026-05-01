@@ -51,4 +51,7 @@ public class EmployerProfile extends BaseEntity {
 
     @Column(name = "is_pro_account", nullable = false)
     private boolean isProAccount = false;
+
+    @Column(name = "is_verified", nullable = false)
+    private boolean isVerified = false;
 }

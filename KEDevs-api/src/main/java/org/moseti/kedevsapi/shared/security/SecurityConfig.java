@@ -29,6 +29,8 @@ public class SecurityConfig {
             "/api/v1/jobs/external",
             "/api/v1/developers/public",
             "/api/v1/spotlight/current",
+            "/api/v1/payments/callback",
+            "/api/v1/payments/settings",
             "/actuator/health"
     };
 

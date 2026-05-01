@@ -18,6 +18,13 @@ import org.moseti.kedevsapi.forum.exception.CannotReplyToReplyException;
 import org.moseti.kedevsapi.forum.exception.CannotVoteOnOwnCommentException;
 import org.moseti.kedevsapi.forum.exception.CannotFlagOwnCommentException;
 import org.moseti.kedevsapi.forum.exception.AlreadyFlaggedCommentException;
+import org.moseti.kedevsapi.payments.exception.AlreadySubscribedException;
+import org.moseti.kedevsapi.payments.exception.AlreadyVerifiedException;
+import org.moseti.kedevsapi.payments.exception.DarajaApiException;
+import org.moseti.kedevsapi.payments.exception.InsufficientSearchTokensException;
+import org.moseti.kedevsapi.payments.exception.PaymentAlreadyProcessedException;
+import org.moseti.kedevsapi.payments.exception.PaymentNotFoundException;
+import org.moseti.kedevsapi.payments.exception.PaywallException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -186,5 +193,54 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(PaymentNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handlePaymentNotFound(PaymentNotFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(PaymentAlreadyProcessedException.class)
+    public ResponseEntity<ApiResponse<Void>> handlePaymentAlreadyProcessed(PaymentAlreadyProcessedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(AlreadySubscribedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAlreadySubscribed(AlreadySubscribedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(AlreadyVerifiedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAlreadyVerified(AlreadyVerifiedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(PaywallException.class)
+    public ResponseEntity<ApiResponse<Void>> handlePaywall(PaywallException ex) {
+        return ResponseEntity
+                .status(HttpStatus.PAYMENT_REQUIRED)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(InsufficientSearchTokensException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInsufficientSearchTokens(InsufficientSearchTokensException ex) {
+        return ResponseEntity
+                .status(HttpStatus.PAYMENT_REQUIRED)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(DarajaApiException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDarajaApi(DarajaApiException ex) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Payment service unavailable. Please try again."));
     }
 }
