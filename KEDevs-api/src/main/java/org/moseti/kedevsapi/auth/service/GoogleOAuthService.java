@@ -16,6 +16,9 @@ public class GoogleOAuthService {
     private static final String GOOGLE_TOKEN_INFO_URL = "https://oauth2.googleapis.com/tokeninfo";
     private final WebClient.Builder webClientBuilder;
 
+    @org.springframework.beans.factory.annotation.Value("${spring.security.oauth2.client.registration.google.client-id}")
+    private String googleClientId;
+
     /**
      * Verify Google ID token and extract user information
      * @param idToken The Google ID token to verify
@@ -47,15 +50,17 @@ public class GoogleOAuthService {
             log.info("Successfully verified Google token for email: {}", tokenInfo.getEmail());
             return tokenInfo;
 
-        } catch (WebClientResponseException.BadRequest e) {
-            log.error("Invalid Google token: {}", e.getMessage());
-            throw new InvalidTokenException("Invalid Google ID token");
         } catch (WebClientResponseException e) {
-            log.error("Google API error: {} - {}", e.getStatusCode(), e.getMessage());
+            log.error("Google API error: {} - {} - Response: {}", 
+                e.getStatusCode(), e.getMessage(), e.getResponseBodyAsString());
+            
+            if (e.getStatusCode().is4xxClientError()) {
+                throw new InvalidTokenException("Invalid Google ID token or credentials");
+            }
             throw new RuntimeException("Google authentication service unavailable", e);
         } catch (Exception e) {
             log.error("Unexpected error verifying Google token", e);
-            throw new RuntimeException("Failed to verify Google token", e);
+            throw new RuntimeException("Failed to verify Google token: " + e.getMessage(), e);
         }
     }
 
@@ -66,7 +71,8 @@ public class GoogleOAuthService {
         }
 
         // Verify email is verified by Google
-        if (!"true".equalsIgnoreCase(tokenInfo.getEmailVerified())) {
+        String isVerified = String.valueOf(tokenInfo.getEmailVerified());
+        if (!"true".equalsIgnoreCase(isVerified)) {
             throw new InvalidTokenException("Google email is not verified");
         }
 
@@ -75,6 +81,13 @@ public class GoogleOAuthService {
         if (issuer == null ||
             (!issuer.equals("accounts.google.com") && !issuer.equals("https://accounts.google.com"))) {
             throw new InvalidTokenException("Invalid token issuer");
+        }
+
+        // Verify audience (must match our client ID)
+        if (googleClientId != null && !googleClientId.isEmpty() &&
+            !googleClientId.equals(tokenInfo.getAudience())) {
+            log.error("Google token audience mismatch. Expected: {}, Got: {}", googleClientId, tokenInfo.getAudience());
+            throw new InvalidTokenException("Token audience mismatch");
         }
 
         log.debug("Google token validated: email={}, sub={}", tokenInfo.getEmail(), tokenInfo.getSub());

@@ -7,6 +7,8 @@ import lombok.Data;
  * Response from Google's tokeninfo endpoint
  */
 @Data
+@lombok.NoArgsConstructor
+@lombok.AllArgsConstructor
 public class GoogleTokenInfo {
 
     @JsonProperty("sub")
@@ -19,7 +21,7 @@ public class GoogleTokenInfo {
     private String name;
 
     @JsonProperty("email_verified")
-    private String emailVerified; // String "true" or "false"
+    private Object emailVerified; // Can be Boolean or String "true"/"false"
 
     @JsonProperty("picture")
     private String picture;

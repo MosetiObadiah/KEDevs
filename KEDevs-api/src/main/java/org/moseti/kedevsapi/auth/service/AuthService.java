@@ -222,13 +222,16 @@ public class AuthService {
 
     @Transactional
     public AuthResponse googleAuth(GoogleAuthRequest request) {
+        log.info("Starting Google authentication flow...");
         // Verify the Google ID token
         var tokenInfo = googleOAuthService.verifyToken(request.getIdToken());
+        log.info("Google token verified for email: {}", tokenInfo.getEmail());
 
         // Check if user exists
         var existingUser = userRepository.findByEmail(tokenInfo.getEmail());
 
         if (existingUser.isPresent()) {
+            log.info("Linking existing user account for: {}", tokenInfo.getEmail());
             // User exists - log them in
             User user = existingUser.get();
 
@@ -280,7 +283,9 @@ public class AuthService {
             newUser.setApprovedByAdmin(request.getRole() == Role.DEVELOPER); // Employers need approval
             newUser.setGracePeriodEndsAt(LocalDateTime.now().plusDays(Constants.GRACE_PERIOD_DAYS));
 
-            newUser = userRepository.save(newUser);
+            log.info("Saving new Google user: {}", newUser.getEmail());
+        newUser = userRepository.save(newUser);
+        log.info("New Google user saved with ID: {}", newUser.getId());
 
             // Send welcome email (no verification needed)
             emailService.sendWelcomeEmail(newUser.getEmail(), newUser.getFullName());
