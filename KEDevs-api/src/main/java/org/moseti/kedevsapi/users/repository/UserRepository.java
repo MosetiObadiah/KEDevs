@@ -19,5 +19,19 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     boolean existsByEmail(String email);
 
     List<User> findByRole(Role role);
+
+    long countByRole(Role role);
+
+    long countByCreatedAtAfter(java.time.LocalDateTime since);
+
+    long countByRoleAndCreatedAtAfter(Role role, java.time.LocalDateTime since);
+
+    @org.springframework.data.jpa.repository.Query("SELECT CAST(u.createdAt AS DATE) as signupDate, " +
+            "COUNT(u) as total, " +
+            "SUM(CASE WHEN u.role = 'DEVELOPER' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN u.role = 'EMPLOYER' THEN 1 ELSE 0 END) " +
+            "FROM User u WHERE u.createdAt >= :since " +
+            "GROUP BY CAST(u.createdAt AS DATE) ORDER BY signupDate ASC")
+    List<Object[]> findSignupTrends(@org.springframework.data.repository.query.Param("since") java.time.LocalDateTime since);
 }
 

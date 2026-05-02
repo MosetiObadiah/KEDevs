@@ -23,4 +23,10 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
     List<Subscription> findByEndDateBetweenAndStatus(LocalDateTime from, LocalDateTime to, SubscriptionStatus status);
 
     boolean existsByUserIdAndTypeAndStatus(UUID userId, SubscriptionType type, SubscriptionStatus status);
+
+    long countByStatus(SubscriptionStatus status);
+
+    long countByTypeAndStatus(SubscriptionType type, SubscriptionStatus status);
+
+    long countByStatusAndEndDateBetween(SubscriptionStatus status, LocalDateTime from, LocalDateTime to);
 }

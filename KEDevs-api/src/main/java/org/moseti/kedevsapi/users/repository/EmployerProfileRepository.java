@@ -16,4 +16,8 @@ public interface EmployerProfileRepository extends JpaRepository<EmployerProfile
     boolean existsByUserId(UUID userId);
 
     List<EmployerProfile> findByIsApproved(boolean approved);
+
+    long countByIsApprovedFalse();
+
+    org.springframework.data.domain.Page<EmployerProfile> findByIsApprovedFalse(org.springframework.data.domain.Pageable pageable);
 }

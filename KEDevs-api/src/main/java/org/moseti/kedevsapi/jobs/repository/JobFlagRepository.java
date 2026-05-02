@@ -14,4 +14,6 @@ public interface JobFlagRepository extends JpaRepository<JobFlag, UUID> {
     Page<JobFlag> findByStatus(FlagStatus status, Pageable pageable);
     boolean existsByJobIdAndFlaggedById(UUID jobId, UUID flaggedById);
     int countByJobIdAndStatus(UUID jobId, FlagStatus status);
+
+    long countByStatus(FlagStatus status);
 }

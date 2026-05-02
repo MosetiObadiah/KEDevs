@@ -21,4 +21,15 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     Page<Payment> findByUserIdAndType(UUID userId, PaymentType type, Pageable pageable);
 
     Page<Payment> findByStatus(PaymentStatus status, Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.status = 'COMPLETED'")
+    java.math.BigDecimal getTotalRevenue();
+
+    @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.status = 'COMPLETED' AND p.createdAt >= :since")
+    java.math.BigDecimal getRevenueAfter(@org.springframework.data.repository.query.Param("since") java.time.LocalDateTime since);
+
+    @org.springframework.data.jpa.repository.Query("SELECT p.type, COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.status = 'COMPLETED' GROUP BY p.type")
+    java.util.List<Object[]> getRevenueByType();
+
+    long countByStatus(PaymentStatus status);
 }

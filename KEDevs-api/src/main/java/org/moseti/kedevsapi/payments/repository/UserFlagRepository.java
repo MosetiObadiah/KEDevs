@@ -18,4 +18,6 @@ public interface UserFlagRepository extends JpaRepository<UserFlag, UUID> {
     Page<UserFlag> findByStatus(UserFlagStatus status, Pageable pageable);
 
     boolean existsByFlaggedUserIdAndFlaggedById(UUID flaggedUserId, UUID flaggedById);
+
+    long countByStatus(UserFlagStatus status);
 }

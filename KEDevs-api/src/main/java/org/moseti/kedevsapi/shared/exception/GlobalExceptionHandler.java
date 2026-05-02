@@ -30,6 +30,9 @@ import org.moseti.kedevsapi.spotlight.exception.SpotlightAlreadyActiveException;
 import org.moseti.kedevsapi.spotlight.exception.SpotlightPaymentMismatchException;
 import org.moseti.kedevsapi.spotlight.exception.SpotlightSlotNotFoundException;
 import org.moseti.kedevsapi.notifications.exception.NotificationNotFoundException;
+import org.moseti.kedevsapi.admin.exception.CannotActionAdminException;
+import org.moseti.kedevsapi.admin.exception.InvalidAdminActionException;
+import org.moseti.kedevsapi.admin.exception.SettingNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -279,6 +282,27 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NotificationNotFoundException.class)
     public ResponseEntity<ApiResponse<Void>> handleNotificationNotFound(NotificationNotFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(CannotActionAdminException.class)
+    public ResponseEntity<ApiResponse<Void>> handleCannotActionAdmin(CannotActionAdminException ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidAdminActionException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidAdminAction(InvalidAdminActionException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(SettingNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleSettingNotFound(SettingNotFoundException ex) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.error(ex.getMessage()));

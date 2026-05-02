@@ -25,4 +25,14 @@ public interface ForumCommentRepository extends JpaRepository<ForumComment, UUID
     int countByParentCommentIdAndIsHiddenFalse(UUID parentCommentId);
 
     Optional<ForumComment> findByIdAndAuthorId(UUID id, UUID authorId);
+
+    long countByCreatedAtAfter(java.time.LocalDateTime since);
+
+    long countByIsHiddenTrue();
+
+    long countByIsFlaggedTrue();
+
+    @org.springframework.data.jpa.repository.Query("SELECT fc.jobId, COUNT(fc) as cnt FROM ForumComment fc " +
+            "WHERE fc.isHidden = false GROUP BY fc.jobId ORDER BY cnt DESC")
+    java.util.List<Object[]> findMostActiveJob(Pageable pageable);
 }
