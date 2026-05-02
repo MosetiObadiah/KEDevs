@@ -1,8 +1,12 @@
 package org.moseti.kedevsapi.users.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.moseti.kedevsapi.shared.dto.ApiResponse;
 import org.moseti.kedevsapi.shared.enums.ContactRequestStatus;
 import org.moseti.kedevsapi.users.dto.UserDtos;
 import org.moseti.kedevsapi.users.service.EmployerProfileService;
@@ -20,142 +24,206 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/employers")
 @RequiredArgsConstructor
+@Tag(name = "Employer Profiles")
 public class EmployerController {
 
     private final EmployerProfileService employerProfileService;
 
-    // POST /api/v1/employers/profile
+    @Operation(summary = "Create employer profile", description = "Requires EMPLOYER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Profile created successfully"),
+        @ApiResponse(responseCode = "400", description = "Profile already exists or validation error"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+    })
     @PostMapping("/profile")
     @PreAuthorize("hasRole('EMPLOYER')")
-    public ResponseEntity<ApiResponse<UserDtos.EmployerProfileResponse>> createProfile(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.EmployerProfileResponse>> createProfile(
             Authentication authentication,
             @Valid @RequestBody UserDtos.CreateEmployerProfileRequest request) {
         UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("Employer profile created",
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Employer profile created",
                 employerProfileService.createProfile(userId, request)));
     }
 
-    // GET /api/v1/employers/profile/me
+    @Operation(summary = "Get own employer profile", description = "Requires EMPLOYER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Profile retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "404", description = "Profile not found")
+    })
     @GetMapping("/profile/me")
     @PreAuthorize("hasRole('EMPLOYER')")
-    public ResponseEntity<ApiResponse<UserDtos.EmployerProfileResponse>> getMyProfile(Authentication authentication) {
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.EmployerProfileResponse>> getMyProfile(Authentication authentication) {
         UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("Profile retrieved",
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Profile retrieved",
                 employerProfileService.getProfileByUserId(userId)));
     }
 
-    // PUT /api/v1/employers/profile
+    @Operation(summary = "Update employer profile", description = "Requires EMPLOYER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Profile updated successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "404", description = "Profile not found")
+    })
     @PutMapping("/profile")
     @PreAuthorize("hasRole('EMPLOYER')")
-    public ResponseEntity<ApiResponse<UserDtos.EmployerProfileResponse>> updateProfile(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.EmployerProfileResponse>> updateProfile(
             Authentication authentication,
             @Valid @RequestBody UserDtos.UpdateEmployerProfileRequest request) {
         UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("Profile updated",
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Profile updated",
                 employerProfileService.updateProfile(userId, request)));
     }
 
-    // POST /api/v1/employers/searches (EMPLOYER PRO only)
+    @Operation(summary = "Save a filter search (Pro)", description = "Requires EMPLOYER PRO status.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Search saved successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "403", description = "Requires Pro account")
+    })
     @PostMapping("/searches")
     @PreAuthorize("hasRole('EMPLOYER') and @employerProfileService.isProAccount(authentication.principal)")
-    public ResponseEntity<ApiResponse<UserDtos.SavedSearchResponse>> saveSearch(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.SavedSearchResponse>> saveSearch(
             Authentication authentication,
             @Valid @RequestBody UserDtos.SaveSearchRequest request) {
         UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("Search saved",
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Search saved",
                 employerProfileService.saveSearch(userId, request)));
     }
 
-    // GET /api/v1/employers/searches (EMPLOYER PRO only)
+    @Operation(summary = "List saved filter searches (Pro)", description = "Requires EMPLOYER PRO status.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Searches retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "403", description = "Requires Pro account")
+    })
     @GetMapping("/searches")
     @PreAuthorize("hasRole('EMPLOYER') and @employerProfileService.isProAccount(authentication.principal)")
-    public ResponseEntity<ApiResponse<List<UserDtos.SavedSearchResponse>>> getSavedSearches(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<List<UserDtos.SavedSearchResponse>>> getSavedSearches(
             Authentication authentication) {
         UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("Searches retrieved",
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Searches retrieved",
                 employerProfileService.getSavedSearches(userId)));
     }
 
-    // DELETE /api/v1/employers/searches/{id} (EMPLOYER PRO only)
+    @Operation(summary = "Delete a saved search (Pro)", description = "Requires EMPLOYER PRO status.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Search deleted successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "403", description = "Requires Pro account"),
+        @ApiResponse(responseCode = "404", description = "Search not found")
+    })
     @DeleteMapping("/searches/{id}")
     @PreAuthorize("hasRole('EMPLOYER') and @employerProfileService.isProAccount(authentication.principal)")
-    public ResponseEntity<ApiResponse<Void>> deleteSavedSearch(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> deleteSavedSearch(
             Authentication authentication,
-            @PathVariable UUID id) {
+            @Parameter(description = "ID of the saved search") @PathVariable UUID id) {
         UUID userId = (UUID) authentication.getPrincipal();
         employerProfileService.deleteSavedSearch(userId, id);
-        return ResponseEntity.ok(ApiResponse.success("Search deleted"));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Search deleted"));
     }
 
-    // POST /api/v1/employers/bookmarks/{developerId} (EMPLOYER PRO only)
+    @Operation(summary = "Bookmark a developer (Pro)", description = "Requires EMPLOYER PRO status.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Developer bookmarked successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "403", description = "Requires Pro account")
+    })
     @PostMapping("/bookmarks/{developerId}")
     @PreAuthorize("hasRole('EMPLOYER') and @employerProfileService.isProAccount(authentication.principal)")
-    public ResponseEntity<ApiResponse<UserDtos.BookmarkResponse>> bookmarkDeveloper(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.BookmarkResponse>> bookmarkDeveloper(
             Authentication authentication,
-            @PathVariable UUID developerId) {
+            @Parameter(description = "ID of the developer profile to bookmark") @PathVariable UUID developerId) {
         UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("Developer bookmarked",
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Developer bookmarked",
                 employerProfileService.bookmarkDeveloper(userId, developerId)));
     }
 
-    // DELETE /api/v1/employers/bookmarks/{developerId} (EMPLOYER PRO only)
+    @Operation(summary = "Remove a bookmark (Pro)", description = "Requires EMPLOYER PRO status.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Bookmark removed successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "403", description = "Requires Pro account"),
+        @ApiResponse(responseCode = "404", description = "Bookmark not found")
+    })
     @DeleteMapping("/bookmarks/{developerId}")
     @PreAuthorize("hasRole('EMPLOYER') and @employerProfileService.isProAccount(authentication.principal)")
-    public ResponseEntity<ApiResponse<Void>> removeBookmark(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> removeBookmark(
             Authentication authentication,
-            @PathVariable UUID developerId) {
+            @Parameter(description = "ID of the developer profile to un-bookmark") @PathVariable UUID developerId) {
         UUID userId = (UUID) authentication.getPrincipal();
         employerProfileService.removeBookmark(userId, developerId);
-        return ResponseEntity.ok(ApiResponse.success("Bookmark removed"));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Bookmark removed"));
     }
 
-    // GET /api/v1/employers/bookmarks (EMPLOYER PRO only)
+    @Operation(summary = "List bookmarked developers (Pro)", description = "Requires EMPLOYER PRO status.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Bookmarks retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "403", description = "Requires Pro account")
+    })
     @GetMapping("/bookmarks")
     @PreAuthorize("hasRole('EMPLOYER') and @employerProfileService.isProAccount(authentication.principal)")
-    public ResponseEntity<ApiResponse<Page<UserDtos.BookmarkResponse>>> getBookmarks(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<UserDtos.BookmarkResponse>>> getBookmarks(
             Authentication authentication,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         UUID userId = (UUID) authentication.getPrincipal();
         Pageable pageable = PageRequest.of(page, Math.min(size, 50));
-        return ResponseEntity.ok(ApiResponse.success("Bookmarks retrieved",
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Bookmarks retrieved",
                 employerProfileService.getBookmarks(userId, pageable)));
     }
 
-    // POST /api/v1/employers/contact/{developerId} (EMPLOYER PRO only)
+    @Operation(summary = "Send contact request to developer (Pro)", description = "Requires EMPLOYER PRO status.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Contact request sent successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "403", description = "Requires Pro account"),
+        @ApiResponse(responseCode = "429", description = "Daily contact limit exceeded")
+    })
     @PostMapping("/contact/{developerId}")
     @PreAuthorize("hasRole('EMPLOYER') and @employerProfileService.isProAccount(authentication.principal)")
-    public ResponseEntity<ApiResponse<UserDtos.ContactRequestResponse>> sendContactRequest(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.ContactRequestResponse>> sendContactRequest(
             Authentication authentication,
-            @PathVariable UUID developerId,
+            @Parameter(description = "ID of the developer to contact") @PathVariable UUID developerId,
             @Valid @RequestBody UserDtos.ContactRequestDto request) {
         UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("Contact request sent",
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Contact request sent",
                 employerProfileService.sendContactRequest(userId, developerId, request)));
     }
 
-    // GET /api/v1/employers/contact/requests (DEVELOPER only)
+    @Operation(summary = "List received contact requests", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Contact requests retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    })
     @GetMapping("/contact/requests")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<ApiResponse<Page<UserDtos.ContactRequestResponse>>> getContactRequests(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<UserDtos.ContactRequestResponse>>> getContactRequests(
             Authentication authentication,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         UUID userId = (UUID) authentication.getPrincipal();
         Pageable pageable = PageRequest.of(page, Math.min(size, 50));
-        return ResponseEntity.ok(ApiResponse.success("Contact requests retrieved",
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Contact requests retrieved",
                 employerProfileService.getContactRequests(userId, pageable)));
     }
 
-    // PATCH /api/v1/employers/contact/requests/{id} (DEVELOPER only)
+    @Operation(summary = "Respond to a contact request", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Response recorded successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "404", description = "Contact request not found")
+    })
     @PatchMapping("/contact/requests/{id}")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<ApiResponse<UserDtos.ContactRequestResponse>> respondToContactRequest(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.ContactRequestResponse>> respondToContactRequest(
             Authentication authentication,
-            @PathVariable UUID id,
+            @Parameter(description = "ID of the contact request") @PathVariable UUID id,
             @RequestParam ContactRequestStatus status) {
         UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("Response recorded",
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Response recorded",
                 employerProfileService.respondToContactRequest(userId, id, status)));
     }
 }

@@ -1,5 +1,6 @@
 package org.moseti.kedevsapi.admin.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.moseti.kedevsapi.shared.enums.AccountStatus;
@@ -18,41 +19,41 @@ public class AdminDtos {
 
     // Request DTOs
     public record ApproveEmployerRequest(
-            @NotNull boolean approved,
-            String notes
+            @NotNull @Schema(description = "Whether to approve the employer", example = "true") boolean approved,
+            @Schema(description = "Optional notes for the approval/rejection", example = "Company details verified.") String notes
     ) {}
 
     public record UserActionRequest(
-            @NotBlank String action,
-            @NotBlank String notes
+            @NotBlank @Schema(description = "Action to perform on user", allowableValues = {"WARN", "SUSPEND", "BAN", "UNBAN"}, example = "BAN") String action,
+            @NotBlank @Schema(description = "Reason for the action", example = "Violation of terms.") String notes
     ) {}
 
     public record ReviewJobFlagRequest(
-            @NotBlank String outcome,
-            @NotBlank String notes
+            @NotBlank @Schema(description = "Outcome of the review", allowableValues = {"LEGITIMATE", "REMOVED"}, example = "LEGITIMATE") String outcome,
+            @NotBlank @Schema(description = "Review notes", example = "The job post is valid and follows guidelines.") String notes
     ) {}
 
     public record ReviewUserFlagRequest(
-            @NotBlank String outcome,
-            @NotBlank String notes
+            @NotBlank @Schema(description = "Outcome of the review", allowableValues = {"CLEARED", "WARNED", "SUSPENDED", "BANNED"}, example = "WARNED") String outcome,
+            @NotBlank @Schema(description = "Review notes", example = "User warned about behavior.") String notes
     ) {}
 
     public record ReviewCommentFlagRequest(
-            @NotBlank String outcome,
-            @NotBlank String notes
+            @NotBlank @Schema(description = "Outcome of the review", allowableValues = {"KEPT", "REMOVED"}, example = "KEPT") String outcome,
+            @NotBlank @Schema(description = "Review notes", example = "Comment does not violate policies.") String notes
     ) {}
 
     public record BadgeActionRequest(
-            @NotBlank String action,
-            @NotBlank String notes
+            @NotBlank @Schema(description = "Action to perform on badge", allowableValues = {"GRANT", "REVOKE"}, example = "GRANT") String action,
+            @NotBlank @Schema(description = "Reason for the action", example = "Developer has been verified.") String notes
     ) {}
 
     public record UpdateSettingRequest(
-            @NotBlank String settingValue
+            @NotBlank @Schema(description = "New value for the setting", example = "5000.00") String settingValue
     ) {}
 
     public record AdminOverrideSpotlightRequest(
-            @NotBlank String reason
+            @NotBlank @Schema(description = "Reason for override", example = "Content is inappropriate.") String reason
     ) {}
 
     // Response DTOs

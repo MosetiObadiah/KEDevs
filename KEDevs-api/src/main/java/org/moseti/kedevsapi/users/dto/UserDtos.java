@@ -1,5 +1,6 @@
 package org.moseti.kedevsapi.users.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.moseti.kedevsapi.shared.enums.AvailabilityStatus;
@@ -14,138 +15,139 @@ public class UserDtos {
     // =========================================================
 
     public record CreateDeveloperProfileRequest(
-            @NotBlank(message = "First name is required") String firstName,
-            @NotBlank(message = "Last name is required") String lastName,
-            String profilePhoto,
-            @Size(max = 300, message = "Bio cannot exceed 300 characters") String bio,
-            String currentLastRole,
-            YearsOfExperience yearsOfExperience,
-            int numberOfProjects,
-            AvailabilityStatus availabilityStatus,
-            WorkType preferredWorkType,
-            String locationCity,
-            String locationCountry,
-            ProfileVisibility profileVisibility,
-            String linkedinUrl,
-            String githubUrl,
-            String portfolioUrl,
-            String publicEmail,
-            String publicPhone
+            @NotBlank(message = "First name is required") @Schema(description = "Developer's first name", example = "Jane") String firstName,
+            @NotBlank(message = "Last name is required") @Schema(description = "Developer's last name", example = "Doe") String lastName,
+            @Schema(description = "URL to profile photo", example = "https://example.com/photo.jpg") String profilePhoto,
+            @Size(max = 300, message = "Bio cannot exceed 300 characters") @Schema(description = "Short biography", example = "Full-stack developer with a passion for Java.") String bio,
+            @Schema(description = "Current or last job title", example = "Senior Software Engineer") String currentLastRole,
+            @Schema(description = "Years of professional experience", example = "FIVE_PLUS") YearsOfExperience yearsOfExperience,
+            @Schema(description = "Total number of completed projects", example = "12") int numberOfProjects,
+            @Schema(description = "Current availability status", example = "AVAILABLE_NOW") AvailabilityStatus availabilityStatus,
+            @Schema(description = "Preferred work arrangement", example = "REMOTE") WorkType preferredWorkType,
+            @Schema(description = "City of residence", example = "Nairobi") String locationCity,
+            @Schema(description = "Country of residence", example = "Kenya") String locationCountry,
+            @Schema(description = "Who can see the profile", example = "PUBLIC") ProfileVisibility profileVisibility,
+            @Schema(description = "LinkedIn profile URL", example = "https://linkedin.com/in/janedoe") String linkedinUrl,
+            @Schema(description = "GitHub profile URL", example = "https://github.com/janedoe") String githubUrl,
+            @Schema(description = "Portfolio website URL", example = "https://janedoe.dev") String portfolioUrl,
+            @Schema(description = "Public contact email", example = "jane.public@example.com") String publicEmail,
+            @Schema(description = "Public contact phone", example = "+254712345678") String publicPhone
     ) {}
 
     public record UpdateDeveloperProfileRequest(
-            String firstName,
-            String lastName,
-            String profilePhoto,
-            @Size(max = 300, message = "Bio cannot exceed 300 characters") String bio,
-            String currentLastRole,
-            YearsOfExperience yearsOfExperience,
-            int numberOfProjects,
-            WorkType preferredWorkType,
-            String locationCity,
-            String locationCountry,
-            String linkedinUrl,
-            String githubUrl,
-            String portfolioUrl,
-            String publicEmail,
-            String publicPhone
+            @Schema(description = "Developer's first name", example = "Jane") String firstName,
+            @Schema(description = "Developer's last name", example = "Doe") String lastName,
+            @Schema(description = "URL to profile photo", example = "https://example.com/photo.jpg") String profilePhoto,
+            @Size(max = 300, message = "Bio cannot exceed 300 characters") @Schema(description = "Short biography", example = "Updated bio.") String bio,
+            @Schema(description = "Current or last job title", example = "Lead Developer") String currentLastRole,
+            @Schema(description = "Years of professional experience", example = "TEN_PLUS") YearsOfExperience yearsOfExperience,
+            @Schema(description = "Total number of completed projects", example = "15") int numberOfProjects,
+            @Schema(description = "Preferred work arrangement", example = "HYBRID") WorkType preferredWorkType,
+            @Schema(description = "City of residence", example = "Mombasa") String locationCity,
+            @Schema(description = "Country of residence", example = "Kenya") String locationCountry,
+            @Schema(description = "LinkedIn profile URL", example = "https://linkedin.com/in/janedoe") String linkedinUrl,
+            @Schema(description = "GitHub profile URL", example = "https://github.com/janedoe") String githubUrl,
+            @Schema(description = "Portfolio website URL", example = "https://janedoe.dev") String portfolioUrl,
+            @Schema(description = "Public contact email", example = "jane.new@example.com") String publicEmail,
+            @Schema(description = "Public contact phone", example = "+254712345679") String publicPhone
     ) {}
 
     public record AddSkillRequest(
-            @NotBlank(message = "Skill cannot be blank") String skill
+            @NotBlank(message = "Skill cannot be blank") @Schema(description = "Name of the skill", example = "Spring Boot") String skill
     ) {}
 
     public record AddLanguageRequest(
-            @NotBlank(message = "Language cannot be blank") String language
+            @NotBlank(message = "Language cannot be blank") @Schema(description = "Language name", example = "Swahili") String language
     ) {}
 
     public record AddEducationRequest(
-            @NotBlank(message = "Institution is required") String institution,
-            @NotBlank(message = "Qualification is required") String qualification,
-            int yearCompleted,
-            boolean isCertification
+            @NotBlank(message = "Institution is required") @Schema(description = "School or University name", example = "University of Nairobi") String institution,
+            @NotBlank(message = "Qualification is required") @Schema(description = "Degree or certificate obtained", example = "BSc Computer Science") String qualification,
+            @Schema(description = "Graduation year", example = "2020") int yearCompleted,
+            @Schema(description = "Is this a certification rather than a degree?", example = "false") boolean isCertification
     ) {}
 
     public record AddCertificationRequest(
-            @NotBlank(message = "Certification name is required") String name,
-            @NotBlank(message = "Issuing body is required") String issuedBy,
-            int yearIssued,
-            String certUrl
+            @NotBlank(message = "Certification name is required") @Schema(description = "Certification name", example = "AWS Certified Solutions Architect") String name,
+            @NotBlank(message = "Issuing body is required") @Schema(description = "Organization that issued it", example = "Amazon Web Services") String issuedBy,
+            @Schema(description = "Year of issuance", example = "2023") int yearIssued,
+            @Schema(description = "Link to the certificate", example = "https://aws.amazon.com/verify/123") String certUrl
     ) {}
 
     public record AddOssContributionRequest(
-            @NotBlank(message = "Project name is required") String projectName,
-            String contributionUrl,
-            String description
+            @NotBlank(message = "Project name is required") @Schema(description = "Open source project name", example = "Spring Framework") String projectName,
+            @Schema(description = "URL to the contribution (PR/Issue)", example = "https://github.com/spring-projects/spring-framework/pull/123") String contributionUrl,
+            @Schema(description = "Brief description of the work", example = "Fixed a bug in WebClient.") String description
     ) {}
 
     public record AddAchievementRequest(
-            @NotBlank(message = "Title is required") String title,
-            String description,
-            int year
+            @NotBlank(message = "Title is required") @Schema(description = "Achievement title", example = "Hackathon Winner") String title,
+            @Schema(description = "Details about the achievement", example = "Won first place at the KeDevs Hackathon 2024.") String description,
+            @Schema(description = "Year received", example = "2024") int year
     ) {}
 
     public record AddProjectRequest(
-            @NotBlank(message = "Project title is required") String title,
-            String description,
-            String techStack,
-            String projectUrl,
-            String repoUrl,
-            boolean isFeatured
+            @NotBlank(message = "Project title is required") @Schema(description = "Project name", example = "E-Commerce API") String title,
+            @Schema(description = "Description of the project", example = "A scalable backend for e-commerce.") String description,
+            @Schema(description = "Comma-separated list of technologies used", example = "Java, Spring Boot, PostgreSQL") String techStack,
+            @Schema(description = "Live project URL", example = "https://shop.example.com") String projectUrl,
+            @Schema(description = "GitHub repository URL", example = "https://github.com/janedoe/shop-api") String repoUrl,
+            @Schema(description = "Showcase this project on the main profile?", example = "true") boolean isFeatured
     ) {}
 
     public record CreateEndorsementRequest(
             @NotBlank(message = "Content is required")
             @Size(max = 200, message = "Endorsement cannot exceed 200 characters")
+            @Schema(description = "Recommendation content", example = "An excellent problem solver and team player.")
             String content
     ) {}
 
     public record CreateEmployerProfileRequest(
-            @NotBlank(message = "Contact person name is required") String contactPersonName,
-            @NotBlank(message = "Company name is required") String companyName,
-            String companyWebsite,
-            String industry,
-            org.moseti.kedevsapi.shared.enums.CompanySize companySize,
-            String locationHQ,
-            String companyBio,
-            String logoUrl,
-            String linkedinUrl,
-            String twitterUrl
+            @NotBlank(message = "Contact person name is required") @Schema(description = "Full name of the point of contact", example = "Alice Smith") String contactPersonName,
+            @NotBlank(message = "Company name is required") @Schema(description = "Full legal name of the company", example = "Tech Solutions Ltd") String companyName,
+            @Schema(description = "Corporate website", example = "https://techsolutions.com") String companyWebsite,
+            @Schema(description = "Primary industry", example = "Software Development") String industry,
+            @Schema(description = "Number of employees", example = "TEN_TO_FIFTY") org.moseti.kedevsapi.shared.enums.CompanySize companySize,
+            @Schema(description = "Headquarters location", example = "Nairobi, Kenya") String locationHQ,
+            @Schema(description = "Brief company background", example = "Leading provider of cloud solutions.") String companyBio,
+            @Schema(description = "URL to company logo", example = "https://techsolutions.com/logo.png") String logoUrl,
+            @Schema(description = "LinkedIn company page URL", example = "https://linkedin.com/company/techsolutions") String linkedinUrl,
+            @Schema(description = "X/Twitter handle or URL", example = "@techsolutions") String twitterUrl
     ) {}
 
     public record UpdateEmployerProfileRequest(
-            String contactPersonName,
-            String companyName,
-            String companyWebsite,
-            String industry,
-            org.moseti.kedevsapi.shared.enums.CompanySize companySize,
-            String locationHQ,
-            String companyBio,
-            String logoUrl,
-            String linkedinUrl,
-            String twitterUrl
+            @Schema(description = "Full name of the point of contact", example = "Alice Smith") String contactPersonName,
+            @Schema(description = "Full legal name of the company", example = "Tech Solutions Ltd") String companyName,
+            @Schema(description = "Corporate website", example = "https://techsolutions.com") String companyWebsite,
+            @Schema(description = "Primary industry", example = "Cloud Services") String industry,
+            @Schema(description = "Number of employees", example = "FIFTY_TO_TWO_HUNDRED") org.moseti.kedevsapi.shared.enums.CompanySize companySize,
+            @Schema(description = "Headquarters location", example = "Nairobi, Kenya") String locationHQ,
+            @Schema(description = "Brief company background", example = "Updated company bio.") String companyBio,
+            @Schema(description = "URL to company logo", example = "https://techsolutions.com/logo.png") String logoUrl,
+            @Schema(description = "LinkedIn company page URL", example = "https://linkedin.com/company/techsolutions") String linkedinUrl,
+            @Schema(description = "X/Twitter handle or URL", example = "@techsolutions") String twitterUrl
     ) {}
 
     public record SaveSearchRequest(
-            @NotBlank(message = "Search name is required") String searchName,
-            java.util.Map<String, Object> filterCriteria
+            @NotBlank(message = "Search name is required") @Schema(description = "Descriptive name for the saved search", example = "Senior Java Devs in Nairobi") String searchName,
+            @Schema(description = "Map of filter criteria to apply") java.util.Map<String, Object> filterCriteria
     ) {}
 
     public record ContactRequestDto(
-            @NotBlank(message = "Message is required") String message
+            @NotBlank(message = "Message is required") @Schema(description = "Personalized message to the developer", example = "We love your profile and would like to chat about an open role.") String message
     ) {}
 
     public record DeveloperFilterRequest(
-            AvailabilityStatus availabilityStatus,
-            YearsOfExperience yearsOfExperience,
-            java.util.List<String> skills,
-            WorkType preferredWorkType,
-            String locationCity,
-            String locationCountry,
-            String educationLevel,
-            Boolean isVerified,
-            java.util.List<String> languages,
-            String currentLastRole
+            @Schema(description = "Filter by current availability") AvailabilityStatus availabilityStatus,
+            @Schema(description = "Filter by years of experience") YearsOfExperience yearsOfExperience,
+            @Schema(description = "List of required skills") java.util.List<String> skills,
+            @Schema(description = "Filter by work arrangement preference") WorkType preferredWorkType,
+            @Schema(description = "Filter by city") String locationCity,
+            @Schema(description = "Filter by country") String locationCountry,
+            @Schema(description = "Filter by education qualification", example = "BSc Computer Science") String educationLevel,
+            @Schema(description = "Filter only verified profiles") Boolean isVerified,
+            @Schema(description = "List of required spoken languages") java.util.List<String> languages,
+            @Schema(description = "Filter by job title keywords", example = "Architect") String currentLastRole
     ) {}
 
     // =========================================================

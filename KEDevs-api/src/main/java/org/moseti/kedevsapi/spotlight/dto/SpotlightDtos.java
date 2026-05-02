@@ -1,5 +1,6 @@
 package org.moseti.kedevsapi.spotlight.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.moseti.kedevsapi.shared.enums.SpotlightType;
@@ -51,6 +52,7 @@ public class SpotlightDtos {
     public record AdminOverrideRequest(
             @NotBlank(message = "Reason is required")
             @Size(max = 500, message = "Reason cannot exceed 500 characters")
+            @Schema(description = "Reason for deactivating the spotlight slot", example = "Violated platform policies.")
             String reason
     ) {}
 

@@ -32,7 +32,11 @@ public class SecurityConfig {
             "/api/v1/spotlight/availability",
             "/api/v1/payments/callback",
             "/api/v1/payments/settings",
-            "/actuator/health"
+            "/actuator/health",
+            "/swagger-ui.html",
+            "/swagger-ui/**",
+            "/api-docs/**",
+            "/api-docs"
     };
 
     @Bean

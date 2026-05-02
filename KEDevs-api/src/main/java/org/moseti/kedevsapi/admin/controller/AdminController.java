@@ -1,10 +1,14 @@
 package org.moseti.kedevsapi.admin.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.moseti.kedevsapi.admin.dto.AdminDtos.*;
 import org.moseti.kedevsapi.admin.service.AdminService;
-import org.moseti.kedevsapi.shared.dto.ApiResponse;
 import org.moseti.kedevsapi.shared.enums.AccountStatus;
 import org.moseti.kedevsapi.shared.enums.CommentFlagStatus;
 import org.moseti.kedevsapi.shared.enums.FlagStatus;
@@ -25,154 +29,250 @@ import java.util.UUID;
 @RequestMapping("/api/v1/admin")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
+@Tag(name = "Admin")
 public class AdminController {
 
     private final AdminService adminService;
 
     // --- Dashboard & Analytics ---
 
+    @Operation(summary = "Admin: get dashboard summary analytics")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Dashboard data retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+    })
     @GetMapping("/dashboard")
-    public ResponseEntity<ApiResponse<AnalyticsSummaryResponse>> getDashboard() {
-        return ResponseEntity.ok(ApiResponse.success("Dashboard data retrieved", adminService.getAnalyticsSummary()));
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<AnalyticsSummaryResponse>> getDashboard() {
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Dashboard data retrieved", adminService.getAnalyticsSummary()));
     }
 
+    @Operation(summary = "Admin: get signup trends for a period")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Signup trends retrieved successfully")
+    })
     @GetMapping("/dashboard/signups")
-    public ResponseEntity<ApiResponse<List<SignupTrendResponse>>> getSignupTrends(@RequestParam(defaultValue = "30") int days) {
-        return ResponseEntity.ok(ApiResponse.success("Signup trends retrieved", adminService.getSignupTrends(days)));
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<List<SignupTrendResponse>>> getSignupTrends(@Parameter(description = "Number of days to look back") @RequestParam(defaultValue = "30") int days) {
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Signup trends retrieved", adminService.getSignupTrends(days)));
     }
 
+    @Operation(summary = "Admin: get revenue breakdown")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Revenue breakdown retrieved successfully")
+    })
     @GetMapping("/dashboard/revenue")
-    public ResponseEntity<ApiResponse<RevenueBreakdownResponse>> getRevenueBreakdown() {
-        return ResponseEntity.ok(ApiResponse.success("Revenue breakdown retrieved", adminService.getRevenueBreakdown()));
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<RevenueBreakdownResponse>> getRevenueBreakdown() {
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Revenue breakdown retrieved", adminService.getRevenueBreakdown()));
     }
 
+    @Operation(summary = "Admin: get subscription stats")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Subscription stats retrieved successfully")
+    })
     @GetMapping("/dashboard/subscriptions")
-    public ResponseEntity<ApiResponse<SubscriptionStatsResponse>> getSubscriptionStats() {
-        return ResponseEntity.ok(ApiResponse.success("Subscription stats retrieved", adminService.getSubscriptionStats()));
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<SubscriptionStatsResponse>> getSubscriptionStats() {
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Subscription stats retrieved", adminService.getSubscriptionStats()));
     }
 
+    @Operation(summary = "Admin: get forum activity metrics")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Forum activity retrieved successfully")
+    })
     @GetMapping("/dashboard/forum")
-    public ResponseEntity<ApiResponse<ForumActivityResponse>> getForumActivity() {
-        return ResponseEntity.ok(ApiResponse.success("Forum activity retrieved", adminService.getForumActivity()));
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<ForumActivityResponse>> getForumActivity() {
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Forum activity retrieved", adminService.getForumActivity()));
     }
 
+    @Operation(summary = "Admin: get flagged content summary")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Flagged content summary retrieved successfully")
+    })
     @GetMapping("/dashboard/flags")
-    public ResponseEntity<ApiResponse<FlaggedContentSummaryResponse>> getFlaggedSummary() {
-        return ResponseEntity.ok(ApiResponse.success("Flagged content summary retrieved", adminService.getFlaggedContentSummary()));
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<FlaggedContentSummaryResponse>> getFlaggedSummary() {
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Flagged content summary retrieved", adminService.getFlaggedContentSummary()));
     }
 
     // --- User Management ---
 
+    @Operation(summary = "Admin: list all users with filters")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Users retrieved successfully")
+    })
     @GetMapping("/users")
-    public ResponseEntity<ApiResponse<Page<UserSummaryResponse>>> getAllUsers(
-            @RequestParam(required = false) Role role,
-            @RequestParam(required = false) AccountStatus status,
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<UserSummaryResponse>>> getAllUsers(
+            @Parameter(description = "Filter by role") @RequestParam(required = false) Role role,
+            @Parameter(description = "Filter by account status") @RequestParam(required = false) AccountStatus status,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success("Users retrieved", adminService.getAllUsers(role, status, pageable)));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Users retrieved", adminService.getAllUsers(role, status, pageable)));
     }
 
+    @Operation(summary = "Admin: get user details by ID")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "User retrieved successfully"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @GetMapping("/users/{id}")
-    public ResponseEntity<ApiResponse<UserSummaryResponse>> getUserById(@PathVariable UUID id) {
-        return ResponseEntity.ok(ApiResponse.success("User retrieved", adminService.getUserById(id)));
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserSummaryResponse>> getUserById(@Parameter(description = "ID of the user") @PathVariable UUID id) {
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("User retrieved", adminService.getUserById(id)));
     }
 
+    @Operation(summary = "Admin: perform action on a user (warn/ban/etc)")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "User action performed successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid action or validation error"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @PostMapping("/users/{id}/action")
-    public ResponseEntity<ApiResponse<Void>> performUserAction(
-            @PathVariable UUID id,
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> performUserAction(
+            @Parameter(description = "ID of the user") @PathVariable UUID id,
             @Valid @RequestBody UserActionRequest request) {
         adminService.performUserAction(getCurrentAdminId(), id, request);
-        return ResponseEntity.ok(ApiResponse.success("User action performed successfully"));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("User action performed successfully"));
     }
 
+    @Operation(summary = "Admin: list employers awaiting approval")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Pending employers retrieved successfully")
+    })
     @GetMapping("/users/pending-employers")
-    public ResponseEntity<ApiResponse<Page<PendingEmployerResponse>>> getPendingEmployers(@PageableDefault(size = 10) Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success("Pending employers retrieved", adminService.getPendingEmployers(pageable)));
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<PendingEmployerResponse>>> getPendingEmployers(@PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Pending employers retrieved", adminService.getPendingEmployers(pageable)));
     }
 
+    @Operation(summary = "Admin: approve or reject an employer profile")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Employer approval processed successfully"),
+        @ApiResponse(responseCode = "404", description = "Employer profile not found")
+    })
     @PatchMapping("/employers/{profileId}/approval")
-    public ResponseEntity<ApiResponse<Void>> approveEmployer(
-            @PathVariable UUID profileId,
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> approveEmployer(
+            @Parameter(description = "ID of the employer profile") @PathVariable UUID profileId,
             @Valid @RequestBody ApproveEmployerRequest request) {
         adminService.approveEmployer(getCurrentAdminId(), profileId, request);
-        return ResponseEntity.ok(ApiResponse.success("Employer approval processed"));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Employer approval processed"));
     }
 
     // --- Flagged Content ---
 
+    @Operation(summary = "Admin: list flagged job posts")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Flagged jobs retrieved successfully")
+    })
     @GetMapping("/flags/jobs")
-    public ResponseEntity<ApiResponse<Page<FlaggedJobResponse>>> getFlaggedJobs(
-            @RequestParam(required = false) FlagStatus status,
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<FlaggedJobResponse>>> getFlaggedJobs(
+            @Parameter(description = "Filter by flag status") @RequestParam(required = false) FlagStatus status,
             @PageableDefault Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success("Flagged jobs retrieved", adminService.getFlaggedJobs(status, pageable)));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Flagged jobs retrieved", adminService.getFlaggedJobs(status, pageable)));
     }
 
+    @Operation(summary = "Admin: review a job flag")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Job flag review processed successfully"),
+        @ApiResponse(responseCode = "404", description = "Flag entry not found")
+    })
     @PostMapping("/flags/jobs/{flagId}/review")
-    public ResponseEntity<ApiResponse<Void>> reviewJobFlag(
-            @PathVariable UUID flagId,
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> reviewJobFlag(
+            @Parameter(description = "ID of the job flag") @PathVariable UUID flagId,
             @Valid @RequestBody ReviewJobFlagRequest request) {
         adminService.reviewJobFlag(getCurrentAdminId(), flagId, request);
-        return ResponseEntity.ok(ApiResponse.success("Job flag review processed"));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Job flag review processed"));
     }
 
+    @Operation(summary = "Admin: list flagged users")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Flagged users retrieved successfully")
+    })
     @GetMapping("/flags/users")
-    public ResponseEntity<ApiResponse<Page<FlaggedUserResponse>>> getFlaggedUsers(
-            @RequestParam(required = false) UserFlagStatus status,
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<FlaggedUserResponse>>> getFlaggedUsers(
+            @Parameter(description = "Filter by user flag status") @RequestParam(required = false) UserFlagStatus status,
             @PageableDefault Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success("Flagged users retrieved", adminService.getFlaggedUsers(status, pageable)));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Flagged users retrieved", adminService.getFlaggedUsers(status, pageable)));
     }
 
+    @Operation(summary = "Admin: review a user flag")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "User flag review processed successfully"),
+        @ApiResponse(responseCode = "404", description = "Flag entry not found")
+    })
     @PostMapping("/flags/users/{flagId}/review")
-    public ResponseEntity<ApiResponse<Void>> reviewUserFlag(
-            @PathVariable UUID flagId,
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> reviewUserFlag(
+            @Parameter(description = "ID of the user flag") @PathVariable UUID flagId,
             @Valid @RequestBody ReviewUserFlagRequest request) {
         adminService.reviewUserFlag(getCurrentAdminId(), flagId, request);
-        return ResponseEntity.ok(ApiResponse.success("User flag review processed"));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("User flag review processed"));
     }
 
+    @Operation(summary = "Admin: list flagged comments")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Flagged comments retrieved successfully")
+    })
     @GetMapping("/flags/comments")
-    public ResponseEntity<ApiResponse<Page<FlaggedCommentResponse>>> getFlaggedComments(
-            @RequestParam(required = false) CommentFlagStatus status,
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<FlaggedCommentResponse>>> getFlaggedComments(
+            @Parameter(description = "Filter by comment flag status") @RequestParam(required = false) CommentFlagStatus status,
             @PageableDefault Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success("Flagged comments retrieved", adminService.getFlaggedComments(status, pageable)));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Flagged comments retrieved", adminService.getFlaggedComments(status, pageable)));
     }
 
+    @Operation(summary = "Admin: review a comment flag")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Comment flag review processed successfully"),
+        @ApiResponse(responseCode = "404", description = "Flag entry not found")
+    })
     @PostMapping("/flags/comments/{flagId}/review")
-    public ResponseEntity<ApiResponse<Void>> reviewCommentFlag(
-            @PathVariable UUID flagId,
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> reviewCommentFlag(
+            @Parameter(description = "ID of the comment flag") @PathVariable UUID flagId,
             @Valid @RequestBody ReviewCommentFlagRequest request) {
         adminService.reviewCommentFlag(getCurrentAdminId(), flagId, request);
-        return ResponseEntity.ok(ApiResponse.success("Comment flag review processed"));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Comment flag review processed"));
     }
 
     // --- Badge Management ---
 
+    @Operation(summary = "Admin: grant or revoke a verified badge")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Badge action performed successfully"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @PostMapping("/users/{userId}/badge")
-    public ResponseEntity<ApiResponse<Void>> performBadgeAction(
-            @PathVariable UUID userId,
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> performBadgeAction(
+            @Parameter(description = "ID of the user") @PathVariable UUID userId,
             @Valid @RequestBody BadgeActionRequest request) {
         adminService.performBadgeAction(getCurrentAdminId(), userId, request);
-        return ResponseEntity.ok(ApiResponse.success("Badge action performed successfully"));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Badge action performed successfully"));
     }
 
     // --- Platform Settings ---
 
+    @Operation(summary = "Admin: list all platform pricing settings")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Settings retrieved successfully")
+    })
     @GetMapping("/settings")
-    public ResponseEntity<ApiResponse<List<PlatformSettingResponse>>> getSettings() {
-        return ResponseEntity.ok(ApiResponse.success("Settings retrieved", adminService.getPlatformSettings()));
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<List<PlatformSettingResponse>>> getSettings() {
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Settings retrieved", adminService.getPlatformSettings()));
     }
 
+    @Operation(summary = "Admin: update a platform setting")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Setting updated successfully"),
+        @ApiResponse(responseCode = "404", description = "Setting key not found")
+    })
     @PutMapping("/settings/{key}")
-    public ResponseEntity<ApiResponse<PlatformSettingResponse>> updateSetting(
-            @PathVariable String key,
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<PlatformSettingResponse>> updateSetting(
+            @Parameter(description = "Key of the setting") @PathVariable String key,
             @Valid @RequestBody UpdateSettingRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Setting updated", adminService.updatePlatformSetting(getCurrentAdminId(), key, request)));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Setting updated", adminService.updatePlatformSetting(getCurrentAdminId(), key, request)));
     }
 
     // --- Audit Log ---
 
+    @Operation(summary = "Admin: view recent administrative actions")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Admin action log retrieved successfully")
+    })
     @GetMapping("/actions")
-    public ResponseEntity<ApiResponse<Page<AdminActionResponse>>> getActionLog(@PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success("Admin action log retrieved", adminService.getAdminActionLog(pageable)));
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<AdminActionResponse>>> getActionLog(@PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Admin action log retrieved", adminService.getAdminActionLog(pageable)));
     }
 
     private UUID getCurrentAdminId() {

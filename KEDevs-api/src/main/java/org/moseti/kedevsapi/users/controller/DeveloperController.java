@@ -1,8 +1,13 @@
 package org.moseti.kedevsapi.users.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.moseti.kedevsapi.shared.dto.ApiResponse;
 import org.moseti.kedevsapi.shared.enums.AvailabilityStatus;
 import org.moseti.kedevsapi.shared.enums.ProfileVisibility;
 import org.moseti.kedevsapi.users.dto.UserDtos;
@@ -21,268 +26,388 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/developers")
 @RequiredArgsConstructor
+@Tag(name = "Developer Profiles")
 public class DeveloperController {
 
     private final DeveloperProfileService developerProfileService;
     private final EmployerProfileService employerProfileService;
 
-    // POST /api/v1/developers/profile
+    @Operation(summary = "Create developer profile", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Profile created successfully"),
+        @ApiResponse(responseCode = "400", description = "Profile already exists or validation error"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+    })
     @PostMapping("/profile")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<ApiResponse<UserDtos.DeveloperProfileResponse>> createProfile(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.DeveloperProfileResponse>> createProfile(
             Authentication authentication,
             @Valid @RequestBody UserDtos.CreateDeveloperProfileRequest request) {
         UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("Profile created", developerProfileService.createProfile(userId, request)));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Profile created", developerProfileService.createProfile(userId, request)));
     }
 
-    // GET /api/v1/developers/profile/me
+    @Operation(summary = "Get own developer profile", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Profile retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "404", description = "Profile not found")
+    })
     @GetMapping("/profile/me")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<ApiResponse<UserDtos.DeveloperProfileResponse>> getMyProfile(Authentication authentication) {
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.DeveloperProfileResponse>> getMyProfile(Authentication authentication) {
         UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("Profile retrieved", developerProfileService.getProfileByUserId(userId)));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Profile retrieved", developerProfileService.getProfileByUserId(userId)));
     }
 
-    // GET /api/v1/developers/{profileId}
+    @Operation(summary = "Get a developer's public profile")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Profile retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "404", description = "Profile not found")
+    })
     @GetMapping("/{profileId}")
-    public ResponseEntity<ApiResponse<UserDtos.DeveloperProfileResponse>> getPublicProfile(@PathVariable UUID profileId) {
-        return ResponseEntity.ok(ApiResponse.success("Profile retrieved", developerProfileService.getPublicProfile(profileId)));
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.DeveloperProfileResponse>> getPublicProfile(
+            @Parameter(description = "ID of the developer profile") @PathVariable UUID profileId) {
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Profile retrieved", developerProfileService.getPublicProfile(profileId)));
     }
 
-    // PUT /api/v1/developers/profile
+    @Operation(summary = "Update developer profile", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Profile updated successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "404", description = "Profile not found")
+    })
     @PutMapping("/profile")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<ApiResponse<UserDtos.DeveloperProfileResponse>> updateProfile(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.DeveloperProfileResponse>> updateProfile(
             Authentication authentication,
             @Valid @RequestBody UserDtos.UpdateDeveloperProfileRequest request) {
         UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("Profile updated", developerProfileService.updateProfile(userId, request)));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Profile updated", developerProfileService.updateProfile(userId, request)));
     }
 
-    // PATCH /api/v1/developers/profile/availability
+    @Operation(summary = "Update availability status", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Availability updated successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid status"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    })
     @PatchMapping("/profile/availability")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<ApiResponse<Void>> toggleAvailability(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> toggleAvailability(
             Authentication authentication,
             @RequestParam AvailabilityStatus status) {
         UUID userId = (UUID) authentication.getPrincipal();
         developerProfileService.toggleAvailability(userId, status);
-        return ResponseEntity.ok(ApiResponse.success("Availability updated"));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Availability updated"));
     }
 
-    // PATCH /api/v1/developers/profile/visibility
+    @Operation(summary = "Update profile visibility", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Visibility updated successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid visibility setting"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    })
     @PatchMapping("/profile/visibility")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<ApiResponse<Void>> updateVisibility(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> updateVisibility(
             Authentication authentication,
             @RequestParam ProfileVisibility visibility) {
         UUID userId = (UUID) authentication.getPrincipal();
         developerProfileService.updateVisibility(userId, visibility);
-        return ResponseEntity.ok(ApiResponse.success("Visibility updated"));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Visibility updated"));
     }
 
-    // POST /api/v1/developers/profile/skills
+    @Operation(summary = "Add a skill", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Skill added successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    })
     @PostMapping("/profile/skills")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<ApiResponse<Void>> addSkill(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> addSkill(
             Authentication authentication,
             @Valid @RequestBody UserDtos.AddSkillRequest request) {
         UUID userId = (UUID) authentication.getPrincipal();
         developerProfileService.addSkill(userId, request.skill());
-        return ResponseEntity.ok(ApiResponse.success("Skill added"));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Skill added"));
     }
 
-    // DELETE /api/v1/developers/profile/skills/{skill}
+    @Operation(summary = "Remove a skill", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Skill removed successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "404", description = "Skill not found on profile")
+    })
     @DeleteMapping("/profile/skills/{skill}")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<ApiResponse<Void>> removeSkill(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> removeSkill(
             Authentication authentication,
-            @PathVariable String skill) {
+            @Parameter(description = "Name of the skill to remove") @PathVariable String skill) {
         UUID userId = (UUID) authentication.getPrincipal();
         developerProfileService.removeSkill(userId, skill);
-        return ResponseEntity.ok(ApiResponse.success("Skill removed"));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Skill removed"));
     }
 
-    // POST /api/v1/developers/profile/languages
+    @Operation(summary = "Add a spoken language", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Language added successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    })
     @PostMapping("/profile/languages")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<ApiResponse<Void>> addLanguage(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> addLanguage(
             Authentication authentication,
             @Valid @RequestBody UserDtos.AddLanguageRequest request) {
         UUID userId = (UUID) authentication.getPrincipal();
         developerProfileService.addLanguage(userId, request.language());
-        return ResponseEntity.ok(ApiResponse.success("Language added"));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Language added"));
     }
 
-    // DELETE /api/v1/developers/profile/languages/{language}
+    @Operation(summary = "Remove a language", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Language removed successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "404", description = "Language not found on profile")
+    })
     @DeleteMapping("/profile/languages/{language}")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<ApiResponse<Void>> removeLanguage(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> removeLanguage(
             Authentication authentication,
-            @PathVariable String language) {
+            @Parameter(description = "Name of the language to remove") @PathVariable String language) {
         UUID userId = (UUID) authentication.getPrincipal();
         developerProfileService.removeLanguage(userId, language);
-        return ResponseEntity.ok(ApiResponse.success("Language removed"));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Language removed"));
     }
 
-    // POST /api/v1/developers/profile/education
+    @Operation(summary = "Add education entry", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Education added successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    })
     @PostMapping("/profile/education")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<ApiResponse<UserDtos.EducationResponse>> addEducation(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.EducationResponse>> addEducation(
             Authentication authentication,
             @Valid @RequestBody UserDtos.AddEducationRequest request) {
         UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("Education added", developerProfileService.addEducation(userId, request)));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Education added", developerProfileService.addEducation(userId, request)));
     }
 
-    // DELETE /api/v1/developers/profile/education/{id}
+    @Operation(summary = "Delete education entry", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Education deleted successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "404", description = "Education entry not found")
+    })
     @DeleteMapping("/profile/education/{id}")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<ApiResponse<Void>> deleteEducation(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> deleteEducation(
             Authentication authentication,
-            @PathVariable UUID id) {
+            @Parameter(description = "ID of the education entry") @PathVariable UUID id) {
         UUID userId = (UUID) authentication.getPrincipal();
         developerProfileService.deleteEducation(userId, id);
-        return ResponseEntity.ok(ApiResponse.success("Education deleted"));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Education deleted"));
     }
 
-    // POST /api/v1/developers/profile/certifications
+    @Operation(summary = "Add a certification", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Certification added successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    })
     @PostMapping("/profile/certifications")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<ApiResponse<UserDtos.CertificationResponse>> addCertification(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.CertificationResponse>> addCertification(
             Authentication authentication,
             @Valid @RequestBody UserDtos.AddCertificationRequest request) {
         UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("Certification added", developerProfileService.addCertification(userId, request)));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Certification added", developerProfileService.addCertification(userId, request)));
     }
 
-    // DELETE /api/v1/developers/profile/certifications/{id}
+    @Operation(summary = "Delete a certification", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Certification deleted successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "404", description = "Certification entry not found")
+    })
     @DeleteMapping("/profile/certifications/{id}")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<ApiResponse<Void>> deleteCertification(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> deleteCertification(
             Authentication authentication,
-            @PathVariable UUID id) {
+            @Parameter(description = "ID of the certification entry") @PathVariable UUID id) {
         UUID userId = (UUID) authentication.getPrincipal();
         developerProfileService.deleteCertification(userId, id);
-        return ResponseEntity.ok(ApiResponse.success("Certification deleted"));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Certification deleted"));
     }
 
-    // POST /api/v1/developers/profile/oss
+    @Operation(summary = "Add OSS contribution", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OSS contribution added successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    })
     @PostMapping("/profile/oss")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<ApiResponse<UserDtos.OssContributionResponse>> addOssContribution(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.OssContributionResponse>> addOssContribution(
             Authentication authentication,
             @Valid @RequestBody UserDtos.AddOssContributionRequest request) {
         UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("OSS contribution added", developerProfileService.addOssContribution(userId, request)));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("OSS contribution added", developerProfileService.addOssContribution(userId, request)));
     }
 
-    // DELETE /api/v1/developers/profile/oss/{id}
+    @Operation(summary = "Delete OSS contribution", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "OSS contribution deleted successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "404", description = "OSS entry not found")
+    })
     @DeleteMapping("/profile/oss/{id}")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<ApiResponse<Void>> deleteOssContribution(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> deleteOssContribution(
             Authentication authentication,
-            @PathVariable UUID id) {
+            @Parameter(description = "ID of the OSS contribution") @PathVariable UUID id) {
         UUID userId = (UUID) authentication.getPrincipal();
         developerProfileService.deleteOssContribution(userId, id);
-        return ResponseEntity.ok(ApiResponse.success("OSS contribution deleted"));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("OSS contribution deleted"));
     }
 
-    // POST /api/v1/developers/profile/achievements
+    @Operation(summary = "Add an achievement", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Achievement added successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    })
     @PostMapping("/profile/achievements")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<ApiResponse<UserDtos.AchievementResponse>> addAchievement(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.AchievementResponse>> addAchievement(
             Authentication authentication,
             @Valid @RequestBody UserDtos.AddAchievementRequest request) {
         UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("Achievement added", developerProfileService.addAchievement(userId, request)));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Achievement added", developerProfileService.addAchievement(userId, request)));
     }
 
-    // DELETE /api/v1/developers/profile/achievements/{id}
+    @Operation(summary = "Delete an achievement", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Achievement deleted successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "404", description = "Achievement entry not found")
+    })
     @DeleteMapping("/profile/achievements/{id}")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<ApiResponse<Void>> deleteAchievement(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> deleteAchievement(
             Authentication authentication,
-            @PathVariable UUID id) {
+            @Parameter(description = "ID of the achievement entry") @PathVariable UUID id) {
         UUID userId = (UUID) authentication.getPrincipal();
         developerProfileService.deleteAchievement(userId, id);
-        return ResponseEntity.ok(ApiResponse.success("Achievement deleted"));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Achievement deleted"));
     }
 
-    // POST /api/v1/developers/profile/projects
+    @Operation(summary = "Add a project", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Project added successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    })
     @PostMapping("/profile/projects")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<ApiResponse<UserDtos.DeveloperProjectResponse>> addProject(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.DeveloperProjectResponse>> addProject(
             Authentication authentication,
             @Valid @RequestBody UserDtos.AddProjectRequest request) {
         UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("Project added", developerProfileService.addProject(userId, request)));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Project added", developerProfileService.addProject(userId, request)));
     }
 
-    // PUT /api/v1/developers/profile/projects/{id}
+    @Operation(summary = "Update a project", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Project updated successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "404", description = "Project entry not found")
+    })
     @PutMapping("/profile/projects/{id}")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<ApiResponse<UserDtos.DeveloperProjectResponse>> updateProject(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.DeveloperProjectResponse>> updateProject(
             Authentication authentication,
-            @PathVariable UUID id,
+            @Parameter(description = "ID of the project entry") @PathVariable UUID id,
             @Valid @RequestBody UserDtos.AddProjectRequest request) {
         UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("Project updated", developerProfileService.updateProject(userId, id, request)));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Project updated", developerProfileService.updateProject(userId, id, request)));
     }
 
-    // DELETE /api/v1/developers/profile/projects/{id}
+    @Operation(summary = "Delete a project", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Project deleted successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "404", description = "Project entry not found")
+    })
     @DeleteMapping("/profile/projects/{id}")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<ApiResponse<Void>> deleteProject(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> deleteProject(
             Authentication authentication,
-            @PathVariable UUID id) {
+            @Parameter(description = "ID of the project entry") @PathVariable UUID id) {
         UUID userId = (UUID) authentication.getPrincipal();
         developerProfileService.deleteProject(userId, id);
-        return ResponseEntity.ok(ApiResponse.success("Project deleted"));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Project deleted"));
     }
 
-    // PATCH /api/v1/developers/profile/projects/{id}/featured
+    @Operation(summary = "Toggle project featured status", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Featured status toggled successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "404", description = "Project entry not found")
+    })
     @PatchMapping("/profile/projects/{id}/featured")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<ApiResponse<Void>> toggleFeatured(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> toggleFeatured(
             Authentication authentication,
-            @PathVariable UUID id) {
+            @Parameter(description = "ID of the project entry") @PathVariable UUID id) {
         UUID userId = (UUID) authentication.getPrincipal();
         developerProfileService.toggleFeatured(userId, id);
-        return ResponseEntity.ok(ApiResponse.success("Featured status toggled"));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Featured status toggled"));
     }
 
-    // POST /api/v1/developers/{profileId}/endorsements
+    @Operation(summary = "Endorse a developer")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Endorsement added successfully"),
+        @ApiResponse(responseCode = "400", description = "Cannot self-endorse"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    })
     @PostMapping("/{profileId}/endorsements")
-    public ResponseEntity<ApiResponse<UserDtos.EndorsementResponse>> addEndorsement(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.EndorsementResponse>> addEndorsement(
             Authentication authentication,
-            @PathVariable UUID profileId,
+            @Parameter(description = "ID of the developer profile to endorse") @PathVariable UUID profileId,
             @Valid @RequestBody UserDtos.CreateEndorsementRequest request) {
         UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(ApiResponse.success("Endorsement added",
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Endorsement added",
                 developerProfileService.addEndorsement(userId, profileId, request)));
     }
 
-    // GET /api/v1/developers/public (public - no auth required)
+    @Operation(summary = "List all public developer profiles", security = {})
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Developers retrieved successfully")
+    })
     @GetMapping("/public")
-    public ResponseEntity<ApiResponse<Page<UserDtos.DeveloperSummaryResponse>>> getPublicDevelopers(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<UserDtos.DeveloperSummaryResponse>>> getPublicDevelopers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, Math.min(size, 50));
-        return ResponseEntity.ok(ApiResponse.success("Developers retrieved", developerProfileService.getPublicDevelopers(pageable)));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Developers retrieved", developerProfileService.getPublicDevelopers(pageable)));
     }
 
-    // POST /api/v1/developers/filter (EMPLOYER PRO only)
+    @Operation(summary = "Filter developers (Pro or token required)", description = "Requires EMPLOYER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Filtered developers retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "402", description = "Payment required (Paywall)"),
+        @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+    })
     @PostMapping("/filter")
     @PreAuthorize("hasRole('EMPLOYER') and @employerProfileService.isProAccount(authentication.principal)")
-    public ResponseEntity<ApiResponse<Page<UserDtos.DeveloperSummaryResponse>>> filterDevelopers(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<UserDtos.DeveloperSummaryResponse>>> filterDevelopers(
             Authentication authentication,
             @RequestBody UserDtos.DeveloperFilterRequest request,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, Math.min(size, 50));
-        return ResponseEntity.ok(ApiResponse.success("Filtered developers retrieved",
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Filtered developers retrieved",
                 developerProfileService.filterDevelopers(request, pageable)));
     }
 }

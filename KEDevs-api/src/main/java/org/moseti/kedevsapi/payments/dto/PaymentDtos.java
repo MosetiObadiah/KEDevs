@@ -1,5 +1,6 @@
 package org.moseti.kedevsapi.payments.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -19,14 +20,17 @@ public class PaymentDtos {
     public record InitiatePaymentRequest(
             @NotBlank(message = "Phone number is required")
             @Pattern(regexp = "^(\\+?254|0)[17]\\d{8}$", message = "Invalid Kenyan phone number format")
+            @Schema(description = "M-Pesa phone number", example = "254712345678")
             String phoneNumber
     ) {}
 
     public record InitiateSpotlightRequest(
             @NotBlank(message = "Phone number is required")
             @Pattern(regexp = "^(\\+?254|0)[17]\\d{8}$", message = "Invalid Kenyan phone number format")
+            @Schema(description = "M-Pesa phone number", example = "254712345678")
             String phoneNumber,
             @NotNull(message = "Spotlight type is required")
+            @Schema(description = "Type of spotlight", allowableValues = {"DAY", "WEEK"}, example = "DAY")
             SpotlightType spotlightType
     ) {}
 
