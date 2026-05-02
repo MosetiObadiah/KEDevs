@@ -39,7 +39,7 @@ public class SpotlightController {
                 spotlightService.getSlotHistory(pageable)));
     }
 
-    @PostMapping("/admin/override/{slotId}")
+    @PatchMapping("/admin/slots/{slotId}/override")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<ApiResponse<SpotlightSlotResponse>> adminOverride(
             @PathVariable UUID slotId,

@@ -89,7 +89,7 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success("Pending employers retrieved", adminService.getPendingEmployers(pageable)));
     }
 
-    @PostMapping("/employers/{profileId}/approve")
+    @PatchMapping("/employers/{profileId}/approval")
     public ResponseEntity<ApiResponse<Void>> approveEmployer(
             @PathVariable UUID profileId,
             @Valid @RequestBody ApproveEmployerRequest request) {
