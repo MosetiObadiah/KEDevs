@@ -42,10 +42,9 @@ public class PaymentService {
     private final UserRepository userRepository;
     private final DeveloperProfileRepository developerProfileRepository;
     private final EmployerProfileRepository employerProfileRepository;
-
-    @Lazy
-    @Autowired
-    private SpotlightService spotlightService;
+    private final SpotlightService spotlightService;
+    private final org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
+    private final org.moseti.kedevsapi.auth.service.EmailService emailService;
 
     // ====================== Helper ======================
 
@@ -293,7 +292,17 @@ public class PaymentService {
                     user.setSubscriptionActive(true);
                     userRepository.save(user);
                 });
-                // TODO: send confirmation email via notifications module
+                User user = userRepository.findById(payment.getUserId()).orElse(null);
+                if (user != null) {
+                    notificationService.notify(
+                            payment.getUserId(),
+                            org.moseti.kedevsapi.shared.enums.NotificationCategory.PAYMENT,
+                            "Payment Confirmed",
+                            "Your annual membership payment of KES " + payment.getAmount() + " has been confirmed.",
+                            "{\"receiptNo\":\"" + payment.getMpesaReceiptNo() + "\"}"
+                    );
+                    emailService.sendPaymentConfirmationEmail(user.getEmail(), user.getFullName(), "Annual Membership", payment.getAmount(), payment.getMpesaReceiptNo());
+                }
             }
             case EMPLOYER_PRO -> {
                 LocalDateTime now = LocalDateTime.now();
@@ -312,7 +321,17 @@ public class PaymentService {
                     profile.setProAccount(true);
                     employerProfileRepository.save(profile);
                 });
-                // TODO: notify user via notifications module
+                User user = userRepository.findById(payment.getUserId()).orElse(null);
+                if (user != null) {
+                    notificationService.notify(
+                            payment.getUserId(),
+                            org.moseti.kedevsapi.shared.enums.NotificationCategory.PAYMENT,
+                            "Employer Pro Activated",
+                            "Your employer pro upgrade payment of KES " + payment.getAmount() + " has been confirmed.",
+                            "{\"receiptNo\":\"" + payment.getMpesaReceiptNo() + "\"}"
+                    );
+                    emailService.sendPaymentConfirmationEmail(user.getEmail(), user.getFullName(), "Employer Pro Upgrade", payment.getAmount(), payment.getMpesaReceiptNo());
+                }
             }
             case VERIFIED_BADGE -> {
                 userRepository.findById(payment.getUserId()).ifPresent(user -> {
@@ -328,7 +347,17 @@ public class PaymentService {
                         });
                     }
                 });
-                // TODO: notify user
+                User user = userRepository.findById(payment.getUserId()).orElse(null);
+                if (user != null) {
+                    notificationService.notify(
+                            payment.getUserId(),
+                            org.moseti.kedevsapi.shared.enums.NotificationCategory.PAYMENT,
+                            "Verified Badge Activated",
+                            "Your verified badge payment of KES " + payment.getAmount() + " has been confirmed.",
+                            "{\"receiptNo\":\"" + payment.getMpesaReceiptNo() + "\"}"
+                    );
+                    emailService.sendPaymentConfirmationEmail(user.getEmail(), user.getFullName(), "Verified Badge", payment.getAmount(), payment.getMpesaReceiptNo());
+                }
             }
             case SPOTLIGHT_DAY, SPOTLIGHT_WEEK -> {
                 UUID developerId = payment.getUserId();

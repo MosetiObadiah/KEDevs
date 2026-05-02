@@ -35,6 +35,8 @@ public class JobService {
 
     private final UserRepository userRepository;
     private final EmployerProfileService employerProfileService;
+    private final org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
+    private final org.moseti.kedevsapi.auth.service.EmailService emailService;
 
     @Transactional
     public JobPostResponse createJobPost(UUID userId, CreateJobPostRequest request) {
@@ -255,7 +257,18 @@ public class JobService {
         job.setFlagged(true);
         jobPostRepository.save(job);
 
-        // TODO: notify admin via notifications module
+        String reporterName = userRepository.findById(userId).map(User::getFullName).orElse("Unknown");
+        List<User> admins = userRepository.findByRole(Role.ADMIN);
+        for (User admin : admins) {
+            notificationService.notify(
+                    admin.getId(),
+                    org.moseti.kedevsapi.shared.enums.NotificationCategory.FLAG,
+                    "Job Flagged",
+                    "Job '" + job.getTitle() + "' has been flagged.",
+                    "{\"jobId\":\"" + jobId + "\"}"
+            );
+            emailService.sendJobFlaggedEmail(admin.getEmail(), job.getTitle(), reporterName, request.reason());
+        }
     }
 
     @Transactional
@@ -286,7 +299,19 @@ public class JobService {
         application.setStatus(ApplicationStatus.PENDING);
         application = jobApplicationRepository.save(application);
 
-        // TODO: notify job poster via notifications module
+        User applicant = userRepository.findById(userId).orElse(null);
+        User poster = userRepository.findById(job.getPostedById()).orElse(null);
+        
+        if (applicant != null && poster != null) {
+            notificationService.notify(
+                    job.getPostedById(),
+                    org.moseti.kedevsapi.shared.enums.NotificationCategory.JOB,
+                    "New Application",
+                    applicant.getFullName() + " applied to your job: " + job.getTitle(),
+                    "{\"jobId\":\"" + jobId + "\",\"applicationId\":\"" + application.getId() + "\"}"
+            );
+            emailService.sendJobApplicationEmail(poster.getEmail(), poster.getFullName(), job.getTitle(), applicant.getFullName());
+        }
 
         return toJobApplicationResponse(application);
     }

@@ -34,6 +34,8 @@ public class SpotlightService {
     private final DeveloperProfileRepository developerProfileRepository;
     private final DeveloperProjectRepository developerProjectRepository;
     private final UserRepository userRepository;
+    private final org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
+    private final org.moseti.kedevsapi.auth.service.EmailService emailService;
 
     public SlotAvailabilityResponse checkSlotAvailability() {
         boolean daySlotTaken = spotlightSlotRepository.existsByTypeAndIsActiveTrue(SpotlightType.DAY);
@@ -133,7 +135,17 @@ public class SpotlightService {
         slot.setOverriddenByAdmin(true);
         spotlightSlotRepository.save(slot);
 
-        // TODO: notify developer via notifications module (use request.reason())
+        User developer = userRepository.findById(slot.getDeveloperId()).orElse(null);
+        if (developer != null) {
+            notificationService.notify(
+                    slot.getDeveloperId(),
+                    org.moseti.kedevsapi.shared.enums.NotificationCategory.SPOTLIGHT,
+                    "Spotlight Removed",
+                    "Your spotlight has been removed by an admin. Reason: " + request.reason(),
+                    null
+            );
+            emailService.sendSpotlightOverriddenEmail(developer.getEmail(), developer.getFullName(), request.reason());
+        }
 
         String devName = userRepository.findById(slot.getDeveloperId())
                 .map(User::getFullName)
@@ -163,7 +175,19 @@ public class SpotlightService {
             expiredSlots.forEach(slot -> slot.setActive(false));
             spotlightSlotRepository.saveAll(expiredSlots);
             log.info("Expired {} spotlight slots", expiredSlots.size());
-            // TODO: notify developer their spotlight expired
+            expiredSlots.forEach(slot -> {
+                User developer = userRepository.findById(slot.getDeveloperId()).orElse(null);
+                if (developer != null) {
+                    notificationService.notify(
+                            slot.getDeveloperId(),
+                            org.moseti.kedevsapi.shared.enums.NotificationCategory.SPOTLIGHT,
+                            "Spotlight Ended",
+                            "Your Dev of the " + slot.getType() + " spotlight has ended.",
+                            null
+                    );
+                    emailService.sendSpotlightExpiredEmail(developer.getEmail(), developer.getFullName(), slot.getType().name());
+                }
+            });
         }
     }
 

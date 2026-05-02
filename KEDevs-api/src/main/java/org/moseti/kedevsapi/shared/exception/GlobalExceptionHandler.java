@@ -29,6 +29,7 @@ import org.moseti.kedevsapi.payments.exception.SpotlightSlotTakenException;
 import org.moseti.kedevsapi.spotlight.exception.SpotlightAlreadyActiveException;
 import org.moseti.kedevsapi.spotlight.exception.SpotlightPaymentMismatchException;
 import org.moseti.kedevsapi.spotlight.exception.SpotlightSlotNotFoundException;
+import org.moseti.kedevsapi.notifications.exception.NotificationNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -271,6 +272,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(SpotlightSlotNotFoundException.class)
     public ResponseEntity<ApiResponse<Void>> handleSpotlightSlotNotFound(SpotlightSlotNotFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(NotificationNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNotificationNotFound(NotificationNotFoundException ex) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.error(ex.getMessage()));

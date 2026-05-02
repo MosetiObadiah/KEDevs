@@ -21,6 +21,9 @@ public class SubscriptionExpiryScheduler {
 
     private final SubscriptionRepository subscriptionRepository;
     private final EmployerProfileRepository employerProfileRepository;
+    private final org.moseti.kedevsapi.users.repository.UserRepository userRepository;
+    private final org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
+    private final org.moseti.kedevsapi.auth.service.EmailService emailService;
 
     @Scheduled(cron = "0 0 2 * * *")
     @Transactional
@@ -35,8 +38,6 @@ public class SubscriptionExpiryScheduler {
             subscriptionRepository.save(sub);
 
             if (sub.getType() == SubscriptionType.ANNUAL_MEMBERSHIP) {
-                // TODO: send expiry warning email 7 days before via notifications module
-                log.info("Annual membership expired for user {}", sub.getUserId());
             } else if (sub.getType() == SubscriptionType.EMPLOYER_PRO) {
                 employerProfileRepository.findByUserId(sub.getUserId()).ifPresent(profile -> {
                     profile.setProAccount(false);
@@ -47,5 +48,23 @@ public class SubscriptionExpiryScheduler {
         }
 
         log.info("Subscription expiry check complete. Expired {} subscriptions.", expired.size());
+
+        // 7-day expiry warnings
+        LocalDateTime now = LocalDateTime.now();
+        List<Subscription> expiringSoon = subscriptionRepository.findByEndDateBetweenAndStatus(
+                now.plusDays(6), now.plusDays(7), SubscriptionStatus.ACTIVE);
+
+        for (Subscription sub : expiringSoon) {
+            userRepository.findById(sub.getUserId()).ifPresent(user -> {
+                notificationService.notify(
+                        sub.getUserId(),
+                        org.moseti.kedevsapi.shared.enums.NotificationCategory.PAYMENT,
+                        "Subscription Expiring Soon",
+                        "Your subscription expires in 7 days. Renew now.",
+                        null
+                );
+                emailService.sendSubscriptionExpiryWarningEmail(user.getEmail(), user.getFullName(), sub.getEndDate());
+            });
+        }
     }
 }

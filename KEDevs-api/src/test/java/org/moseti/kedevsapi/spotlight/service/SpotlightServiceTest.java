@@ -40,6 +40,10 @@ class SpotlightServiceTest {
     private DeveloperProjectRepository developerProjectRepository;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
+    @Mock
+    private org.moseti.kedevsapi.auth.service.EmailService emailService;
 
     @InjectMocks
     private SpotlightService spotlightService;
@@ -200,14 +204,23 @@ class SpotlightServiceTest {
     void adminOverride_success_setsFlags() {
         SpotlightSlot slot = new SpotlightSlot();
         slot.setId(slotId);
+        slot.setDeveloperId(developerId);
         slot.setActive(true);
         when(spotlightSlotRepository.findById(slotId)).thenReturn(Optional.of(slot));
+
+        User user = new User();
+        user.setId(developerId);
+        user.setFullName("Dev");
+        user.setEmail("dev@test.com");
+        when(userRepository.findById(developerId)).thenReturn(Optional.of(user));
 
         SpotlightSlotResponse res = spotlightService.adminOverride(slotId, new AdminOverrideRequest("Rules violation"));
 
         assertFalse(res.isActive());
         assertTrue(res.overriddenByAdmin());
         verify(spotlightSlotRepository).save(slot);
+        verify(notificationService).notify(any(), any(), any(), any(), any());
+        verify(emailService).sendSpotlightOverriddenEmail(any(), any(), any());
     }
 
     @Test
@@ -221,13 +234,23 @@ class SpotlightServiceTest {
     @Test
     void expireSlots_expiredSlotsDeactivated() {
         SpotlightSlot slot1 = new SpotlightSlot();
+        slot1.setDeveloperId(developerId);
+        slot1.setType(SpotlightType.DAY);
         slot1.setActive(true);
         when(spotlightSlotRepository.findAllByIsActiveTrueAndEndDateBefore(any())).thenReturn(List.of(slot1));
+
+        User user = new User();
+        user.setId(developerId);
+        user.setFullName("Dev");
+        user.setEmail("dev@test.com");
+        when(userRepository.findById(developerId)).thenReturn(Optional.of(user));
 
         spotlightService.expireSlots();
 
         assertFalse(slot1.isActive());
         verify(spotlightSlotRepository).saveAll(anyList());
+        verify(notificationService).notify(any(), any(), any(), any(), any());
+        verify(emailService).sendSpotlightExpiredEmail(any(), any(), any());
     }
 
     @Test

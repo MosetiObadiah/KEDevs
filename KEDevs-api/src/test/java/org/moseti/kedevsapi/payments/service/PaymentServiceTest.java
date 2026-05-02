@@ -49,6 +49,8 @@ class PaymentServiceTest {
     @Mock private DeveloperProfileRepository developerProfileRepository;
     @Mock private EmployerProfileRepository employerProfileRepository;
     @Mock private SpotlightService spotlightService;
+    @Mock private org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
+    @Mock private org.moseti.kedevsapi.auth.service.EmailService emailService;
 
     @InjectMocks private PaymentService paymentService;
 
@@ -183,8 +185,8 @@ class PaymentServiceTest {
     void handleCallback_success_completesPayment() {
         Payment payment = buildPendingPayment(PaymentType.ANNUAL_MEMBERSHIP);
         when(paymentRepository.findByMpesaCheckoutId("chk-001")).thenReturn(Optional.of(payment));
-        when(subscriptionRepository.findByUserIdAndTypeAndStatus(any(), any(), any())).thenReturn(Optional.empty());
         when(userRepository.findById(any())).thenReturn(Optional.of(developer));
+        when(subscriptionRepository.findByUserIdAndTypeAndStatus(any(), any(), any())).thenReturn(Optional.empty());
         when(subscriptionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
         paymentService.handleCallback(buildSuccessCallback("chk-001", "MPES123"));
@@ -205,6 +207,8 @@ class PaymentServiceTest {
         paymentService.handleCallback(buildSuccessCallback("chk-002", "MPES124"));
 
         verify(subscriptionRepository, atLeastOnce()).save(any(Subscription.class));
+        verify(notificationService).notify(any(), any(), any(), any(), any());
+        verify(emailService).sendPaymentConfirmationEmail(any(), any(), any(), any(), any());
     }
 
     // 8. handleCallback_proUpgrade_setsProAccount
@@ -217,10 +221,13 @@ class PaymentServiceTest {
         when(paymentRepository.findByMpesaCheckoutId("chk-003")).thenReturn(Optional.of(payment));
         when(subscriptionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
         when(employerProfileRepository.findByUserId(empUserId)).thenReturn(Optional.of(profile));
+        when(userRepository.findById(any())).thenReturn(Optional.of(employer));
 
         paymentService.handleCallback(buildSuccessCallback("chk-003", "MPES125"));
 
         assertThat(profile.isProAccount()).isTrue();
+        verify(notificationService).notify(any(), any(), any(), any(), any());
+        verify(emailService).sendPaymentConfirmationEmail(any(), any(), any(), any(), any());
     }
 
     // 9. handleCallback_verifiedBadge_setsVerified
@@ -230,12 +237,14 @@ class PaymentServiceTest {
         DeveloperProfile devProfile = new DeveloperProfile();
 
         when(paymentRepository.findByMpesaCheckoutId("chk-004")).thenReturn(Optional.of(payment));
-        when(userRepository.findById(devUserId)).thenReturn(Optional.of(developer));
+        when(userRepository.findById(any())).thenReturn(Optional.of(developer));
         when(developerProfileRepository.findByUserId(devUserId)).thenReturn(Optional.of(devProfile));
 
         paymentService.handleCallback(buildSuccessCallback("chk-004", "MPES126"));
 
         assertThat(devProfile.isVerified()).isTrue();
+        verify(notificationService).notify(any(), any(), any(), any(), any());
+        verify(emailService).sendPaymentConfirmationEmail(any(), any(), any(), any(), any());
     }
 
     // 10. handleCallback_searchToken_createsToken

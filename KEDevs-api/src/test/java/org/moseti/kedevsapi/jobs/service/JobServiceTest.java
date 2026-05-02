@@ -42,6 +42,8 @@ class JobServiceTest {
     @Mock private JobApplicationRepository jobApplicationRepository;
     @Mock private UserRepository userRepository;
     @Mock private EmployerProfileService employerProfileService;
+    @Mock private org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
+    @Mock private org.moseti.kedevsapi.auth.service.EmailService emailService;
 
     @InjectMocks private JobService jobService;
 
@@ -247,11 +249,15 @@ class JobServiceTest {
         UUID otherUser = UUID.randomUUID();
         when(jobPostRepository.findById(jobId)).thenReturn(Optional.of(jobPost));
         when(jobFlagRepository.existsByJobIdAndFlaggedById(jobId, otherUser)).thenReturn(false);
+        when(userRepository.findById(any())).thenReturn(Optional.of(developer));
+        when(userRepository.findByRole(Role.ADMIN)).thenReturn(List.of(new User()));
 
         jobService.flagJob(otherUser, jobId, new FlagJobRequest("Spam"));
 
         assertThat(jobPost.isFlagged()).isTrue();
         verify(jobFlagRepository).save(any(JobFlag.class));
+        verify(notificationService).notify(any(), any(), any(), any(), any());
+        verify(emailService).sendJobFlaggedEmail(any(), any(), any(), any());
     }
 
     // 14. flagJob_ownPost_throws
@@ -280,11 +286,18 @@ class JobServiceTest {
         UUID otherUser = UUID.randomUUID();
         when(jobPostRepository.findById(jobId)).thenReturn(Optional.of(jobPost));
         when(jobApplicationRepository.existsByJobIdAndApplicantId(jobId, otherUser)).thenReturn(false);
-        when(jobApplicationRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        when(jobApplicationRepository.save(any())).thenAnswer(i -> {
+            JobApplication app = i.getArgument(0);
+            app.setId(UUID.randomUUID());
+            return app;
+        });
+        when(userRepository.findById(any())).thenReturn(Optional.of(developer));
 
         JobApplicationResponse response = jobService.applyToJob(otherUser, jobId, new ApplyJobRequest("Cover letter"));
 
         assertThat(response.coverLetter()).isEqualTo("Cover letter");
+        verify(notificationService).notify(any(), any(), any(), any(), any());
+        verify(emailService).sendJobApplicationEmail(any(), any(), any(), any());
     }
 
     // 17. applyToJob_peerSourced_throws

@@ -56,6 +56,133 @@ public class EmailService {
         }
     }
 
+    @Async
+    public void sendPaymentConfirmationEmail(String to, String fullName, String paymentType, java.math.BigDecimal amount, String receiptNo) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(to);
+            message.setSubject("Payment Confirmed - KEDevs");
+            message.setText(String.format("""
+                    Hi %s,
+                    
+                    Your payment of KES %s for %s has been confirmed.
+                    M-Pesa Receipt: %s.
+                    
+                    Thank you!
+                    
+                    Best regards,
+                    The KEDevs Team
+                    """, fullName, amount, paymentType, receiptNo));
+            mailSender.send(message);
+        } catch (Exception e) {
+            log.error("Failed to send payment confirmation email to: {}", to, e);
+        }
+    }
+
+    @Async
+    public void sendSubscriptionExpiryWarningEmail(String to, String fullName, java.time.LocalDateTime expiryDate) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(to);
+            message.setSubject("Your KEDevs Subscription Expires Soon");
+            message.setText(String.format("""
+                    Hi %s,
+                    
+                    Your subscription expires on %s.
+                    Renew now to maintain access.
+                    
+                    Best regards,
+                    The KEDevs Team
+                    """, fullName, expiryDate));
+            mailSender.send(message);
+        } catch (Exception e) {
+            log.error("Failed to send subscription expiry warning email to: {}", to, e);
+        }
+    }
+
+    @Async
+    public void sendJobApplicationEmail(String to, String posterName, String jobTitle, String applicantName) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(to);
+            message.setSubject("New Application - " + jobTitle);
+            message.setText(String.format("""
+                    Hi %s,
+                    
+                    %s has applied to your job post: %s.
+                    
+                    Best regards,
+                    The KEDevs Team
+                    """, posterName, applicantName, jobTitle));
+            mailSender.send(message);
+        } catch (Exception e) {
+            log.error("Failed to send job application email to: {}", to, e);
+        }
+    }
+
+    @Async
+    public void sendJobFlaggedEmail(String to, String jobTitle, String reporterName, String reason) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(to);
+            message.setSubject("Job Flagged for Review - KEDevs Admin");
+            message.setText(String.format("""
+                    A job post '%s' has been flagged by %s.
+                    Reason: %s.
+                    
+                    Please review.
+                    
+                    Best regards,
+                    The KEDevs Team
+                    """, jobTitle, reporterName, reason));
+            mailSender.send(message);
+        } catch (Exception e) {
+            log.error("Failed to send job flagged email to: {}", to, e);
+        }
+    }
+
+    @Async
+    public void sendSpotlightExpiredEmail(String to, String fullName, String spotlightType) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(to);
+            message.setSubject("Your Spotlight Has Ended - KEDevs");
+            message.setText(String.format("""
+                    Hi %s,
+                    
+                    Your Dev of the %s spotlight has ended.
+                    Thank you for being featured!
+                    
+                    Best regards,
+                    The KEDevs Team
+                    """, fullName, spotlightType));
+            mailSender.send(message);
+        } catch (Exception e) {
+            log.error("Failed to send spotlight expired email to: {}", to, e);
+        }
+    }
+
+    @Async
+    public void sendSpotlightOverriddenEmail(String to, String fullName, String reason) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(to);
+            message.setSubject("Your Spotlight Has Been Removed - KEDevs");
+            message.setText(String.format("""
+                    Hi %s,
+                    
+                    Your spotlight has been removed by an admin.
+                    Reason: %s.
+                    
+                    Best regards,
+                    The KEDevs Team
+                    """, fullName, reason));
+            mailSender.send(message);
+        } catch (Exception e) {
+            log.error("Failed to send spotlight overridden email to: {}", to, e);
+        }
+    }
+
     private String buildVerificationEmail(String fullName, String code) {
         return String.format("""
                 Hi %s,
