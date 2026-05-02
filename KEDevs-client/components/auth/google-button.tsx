@@ -29,37 +29,57 @@ export function GoogleButton({ mode, role }: GoogleButtonProps) {
   useEffect(() => {
     if (typeof window === 'undefined' || !window.google) return;
 
-    window.google.accounts.id.initialize({
-      client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
-      use_fedcm_for_prompt: true,
-      callback: async (response: any) => {
-        setIsLoading(true);
-        try {
-          await googleAuth(response.credential, role);
-          toast.success(mode === 'login' ? 'Welcome back!' : 'Account created with Google!');
-          router.replace(from);
-        } catch (error: any) {
-          toast.error(error.message ?? 'Google authentication failed');
-        } finally {
-          setIsLoading(false);
-        }
-      },
-    });
+    // Use a static flag or check if already initialized to prevent multiple calls
+    if (!window.google._isInitialized) {
+      window.google.accounts.id.initialize({
+        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+        use_fedcm_for_prompt: true,
+        callback: async (response: any) => {
+          setIsLoading(true);
+          try {
+            await googleAuth(response.credential, role);
+            toast.success(mode === 'login' ? 'Welcome back!' : 'Account created with Google!');
+            router.replace(from);
+          } catch (error: any) {
+            toast.error(error.message ?? 'Google authentication failed');
+          } finally {
+            setIsLoading(false);
+          }
+        },
+      });
+      window.google._isInitialized = true;
+    }
 
-    // Render the official Google button into our container
-    window.google.accounts.id.renderButton(
-      document.getElementById('google-button-container'),
-      { 
-        theme: 'outline', 
-        size: 'large', 
-        width: 380, // Matches our card width
-        shape: 'pill',
-        text: mode === 'login' ? 'signin_with' : 'signup_with',
+    // 2. Render button with a slight delay to ensure container is ready
+    const renderTimeout = setTimeout(() => {
+      const container = document.getElementById('google-button-container');
+      if (container && window.google?.accounts?.id) {
+        // Clear container to prevent duplicate button issues on back/forward navigation
+        container.innerHTML = ''; 
+        
+        window.google.accounts.id.renderButton(container, {
+          theme: 'outline',
+          size: 'large',
+          width: 380,
+          shape: 'pill',
+          text: mode === 'login' ? 'signin_with' : 'signup_with',
+        });
       }
-    );
+    }, 100);
 
     // Also try to show the One Tap prompt
-    window.google.accounts.id.prompt();
+    // We add a slight delay and a cleanup to prevent "multiple outstanding requests"
+    const timeout = setTimeout(() => {
+      window.google.accounts.id.prompt();
+    }, 500);
+
+    return () => {
+      clearTimeout(timeout);
+      clearTimeout(renderTimeout);
+      if (window.google?.accounts?.id) {
+        window.google.accounts.id.cancel();
+      }
+    };
   }, [googleAuth, mode, role, router, from]);
 
   return (

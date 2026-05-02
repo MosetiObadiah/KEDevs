@@ -55,7 +55,7 @@ public class NotificationController {
         @ApiResponse(responseCode = "200", description = "Unread count fetched successfully"),
         @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
     })
-    @GetMapping("/unread/count")
+    @GetMapping("/unread-count")
     public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UnreadCountResponse>> getUnreadCount(
             @AuthenticationPrincipal UUID userId) {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Unread count fetched", 
