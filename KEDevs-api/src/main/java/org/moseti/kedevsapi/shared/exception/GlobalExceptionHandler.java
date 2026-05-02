@@ -3,6 +3,7 @@ package org.moseti.kedevsapi.shared.exception;
 import org.apache.coyote.BadRequestException;
 import org.moseti.kedevsapi.auth.exception.AccountNotApprovedException;
 import org.moseti.kedevsapi.auth.exception.EmailAlreadyExistsException;
+import org.moseti.kedevsapi.auth.exception.EmailNotVerifiedException;
 import org.moseti.kedevsapi.auth.exception.InvalidCredentialsException;
 import org.moseti.kedevsapi.auth.exception.InvalidTokenException;
 import org.moseti.kedevsapi.auth.exception.InvalidVerificationCodeException;
@@ -39,6 +40,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
@@ -96,6 +98,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(EmailNotVerifiedException.class)
+    public ResponseEntity<ApiResponse<Map<String, Object>>> handleEmailNotVerified(EmailNotVerifiedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(ex.getMessage(), Map.of("userId", ex.getUserId())));
     }
 
     @ExceptionHandler(EmailAlreadyExistsException.class)

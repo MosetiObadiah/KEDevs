@@ -70,11 +70,13 @@ public class AuthService {
 
         log.info("User registered successfully: {}", user.getEmail());
 
-        // Generate tokens
-        String accessToken = jwtService.generateAccessToken(user.getId(), user.getEmail(), user.getRole());
-        String refreshToken = createRefreshToken(user.getId());
-
-        return buildAuthResponse(user, accessToken, refreshToken);
+        return AuthResponse.builder()
+                .userId(user.getId())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .role(user.getRole())
+                .emailVerified(false)
+                .build();
     }
 
     @Transactional
@@ -102,7 +104,7 @@ public class AuthService {
     }
 
     @Transactional
-    public void verifyEmail(UUID userId, VerifyCodeRequest request) {
+    public AuthResponse verifyEmail(UUID userId, VerifyCodeRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -127,6 +129,12 @@ public class AuthService {
         emailService.sendWelcomeEmail(user.getEmail(), user.getFullName());
 
         log.info("Email verified for user: {}", user.getEmail());
+
+        // Generate tokens for immediate login
+        String accessToken = jwtService.generateAccessToken(user.getId(), user.getEmail(), user.getRole());
+        String refreshToken = createRefreshToken(user.getId());
+
+        return buildAuthResponse(user, accessToken, refreshToken);
     }
 
     @Transactional
@@ -300,16 +308,16 @@ public class AuthService {
     }
 
     private void validateUserCanLogin(User user) {
+        // Check if email is verified
+        if (!user.isEmailVerified()) {
+            throw new EmailNotVerifiedException("Email not verified. Please check your email for the verification code.", user.getId());
+        }
+
         // Check if account is active
         if (user.getAccountStatus() != AccountStatus.ACTIVE) {
             throw new org.moseti.kedevsapi.shared.exception.ForbiddenException(
                     "Account is " + user.getAccountStatus()
             );
-        }
-
-        // Check if employer is approved
-        if (user.getRole() == Role.EMPLOYER && !user.isApprovedByAdmin()) {
-            throw new AccountNotApprovedException("Your employer account is pending admin approval");
         }
 
         // Check grace period and subscription

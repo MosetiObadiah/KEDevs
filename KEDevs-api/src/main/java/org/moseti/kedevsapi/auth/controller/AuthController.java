@@ -52,11 +52,11 @@ public class AuthController {
         @ApiResponse(responseCode = "404", description = "User not found")
     })
     @PostMapping("/verify-email/{userId}")
-    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> verifyEmail(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<AuthResponse>> verifyEmail(
             @Parameter(description = "ID of the user to verify") @PathVariable UUID userId,
             @Valid @RequestBody VerifyCodeRequest request) {
-        authService.verifyEmail(userId, request);
-        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Email verified successfully"));
+        AuthResponse response = authService.verifyEmail(userId, request);
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Email verified successfully", response));
     }
 
     @Operation(summary = "Resend email verification code", security = {})
