@@ -8,17 +8,22 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.moseti.kedevsapi.payments.dto.PaymentDtos.*;
 import org.moseti.kedevsapi.payments.entity.Payment;
+import org.moseti.kedevsapi.payments.entity.PlatformSetting;
 import org.moseti.kedevsapi.payments.entity.SearchToken;
 import org.moseti.kedevsapi.payments.entity.Subscription;
 import org.moseti.kedevsapi.payments.exception.*;
 import org.moseti.kedevsapi.payments.repository.*;
 import org.moseti.kedevsapi.shared.enums.*;
+import org.moseti.kedevsapi.shared.exception.ForbiddenException;
+import org.moseti.kedevsapi.spotlight.dto.SpotlightDtos.SlotAvailabilityResponse;
+import org.moseti.kedevsapi.spotlight.service.SpotlightService;
 import org.moseti.kedevsapi.users.entity.DeveloperProfile;
 import org.moseti.kedevsapi.users.entity.EmployerProfile;
 import org.moseti.kedevsapi.users.entity.User;
 import org.moseti.kedevsapi.users.repository.DeveloperProfileRepository;
 import org.moseti.kedevsapi.users.repository.EmployerProfileRepository;
 import org.moseti.kedevsapi.users.repository.UserRepository;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -28,6 +33,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -42,6 +48,7 @@ class PaymentServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private DeveloperProfileRepository developerProfileRepository;
     @Mock private EmployerProfileRepository employerProfileRepository;
+    @Mock private SpotlightService spotlightService;
 
     @InjectMocks private PaymentService paymentService;
 
@@ -77,6 +84,8 @@ class PaymentServiceTest {
             p.setId(UUID.randomUUID());
             return p;
         });
+
+        ReflectionTestUtils.setField(paymentService, "spotlightService", spotlightService);
     }
 
     // 1. initiateAnnualMembership_developer_usesCorrectFee
@@ -135,6 +144,37 @@ class PaymentServiceTest {
         PaymentInitiationResponse response = paymentService.initiateSearchToken(empUserId, "0712345678");
 
         assertThat(response.amount()).isEqualByComparingTo(BigDecimal.valueOf(500));
+        verify(paymentRepository).save(any(Payment.class));
+    }
+
+    @Test
+    void initiateSpotlight_slotTaken_throwsException() {
+        when(userRepository.findById(devUserId)).thenReturn(Optional.of(developer));
+        when(spotlightService.checkSlotAvailability()).thenReturn(
+                new SlotAvailabilityResponse(false, true, LocalDateTime.now(), null)
+        );
+
+        assertThrows(SpotlightSlotTakenException.class, () ->
+                paymentService.initiateSpotlight(devUserId, "0712345678", SpotlightType.DAY));
+    }
+
+    @Test
+    void initiateSpotlight_slotAvailable_initiatesPayment() {
+        when(userRepository.findById(devUserId)).thenReturn(Optional.of(developer));
+        when(spotlightService.checkSlotAvailability()).thenReturn(
+                new SlotAvailabilityResponse(true, true, null, null)
+        );
+        PlatformSetting setting = new PlatformSetting();
+        setting.setSettingValue("100");
+        when(platformSettingRepository.findBySettingKey("SPOTLIGHT_DAY_FEE"))
+                .thenReturn(Optional.of(setting));
+        StkPushResponse stkResponse = new StkPushResponse("mReq", "cReq", "0", "Success", "Success");
+        when(darajaService.initiateSTKPush(any(), any(), any(), any())).thenReturn(stkResponse);
+
+        PaymentInitiationResponse res = paymentService.initiateSpotlight(devUserId, "0712345678", SpotlightType.DAY);
+
+        assertNotNull(res);
+        assertEquals("cReq", res.checkoutRequestId());
         verify(paymentRepository).save(any(Payment.class));
     }
 

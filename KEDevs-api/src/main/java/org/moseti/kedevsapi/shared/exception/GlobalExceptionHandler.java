@@ -25,6 +25,10 @@ import org.moseti.kedevsapi.payments.exception.InsufficientSearchTokensException
 import org.moseti.kedevsapi.payments.exception.PaymentAlreadyProcessedException;
 import org.moseti.kedevsapi.payments.exception.PaymentNotFoundException;
 import org.moseti.kedevsapi.payments.exception.PaywallException;
+import org.moseti.kedevsapi.payments.exception.SpotlightSlotTakenException;
+import org.moseti.kedevsapi.spotlight.exception.SpotlightAlreadyActiveException;
+import org.moseti.kedevsapi.spotlight.exception.SpotlightPaymentMismatchException;
+import org.moseti.kedevsapi.spotlight.exception.SpotlightSlotNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -242,5 +246,33 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("Payment service unavailable. Please try again."));
+    }
+
+    @ExceptionHandler(SpotlightSlotTakenException.class)
+    public ResponseEntity<ApiResponse<Void>> handleSpotlightSlotTaken(SpotlightSlotTakenException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(SpotlightAlreadyActiveException.class)
+    public ResponseEntity<ApiResponse<Void>> handleSpotlightAlreadyActive(SpotlightAlreadyActiveException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(SpotlightPaymentMismatchException.class)
+    public ResponseEntity<ApiResponse<Void>> handleSpotlightPaymentMismatch(SpotlightPaymentMismatchException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(SpotlightSlotNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleSpotlightSlotNotFound(SpotlightSlotNotFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(ex.getMessage()));
     }
 }

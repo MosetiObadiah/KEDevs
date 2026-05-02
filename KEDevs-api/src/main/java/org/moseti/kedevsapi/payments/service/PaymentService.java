@@ -16,6 +16,9 @@ import org.moseti.kedevsapi.users.entity.User;
 import org.moseti.kedevsapi.users.repository.DeveloperProfileRepository;
 import org.moseti.kedevsapi.users.repository.EmployerProfileRepository;
 import org.moseti.kedevsapi.users.repository.UserRepository;
+import org.moseti.kedevsapi.spotlight.service.SpotlightService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -39,6 +42,10 @@ public class PaymentService {
     private final UserRepository userRepository;
     private final DeveloperProfileRepository developerProfileRepository;
     private final EmployerProfileRepository employerProfileRepository;
+
+    @Lazy
+    @Autowired
+    private SpotlightService spotlightService;
 
     // ====================== Helper ======================
 
@@ -160,7 +167,13 @@ public class PaymentService {
         if (user.getRole() != Role.DEVELOPER) {
             throw new ForbiddenException("Only developers can purchase spotlight slots");
         }
-        // TODO: check slot availability via spotlight module
+        
+        if (spotlightService.checkSlotAvailability().daySlotAvailable() == false && spotlightType == SpotlightType.DAY) {
+            throw new SpotlightSlotTakenException("A developer is currently featured in this spotlight. Please try again later.");
+        }
+        if (spotlightService.checkSlotAvailability().weekSlotAvailable() == false && spotlightType == SpotlightType.WEEK) {
+            throw new SpotlightSlotTakenException("A developer is currently featured in this spotlight. Please try again later.");
+        }
 
         String feeKey = spotlightType == SpotlightType.DAY ? "SPOTLIGHT_DAY_FEE" : "SPOTLIGHT_WEEK_FEE";
         BigDecimal amount = getSettingValue(feeKey);
@@ -245,17 +258,29 @@ public class PaymentService {
         switch (payment.getType()) {
             case ANNUAL_MEMBERSHIP -> {
                 LocalDateTime now = LocalDateTime.now();
-                LocalDateTime endDate = now.plusYears(1);
 
                 // Create or renew subscription
                 Subscription sub = subscriptionRepository
                         .findByUserIdAndTypeAndStatus(payment.getUserId(),
                                 SubscriptionType.ANNUAL_MEMBERSHIP, SubscriptionStatus.ACTIVE)
-                        .orElseGet(Subscription::new);
+                        .orElse(null);
+
+                LocalDateTime startDate;
+                LocalDateTime endDate;
+
+                if (sub != null) {
+                    startDate = sub.getEndDate();
+                    endDate = sub.getEndDate().plusYears(1);
+                } else {
+                    sub = new Subscription();
+                    startDate = now;
+                    endDate = now.plusYears(1);
+                }
+
                 sub.setUserId(payment.getUserId());
                 sub.setType(SubscriptionType.ANNUAL_MEMBERSHIP);
                 sub.setStatus(SubscriptionStatus.ACTIVE);
-                sub.setStartDate(now);
+                sub.setStartDate(startDate);
                 sub.setEndDate(endDate);
                 sub.setAmountPaid(payment.getAmount());
                 sub.setMpesaReceiptNo(payment.getMpesaReceiptNo());
@@ -306,10 +331,10 @@ public class PaymentService {
                 // TODO: notify user
             }
             case SPOTLIGHT_DAY, SPOTLIGHT_WEEK -> {
-                // TODO: create spotlight slot via spotlight module — spotlight module not built yet.
-                // Log the payment and leave slot creation for Module 6.
-                log.info("Spotlight payment {} completed for user {}. Awaiting spotlight module.",
-                        payment.getId(), payment.getUserId());
+                UUID developerId = payment.getUserId();
+                SpotlightType type = payment.getType() == PaymentType.SPOTLIGHT_DAY
+                        ? SpotlightType.DAY : SpotlightType.WEEK;
+                spotlightService.activateSpotlight(developerId, payment.getId(), type);
             }
             case SEARCH_TOKEN -> {
                 SearchToken token = new SearchToken();
