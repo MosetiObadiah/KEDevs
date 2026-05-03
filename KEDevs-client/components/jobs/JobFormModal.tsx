@@ -51,7 +51,7 @@ interface JobFormModalProps {
 
 export function JobFormModal({ isOpen, onClose, job }: JobFormModalProps) {
   const queryClient = useQueryClient();
-  const [tags, setTags] = useState<string[]>(job?.tags.map(t => t.tag) || []);
+  const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
 
   const {
@@ -88,14 +88,38 @@ export function JobFormModal({ isOpen, onClose, job }: JobFormModalProps) {
   const experienceLevel = watch('experienceLevel');
 
   useEffect(() => {
-    if (isOpen && !job) {
-      reset({
-        visibility: 'EXTERNAL',
-        workType: 'REMOTE',
-        jobType: 'FULL_TIME',
-        experienceLevel: 'ENTRY',
-      });
-      setTags([]);
+    if (isOpen) {
+      if (job) {
+        reset({
+          title: job.title,
+          description: job.description,
+          visibility: job.visibility,
+          workType: job.workType,
+          jobType: job.jobType,
+          experienceLevel: job.experienceLevel,
+          locationCity: job.locationCity || '',
+          locationCountry: job.locationCountry || '',
+          salary: job.salary || '',
+        });
+        if (job.tags) {
+          setTags(job.tags.map((t: any) => typeof t === 'string' ? t : t.tag));
+        } else {
+          setTags([]);
+        }
+      } else {
+        reset({
+          visibility: 'EXTERNAL',
+          workType: 'REMOTE',
+          jobType: 'FULL_TIME',
+          experienceLevel: 'ENTRY',
+          locationCity: '',
+          locationCountry: '',
+          salary: '',
+          title: '',
+          description: '',
+        });
+        setTags([]);
+      }
     }
   }, [isOpen, job, reset]);
 

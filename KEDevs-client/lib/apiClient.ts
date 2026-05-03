@@ -23,8 +23,24 @@ apiClient.interceptors.request.use((config) => {
 });
 
 // ─────────────────────────────────────────────────────────────────
-// 401 handler with refresh + failed-queue pattern
+// Response interceptors
 // ─────────────────────────────────────────────────────────────────
+
+// 1. Unwrap Spring Boot ApiResponse wrapper: { success, message, data, timestamp }
+// After this interceptor, res.data in all service calls IS the payload (no more res.data.data)
+apiClient.interceptors.response.use((response: AxiosResponse) => {
+  if (
+    response.data !== null &&
+    typeof response.data === 'object' &&
+    'success' in response.data &&
+    'data' in response.data
+  ) {
+    response.data = response.data.data;
+  }
+  return response;
+});
+
+// 2. 401 handler with refresh + failed-queue pattern
 let isRefreshing = false;
 let failedQueue: Array<{ resolve: (token: string) => void; reject: (err: unknown) => void }> = [];
 
@@ -40,7 +56,7 @@ function processQueue(error: unknown, token: string | null = null) {
 }
 
 apiClient.interceptors.response.use(
-  (response: AxiosResponse) => response,
+  (response) => response,
   async (error) => {
     const originalRequest = error.config as typeof error.config & { _retry?: boolean };
 

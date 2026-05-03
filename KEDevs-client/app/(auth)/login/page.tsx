@@ -25,13 +25,19 @@ function LoginForm() {
   const { login, user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const from = searchParams.get('from') ?? '/dashboard';
+  const from = searchParams.get('from') ?? null;
   const [showPassword, setShowPassword] = useState(false);
   const [unverifiedUserId, setUnverifiedUserId] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
-      router.replace(from);
+      // Redirect ADMIN users to admin panel, others to dashboard
+      // If 'from' is present but it's just the generic dashboard, prioritize /admin for admins
+      const effectiveFrom = (user.role === 'ADMIN' && from === '/dashboard') ? null : from;
+      const redirectTo = effectiveFrom || (user.role === 'ADMIN' ? '/admin' : '/dashboard');
+      
+      console.log('Login redirect:', { user: user.fullName, role: user.role, redirectTo });
+      router.replace(redirectTo);
     }
   }, [user, router, from]);
 
@@ -49,7 +55,7 @@ function LoginForm() {
     try {
       await login(data.email, data.password);
       toast.success('Welcome back!');
-      router.replace(from);
+      // Let the useEffect handle the redirect based on user role
     } catch (error: any) {
       const msg = error.message ?? 'Login failed';
       const status = error.status;

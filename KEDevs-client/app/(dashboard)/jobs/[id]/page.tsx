@@ -38,6 +38,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 
 export default function JobDetailPage() {
   const { id } = useParams() as { id: string };
@@ -186,8 +187,8 @@ export default function JobDetailPage() {
                    <p className="text-[#CAD2C5]/60 text-[10px] font-bold uppercase tracking-widest mb-1">Community Trust</p>
                    <div className="flex justify-center">
                      <VoteButtons
-                        initialUpvotes={job.upvotes}
-                        initialDownvotes={job.downvotes}
+                        initialUpvotes={job.upvotes || 0}
+                        initialDownvotes={job.downvotes || 0}
                         initialUserVote={job.userVote}
                         onVote={(type) => voteMutation.mutateAsync(type)}
                         orientation="horizontal"

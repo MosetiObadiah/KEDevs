@@ -48,11 +48,13 @@ export function RoleGuard({ role, children, fallback = '/dashboard' }: RoleGuard
   const allowedRolesStr = Array.isArray(role) ? role.join(',') : role;
 
   useEffect(() => {
+    // Adjust fallback for admin users
+    const adjustedFallback = role === 'ADMIN' ? '/dashboard' : fallback;
     const allowed = allowedRolesStr.split(',');
     if (!isLoading && user && !allowed.includes(user.role)) {
-      router.replace(fallback);
+      router.replace(adjustedFallback);
     }
-  }, [user, isLoading, router, allowedRolesStr, fallback]);
+  }, [user, isLoading, router, allowedRolesStr, role, fallback]);
 
   if (isLoading || !user || !allowedRolesStr.split(',').includes(user.role)) {
     return (
@@ -88,6 +90,10 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (mounted && !isLoading && isProfileFetched && user && !hasProfile) {
+      // Skip onboarding for ADMIN users - they don't need profiles
+      if (user.role === 'ADMIN') {
+        return;
+      }
       const onboardingPath = user.role === 'DEVELOPER' ? '/onboarding/developer' : '/onboarding/employer';
       router.replace(onboardingPath);
     }
@@ -101,9 +107,8 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // If we are authenticated but have no profile, we should be showing the loading state 
-  // until the redirect happens. If hasProfile is false, we don't render children.
-  if (user && !hasProfile) {
+  // Skip onboarding check for ADMIN users
+  if (user && !hasProfile && user.role !== 'ADMIN') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-8 h-8 border-2 border-teal border-t-transparent rounded-full animate-spin" />

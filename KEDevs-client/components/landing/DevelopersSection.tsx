@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { getDevelopers } from '@/lib/api/developers';
+import { getPublicDevelopers } from '@/lib/api/developers';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -13,7 +13,7 @@ import Link from 'next/link';
 export function DevelopersSection() {
   const { data, isLoading } = useQuery({
     queryKey: ['developers', 'public'],
-    queryFn: () => getDevelopers({ size: 8 }),
+    queryFn: () => getPublicDevelopers({ size: 8 }),
   });
 
   const developers = data?.content ?? [];
@@ -47,12 +47,12 @@ export function DevelopersSection() {
             ))
           ) : developers.length > 0 ? (
             developers.map((dev) => {
-              const initials = dev.fullName
-                .split(' ')
-                .map((n) => n[0])
-                .join('')
-                .slice(0, 2)
-                .toUpperCase();
+              const initials = (dev.fullName ?? dev.name ?? 'U')
+                  .split(' ')
+                  .map((n: string) => n[0])
+                  .join('')
+                  .slice(0, 2)
+                  .toUpperCase();
 
               return (
                 <Card key={dev.id} className="group hover:border-[#52796F]/40 transition-all duration-300 hover:shadow-xl hover:shadow-[#52796F]/5 border-[#CAD2C5]/50 bg-white">

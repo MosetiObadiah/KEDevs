@@ -6,202 +6,202 @@ export const profileApi = {
   // Developer Profile
   getDeveloperProfile: async (userId: string) => {
     const { data } = await apiClient.get(`/developers/profile/${userId}`);
-    return data.data;
+    return data;
   },
 
   getMyDeveloperProfile: async () => {
     const { data } = await apiClient.get('/developers/profile/me');
-    return data.data;
+    return data;
   },
 
   createDeveloperProfile: async (request: any) => {
     const { data } = await apiClient.post('/developers/profile', request);
-    return data.data;
+    return data;
   },
 
   updateDeveloperProfile: async (request: any) => {
     const { data } = await apiClient.put('/developers/profile', request);
-    return data.data;
+    return data;
   },
 
   getPublicDevelopers: async (params: { page?: number; size?: number }) => {
     const { data } = await apiClient.get('/developers/public', { params });
-    return data.data;
+    return data;
   },
 
   filterDevelopers: async (filters: any, params: { page?: number; size?: number }) => {
     const { data } = await apiClient.post('/developers/filter', filters, { params });
-    return data.data;
+    return data;
   },
 
   getDeveloperById: async (id: string) => {
     const { data } = await apiClient.get(`/developers/${id}`);
-    return data.data;
+    return data;
   },
 
   // Toggles
   updateAvailability: async (status: AvailabilityStatus) => {
     const { data } = await apiClient.patch(`/developers/profile/availability?status=${status}`);
-    return data.data;
+    return data;
   },
 
   updateVisibility: async (visibility: ProfileVisibility) => {
     const { data } = await apiClient.patch(`/developers/profile/visibility?visibility=${visibility}`);
-    return data.data;
+    return data;
   },
 
   // Editable Sections
   addSkill: async (skill: string) => {
     const { data } = await apiClient.post('/developers/profile/skills', { skill });
-    return data.data;
+    return data;
   },
 
   removeSkill: async (skill: string) => {
     const { data } = await apiClient.delete(`/developers/profile/skills/${skill}`);
-    return data.data;
+    return data;
   },
 
   addLanguage: async (language: string) => {
     const { data } = await apiClient.post('/developers/profile/languages', { language });
-    return data.data;
+    return data;
   },
 
   removeLanguage: async (language: string) => {
     const { data } = await apiClient.delete(`/developers/profile/languages/${language}`);
-    return data.data;
+    return data;
   },
 
   addEducation: async (request: any) => {
     const { data } = await apiClient.post('/developers/profile/education', request);
-    return data.data;
+    return data;
   },
 
   removeEducation: async (id: string) => {
     const { data } = await apiClient.delete(`/developers/profile/education/${id}`);
-    return data.data;
+    return data;
   },
 
   addCertification: async (request: any) => {
     const { data } = await apiClient.post('/developers/profile/certifications', request);
-    return data.data;
+    return data;
   },
 
   removeCertification: async (id: string) => {
     const { data } = await apiClient.delete(`/developers/profile/certifications/${id}`);
-    return data.data;
+    return data;
   },
 
   addOssContribution: async (request: any) => {
     const { data } = await apiClient.post('/developers/profile/oss', request);
-    return data.data;
+    return data;
   },
 
   removeOssContribution: async (id: string) => {
     const { data } = await apiClient.delete(`/developers/profile/oss/${id}`);
-    return data.data;
+    return data;
   },
 
   addAchievement: async (request: any) => {
     const { data } = await apiClient.post('/developers/profile/achievements', request);
-    return data.data;
+    return data;
   },
 
   removeAchievement: async (id: string) => {
     const { data } = await apiClient.delete(`/developers/profile/achievements/${id}`);
-    return data.data;
+    return data;
   },
 
   addProject: async (request: any) => {
     const { data } = await apiClient.post('/developers/profile/projects', request);
-    return data.data;
+    return data;
   },
 
   updateProject: async (id: string, request: any) => {
     const { data } = await apiClient.put(`/developers/profile/projects/${id}`, request);
-    return data.data;
+    return data;
   },
 
   removeProject: async (id: string) => {
     const { data } = await apiClient.delete(`/developers/profile/projects/${id}`);
-    return data.data;
+    return data;
   },
 
   toggleProjectFeatured: async (id: string) => {
     const { data } = await apiClient.patch(`/developers/profile/projects/${id}/featured`);
-    return data.data;
+    return data;
   },
 
   // Endorsements
   endorseDeveloper: async (profileId: string, content: string) => {
     const { data } = await apiClient.post(`/developers/${profileId}/endorsements`, { content });
-    return data.data;
+    return data;
   },
 
   // Employer Profile
   getEmployerProfile: async (userId: string) => {
     const { data } = await apiClient.get(`/employers/profile/${userId}`);
-    return data.data;
+    return data;
   },
 
   getMyEmployerProfile: async () => {
     const { data } = await apiClient.get('/employers/profile/me');
-    return data.data;
+    return data;
   },
 
   createEmployerProfile: async (request: any) => {
     const { data } = await apiClient.post('/employers/profile', request);
-    return data.data;
+    return data;
   },
 
   updateEmployerProfile: async (request: any) => {
     const { data } = await apiClient.put('/employers/profile', request);
-    return data.data;
+    return data;
   },
 
   // Employer Actions (Pro/Token features)
   getBookmarks: async () => {
     const { data } = await apiClient.get('/employers/bookmarks');
-    return data.data;
+    return data;
   },
 
   toggleBookmark: async (developerId: string, isBookmarked: boolean) => {
     if (isBookmarked) {
       const { data } = await apiClient.delete(`/employers/bookmarks/${developerId}`);
-      return data.data;
+      return data;
     } else {
       const { data } = await apiClient.post(`/employers/bookmarks/${developerId}`);
-      return data.data;
+      return data;
     }
   },
 
   getContactRequests: async () => {
     const { data } = await apiClient.get('/employers/contact/requests');
-    return data.data;
+    return data;
   },
 
   sendContactRequest: async (developerId: string, message: string) => {
     const { data } = await apiClient.post(`/employers/contact/${developerId}`, { message });
-    return data.data;
+    return data;
   },
 
   getSavedSearches: async () => {
     const { data } = await apiClient.get('/employers/searches');
-    return data.data;
+    return data;
   },
 
   saveSearch: async (name: string, filterCriteria: any) => {
     const { data } = await apiClient.post('/employers/searches', { searchName: name, filterCriteria });
-    return data.data;
+    return data;
   },
 
   deleteSavedSearch: async (id: string) => {
     const { data } = await apiClient.delete(`/employers/searches/${id}`);
-    return data.data;
+    return data;
   },
 
   // Developer response to contact request
   respondToContactRequest: async (requestId: string, status: 'ACCEPTED' | 'DECLINED') => {
     const { data } = await apiClient.patch(`/employers/contact/requests/${requestId}`, { status });
-    return data.data;
+    return data;
   },
 };

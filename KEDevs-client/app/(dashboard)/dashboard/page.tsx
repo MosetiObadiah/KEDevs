@@ -1,7 +1,7 @@
 'use client';
 
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { getJobs } from '@/lib/api/jobs';
 import { profileApi } from '@/lib/api/profile';
 import { JobCard, JobSkeleton } from '@/components/jobs/JobCard';
@@ -10,7 +10,7 @@ import { JobFormModal } from '@/components/jobs/JobFormModal';
 import { DeveloperCard, DeveloperSkeleton } from '@/components/developers/DeveloperCard';
 import { Button } from '@/components/ui/button';
 import { Plus, Loader2, Info, Search, Users } from 'lucide-react';
-import { useState, useMemo, Suspense } from 'react';
+import { useState, useMemo, Suspense, useEffect } from 'react';
 import { JobFilters as IJobFilters, WorkType, ExperienceLevel, JobType } from '@/lib/types/job';
 import { useAuth } from '@/lib/auth/hooks';
 
@@ -128,7 +128,7 @@ function EmployerFeed() {
     isFetchingNextPage,
     status,
   } = useInfiniteQuery({
-    queryKey: ['public-developers'],
+    queryKey: ['developers', 'public'],
     queryFn: ({ pageParam = 0 }) => profileApi.getPublicDevelopers({ page: pageParam, size: 10 }),
     initialPageParam: 0,
     getNextPageParam: (lastPage) => (lastPage.last ? undefined : lastPage.number + 1),
@@ -229,6 +229,13 @@ function EmployerFeed() {
 
 function DashboardContent() {
   const { user } = useAuth();
+  const router = useRouter();
+  
+  useEffect(() => {
+    if (user?.role === 'ADMIN') {
+      router.replace('/admin');
+    }
+  }, [user, router]);
   
   if (user?.role === 'EMPLOYER') {
     return <EmployerFeed />;

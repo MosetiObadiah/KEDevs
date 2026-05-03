@@ -3,27 +3,25 @@ import type { ForumComment } from '@/lib/types/forum';
 import type { VoteType } from '@/lib/types/job';
 
 export async function getComments(jobId: string): Promise<ForumComment[]> {
-  const res = await apiClient.get<{ data: ForumComment[] }>(`/forum/${jobId}/comments`);
-  return res.data.data;
+  const res = await apiClient.get<ForumComment[]>(`/forum/jobs/${jobId}/comments`);
+  return res.data;
 }
 
-export async function addComment(
-  jobId: string,
-  content: string,
-  parentCommentId?: string
-): Promise<ForumComment> {
-  const res = await apiClient.post<{ data: ForumComment }>(`/forum/${jobId}/comments`, {
-    content,
-    parentCommentId,
-  });
-  return res.data.data;
+export async function addComment(jobId: string, content: string): Promise<ForumComment> {
+  const res = await apiClient.post<ForumComment>(`/forum/jobs/${jobId}/comments`, { content });
+  return res.data;
+}
+
+export async function addReply(jobId: string, content: string, parentCommentId: string): Promise<ForumComment> {
+  const res = await apiClient.post<ForumComment>(`/forum/jobs/${jobId}/replies`, { content, parentCommentId });
+  return res.data;
 }
 
 export async function editComment(commentId: string, content: string): Promise<ForumComment> {
-  const res = await apiClient.put<{ data: ForumComment }>(`/forum/comments/${commentId}`, {
+  const res = await apiClient.put<ForumComment>(`/forum/comments/${commentId}`, {
     content,
   });
-  return res.data.data;
+  return res.data;
 }
 
 export async function deleteComment(commentId: string): Promise<void> {
@@ -43,6 +41,6 @@ export async function hideComment(commentId: string): Promise<void> {
 }
 
 export async function getReplies(commentId: string): Promise<ForumComment[]> {
-  const res = await apiClient.get<{ data: ForumComment[] }>(`/forum/comments/${commentId}/replies`);
-  return res.data.data;
+  const res = await apiClient.get<ForumComment[]>(`/forum/comments/${commentId}/replies`);
+  return res.data;
 }

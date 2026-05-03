@@ -21,7 +21,8 @@ import {
   User, 
   FileText,
   Loader2,
-  MoreHorizontal
+  MoreHorizontal,
+  Users
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';

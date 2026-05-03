@@ -16,7 +16,7 @@ interface DeveloperCardProps {
 }
 
 export function DeveloperCard({ developer }: DeveloperCardProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [showPaywall, setShowPaywall] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
 
@@ -25,7 +25,7 @@ export function DeveloperCard({ developer }: DeveloperCardProps) {
   const handleBookmark = (e: React.MouseEvent) => {
     e.preventDefault();
     if (user?.role === 'EMPLOYER') {
-      if (!user.isProAccount) {
+      if (!profile?.isProAccount) {
         setShowPaywall(true);
       } else {
         // Toggle bookmark (would connect to mutation in a real app)

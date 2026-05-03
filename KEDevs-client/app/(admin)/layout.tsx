@@ -20,7 +20,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
 const ADMIN_LINKS = [
-  { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/flags', label: 'Flags & Reports', icon: Flag },
   { href: '/admin/spotlight', label: 'Spotlight', icon: Star },

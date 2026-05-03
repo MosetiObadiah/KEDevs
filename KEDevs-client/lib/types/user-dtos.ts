@@ -162,5 +162,6 @@ export namespace UserDtos {
     isVerified: boolean;
     locationCity?: string;
     locationCountry?: string;
+    isSpotlighted?: boolean;
   }
 }

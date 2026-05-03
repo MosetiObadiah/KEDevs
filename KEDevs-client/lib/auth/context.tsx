@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useCallback, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useEffect, useRef, useState } from 'react';
 import type { User, AuthResponse, Role } from '@/lib/types/user';
 // getMe removed since the backend does not have a generic /users/me endpoint
 
@@ -52,12 +52,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [profile, setProfile] = useState<any | undefined>(undefined);
   const [isProfileLoading, setIsProfileLoading] = useState(false);
+  const profileFetchInitiatedRef = useRef(false);
 
   const refreshProfile = useCallback(async () => {
     if (!user) return;
     setIsProfileLoading(true);
     try {
       const { profileApi } = await import('@/lib/api/profile');
+      // ADMIN users don't have profiles, so just mark as loaded
+      if (user.role === 'ADMIN') {
+        setProfile({}); // Empty object indicates profile is loaded (for admins)
+        return;
+      }
       if (user.role === 'DEVELOPER') {
         const p = await profileApi.getMyDeveloperProfile();
         setProfile(p);
@@ -77,10 +83,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   useEffect(() => {
-    if (user && profile === undefined && !isProfileLoading) {
+    if (user && profile === undefined && !isProfileLoading && !profileFetchInitiatedRef.current) {
+      profileFetchInitiatedRef.current = true;
       refreshProfile();
     }
-  }, [user, profile, isProfileLoading, refreshProfile]);
+  }, [user, profile, isProfileLoading]);
 
   // Rehydrate on mount — read localStorage token, then fetch /users/me
   useEffect(() => {
@@ -183,6 +190,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('user_profile');
     setAccessToken(null);
     setUser(null);
+    profileFetchInitiatedRef.current = false;
   }, []);
 
   const completeAuth = useCallback((data: AuthResponse) => {

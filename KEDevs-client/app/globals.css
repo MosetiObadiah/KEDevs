@@ -7,11 +7,11 @@
 
 /* ── KEDevs custom palette ──────────────────────────────── */
 @theme inline {
-  --color-sage: #CAD2C5;
-  --color-fern: #84A98C;
-  --color-teal: #52796F;
-  --color-forest: #354F52;
-  --color-deep: #2F3E46;
+  --color-sage: #f4fbf9;  /* background */
+  --color-fern: #7792d4;  /* secondary */
+  --color-teal: #216959;  /* primary */
+  --color-forest: #32329a; /* accent */
+  --color-deep: #081b17;  /* text */
 
   /* shadcn token mappings */
   --color-background: var(--background);

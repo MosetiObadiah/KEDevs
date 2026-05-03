@@ -22,6 +22,7 @@ import { useAuth } from '@/lib/auth/hooks';
 import { 
   voteComment, 
   addComment, 
+  addReply,
   editComment, 
   deleteComment, 
   hideComment, 
@@ -70,7 +71,7 @@ export function CommentItem({ comment, jobId, depth = 0 }: CommentItemProps) {
   const handleReply = async () => {
     if (!replyContent.trim()) return;
     try {
-      await addComment(jobId, replyContent, comment.id);
+      await addReply(jobId, replyContent, comment.id);
       toast.success('Reply posted');
       setReplyContent('');
       setIsReplyOpen(false);
@@ -144,10 +145,8 @@ export function CommentItem({ comment, jobId, depth = 0 }: CommentItemProps) {
             </div>
 
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <MoreVertical className="w-4 h-4 text-[#84A98C]" />
-                </Button>
+              <DropdownMenuTrigger className="h-8 w-8 p-0 inline-flex items-center justify-center rounded-md hover:bg-slate-100 transition-colors">
+                <MoreVertical className="w-4 h-4 text-[#84A98C]" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {canEdit && (

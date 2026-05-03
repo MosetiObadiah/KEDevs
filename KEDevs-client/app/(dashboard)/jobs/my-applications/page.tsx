@@ -24,7 +24,6 @@ const STATUS_CONFIG: Record<ApplicationStatus, { label: string; className: strin
   PENDING: { label: 'Pending', className: 'bg-fern/10 text-fern border-fern/20', icon: Clock },
   REVIEWING: { label: 'In Review', className: 'bg-teal/10 text-teal border-teal/20', icon: Send },
   SHORTLISTED: { label: 'Shortlisted', className: 'bg-forest/10 text-forest border-forest/20', icon: CheckCircle2 },
-  ACCEPTED: { label: 'Offer Received', className: 'bg-green-500/10 text-green-600 border-green-500/20', icon: CheckCircle2 },
   REJECTED: { label: 'Not Selected', className: 'bg-red-500/10 text-red-600 border-red-500/20', icon: XCircle },
   OFFERED: { label: 'Hired', className: 'bg-forest/20 text-forest border-forest/30', icon: CheckCircle2 },
   WITHDRAWN: { label: 'Withdrawn', className: 'bg-sage/10 text-sage-foreground/40 border-sage/20', icon: XCircle },

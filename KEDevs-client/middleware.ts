@@ -84,8 +84,9 @@ export function proxy(req: NextRequest) {
 
   // If already authenticated and hitting auth pages → redirect to feed
   if (isPublicPath(pathname) && pathname !== '/' && accessToken) {
+    const role = getRoleFromToken(accessToken);
     const url = req.nextUrl.clone();
-    url.pathname = '/dashboard';
+    url.pathname = role === 'ADMIN' ? '/admin' : '/dashboard';
     return NextResponse.redirect(url);
   }
 

@@ -33,14 +33,6 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
-const NAV_LINKS = [
-  { href: '/dashboard', label: 'Dashboard', icon: Rss },
-  { href: '/developers', label: 'Developers', icon: Users },
-  { href: '/employers', label: 'Employers', icon: Building2 },
-  { href: '/payments', label: 'Payments', icon: CreditCard },
-  { href: '/notifications', label: 'Notifications', icon: Bell },
-];
-
 function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
@@ -78,7 +70,13 @@ function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {NAV_LINKS.map(({ href, label, icon: Icon }) => {
+        {[
+          { href: '/dashboard', label: 'Dashboard', icon: Rss },
+          { href: '/developers', label: 'Developers', icon: Users },
+          ...(user?.role === 'EMPLOYER' ? [{ href: '/employers/bookmarks', label: 'Hiring Pipeline', icon: Building2 }] : []),
+          { href: '/payments', label: 'Payments', icon: CreditCard },
+          { href: '/notifications', label: 'Notifications', icon: Bell },
+        ].map(({ href, label, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(`${href}/`);
           return (
             <Link
@@ -104,25 +102,27 @@ function Sidebar() {
         })}
 
         {/* Spotlight link */}
-        <div className="pt-4 border-t border-sidebar-border mt-4">
-          <Link
-            href="/spotlight"
-            className={cn(
-              'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group',
-              pathname.startsWith('/spotlight')
-                ? 'bg-sidebar-primary text-white'
-                : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-white'
-            )}
-          >
-            <Star className="w-5 h-5 text-yellow-400" />
-            Spotlight
-          </Link>
-        </div>
+        {user?.role === 'DEVELOPER' && (
+          <div className="pt-4 border-t border-sidebar-border mt-4">
+            <Link
+              href="/spotlight"
+              className={cn(
+                'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group',
+                pathname.startsWith('/spotlight')
+                  ? 'bg-sidebar-primary text-white'
+                  : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-white'
+              )}
+            >
+              <Star className="w-5 h-5 text-yellow-400" />
+              Spotlight
+            </Link>
+          </div>
+        )}
 
         {/* Admin link — only show for ADMIN role */}
         {user?.role === 'ADMIN' && (
           <Link
-            href="/admin/dashboard"
+            href="/admin"
             className={cn(
               'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
               pathname.startsWith('/admin')
