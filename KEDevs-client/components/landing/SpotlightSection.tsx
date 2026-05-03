@@ -9,17 +9,13 @@ import { Star, Trophy, Users, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 export function SpotlightSection() {
-  const { data: slots, isLoading } = useQuery({
+  const { data: spotlightData, isLoading } = useQuery({
     queryKey: ['spotlight', 'current'],
     queryFn: getCurrentSpotlight,
   });
 
-  // For the landing page, we might want to distinguish between "Day" and "Week" 
-  // based on some metadata or just take the first two.
-  // The requirement says "Dev of the Day" and "Dev of the Week".
-  // Let's assume the first two slots are these.
-  const devOfDay = slots?.[0];
-  const devOfWeek = slots?.[1];
+  const devOfDay = spotlightData?.daySlot;
+  const devOfWeek = spotlightData?.weekSlot;
 
   const SpotlightCard = ({ title, slot, fallbackLabel }: { title: string; slot?: any; fallbackLabel: string }) => {
     const initials = slot?.developerName
@@ -44,17 +40,17 @@ export function SpotlightSection() {
             {slot ? (
               <div className="flex flex-col items-center text-center">
                 <Avatar className="w-24 h-24 mb-4 ring-4 ring-yellow-500/20 border-2 border-white/10">
-                  <AvatarImage src={slot.developerProfileImageUrl} />
+                  <AvatarImage src={slot.profilePhoto} />
                   <AvatarFallback className="bg-[#52796F] text-white text-2xl font-bold">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
                 <h3 className="text-xl font-bold text-white mb-1">{slot.developerName}</h3>
-                <p className="text-[#84A98C] text-sm mb-4">{slot.developerHeadline || 'Full Stack Developer'}</p>
+                <p className="text-[#84A98C] text-sm mb-4">{slot.currentLastRole || 'Full Stack Developer'}</p>
                 <div className="flex flex-wrap justify-center gap-2 mb-6">
-                  {slot.developerSkills?.slice(0, 3).map((skill: string) => (
-                    <Badge key={skill} variant="outline" className="border-white/10 text-white/60 text-[10px]">
-                      {skill}
+                  {slot.featuredProjects?.slice(0, 3).map((project: any) => (
+                    <Badge key={project.title} variant="outline" className="border-white/10 text-white/60 text-[10px]">
+                      {project.title}
                     </Badge>
                   ))}
                 </div>

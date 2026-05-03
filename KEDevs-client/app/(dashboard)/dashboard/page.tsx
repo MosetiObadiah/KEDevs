@@ -13,6 +13,7 @@ import { Plus, Loader2, Info, Search, Users } from 'lucide-react';
 import { useState, useMemo, Suspense, useEffect } from 'react';
 import { JobFilters as IJobFilters, WorkType, ExperienceLevel, JobType } from '@/lib/types/job';
 import { useAuth } from '@/lib/auth/hooks';
+import { SpotlightBanner } from '@/components/dashboard/SpotlightBanner';
 
 function DeveloperFeed() {
   const searchParams = useSearchParams();
@@ -50,6 +51,7 @@ function DeveloperFeed() {
 
   return (
     <>
+      <SpotlightBanner />
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-extrabold text-[#2F3E46]">Developer Dashboard</h1>
@@ -138,6 +140,7 @@ function EmployerFeed() {
 
   return (
     <>
+      <SpotlightBanner />
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-extrabold text-[#2F3E46]">Employer Dashboard</h1>
@@ -223,6 +226,8 @@ function EmployerFeed() {
           )}
         </main>
       </div>
+
+      <JobFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </>
   );
 }

@@ -6,7 +6,8 @@ export type PaymentType =
   | 'PRO_UPGRADE'
   | 'VERIFIED_BADGE'
   | 'SEARCH_TOKEN'
-  | 'SPOTLIGHT';
+  | 'SPOTLIGHT_DAY'
+  | 'SPOTLIGHT_WEEK';
 export type SubscriptionType = 'ANNUAL_MEMBERSHIP' | 'PRO';
 export type SubscriptionStatus = 'ACTIVE' | 'EXPIRED' | 'CANCELLED';
 

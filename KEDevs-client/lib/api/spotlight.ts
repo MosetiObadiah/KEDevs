@@ -1,8 +1,8 @@
 import apiClient from '@/lib/apiClient';
-import type { SpotlightSlot, SpotlightAvailability } from '@/lib/types/spotlight';
+import type { SpotlightSlot, SpotlightAvailability, CurrentSpotlightResponse } from '@/lib/types/spotlight';
 
-export async function getCurrentSpotlight(): Promise<SpotlightSlot[]> {
-  const res = await apiClient.get<SpotlightSlot[]>('/spotlight/current');
+export async function getCurrentSpotlight(): Promise<CurrentSpotlightResponse> {
+  const res = await apiClient.get<CurrentSpotlightResponse>('/spotlight/current');
   return res.data;
 }
 

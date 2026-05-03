@@ -1,22 +1,40 @@
-export type SpotlightType = 'FEATURED' | 'STANDARD' | 'PREMIUM';
+export type SpotlightType = 'DAY' | 'WEEK';
+
+export interface DeveloperSpotlightCard {
+  developerId: string;
+  developerName: string;
+  profilePhoto?: string;
+  bio?: string;
+  currentLastRole?: string;
+  locationCity?: string;
+  locationCountry?: string;
+  isVerified: boolean;
+  featuredProjects: any[];
+}
 
 export interface SpotlightSlot {
   id: string;
   developerId: string;
   developerName: string;
-  developerHeadline?: string;
-  developerProfileImageUrl?: string;
-  developerSkills: string[];
-  spotlightType: SpotlightType;
-  paymentId: string;
-  isActive: boolean;
+  type: SpotlightType;
   startDate: string;
   endDate: string;
+  isActive: boolean;
+  overriddenByAdmin: boolean;
+  paymentId: string;
   createdAt: string;
 }
 
+export interface CurrentSpotlightResponse {
+  daySlot?: DeveloperSpotlightCard;
+  weekSlot?: DeveloperSpotlightCard;
+}
+
 export interface SpotlightAvailability {
-  available: boolean;
-  nextSlotDate?: string;
-  priceKes: number;
+  daySlotAvailable: boolean;
+  weekSlotAvailable: boolean;
+  daySlotExpiresAt?: string;
+  weekSlotExpiresAt?: string;
+  dayPriceKes?: number;
+  weekPriceKes?: number;
 }
