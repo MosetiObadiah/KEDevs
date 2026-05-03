@@ -70,7 +70,14 @@ export function GoogleButton({ mode, role }: GoogleButtonProps) {
     // Also try to show the One Tap prompt
     // We add a slight delay and a cleanup to prevent "multiple outstanding requests"
     const timeout = setTimeout(() => {
-      window.google.accounts.id.prompt();
+      if (window.google?.accounts?.id && !window.google._isPrompted) {
+        window.google.accounts.id.prompt((notification: any) => {
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            console.log('Google One Tap not displayed:', notification.getNotDisplayedReason());
+          }
+        });
+        window.google._isPrompted = true;
+      }
     }, 500);
 
     return () => {

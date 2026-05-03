@@ -11,7 +11,15 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
 } from 'recharts';
 
+import { useState, useEffect } from 'react';
+
 export default function AdminDashboardPage() {
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['admin', 'dashboard'],
     queryFn: adminApi.getDashboard,
@@ -70,9 +78,9 @@ export default function AdminDashboardPage() {
             <CardTitle>Signup Trend (Last 30 Days)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-80 w-full">
-              {signupTrend && signupTrend.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
+            <div style={{ height: '350px', width: '100%' }}>
+              {mounted && signupTrend && signupTrend.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <LineChart data={signupTrend} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                     <XAxis dataKey="date" tick={{fontSize: 12}} tickLine={false} axisLine={false} />
@@ -82,7 +90,9 @@ export default function AdminDashboardPage() {
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex h-full items-center justify-center text-muted-foreground text-sm">No signup data available</div>
+                <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
+                  {!mounted ? <Loader2 className="w-5 h-5 animate-spin" /> : 'No signup data available'}
+                </div>
               )}
             </div>
           </CardContent>
@@ -93,9 +103,9 @@ export default function AdminDashboardPage() {
             <CardTitle>Revenue by Payment Type</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-80 w-full">
-              {revenueTrend && revenueTrend.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
+            <div style={{ height: '350px', width: '100%' }}>
+              {mounted && revenueTrend && revenueTrend.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <BarChart data={revenueTrend} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                     <XAxis dataKey="paymentType" tick={{fontSize: 10}} tickLine={false} axisLine={false} />
@@ -105,7 +115,9 @@ export default function AdminDashboardPage() {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex h-full items-center justify-center text-muted-foreground text-sm">No revenue data available</div>
+                <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
+                  {!mounted ? <Loader2 className="w-5 h-5 animate-spin" /> : 'No revenue data available'}
+                </div>
               )}
             </div>
           </CardContent>
@@ -116,9 +128,9 @@ export default function AdminDashboardPage() {
             <CardTitle>Subscription Status Distribution</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-80 w-full flex justify-center">
-              {subStats && (subStats.active > 0 || subStats.expired > 0 || subStats.cancelled > 0) ? (
-                <ResponsiveContainer width="100%" height="100%">
+            <div style={{ height: '350px', width: '100%' }} className="flex justify-center">
+              {mounted && subStats && (subStats.active > 0 || subStats.expired > 0 || subStats.cancelled > 0) ? (
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <PieChart>
                     <Pie
                       data={subPieData}
@@ -138,7 +150,9 @@ export default function AdminDashboardPage() {
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex h-full items-center justify-center text-muted-foreground text-sm">No subscription data available</div>
+                <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
+                  {!mounted ? <Loader2 className="w-5 h-5 animate-spin" /> : 'No subscription data available'}
+                </div>
               )}
             </div>
           </CardContent>
