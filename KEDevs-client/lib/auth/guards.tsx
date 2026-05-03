@@ -74,3 +74,42 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
     </RoleGuard>
   );
 }
+
+// ── OnboardingGuard — redirect to /onboarding if profile is missing ───────────
+
+export function OnboardingGuard({ children }: { children: React.ReactNode }) {
+  const { user, hasProfile, isProfileFetched, isLoading } = useAuth();
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && !isLoading && isProfileFetched && user && !hasProfile) {
+      const onboardingPath = user.role === 'DEVELOPER' ? '/onboarding/developer' : '/onboarding/employer';
+      router.replace(onboardingPath);
+    }
+  }, [mounted, isLoading, isProfileFetched, user, hasProfile, router]);
+
+  if (!mounted || isLoading || !isProfileFetched) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border-2 border-teal border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // If we are authenticated but have no profile, we should be showing the loading state 
+  // until the redirect happens. If hasProfile is false, we don't render children.
+  if (user && !hasProfile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border-2 border-teal border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}

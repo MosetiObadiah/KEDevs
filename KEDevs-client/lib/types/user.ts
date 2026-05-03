@@ -6,12 +6,13 @@ export type AccountStatus = 'ACTIVE' | 'SUSPENDED' | 'BANNED' | 'PENDING_VERIFIC
 export type AvailabilityStatus = 'AVAILABLE' | 'NOT_AVAILABLE' | 'OPEN_TO_OFFERS';
 export type ProfileVisibility = 'PUBLIC' | 'PRIVATE' | 'CONNECTIONS_ONLY';
 export type YearsOfExperience =
-  | 'LESS_THAN_ONE'
-  | 'ONE_TO_TWO'
-  | 'TWO_TO_FIVE'
+  | 'ZERO_TO_ONE'
+  | 'ONE_TO_THREE'
+  | 'THREE_TO_FIVE'
   | 'FIVE_TO_TEN'
-  | 'MORE_THAN_TEN';
-export type CompanySize = 'STARTUP' | 'SMALL' | 'MEDIUM' | 'LARGE' | 'ENTERPRISE';
+  | 'TEN_PLUS';
+export type CompanySize = 'ONE_TO_TEN' | 'TEN_TO_FIFTY' | 'FIFTY_TO_TWO_HUNDRED' | 'TWO_HUNDRED_PLUS';
+export type WorkType = 'REMOTE' | 'ONSITE' | 'HYBRID';
 export type ContactRequestStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED';
 
 // ── Auth / User ───────────────────────────────────────────────────────────

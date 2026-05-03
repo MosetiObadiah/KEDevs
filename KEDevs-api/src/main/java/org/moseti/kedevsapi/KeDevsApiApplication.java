@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableAsync
 @EnableScheduling
+@org.springframework.data.jpa.repository.config.EnableJpaAuditing
 public class KeDevsApiApplication {
 
     public static void main(String[] args) {

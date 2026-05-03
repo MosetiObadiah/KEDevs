@@ -21,6 +21,11 @@ interface AuthContextValue {
   logout: () => Promise<void>;
   setUser: (user: User | null) => void;
   completeAuth: (data: AuthResponse) => void;
+  profile: any | null;
+  isProfileLoading: boolean;
+  isProfileFetched: boolean;
+  refreshProfile: () => Promise<void>;
+  hasProfile: boolean;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
@@ -45,6 +50,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [profile, setProfile] = useState<any | undefined>(undefined);
+  const [isProfileLoading, setIsProfileLoading] = useState(false);
+
+  const refreshProfile = useCallback(async () => {
+    if (!user) return;
+    setIsProfileLoading(true);
+    try {
+      const { profileApi } = await import('@/lib/api/profile');
+      if (user.role === 'DEVELOPER') {
+        const p = await profileApi.getMyDeveloperProfile();
+        setProfile(p);
+      } else if (user.role === 'EMPLOYER') {
+        const p = await profileApi.getMyEmployerProfile();
+        setProfile(p);
+      }
+    } catch (err: any) {
+      // 404 means profile not created yet - expected for new users
+      if (err.response?.status !== 404) {
+        console.error('Failed to fetch profile:', err);
+      }
+      setProfile(null);
+    } finally {
+      setIsProfileLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user && profile === undefined && !isProfileLoading) {
+      refreshProfile();
+    }
+  }, [user, profile, isProfileLoading, refreshProfile]);
 
   // Rehydrate on mount — read localStorage token, then fetch /users/me
   useEffect(() => {
@@ -158,7 +194,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, accessToken, login, register, googleAuth, logout, setUser, completeAuth }}
+      value={{ 
+        user, 
+        isLoading, 
+        accessToken, 
+        login, 
+        register, 
+        googleAuth, 
+        logout, 
+        setUser, 
+        completeAuth,
+        profile,
+        isProfileLoading,
+        isProfileFetched: profile !== undefined,
+        refreshProfile,
+        hasProfile: !!profile
+      }}
     >
       {children}
     </AuthContext.Provider>

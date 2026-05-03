@@ -1,6 +1,6 @@
 package org.moseti.kedevsapi.users.service;
 
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.moseti.kedevsapi.shared.enums.AvailabilityStatus;

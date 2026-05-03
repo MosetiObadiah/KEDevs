@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth/hooks';
-import { AuthGuard } from '@/lib/auth/guards';
+import { AuthGuard, OnboardingGuard } from '@/lib/auth/guards';
 import { NotificationBell } from '@/components/shared/notification-bell';
+import { ProfileCompletionBanner } from '@/components/shared/profile-completion-banner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -200,6 +201,8 @@ function TopBar() {
         <NotificationBell />
       </header>
 
+
+
       {isUnapprovedEmployer && (
         <div className="fixed top-0 right-0 left-[280px] h-14 bg-amber-500/10 border-b border-amber-500/20 z-40 flex items-center px-6">
           <div className="flex items-center gap-3 flex-1">
@@ -230,16 +233,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-background">
-        <Sidebar />
-        <TopBar />
-        <main className={cn(
-          "ml-[280px] pt-16 min-h-screen transition-all duration-300",
-          isUnapprovedEmployer && "pt-[120px]"
-        )}>
-          <div className="p-6 max-w-7xl mx-auto">{children}</div>
-        </main>
-      </div>
+      <OnboardingGuard>
+        <div className="min-h-screen bg-background">
+          <Sidebar />
+          <TopBar />
+          <main className={cn(
+            "ml-[280px] pt-16 min-h-screen transition-all duration-300",
+            isUnapprovedEmployer && "pt-[120px]"
+          )}>
+            <ProfileCompletionBanner />
+            <div className="p-6 max-w-7xl mx-auto">{children}</div>
+          </main>
+        </div>
+      </OnboardingGuard>
     </AuthGuard>
   );
 }

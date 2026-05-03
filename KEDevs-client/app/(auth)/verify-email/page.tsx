@@ -36,7 +36,7 @@ function VerifyEmailContent() {
       toast.success('Account verified successfully!');
       completeAuth(data);
       
-      const redirect = searchParams.get('redirect') ?? '/profile/me';
+      const redirect = searchParams.get('redirect') ?? '/dashboard';
       router.replace(redirect);
     },
     onError: (err: Error) => {
