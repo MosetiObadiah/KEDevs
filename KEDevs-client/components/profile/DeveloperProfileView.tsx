@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { ConfirmModal } from '@/components/shared/confirm-modal';
 import { SpotlightModal } from '@/components/shared/spotlight-modal';
 import { Textarea } from '@/components/ui/textarea';
+import Link from 'next/link';
 
 export function DeveloperProfileView() {
   const queryClient = useQueryClient();
@@ -188,9 +189,11 @@ export function DeveloperProfileView() {
           </div>
           
           <div className="flex flex-col gap-3 min-w-[200px]">
-            <Button onClick={() => setSpotlightOpen(true)} className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold">
-              <Star className="w-4 h-4 mr-2" /> Buy Spotlight
-            </Button>
+            <Link href="/spotlight">
+              <Button className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold">
+                <Star className="w-4 h-4 mr-2" /> Buy Spotlight
+              </Button>
+            </Link>
             <div className="space-y-1">
               <label className="text-[10px] uppercase font-bold text-primary">Availability</label>
               <Select value={(profile as any).availabilityStatus || profile.availability || ''} onValueChange={(v) => availabilityMutation.mutate(v)}>
@@ -227,8 +230,8 @@ export function DeveloperProfileView() {
             <CardContent className="p-6 space-y-4">
               <h3 className="font-black text-foreground uppercase tracking-tight">Skills</h3>
               <div className="flex flex-wrap gap-2">
-                {profile.skills?.map((skill: any) => (
-                  <Badge key={skill.id || skill.name} className="bg-primary/10 text-primary hover:bg-primary/20 border-transparent py-1.5 px-3 flex items-center gap-2">
+                {profile.skills?.map((skill: any, index: number) => (
+                  <Badge key={skill.id || skill.name || `skill-${index}`} className="bg-primary/10 text-primary hover:bg-primary/20 border-transparent py-1.5 px-3 flex items-center gap-2">
                     {skill.name || skill.skill}
                     <X className="w-3 h-3 cursor-pointer opacity-50 hover:opacity-100 transition-opacity" onClick={() => setItemToDelete({ id: skill.id || skill.name || skill.skill, type: 'skill' })} />
                   </Badge>
@@ -247,8 +250,8 @@ export function DeveloperProfileView() {
             <CardContent className="p-6 space-y-4">
               <h3 className="font-black text-foreground uppercase tracking-tight">Languages</h3>
               <div className="flex flex-wrap gap-2">
-                {profile.languages?.map((lang: any) => (
-                  <Badge key={lang.id || lang.language} className="bg-secondary/10 text-foreground hover:bg-secondary/20 border-transparent py-1.5 px-3 flex items-center gap-2">
+                {profile.languages?.map((lang: any, index: number) => (
+                  <Badge key={lang.id || lang.language || `lang-${index}`} className="bg-secondary/10 text-foreground hover:bg-secondary/20 border-transparent py-1.5 px-3 flex items-center gap-2">
                     {lang.language}
                     <X className="w-3 h-3 cursor-pointer opacity-50 hover:opacity-100 transition-opacity" onClick={() => setItemToDelete({ id: lang.id || lang.language, type: 'language' })} />
                   </Badge>
@@ -284,8 +287,8 @@ export function DeveloperProfileView() {
                 <div className="text-center py-8 text-muted-foreground text-sm font-medium">No projects added yet. Showcase your work!</div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {profile.projects?.map((proj: any) => (
-                    <div key={proj.id} className="p-4 rounded-2xl border border-secondary bg-white hover:border-primary transition-colors group">
+                  {profile.projects?.map((proj: any, index: number) => (
+                    <div key={proj.id || `proj-${index}`} className="p-4 rounded-2xl border border-secondary bg-white hover:border-primary transition-colors group">
                       <h4 className="font-bold text-foreground">{proj.title}</h4>
                       <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{proj.description}</p>
                       <div className="flex gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -314,8 +317,8 @@ export function DeveloperProfileView() {
                 <div className="text-center py-4 text-muted-foreground text-sm font-medium">No education added yet.</div>
               ) : (
                 <div className="space-y-4">
-                  {profile.education?.map((edu: any) => (
-                    <div key={edu.id} className="p-4 rounded-2xl border border-secondary bg-white hover:border-primary transition-colors flex justify-between items-start">
+                  {profile.education?.map((edu: any, index: number) => (
+                    <div key={edu.id || `edu-${index}`} className="p-4 rounded-2xl border border-secondary bg-white hover:border-primary transition-colors flex justify-between items-start">
                       <div>
                         <h4 className="font-bold text-foreground">{edu.institution}</h4>
                         <p className="text-sm text-muted-foreground">{edu.degree} in {edu.fieldOfStudy}</p>
@@ -344,8 +347,8 @@ export function DeveloperProfileView() {
                 <div className="text-center py-4 text-muted-foreground text-sm font-medium">No certifications added yet.</div>
               ) : (
                 <div className="space-y-4">
-                  {profile.certifications?.map((cert: any) => (
-                    <div key={cert.id} className="p-4 rounded-2xl border border-secondary bg-white hover:border-primary transition-colors flex justify-between items-start">
+                  {profile.certifications?.map((cert: any, index: number) => (
+                    <div key={cert.id || `cert-${index}`} className="p-4 rounded-2xl border border-secondary bg-white hover:border-primary transition-colors flex justify-between items-start">
                       <div>
                         <h4 className="font-bold text-foreground">{cert.name}</h4>
                         <p className="text-sm text-muted-foreground">{cert.issuer}</p>
@@ -373,8 +376,8 @@ export function DeveloperProfileView() {
                 <div className="text-center py-4 text-muted-foreground text-sm font-medium">No OSS contributions added yet.</div>
               ) : (
                 <div className="space-y-4">
-                  {profile.ossContributions?.map((oss: any) => (
-                    <div key={oss.id} className="p-4 rounded-2xl border border-secondary bg-white hover:border-primary transition-colors flex justify-between items-start">
+                  {profile.ossContributions?.map((oss: any, index: number) => (
+                    <div key={oss.id || `oss-${index}`} className="p-4 rounded-2xl border border-secondary bg-white hover:border-primary transition-colors flex justify-between items-start">
                       <div>
                         <h4 className="font-bold text-foreground">{oss.projectName}</h4>
                         <p className="text-sm text-muted-foreground">{oss.role}</p>
@@ -402,8 +405,8 @@ export function DeveloperProfileView() {
                 <div className="text-center py-4 text-muted-foreground text-sm font-medium">No achievements added yet.</div>
               ) : (
                 <div className="space-y-4">
-                  {profile.achievements?.map((ach: any) => (
-                    <div key={ach.id} className="p-4 rounded-2xl border border-secondary bg-white hover:border-primary transition-colors flex justify-between items-start">
+                  {profile.achievements?.map((ach: any, index: number) => (
+                    <div key={ach.id || `ach-${index}`} className="p-4 rounded-2xl border border-secondary bg-white hover:border-primary transition-colors flex justify-between items-start">
                       <div>
                         <h4 className="font-bold text-foreground">{ach.title}</h4>
                         <p className="text-sm text-muted-foreground">{ach.description}</p>

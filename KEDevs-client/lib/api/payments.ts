@@ -1,36 +1,45 @@
 import apiClient from '@/lib/apiClient';
-import type { Payment, Subscription, PlatformSetting } from '@/lib/types/payment';
+import type { Payment, Subscription, PlatformSetting, StkPushResponse } from '@/lib/types/payment';
 
 // ── Payment initiation (M-Pesa STK push) ─────────────────────────────────
 
-export async function payAnnualMembership(phoneNumber: string): Promise<void> {
-  await apiClient.post('/payments/annual-membership', { phoneNumber });
+export async function payAnnualMembership(phoneNumber: string): Promise<StkPushResponse> {
+  const res = await apiClient.post<StkPushResponse>('/payments/annual-membership', { phoneNumber });
+  return res.data;
 }
 
-export async function payProUpgrade(phoneNumber: string): Promise<void> {
-  await apiClient.post('/payments/pro-upgrade', { phoneNumber });
+export async function payProUpgrade(phoneNumber: string): Promise<StkPushResponse> {
+  const res = await apiClient.post<StkPushResponse>('/payments/pro-upgrade', { phoneNumber });
+  return res.data;
 }
 
-export async function payVerifiedBadge(phoneNumber: string): Promise<void> {
-  await apiClient.post('/payments/verified-badge', { phoneNumber });
+export async function payVerifiedBadge(phoneNumber: string): Promise<StkPushResponse> {
+  const res = await apiClient.post<StkPushResponse>('/payments/verified-badge', { phoneNumber });
+  return res.data;
 }
 
-export async function paySpotlight(type: 'DAY' | 'WEEK', phoneNumber: string): Promise<void> {
-  await apiClient.post('/payments/spotlight', { type, phoneNumber });
+export async function paySpotlight(type: 'DAY' | 'WEEK', phoneNumber: string): Promise<StkPushResponse> {
+  const res = await apiClient.post<StkPushResponse>('/payments/spotlight', { spotlightType: type, phoneNumber });
+  return res.data;
 }
 
-export async function buySearchToken(phoneNumber: string): Promise<void> {
-  await apiClient.post('/payments/search-token', { phoneNumber });
+export async function buySearchToken(phoneNumber: string): Promise<StkPushResponse> {
+  const res = await apiClient.post<StkPushResponse>('/payments/search-token', { phoneNumber });
+  return res.data;
 }
 
-export async function initiatePayment(req: { phoneNumber: string; paymentType: string; amount?: number }): Promise<any> {
+export async function initiatePayment(req: { phoneNumber: string; paymentType: string; amount?: number }): Promise<StkPushResponse> {
   const { phoneNumber, paymentType } = req;
   if (paymentType === 'ANNUAL_MEMBERSHIP') return payAnnualMembership(phoneNumber);
   if (paymentType === 'PRO_UPGRADE') return payProUpgrade(phoneNumber);
   if (paymentType === 'VERIFIED_BADGE') return payVerifiedBadge(phoneNumber);
   if (paymentType === 'SEARCH_TOKEN') return buySearchToken(phoneNumber);
-  if (paymentType === 'SPOTLIGHT') return paySpotlight('DAY', phoneNumber); // Default to DAY for generic call
-  throw new Error('Unsupported payment type');
+  if (paymentType === 'SPOTLIGHT_DAY') return paySpotlight('DAY', phoneNumber);
+  if (paymentType === 'SPOTLIGHT_WEEK') return paySpotlight('WEEK', phoneNumber);
+  // Fallback for old generic SPOTLIGHT type
+  if (paymentType === 'SPOTLIGHT') return paySpotlight('DAY', phoneNumber);
+  
+  throw new Error('Unsupported payment type: ' + paymentType);
 }
 
 // ── Payment history ───────────────────────────────────────────────────────

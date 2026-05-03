@@ -18,7 +18,7 @@ export interface Payment {
   userId: string;
   amount: number;
   currency: string;
-  paymentType: PaymentType;
+  type: PaymentType;
   status: PaymentStatus;
   mpesaReceiptNo?: string;
   phoneNumber?: string;

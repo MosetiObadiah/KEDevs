@@ -81,8 +81,8 @@ export function DevelopersSection() {
                       {dev.locationCity || 'Kenya'}
                     </div>
                     <div className="flex flex-wrap justify-center gap-1.5 h-[52px] overflow-hidden">
-                      {dev.skills?.slice(0, 3).map((skill) => (
-                        <Badge key={skill.id} variant="secondary" className="bg-[#f4f6f5] text-[#354F52] text-[10px] border-0">
+                      {dev.skills?.slice(0, 3).map((skill, index) => (
+                        <Badge key={skill.id || skill.name || index} variant="secondary" className="bg-[#f4f6f5] text-[#354F52] text-[10px] border-0">
                           {skill.name}
                         </Badge>
                       ))}

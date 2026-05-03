@@ -158,8 +158,8 @@ export function PublicDeveloperProfileView({ profileId }: PublicDeveloperProfile
             <CardContent className="p-6 space-y-4">
               <h3 className="font-black text-foreground uppercase tracking-tight">Skills</h3>
               <div className="flex flex-wrap gap-2">
-                {profile.skills?.map((skill: any) => (
-                  <Badge key={skill.id || skill.name || skill} className="bg-primary/10 text-primary border-transparent py-1.5 px-3">
+                {profile.skills?.map((skill: any, index: number) => (
+                  <Badge key={skill.id || skill.name || skill || `skill-${index}`} className="bg-primary/10 text-primary border-transparent py-1.5 px-3">
                     {skill.name || skill.skill || skill}
                   </Badge>
                 ))}
@@ -174,8 +174,8 @@ export function PublicDeveloperProfileView({ profileId }: PublicDeveloperProfile
             <CardContent className="p-6 space-y-4">
               <h3 className="font-black text-foreground uppercase tracking-tight">Languages</h3>
               <div className="flex flex-wrap gap-2">
-                {profile.languages?.map((lang: any) => (
-                  <Badge key={lang.id || lang.language} className="bg-secondary/10 text-foreground border-transparent py-1.5 px-3">
+                {profile.languages?.map((lang: any, index: number) => (
+                  <Badge key={lang.id || lang.language || `lang-${index}`} className="bg-secondary/10 text-foreground border-transparent py-1.5 px-3">
                     {lang.language}
                   </Badge>
                 ))}
@@ -197,8 +197,8 @@ export function PublicDeveloperProfileView({ profileId }: PublicDeveloperProfile
                 <div className="text-center py-8 text-muted-foreground text-sm font-medium">No projects added yet.</div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {profile.projects?.map((proj: any) => (
-                    <div key={proj.id} className="p-4 rounded-2xl border border-secondary bg-secondary/5 transition-colors">
+                  {profile.projects?.map((proj: any, index: number) => (
+                    <div key={proj.id || `proj-${index}`} className="p-4 rounded-2xl border border-secondary bg-secondary/5 transition-colors">
                       <h4 className="font-bold text-foreground">{proj.title}</h4>
                       <p className="text-sm text-muted-foreground mt-1 line-clamp-3">{proj.description}</p>
                     </div>

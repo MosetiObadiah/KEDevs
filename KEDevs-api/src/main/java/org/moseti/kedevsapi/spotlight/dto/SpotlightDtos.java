@@ -60,6 +60,8 @@ public class SpotlightDtos {
             boolean daySlotAvailable,
             boolean weekSlotAvailable,
             LocalDateTime daySlotExpiresAt,
-            LocalDateTime weekSlotExpiresAt
+            LocalDateTime weekSlotExpiresAt,
+            double dayPriceKes,
+            double weekPriceKes
     ) {}
 }

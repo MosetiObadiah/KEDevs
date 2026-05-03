@@ -42,7 +42,12 @@ export default function PaymentsPage() {
   };
 
   const getPrice = (key: string) => {
-    const setting = settings?.find(s => s.settingKey === key);
+    // For annual membership, we need to know if it's developer or employer fee
+    const effectiveKey = (key === 'ANNUAL_FEE' && user?.role === 'EMPLOYER') 
+      ? 'ANNUAL_FEE_EMPLOYER' 
+      : (key === 'ANNUAL_FEE' ? 'ANNUAL_FEE_DEVELOPER' : key);
+
+    const setting = settings?.find(s => s.settingKey === effectiveKey);
     return setting ? `KES ${setting.settingValue}` : 'KES 0';
   };
 
@@ -64,11 +69,11 @@ export default function PaymentsPage() {
             </div>
             <div>
               <h2 className="text-2xl font-bold text-foreground">
-                {activeSub ? activeSub.subscriptionType.replace('_', ' ') : 'Basic Account'}
+                {activeSub ? activeSub.subscriptionType?.replace('_', ' ') : 'Basic Account'}
               </h2>
               {activeSub ? (
                 <p className="text-muted-foreground mt-1">
-                  Valid until <span className="font-bold text-foreground">{new Date(activeSub.endDate).toLocaleDateString()}</span>
+                  Valid until <span className="font-bold text-foreground">{activeSub.endDate ? new Date(activeSub.endDate).toLocaleDateString() : 'N/A'}</span>
                 </p>
               ) : (
                 <p className="text-muted-foreground mt-1">You are currently on a limited basic account.</p>
@@ -78,7 +83,7 @@ export default function PaymentsPage() {
           <div className="flex gap-3">
             {!activeSub && (
               <Button 
-                onClick={() => handlePay('ANNUAL_MEMBERSHIP', 'Annual Membership', getPrice('PRICE_ANNUAL_MEMBERSHIP'), 'Upgrade to full platform access for 1 year')}
+                onClick={() => handlePay('ANNUAL_MEMBERSHIP', 'Annual Membership', getPrice('ANNUAL_FEE'), 'Upgrade to full platform access for 1 year')}
                 className="bg-primary hover:bg-[#2a6f4d] text-white font-bold h-12 px-6 rounded-xl"
               >
                 Buy Membership
@@ -86,7 +91,7 @@ export default function PaymentsPage() {
             )}
             {user?.role === 'EMPLOYER' && (!activeSub || activeSub.subscriptionType !== 'PRO') && (
               <Button 
-                onClick={() => handlePay('PRO_UPGRADE', 'PRO Upgrade', getPrice('PRICE_PRO_UPGRADE'), 'Upgrade to PRO for unlimited access and priority')}
+                onClick={() => handlePay('PRO_UPGRADE', 'PRO Upgrade', getPrice('EMPLOYER_PRO_ANNUAL_FEE'), 'Upgrade to PRO for unlimited access and priority')}
                 className="bg-amber-500 hover:bg-amber-600 text-white font-bold h-12 px-6 rounded-xl"
               >
                 <Zap className="w-4 h-4 mr-2" /> Upgrade to PRO
@@ -108,7 +113,7 @@ export default function PaymentsPage() {
               <CardDescription>Stand out with a blue verified checkmark on your profile.</CardDescription>
             </CardHeader>
             <CardContent className="flex-1">
-              <p className="text-2xl font-black text-foreground mb-4">{getPrice('PRICE_VERIFIED_BADGE')}<span className="text-sm font-medium text-muted-foreground"> / lifetime</span></p>
+              <p className="text-2xl font-black text-foreground mb-4">{getPrice(user?.role === 'DEVELOPER' ? 'VERIFIED_BADGE_DEVELOPER' : 'VERIFIED_BADGE_EMPLOYER')}<span className="text-sm font-medium text-muted-foreground"> / lifetime</span></p>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" /> Increased trust</li>
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" /> Priority in search</li>
@@ -118,7 +123,7 @@ export default function PaymentsPage() {
               <Button 
                 variant="outline" 
                 className="w-full font-bold border-secondary hover:border-primary hover:bg-primary/5 h-12"
-                onClick={() => handlePay('VERIFIED_BADGE', 'Verified Badge', getPrice('PRICE_VERIFIED_BADGE'), 'Lifetime verified badge')}
+                onClick={() => handlePay('VERIFIED_BADGE', 'Verified Badge', getPrice(user?.role === 'DEVELOPER' ? 'VERIFIED_BADGE_DEVELOPER' : 'VERIFIED_BADGE_EMPLOYER'), 'Lifetime verified badge')}
               >
                 Get Verified
               </Button>
@@ -136,7 +141,7 @@ export default function PaymentsPage() {
             <CardDescription>Buy extra tokens to perform deep developer searches.</CardDescription>
           </CardHeader>
           <CardContent className="flex-1">
-            <p className="text-2xl font-black text-foreground mb-4">{getPrice('PRICE_SEARCH_TOKEN')}<span className="text-sm font-medium text-muted-foreground"> / token</span></p>
+            <p className="text-2xl font-black text-foreground mb-4">{getPrice('SEARCH_TOKEN_FEE')}<span className="text-sm font-medium text-muted-foreground"> / token pack</span></p>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" /> Advanced filtering</li>
               <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" /> Save more searches</li>
@@ -146,9 +151,9 @@ export default function PaymentsPage() {
             <Button 
               variant="outline" 
               className="w-full font-bold border-secondary hover:border-primary hover:bg-primary/5 h-12"
-              onClick={() => handlePay('SEARCH_TOKEN', 'Buy Search Token', getPrice('PRICE_SEARCH_TOKEN'), '1 Search Token')}
+              onClick={() => handlePay('SEARCH_TOKEN', 'Buy Search Token', getPrice('SEARCH_TOKEN_FEE'), '1 Search Token pack (3 uses)')}
             >
-              Buy Token
+              Buy Token Pack
             </Button>
           </CardFooter>
         </Card>
@@ -185,10 +190,10 @@ export default function PaymentsPage() {
                       <td className="p-4 whitespace-nowrap text-sm">
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-muted-foreground" />
-                          {new Date(payment.createdAt).toLocaleDateString()}
+                          {payment.createdAt ? new Date(payment.createdAt).toLocaleDateString() : 'N/A'}
                         </div>
                       </td>
-                      <td className="p-4 font-medium text-foreground">{payment.paymentType.replace('_', ' ')}</td>
+                      <td className="p-4 font-medium text-foreground">{payment.type?.replace('_', ' ')}</td>
                       <td className="p-4 font-bold text-foreground">{payment.currency} {payment.amount}</td>
                       <td className="p-4 text-sm text-muted-foreground font-mono">{payment.mpesaReceiptNo || '-'}</td>
                       <td className="p-4">

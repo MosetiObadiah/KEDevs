@@ -34,6 +34,7 @@ public class SpotlightService {
     private final DeveloperProfileRepository developerProfileRepository;
     private final DeveloperProjectRepository developerProjectRepository;
     private final UserRepository userRepository;
+    private final org.moseti.kedevsapi.payments.repository.PlatformSettingRepository platformSettingRepository;
     private final org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
     private final org.moseti.kedevsapi.auth.service.EmailService emailService;
 
@@ -55,11 +56,20 @@ public class SpotlightService {
                     .orElse(null);
         }
 
+        double dayPrice = platformSettingRepository.findBySettingKey("SPOTLIGHT_DAY_FEE")
+                .map(s -> Double.parseDouble(s.getSettingValue()))
+                .orElse((double) Constants.DEFAULT_SPOTLIGHT_DAY_FEE);
+        double weekPrice = platformSettingRepository.findBySettingKey("SPOTLIGHT_WEEK_FEE")
+                .map(s -> Double.parseDouble(s.getSettingValue()))
+                .orElse((double) Constants.DEFAULT_SPOTLIGHT_WEEK_FEE);
+
         return new SlotAvailabilityResponse(
                 !daySlotTaken,
                 !weekSlotTaken,
                 dayExpiry,
-                weekExpiry
+                weekExpiry,
+                dayPrice,
+                weekPrice
         );
     }
 

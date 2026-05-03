@@ -39,7 +39,7 @@ export default function SpotlightPage() {
       type,
       paymentType: type === 'DAY' ? 'SPOTLIGHT_DAY' : 'SPOTLIGHT_WEEK',
       title: `${type === 'DAY' ? 'Daily' : 'Weekly'} Spotlight`,
-      price: type === 'DAY' ? (availability?.dayPriceKes ?? 500) : (availability?.weekPriceKes ?? 2500),
+      price: type === 'DAY' ? (availability?.dayPriceKes ?? 50) : (availability?.weekPriceKes ?? 250),
     });
     setPaymentModalOpen(true);
   };
@@ -87,7 +87,7 @@ export default function SpotlightPage() {
           <PurchaseCard 
             title="Daily Spotlight"
             type="DAY"
-            price={availability?.dayPriceKes ?? 500}
+            price={availability?.dayPriceKes ?? 50}
             isAvailable={availability?.daySlotAvailable ?? false}
             nextDate={availability?.daySlotExpiresAt}
             onBuy={() => handleBuy('DAY')}
@@ -100,7 +100,7 @@ export default function SpotlightPage() {
           <PurchaseCard 
             title="Weekly Spotlight"
             type="WEEK"
-            price={availability?.weekPriceKes ?? 2500}
+            price={availability?.weekPriceKes ?? 250}
             isAvailable={availability?.weekSlotAvailable ?? false}
             nextDate={availability?.weekSlotExpiresAt}
             onBuy={() => handleBuy('WEEK')}
