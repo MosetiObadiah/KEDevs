@@ -54,7 +54,7 @@ export function ConfirmModal({
             onClick={onConfirm}
             disabled={isPending}
             className={
-              variant === 'default' ? 'bg-teal hover:bg-forest text-white' : ''
+              variant === 'default' ? 'bg-primary hover:bg-[#2a6f4d] text-white' : ''
             }
           >
             {isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

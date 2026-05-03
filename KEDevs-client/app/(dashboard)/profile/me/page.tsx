@@ -1,24 +1,28 @@
-import type { Metadata } from 'next';
-import { User } from 'lucide-react';
+'use client';
 
-export const metadata: Metadata = { title: 'My Profile' };
+import { useAuth } from '@/lib/auth/hooks';
+import { DeveloperProfileView } from '@/components/profile/DeveloperProfileView';
+import { EmployerProfileView } from '@/components/profile/EmployerProfileView';
+import { Loader2 } from 'lucide-react';
 
 export default function MyProfilePage() {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="w-10 h-10 animate-spin text-[#52796F]" />
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">My Profile</h1>
-        <p className="text-muted-foreground text-sm mt-1">Manage your developer or employer profile</p>
-      </div>
-      <div className="flex flex-col items-center justify-center py-24 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
-          <User className="w-8 h-8 text-muted-foreground" />
-        </div>
-        <h2 className="text-lg font-semibold mb-2">Profile editor in Module 4/5</h2>
-        <p className="text-muted-foreground text-sm max-w-xs">
-          Edit your skills, education, projects, and more.
-        </p>
-      </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {user?.role === 'EMPLOYER' ? (
+        <EmployerProfileView />
+      ) : (
+        <DeveloperProfileView />
+      )}
     </div>
   );
 }

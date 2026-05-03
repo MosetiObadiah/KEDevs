@@ -3,7 +3,7 @@
 export type Role = 'DEVELOPER' | 'EMPLOYER' | 'ADMIN';
 export type AuthProvider = 'LOCAL' | 'GOOGLE';
 export type AccountStatus = 'ACTIVE' | 'SUSPENDED' | 'BANNED' | 'PENDING_VERIFICATION';
-export type AvailabilityStatus = 'AVAILABLE' | 'NOT_AVAILABLE' | 'OPEN_TO_OFFERS';
+export type AvailabilityStatus = 'AVAILABLE_NOW' | 'BUSY' | 'OPEN_TO_OFFERS';
 export type ProfileVisibility = 'PUBLIC' | 'PRIVATE' | 'CONNECTIONS_ONLY';
 export type YearsOfExperience =
   | 'ZERO_TO_ONE'
