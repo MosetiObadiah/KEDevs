@@ -25,7 +25,7 @@ function LoginForm() {
   const { login, user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const from = searchParams.get('from') ?? '/feed';
+  const from = searchParams.get('from') ?? '/dashboard';
   const [showPassword, setShowPassword] = useState(false);
   const [unverifiedUserId, setUnverifiedUserId] = useState<string | null>(null);
 

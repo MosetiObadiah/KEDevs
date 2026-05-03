@@ -88,7 +88,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             <div className="pt-4 border-t border-border/30">
               <Link
-                href="/feed"
+                href="/dashboard"
                 className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-sage/50 hover:text-sage transition-colors"
               >
                 ← Back to App

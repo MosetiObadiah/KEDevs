@@ -19,6 +19,11 @@ export async function getExternalJobs(filters: JobFilters = {}): Promise<Page<Jo
   return res.data.data;
 }
 
+export async function getMyPosts(): Promise<JobPost[]> {
+  const res = await apiClient.get<{ data: JobPost[] }>('/jobs/my-posts');
+  return res.data.data;
+}
+
 export async function createJob(data: Partial<JobPost>): Promise<JobPost> {
   const res = await apiClient.post<{ data: JobPost }>('/jobs', data);
   return res.data.data;
@@ -26,6 +31,11 @@ export async function createJob(data: Partial<JobPost>): Promise<JobPost> {
 
 export async function updateJob(id: string, data: Partial<JobPost>): Promise<JobPost> {
   const res = await apiClient.put<{ data: JobPost }>(`/jobs/${id}`, data);
+  return res.data.data;
+}
+
+export async function updateJobStatus(id: string, status: string): Promise<JobPost> {
+  const res = await apiClient.patch<{ data: JobPost }>(`/jobs/${id}/status`, { status });
   return res.data.data;
 }
 

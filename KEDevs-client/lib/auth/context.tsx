@@ -2,7 +2,7 @@
 
 import React, { createContext, useCallback, useEffect, useState } from 'react';
 import type { User, AuthResponse, Role } from '@/lib/types/user';
-import { getMe } from '@/lib/api/auth';
+// getMe removed since the backend does not have a generic /users/me endpoint
 
 // ── Context shape ─────────────────────────────────────────────────────────
 
@@ -42,19 +42,8 @@ function clearTokens() {
 // ── Provider ──────────────────────────────────────────────────────────────
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => {
-    if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('user_profile');
-      return storedUser ? JSON.parse(storedUser) : null;
-    }
-    return null;
-  });
-  const [isLoading, setIsLoading] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return !localStorage.getItem('access_token');
-    }
-    return true;
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [accessToken, setAccessToken] = useState<string | null>(null);
 
   // Rehydrate on mount — read localStorage token, then fetch /users/me
@@ -68,9 +57,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       setAccessToken(storedToken);
       try {
-        const me = await getMe();
-        setUser(me);
-        localStorage.setItem('user_profile', JSON.stringify(me));
+        const profileStr = localStorage.getItem('user_profile');
+        if (profileStr) {
+          const me = JSON.parse(profileStr);
+          setUser(me);
+        } else {
+          throw new Error('No user profile found in storage');
+        }
       } catch {
         // Token is invalid/expired — clear and let middleware redirect
         clearTokens();

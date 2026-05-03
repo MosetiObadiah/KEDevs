@@ -62,11 +62,15 @@ export function JobsSection() {
                 </CardHeader>
                 <CardContent className="pb-4">
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {job.tags.slice(0, 3).map((tag) => (
-                      <Badge key={tag.id} variant="secondary" className="bg-[#CAD2C5]/20 text-[#354F52] hover:bg-[#CAD2C5]/30 border-0">
-                        {tag.tag}
-                      </Badge>
-                    ))}
+                    {(job.tags || []).slice(0, 3).map((tag, idx) => {
+                      const tagStr = typeof tag === 'string' ? tag : tag.tag;
+                      const tagId = typeof tag === 'string' ? `tag-${tag}-${idx}` : tag.id;
+                      return (
+                        <Badge key={tagId} variant="secondary" className="bg-[#CAD2C5]/20 text-[#354F52] hover:bg-[#CAD2C5]/30 border-0">
+                          {tagStr}
+                        </Badge>
+                      );
+                    })}
                   </div>
                   <div className="flex items-center gap-4 text-[#84A98C] text-xs">
                     <span className="flex items-center gap-1">

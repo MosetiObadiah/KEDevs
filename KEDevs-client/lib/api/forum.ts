@@ -41,3 +41,8 @@ export async function flagComment(commentId: string, reason: string): Promise<vo
 export async function hideComment(commentId: string): Promise<void> {
   await apiClient.patch(`/forum/comments/${commentId}/hide`);
 }
+
+export async function getReplies(commentId: string): Promise<ForumComment[]> {
+  const res = await apiClient.get<{ data: ForumComment[] }>(`/forum/comments/${commentId}/replies`);
+  return res.data.data;
+}

@@ -48,7 +48,7 @@ const ROLES: { value: RegisterableRole; label: string; description: string; icon
   },
 ];
 
-export default function RegisterPage() {
+function RegisterForm() {
   const { register: registerUser, user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -56,7 +56,7 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (user) {
-      router.replace('/feed');
+      router.replace('/dashboard');
     }
   }, [user, router]);
 
@@ -255,5 +255,19 @@ export default function RegisterPage() {
         </Link>
       </p>
     </>
+  );
+}
+
+import { Suspense } from 'react';
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="w-6 h-6 text-teal animate-spin" />
+      </div>
+    }>
+      <RegisterForm />
+    </Suspense>
   );
 }

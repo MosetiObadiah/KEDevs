@@ -1,7 +1,7 @@
 // ── Enums ─────────────────────────────────────────────────────────────────
 
 export type JobStatus = 'OPEN' | 'CLOSED' | 'DRAFT' | 'FILLED';
-export type JobVisibility = 'PUBLIC' | 'INTERNAL' | 'MEMBERS_ONLY';
+export type JobVisibility = 'EXTERNAL' | 'INTERNAL';
 export type WorkType = 'REMOTE' | 'ONSITE' | 'HYBRID';
 export type ExperienceLevel = 'ENTRY' | 'MID' | 'SENIOR' | 'LEAD' | 'EXECUTIVE';
 export type JobType = 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'INTERNSHIP' | 'FREELANCE';
@@ -24,11 +24,11 @@ export interface JobTag {
 
 export interface JobPost {
   id: string;
-  employerId: string;
+  employerId?: string;
   companyName: string;
   companyLogoUrl?: string;
   title: string;
-  description: string;
+  description?: string;
   locationCity?: string;
   locationCountry?: string;
   salary?: string;
@@ -37,14 +37,16 @@ export interface JobPost {
   jobType: JobType;
   status: JobStatus;
   visibility: JobVisibility;
-  tags: JobTag[];
-  upvotes: number;
-  downvotes: number;
-  applicationCount: number;
+  tags?: JobTag[] | string[];
+  upvotes?: number;
+  upvoteCount?: number;
+  downvotes?: number;
+  applicationCount?: number;
   userVote?: VoteType | null;
-  hasApplied: boolean;
+  currentUserVote?: VoteType | null;
+  hasApplied?: boolean;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
   expiresAt?: string;
 }
 

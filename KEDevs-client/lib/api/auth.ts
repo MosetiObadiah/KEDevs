@@ -57,7 +57,4 @@ export async function resetPassword(email: string, code: string, newPassword: st
   await apiClient.post(`/auth/password-reset/confirm?email=${encodeURIComponent(email)}`, { code, newPassword });
 }
 
-export async function getMe(): Promise<User> {
-  const res = await apiClient.get<{ data: User }>('/users/me');
-  return res.data.data;
-}
+

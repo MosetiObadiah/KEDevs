@@ -15,7 +15,7 @@ const ADMIN_PATHS = ['/admin'];
 
 // Routes that require authentication (protected)
 const PROTECTED_PREFIXES = [
-  '/feed',
+  '/dashboard',
   '/jobs',
   '/developers',
   '/employers',
@@ -76,7 +76,7 @@ export function proxy(req: NextRequest) {
     const role = getRoleFromToken(accessToken);
     if (role !== 'ADMIN') {
       const url = req.nextUrl.clone();
-      url.pathname = '/feed';
+      url.pathname = '/dashboard';
       url.searchParams.delete('from');
       return NextResponse.redirect(url);
     }
@@ -85,7 +85,7 @@ export function proxy(req: NextRequest) {
   // If already authenticated and hitting auth pages → redirect to feed
   if (isPublicPath(pathname) && pathname !== '/' && accessToken) {
     const url = req.nextUrl.clone();
-    url.pathname = '/feed';
+    url.pathname = '/dashboard';
     return NextResponse.redirect(url);
   }
 

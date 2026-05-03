@@ -33,8 +33,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
 const NAV_LINKS = [
-  { href: '/feed', label: 'Feed', icon: Rss },
-  { href: '/jobs', label: 'Jobs', icon: Briefcase },
+  { href: '/dashboard', label: 'Dashboard', icon: Rss },
   { href: '/developers', label: 'Developers', icon: Users },
   { href: '/employers', label: 'Employers', icon: Building2 },
   { href: '/payments', label: 'Payments', icon: CreditCard },
@@ -65,7 +64,7 @@ function Sidebar() {
     <aside className="fixed left-0 top-0 h-screen w-[280px] bg-sidebar border-r border-sidebar-border flex flex-col z-40">
       {/* Logo */}
       <div className="p-6 border-b border-sidebar-border">
-        <Link href="/feed" className="flex items-center gap-3 group">
+        <Link href="/dashboard" className="flex items-center gap-3 group">
           <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-lg">
             <span className="text-white font-bold">K</span>
           </div>
@@ -227,20 +226,7 @@ function TopBar() {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
-  const [mounted, setMounted] = useState(false);
   const isUnapprovedEmployer = user?.role === 'EMPLOYER' && !user?.isApprovedByAdmin;
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-2 border-teal border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <AuthGuard>

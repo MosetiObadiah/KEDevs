@@ -25,7 +25,7 @@ public interface JobPostRepository extends JpaRepository<JobPost, UUID> {
     Page<JobPost> findByPostedById(UUID postedById, Pageable pageable);
 
     @Query("SELECT j FROM JobPost j WHERE " +
-           "(:keyword IS NULL OR LOWER(j.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(j.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
+           "(CAST(:keyword AS String) IS NULL OR LOWER(j.title) LIKE LOWER(CONCAT('%', CAST(:keyword AS String), '%')) OR LOWER(j.description) LIKE LOWER(CONCAT('%', CAST(:keyword AS String), '%'))) AND " +
            "(:locationCity IS NULL OR j.locationCity = :locationCity) AND " +
            "(:locationCountry IS NULL OR j.locationCountry = :locationCountry) AND " +
            "(:jobType IS NULL OR j.jobType = :jobType) AND " +

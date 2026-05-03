@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from './hooks';
 import type { Role } from '@/lib/types/user';
@@ -11,13 +11,19 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
-    if (!isLoading && !user) {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && !isLoading && !user) {
       router.replace('/login');
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, router, mounted]);
 
-  if (isLoading || !user) {
+  if (!mounted || isLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-8 h-8 border-2 border-teal border-t-transparent rounded-full animate-spin" />
@@ -28,7 +34,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// ── RoleGuard — redirect to /feed if role doesn't match ──────────────────
+// ── RoleGuard — redirect to /dashboard if role doesn't match ──────────────────
 
 interface RoleGuardProps {
   role: Role | Role[];
@@ -36,7 +42,7 @@ interface RoleGuardProps {
   fallback?: string;
 }
 
-export function RoleGuard({ role, children, fallback = '/feed' }: RoleGuardProps) {
+export function RoleGuard({ role, children, fallback = '/dashboard' }: RoleGuardProps) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const allowedRolesStr = Array.isArray(role) ? role.join(',') : role;
@@ -59,11 +65,11 @@ export function RoleGuard({ role, children, fallback = '/feed' }: RoleGuardProps
   return <>{children}</>;
 }
 
-// ── AdminGuard — redirect to /feed if not ADMIN ───────────────────────────
+// ── AdminGuard — redirect to /dashboard if not ADMIN ───────────────────────────
 
 export function AdminGuard({ children }: { children: React.ReactNode }) {
   return (
-    <RoleGuard role="ADMIN" fallback="/feed">
+    <RoleGuard role="ADMIN" fallback="/dashboard">
       {children}
     </RoleGuard>
   );

@@ -24,7 +24,7 @@ export function GoogleButton({ mode, role }: GoogleButtonProps) {
   const { googleAuth } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const from = searchParams.get('from') ?? '/feed';
+  const from = searchParams.get('from') ?? '/dashboard';
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.google) return;
