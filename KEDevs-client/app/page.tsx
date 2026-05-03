@@ -154,7 +154,7 @@ export default function LandingPage() {
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            <Link href="/register?role=EMPLOYER">
+            <Link href="/register">
               <Button
                 variant="outline"
                 size="lg"

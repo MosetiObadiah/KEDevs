@@ -3,6 +3,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Info, Mail, Phone, MapPin, Send } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function AboutSection() {
   return (
@@ -60,6 +61,12 @@ export function AboutSection() {
 }
 
 export function ContactSection() {
+  const handleContactSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    toast.success("Message sent! We'll get back to you shortly.");
+    (e.target as HTMLFormElement).reset();
+  };
+
   return (
     <section id="contact" className="py-24 px-6 bg-[#f4f6f5]">
       <div className="max-w-7xl mx-auto">
@@ -72,8 +79,8 @@ export function ContactSection() {
             
             <div className="space-y-8">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-[#84A98C]">
-                  <Mail className="w-6 h-6" />
+                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-[#84A98C]">
+                  <Mail className="w-6 h-6 text-[#84A98C]" />
                 </div>
                 <div>
                   <p className="text-white font-semibold">Email Us</p>
@@ -81,8 +88,8 @@ export function ContactSection() {
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-[#84A98C]">
-                  <Phone className="w-6 h-6" />
+                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-[#84A98C]">
+                  <Phone className="w-6 h-6 text-[#84A98C]" />
                 </div>
                 <div>
                   <p className="text-white font-semibold">Call Us</p>
@@ -90,8 +97,8 @@ export function ContactSection() {
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-[#84A98C]">
-                  <MapPin className="w-6 h-6" />
+                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center text-[#84A98C]">
+                  <MapPin className="w-6 h-6 text-[#84A98C]" />
                 </div>
                 <div>
                   <p className="text-white font-semibold">Our Office</p>
@@ -102,26 +109,26 @@ export function ContactSection() {
           </div>
 
           <div className="lg:w-3/5 p-12 lg:p-16">
-            <form className="space-y-6">
+            <form onSubmit={handleContactSubmit} className="space-y-6">
               <div className="grid sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-white/60 text-xs font-semibold uppercase tracking-wider">Full Name</label>
-                  <input className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#52796F] transition-colors" placeholder="John Doe" />
+                  <input required className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#52796F] transition-colors" placeholder="John Doe" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-white/60 text-xs font-semibold uppercase tracking-wider">Email Address</label>
-                  <input className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#52796F] transition-colors" placeholder="john@example.com" />
+                  <input required type="email" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#52796F] transition-colors" placeholder="john@example.com" />
                 </div>
               </div>
               <div className="space-y-2">
                 <label className="text-white/60 text-xs font-semibold uppercase tracking-wider">Subject</label>
-                <input className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#52796F] transition-colors" placeholder="How can we help?" />
+                <input required className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#52796F] transition-colors" placeholder="How can we help?" />
               </div>
               <div className="space-y-2">
                 <label className="text-white/60 text-xs font-semibold uppercase tracking-wider">Message</label>
-                <textarea className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-[#52796F] transition-colors h-32 resize-none" placeholder="Write your message here..."></textarea>
+                <textarea required className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-[#52796F] transition-colors h-32 resize-none" placeholder="Write your message here..."></textarea>
               </div>
-              <Button className="w-full h-14 bg-[#52796F] hover:bg-[#84A98C] text-white font-bold text-lg rounded-xl transition-all shadow-xl shadow-[#52796F]/20 group">
+              <Button type="submit" className="w-full h-14 bg-[#52796F] hover:bg-[#84A98C] text-white font-bold text-lg rounded-xl transition-all shadow-xl shadow-[#52796F]/20 group">
                 Send Message
                 <Send className="w-5 h-5 ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
               </Button>

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/hooks';
 import { Button } from '@/components/ui/button';
@@ -51,6 +51,7 @@ const ROLES: { value: RegisterableRole; label: string; description: string; icon
 export default function RegisterPage() {
   const { register: registerUser, user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
@@ -58,6 +59,8 @@ export default function RegisterPage() {
       router.replace('/feed');
     }
   }, [user, router]);
+
+  const roleFromQuery = searchParams.get('role') as RegisterableRole | null;
 
   const {
     register,
@@ -70,6 +73,12 @@ export default function RegisterPage() {
     resolver: zodResolver(registerSchema),
     defaultValues: { role: 'DEVELOPER' },
   });
+
+  useEffect(() => {
+    if (roleFromQuery && ROLES.some((r) => r.value === roleFromQuery)) {
+      setValue('role', roleFromQuery);
+    }
+  }, [roleFromQuery, setValue]);
 
   const selectedRole = watch('role');
 
