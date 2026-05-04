@@ -1,9 +1,9 @@
 import apiClient from '@/lib/apiClient';
 import type { ForumComment } from '@/lib/types/forum';
-import type { VoteType } from '@/lib/types/job';
+import type { VoteType, Page } from '@/lib/types/job';
 
-export async function getComments(jobId: string): Promise<ForumComment[]> {
-  const res = await apiClient.get<ForumComment[]>(`/forum/jobs/${jobId}/comments`);
+export async function getComments(jobId: string): Promise<Page<ForumComment>> {
+  const res = await apiClient.get<Page<ForumComment>>(`/forum/jobs/${jobId}/comments`);
   return res.data;
 }
 
@@ -40,7 +40,7 @@ export async function hideComment(commentId: string): Promise<void> {
   await apiClient.patch(`/forum/comments/${commentId}/hide`);
 }
 
-export async function getReplies(commentId: string): Promise<ForumComment[]> {
-  const res = await apiClient.get<ForumComment[]>(`/forum/comments/${commentId}/replies`);
+export async function getReplies(commentId: string): Promise<Page<ForumComment>> {
+  const res = await apiClient.get<Page<ForumComment>>(`/forum/comments/${commentId}/replies`);
   return res.data;
 }

@@ -63,7 +63,7 @@ export default function NotificationsPage() {
   });
 
   const updatePrefMutation = useMutation({
-    mutationFn: ({ category, data }: { category: string, data: any }) => updateNotificationPreference(category, data),
+    mutationFn: (data: Partial<NotificationPreference>) => updateNotificationPreference(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications', 'preferences'] });
       toast.success('Preferences updated');
@@ -98,8 +98,22 @@ export default function NotificationsPage() {
     }
   };
 
-  const handleTogglePref = (category: string, field: 'inApp' | 'email', value: boolean) => {
-    updatePrefMutation.mutate({ category, data: { [field]: value } });
+  const PREFERENCE_CONFIG = [
+    { label: 'Job Applications', emailKey: 'emailOnJobApplication', inAppKey: 'inAppOnJobApplication' },
+    { label: 'Spotlight Expiry', emailKey: 'emailOnSpotlightExpired', inAppKey: 'inAppOnSpotlightExpired' },
+    { label: 'Payment Receipts', emailKey: 'emailOnPaymentReceipt' },
+    { label: 'Job Post Flags', emailKey: 'emailOnJobFlagged' },
+    { label: 'Subscription Expiry', emailKey: 'emailOnSubscriptionExpiry' },
+    { label: 'Spotlight Overrides', emailKey: 'emailOnSpotlightOverridden' },
+    { label: 'Verified Badge Awards', emailKey: 'emailOnVerifiedBadge' },
+    { label: 'Pro Account Upgrades', emailKey: 'emailOnProUpgrade' },
+    { label: 'Comment Replies', inAppKey: 'inAppOnCommentReply' },
+    { label: 'Profile Endorsements', inAppKey: 'inAppOnEndorsement' },
+    { label: 'Flag Reviews', inAppKey: 'inAppOnFlagReviewed' },
+  ] as const;
+
+  const handleTogglePref = (field: keyof NotificationPreference, value: boolean) => {
+    updatePrefMutation.mutate({ [field]: value });
   };
 
   return (
@@ -145,22 +159,30 @@ export default function NotificationsPage() {
                   <div className="col-span-3 text-center">In-App</div>
                   <div className="col-span-3 text-center">Email</div>
                 </div>
-                {preferences.map((pref) => (
-                  <div key={pref.category} className="grid grid-cols-12 gap-4 items-center">
+                {PREFERENCE_CONFIG.map((row) => (
+                  <div key={row.label} className="grid grid-cols-12 gap-4 items-center">
                     <div className="col-span-6 font-medium text-foreground">
-                      {pref.category.replace(/_/g, ' ')}
+                      {row.label}
                     </div>
                     <div className="col-span-3 flex justify-center">
-                      <Switch 
-                        checked={pref.inApp} 
-                        onCheckedChange={(v) => handleTogglePref(pref.category, 'inApp', v)} 
-                      />
+                      {row.inAppKey ? (
+                        <Switch 
+                          checked={!!preferences[row.inAppKey]} 
+                          onCheckedChange={(v) => handleTogglePref(row.inAppKey!, v)} 
+                        />
+                      ) : (
+                        <span className="text-xs text-muted-foreground/30">—</span>
+                      )}
                     </div>
                     <div className="col-span-3 flex justify-center">
-                      <Switch 
-                        checked={pref.email} 
-                        onCheckedChange={(v) => handleTogglePref(pref.category, 'email', v)} 
-                      />
+                      {row.emailKey ? (
+                        <Switch 
+                          checked={!!preferences[row.emailKey]} 
+                          onCheckedChange={(v) => handleTogglePref(row.emailKey!, v)} 
+                        />
+                      ) : (
+                        <span className="text-xs text-muted-foreground/30">—</span>
+                      )}
                     </div>
                   </div>
                 ))}

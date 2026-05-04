@@ -7,7 +7,7 @@ import { VoteType } from '@/lib/types/job';
 
 interface VoteButtonsProps {
   initialUpvotes: number;
-  initialDownvotes: number;
+  initialDownvotes?: number;
   initialUserVote?: VoteType | null;
   onVote: (type: VoteType) => Promise<void>;
   orientation?: 'horizontal' | 'vertical';
@@ -17,7 +17,7 @@ interface VoteButtonsProps {
 
 export function VoteButtons({
   initialUpvotes,
-  initialDownvotes,
+  initialDownvotes = 0,
   initialUserVote,
   onVote,
   orientation = 'vertical',

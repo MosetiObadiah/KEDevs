@@ -31,7 +31,13 @@ function VerifyEmailContent() {
 
   // ── Verify mutation ─────────────────────────────────────────────────────
   const { mutate: verify, isPending: isVerifying } = useMutation({
-    mutationFn: () => verifyEmail(userId, digits.join('')),
+    mutationFn: () => {
+      const code = digits.join('').trim();
+      if (code.length !== CODE_LENGTH) {
+        throw new Error(`Please enter all ${CODE_LENGTH} digits`);
+      }
+      return verifyEmail(userId, code);
+    },
     onSuccess: (data) => {
       toast.success('Account verified successfully!');
       completeAuth(data);
@@ -66,7 +72,7 @@ function VerifyEmailContent() {
       inputRefs.current[index + 1]?.focus();
     }
     // Auto-submit when all filled
-    if (next.every((d) => d !== '') && char) {
+    if (next.every((d) => d !== '') && char && !isVerifying) {
       verify();
     }
   }
@@ -86,7 +92,7 @@ function VerifyEmailContent() {
     setDigits(next);
     const lastFilled = Math.min(pasted.length, CODE_LENGTH - 1);
     inputRefs.current[lastFilled]?.focus();
-    if (next.every((d) => d !== '')) verify();
+    if (next.every((d) => d !== '') && !isVerifying) verify();
   }
 
   const isComplete = digits.every((d) => d !== '');

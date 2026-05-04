@@ -275,11 +275,13 @@ export default function JobDetailPage() {
                       Delete Post
                     </Button>
 
-                    <Link href={`/jobs/${id}/applications`} className="block">
-                       <Button className="w-full h-12 bg-white text-[#2F3E46] hover:bg-[#CAD2C5] font-bold rounded-xl">
-                          Review Applicants ({job.applicationCount})
-                       </Button>
-                    </Link>
+                    {user?.role === 'EMPLOYER' && (
+                      <Link href={`/jobs/${id}/applications`} className="block">
+                         <Button className="w-full h-12 bg-white text-[#2F3E46] hover:bg-[#CAD2C5] font-bold rounded-xl">
+                            Review Applicants ({job.applicationCount})
+                         </Button>
+                      </Link>
+                    )}
                   </div>
                 )}
 

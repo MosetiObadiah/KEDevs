@@ -11,11 +11,11 @@ export interface ForumComment {
   content: string;
   parentCommentId?: string | null;
   replies: ForumComment[];
-  upvotes: number;
-  downvotes: number;
-  userVote?: VoteType | null;
+  upvoteCount: number;
+  currentUserVote?: VoteType | null;
+  replyCount: number;
   isHidden: boolean;
-  editedAt?: string;
+  isFlagged: boolean;
   createdAt: string;
   updatedAt: string;
 }

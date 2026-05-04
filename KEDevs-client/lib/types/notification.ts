@@ -20,11 +20,19 @@ export interface Notification {
 }
 
 export interface NotificationPreference {
-  id: string;
-  userId: string;
-  category: NotificationCategory;
-  inApp: boolean;
-  email: boolean;
+  emailOnPaymentReceipt: boolean;
+  emailOnJobApplication: boolean;
+  emailOnJobFlagged: boolean;
+  emailOnSubscriptionExpiry: boolean;
+  emailOnSpotlightExpired: boolean;
+  emailOnSpotlightOverridden: boolean;
+  emailOnVerifiedBadge: boolean;
+  emailOnProUpgrade: boolean;
+  inAppOnJobApplication: boolean;
+  inAppOnCommentReply: boolean;
+  inAppOnEndorsement: boolean;
+  inAppOnFlagReviewed: boolean;
+  inAppOnSpotlightExpired: boolean;
 }
 
 export interface UnreadCount {

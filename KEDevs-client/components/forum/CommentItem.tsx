@@ -125,9 +125,8 @@ export function CommentItem({ comment, jobId, depth = 0 }: CommentItemProps) {
             </AvatarFallback>
           </Avatar>
           <VoteButtons
-            initialUpvotes={comment.upvotes}
-            initialDownvotes={comment.downvotes}
-            initialUserVote={comment.userVote}
+            initialUpvotes={comment.upvoteCount}
+            initialUserVote={comment.currentUserVote}
             onVote={handleVote}
             size="sm"
             className="p-0.5"
@@ -202,7 +201,7 @@ export function CommentItem({ comment, jobId, depth = 0 }: CommentItemProps) {
               </Button>
             )}
             
-            {comment.replies.length > 0 && depth < 1 && (
+            {comment.replyCount > 0 && depth < 1 && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -210,7 +209,7 @@ export function CommentItem({ comment, jobId, depth = 0 }: CommentItemProps) {
                 onClick={() => setIsExpanded(!isExpanded)}
               >
                 {isExpanded ? <ChevronUp className="w-3.5 h-3.5 mr-1.5" /> : <ChevronDown className="w-3.5 h-3.5 mr-1.5" />}
-                {comment.replies.length} {comment.replies.length === 1 ? 'reply' : 'replies'}
+                {comment.replyCount} {comment.replyCount === 1 ? 'reply' : 'replies'}
               </Button>
             )}
           </div>
@@ -239,7 +238,7 @@ export function CommentItem({ comment, jobId, depth = 0 }: CommentItemProps) {
               <Loader2 className="w-4 h-4 animate-spin text-[#52796F]" />
             </div>
           ) : (
-            replies?.map(reply => (
+            replies?.content.map(reply => (
               <CommentItem key={reply.id} comment={reply} jobId={jobId} depth={depth + 1} />
             ))
           )}

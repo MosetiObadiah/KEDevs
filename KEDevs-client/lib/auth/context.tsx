@@ -137,6 +137,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const data: AuthResponse = await res.json();
     storeTokens(data.accessToken, data.refreshToken);
     localStorage.setItem('user_profile', JSON.stringify(data.user));
+    setProfile(undefined);
+    profileFetchInitiatedRef.current = false;
     setAccessToken(data.accessToken);
     setUser(data.user);
     return data;
@@ -178,6 +180,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const data: AuthResponse = await res.json();
     storeTokens(data.accessToken, data.refreshToken);
     localStorage.setItem('user_profile', JSON.stringify(data.user));
+    setProfile(undefined);
+    profileFetchInitiatedRef.current = false;
     setAccessToken(data.accessToken);
     setUser(data.user);
     return data;
@@ -190,12 +194,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('user_profile');
     setAccessToken(null);
     setUser(null);
+    setProfile(undefined);
     profileFetchInitiatedRef.current = false;
   }, []);
 
   const completeAuth = useCallback((data: AuthResponse) => {
     storeTokens(data.accessToken, data.refreshToken);
     localStorage.setItem('user_profile', JSON.stringify(data.user));
+    setProfile(undefined);
+    profileFetchInitiatedRef.current = false;
     setAccessToken(data.accessToken);
     setUser(data.user);
   }, []);

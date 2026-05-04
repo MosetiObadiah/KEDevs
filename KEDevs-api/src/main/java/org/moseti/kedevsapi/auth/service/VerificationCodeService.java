@@ -20,8 +20,8 @@ public class VerificationCodeService {
 
     @Transactional
     public String generateCode(UUID userId, VerificationCode.CodeType type) {
-        // Delete any existing codes for this user and type
-        verificationCodeRepository.deleteByUserId(userId);
+        // Delete any existing codes for this user and type to avoid confusion
+        verificationCodeRepository.deleteByUserIdAndType(userId, type);
 
         String code = generateRandomCode();
 
@@ -36,9 +36,10 @@ public class VerificationCodeService {
     }
 
     public boolean verifyCode(UUID userId, String code, VerificationCode.CodeType type) {
+        if (code == null) return false;
         var verificationCode = verificationCodeRepository
                 .findByUserIdAndCodeAndTypeAndUsedFalseAndExpiresAtAfter(
-                        userId, code, type, LocalDateTime.now()
+                        userId, code.trim(), type, LocalDateTime.now()
                 );
 
         if (verificationCode.isPresent()) {

@@ -18,6 +18,6 @@ public interface VerificationCodeRepository extends JpaRepository<VerificationCo
             LocalDateTime now
     );
     
-    void deleteByUserId(UUID userId);
+    void deleteByUserIdAndType(UUID userId, VerificationCode.CodeType type);
 }
 

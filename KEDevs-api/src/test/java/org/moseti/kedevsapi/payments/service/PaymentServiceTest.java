@@ -153,7 +153,7 @@ class PaymentServiceTest {
     void initiateSpotlight_slotTaken_throwsException() {
         when(userRepository.findById(devUserId)).thenReturn(Optional.of(developer));
         when(spotlightService.checkSlotAvailability()).thenReturn(
-                new SlotAvailabilityResponse(false, true, LocalDateTime.now(), null)
+                new SlotAvailabilityResponse(false, true, LocalDateTime.now(), null, 50.0, 250.0)
         );
 
         assertThrows(SpotlightSlotTakenException.class, () ->
@@ -164,7 +164,7 @@ class PaymentServiceTest {
     void initiateSpotlight_slotAvailable_initiatesPayment() {
         when(userRepository.findById(devUserId)).thenReturn(Optional.of(developer));
         when(spotlightService.checkSlotAvailability()).thenReturn(
-                new SlotAvailabilityResponse(true, true, null, null)
+                new SlotAvailabilityResponse(true, true, null, null, 50.0, 250.0)
         );
         PlatformSetting setting = new PlatformSetting();
         setting.setSettingValue("100");

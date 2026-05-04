@@ -18,13 +18,14 @@ export async function markAsRead(notificationId: string): Promise<void> {
   await apiClient.patch(`/notifications/${notificationId}/read`);
 }
 
-export async function getNotificationPreferencesAll(): Promise<NotificationPreference[]> {
-  const res = await apiClient.get<NotificationPreference[]>('/notifications/preferences');
+export async function getNotificationPreferencesAll(): Promise<NotificationPreference> {
+  const res = await apiClient.get<NotificationPreference>('/notifications/preferences');
   return res.data;
 }
 
-export async function updateNotificationPreferences(prefs: Record<string, { inApp: boolean; email: boolean }>): Promise<void> {
-  await apiClient.put('/notifications/preferences', prefs);
+export async function updateNotificationPreferences(prefs: Partial<NotificationPreference>): Promise<NotificationPreference> {
+  const res = await apiClient.put<NotificationPreference>('/notifications/preferences', prefs);
+  return res.data;
 }
 
 export async function markAllAsRead(): Promise<void> {
@@ -37,19 +38,18 @@ export async function deleteNotification(notificationId: string): Promise<void> 
 
 // ── Preferences ───────────────────────────────────────────────────────────
 
-export async function getNotificationPreferences(): Promise<NotificationPreference[]> {
-  const res = await apiClient.get<NotificationPreference[]>(
+export async function getNotificationPreferences(): Promise<NotificationPreference> {
+  const res = await apiClient.get<NotificationPreference>(
     '/notifications/preferences'
   );
   return res.data;
 }
 
 export async function updateNotificationPreference(
-  category: string,
-  data: { inApp?: boolean; email?: boolean }
+  data: Partial<NotificationPreference>
 ): Promise<NotificationPreference> {
-  const res = await apiClient.patch<NotificationPreference>(
-    `/notifications/preferences/${category}`,
+  const res = await apiClient.put<NotificationPreference>(
+    `/notifications/preferences`,
     data
   );
   return res.data;

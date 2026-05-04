@@ -14,6 +14,8 @@ import java.util.UUID;
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 
+    java.util.List<Payment> findAllByStatus(PaymentStatus status);
+
     Page<Payment> findByUserId(UUID userId, Pageable pageable);
 
     Optional<Payment> findByMpesaCheckoutId(String checkoutId);

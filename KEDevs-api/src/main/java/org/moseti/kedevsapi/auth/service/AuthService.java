@@ -229,6 +229,7 @@ public class AuthService {
 
         // Check if user exists
         var existingUser = userRepository.findByEmail(tokenInfo.getEmail());
+        log.info("Google user lookup for email {}: found={}", tokenInfo.getEmail(), existingUser.isPresent());
 
         if (existingUser.isPresent()) {
             log.info("Linking existing user account for: {}", tokenInfo.getEmail());
@@ -250,6 +251,7 @@ public class AuthService {
             validateUserCanLogin(user);
 
             // Generate tokens
+            log.debug("Generating tokens for existing user: {}", user.getId());
             String accessToken = jwtService.generateAccessToken(user.getId(), user.getEmail(), user.getRole());
             String refreshToken = createRefreshToken(user.getId());
 
@@ -283,9 +285,9 @@ public class AuthService {
             newUser.setApprovedByAdmin(request.getRole() == Role.DEVELOPER); // Employers need approval
             newUser.setGracePeriodEndsAt(LocalDateTime.now().plusDays(Constants.GRACE_PERIOD_DAYS));
 
-            log.info("Saving new Google user: {}", newUser.getEmail());
-        newUser = userRepository.save(newUser);
-        log.info("New Google user saved with ID: {}", newUser.getId());
+            log.info("Saving new Google user: email={}, role={}", newUser.getEmail(), newUser.getRole());
+            newUser = userRepository.save(newUser);
+            log.info("New Google user saved with ID: {}", newUser.getId());
 
             // Send welcome email (no verification needed)
             emailService.sendWelcomeEmail(newUser.getEmail(), newUser.getFullName());

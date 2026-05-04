@@ -50,7 +50,7 @@ export function ForumSection({ jobId }: ForumSectionProps) {
         </div>
         <h2 className="text-2xl font-bold text-[#2F3E46]">Discussion</h2>
         <span className="bg-[#f4f6f5] text-[#84A98C] text-xs font-bold px-2 py-0.5 rounded-full">
-          {comments?.length || 0}
+          {comments?.totalElements || 0}
         </span>
       </div>
 
@@ -103,12 +103,12 @@ export function ForumSection({ jobId }: ForumSectionProps) {
               </div>
             </div>
           ))
-        ) : comments?.length === 0 ? (
+        ) : (!comments || comments.content.length === 0) ? (
           <div className="text-center py-12">
             <p className="text-[#84A98C] text-sm">No comments yet. Be the first to start the conversation!</p>
           </div>
         ) : (
-          comments?.map((comment) => (
+          comments.content.map((comment) => (
             <CommentItem key={comment.id} comment={comment} jobId={jobId} />
           ))
         )}
