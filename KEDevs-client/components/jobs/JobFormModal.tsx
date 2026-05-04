@@ -25,9 +25,10 @@ import {
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { useState, useEffect } from 'react';
-import { X, Plus, Loader2 } from 'lucide-react';
+import { X, Plus, Loader2, Link as LinkIcon, Info } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/lib/auth/hooks';
 
 const jobSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters'),
@@ -36,9 +37,12 @@ const jobSchema = z.object({
   workType: z.enum(['REMOTE', 'ONSITE', 'HYBRID'] as [WorkType, ...WorkType[]]),
   jobType: z.enum(['FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP', 'FREELANCE'] as [JobType, ...JobType[]]),
   experienceLevel: z.enum(['ENTRY', 'MID', 'SENIOR', 'LEAD', 'EXECUTIVE'] as [ExperienceLevel, ...ExperienceLevel[]]),
-  locationCity: z.string().optional(),
-  locationCountry: z.string().optional(),
-  salary: z.string().optional(),
+  locationCity: z.string().optional().or(z.literal('')),
+  locationCountry: z.string().optional().or(z.literal('')),
+  salary: z.string().optional().or(z.literal('')),
+  sourceUrl: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
+  isPeerSourced: z.boolean(),
+  companyName: z.string().min(2, 'Company name is required'),
 });
 
 type JobFormData = z.infer<typeof jobSchema>;
@@ -50,6 +54,7 @@ interface JobFormModalProps {
 }
 
 export function JobFormModal({ isOpen, onClose, job }: JobFormModalProps) {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
@@ -63,21 +68,19 @@ export function JobFormModal({ isOpen, onClose, job }: JobFormModalProps) {
     formState: { errors, isSubmitting },
   } = useForm<JobFormData>({
     resolver: zodResolver(jobSchema),
-    defaultValues: job ? {
-      title: job.title,
-      description: job.description,
-      visibility: job.visibility,
-      workType: job.workType,
-      jobType: job.jobType,
-      experienceLevel: job.experienceLevel,
-      locationCity: job.locationCity || '',
-      locationCountry: job.locationCountry || '',
-      salary: job.salary || '',
-    } : {
+    defaultValues: {
       visibility: 'EXTERNAL',
       workType: 'REMOTE',
       jobType: 'FULL_TIME',
       experienceLevel: 'ENTRY',
+      isPeerSourced: user?.role === 'DEVELOPER',
+      title: '',
+      description: '',
+      locationCity: '',
+      locationCountry: '',
+      salary: '',
+      sourceUrl: '',
+      companyName: '',
     },
   });
 
@@ -100,6 +103,9 @@ export function JobFormModal({ isOpen, onClose, job }: JobFormModalProps) {
           locationCity: job.locationCity || '',
           locationCountry: job.locationCountry || '',
           salary: job.salary || '',
+          sourceUrl: job.sourceUrl || '',
+          isPeerSourced: job.isPeerSourced || false,
+          companyName: job.companyName || '',
         });
         if (job.tags) {
           setTags(job.tags.map((t: any) => typeof t === 'string' ? t : t.tag));
@@ -117,11 +123,14 @@ export function JobFormModal({ isOpen, onClose, job }: JobFormModalProps) {
           salary: '',
           title: '',
           description: '',
+          sourceUrl: '',
+          isPeerSourced: user?.role === 'DEVELOPER',
+          companyName: '',
         });
         setTags([]);
       }
     }
-  }, [isOpen, job, reset]);
+  }, [isOpen, job, reset, user]);
 
   const handleAddTag = () => {
     const cleanTag = tagInput.trim().toLowerCase();
@@ -140,7 +149,6 @@ export function JobFormModal({ isOpen, onClose, job }: JobFormModalProps) {
       const payload = {
         ...data,
         tags: tags,
-        isPeerSourced: false,
       };
 
       if (job) {
@@ -166,7 +174,9 @@ export function JobFormModal({ isOpen, onClose, job }: JobFormModalProps) {
             {job ? 'Edit Job Posting' : 'Post a New Opportunity'}
           </DialogTitle>
           <DialogDescription>
-            {job ? 'Update the details for your existing job post.' : 'Reach the best Kenyan tech talent by detailing your requirements.'}
+            {user?.role === 'DEVELOPER' 
+              ? 'Found a great opportunity in your network? Share it with fellow developers!'
+              : job ? 'Update the details for your existing job post.' : 'Reach the best Kenyan tech talent by detailing your requirements.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -181,6 +191,17 @@ export function JobFormModal({ isOpen, onClose, job }: JobFormModalProps) {
                 className={errors.title ? 'border-red-500' : ''}
               />
               {errors.title && <p className="text-xs text-red-500">{errors.title.message}</p>}
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="companyName">Company Name</Label>
+              <Input
+                id="companyName"
+                placeholder="Where is this role at?"
+                {...register('companyName')}
+                className={errors.companyName ? 'border-red-500' : ''}
+              />
+              {errors.companyName && <p className="text-xs text-red-500">{errors.companyName.message}</p>}
             </div>
 
             <div className="space-y-2 md:col-span-2">
@@ -201,8 +222,8 @@ export function JobFormModal({ isOpen, onClose, job }: JobFormModalProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="EXTERNAL">External (Public)</SelectItem>
-                  <SelectItem value="INTERNAL">Internal Only</SelectItem>
+                  <SelectItem value="EXTERNAL">Shared Link (Hidden Job)</SelectItem>
+                  <SelectItem value="INTERNAL">KEDevs Exclusive (Hire here)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -220,6 +241,26 @@ export function JobFormModal({ isOpen, onClose, job }: JobFormModalProps) {
                 </SelectContent>
               </Select>
             </div>
+
+            {visibility === 'EXTERNAL' && (
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="sourceUrl" className="flex items-center gap-2">
+                  <LinkIcon className="w-4 h-4" />
+                  Original Source Link / Apply URL
+                </Label>
+                <Input
+                  id="sourceUrl"
+                  placeholder="https://company.com/careers/job-123"
+                  {...register('sourceUrl')}
+                  className={errors.sourceUrl ? 'border-red-500' : ''}
+                />
+                {errors.sourceUrl && <p className="text-xs text-red-500">{errors.sourceUrl.message}</p>}
+                <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                  <Info className="w-3 h-3" />
+                  Fellow devs will be redirected to this link to apply.
+                </p>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label>Experience Level</Label>

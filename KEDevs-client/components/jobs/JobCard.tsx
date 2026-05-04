@@ -14,13 +14,14 @@ import {
   ExternalLink,
   MoreVertical,
   Flag,
-  Loader2
+  Loader2,
+  Share2
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { voteJob, flagJob } from '@/lib/api/jobs';
 import { toast } from 'sonner';
-import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,9 +85,9 @@ export function JobCard({ job }: JobCardProps) {
         {/* Voting Sidebar */}
         <div className="bg-[#f4f6f5]/50 p-3 flex items-start border-r border-[#CAD2C5]/30">
           <VoteButtons
-            initialUpvotes={job.upvotes ?? job.upvoteCount ?? 0}
-            initialDownvotes={job.downvotes ?? 0}
-            initialUserVote={job.userVote ?? job.currentUserVote}
+            initialUpvotes={job.upvoteCount ?? 0}
+            initialDownvotes={0}
+            initialUserVote={job.currentUserVote}
             onVote={handleVote}
             size="sm"
           />
@@ -96,13 +97,18 @@ export function JobCard({ job }: JobCardProps) {
           <CardHeader className="pt-6 pb-2">
             <div className="flex justify-between items-start gap-4">
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <h3 className="text-xl font-bold text-[#2F3E46] group-hover:text-[#52796F] transition-colors truncate">
                     {job.title}
                   </h3>
                   {job.visibility === 'EXTERNAL' && (
                     <Badge variant="outline" className="text-[10px] uppercase tracking-wider h-5 bg-teal/5 text-teal border-teal/20">
-                      External
+                      Hidden Job
+                    </Badge>
+                  )}
+                  {job.isPeerSourced && (
+                    <Badge variant="outline" className="text-[10px] uppercase tracking-wider h-5 bg-amber-50 text-amber-600 border-amber-200">
+                      <Share2 className="w-3 h-3 mr-1" /> Shared by Peer
                     </Badge>
                   )}
                 </div>
@@ -159,17 +165,25 @@ export function JobCard({ job }: JobCardProps) {
                 <MapPin className="w-3.5 h-3.5" />
                 {job.locationCity || 'Remote'}
               </span>
-              <span className="flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5" />
-                {job.applicationCount ?? 0} applicants
-              </span>
+              {job.visibility === 'INTERNAL' && (
+                <span className="flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5" />
+                  {job.applicationCount ?? 0} applicants
+                </span>
+              )}
+              {job.visibility === 'EXTERNAL' && (
+                <span className="flex items-center gap-1.5 text-teal">
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  External Application
+                </span>
+              )}
             </div>
           </CardContent>
 
           <CardFooter className="pt-0 pb-6">
             <Link href={`/jobs/${job.id}`} className="w-full">
               <Button variant="ghost" className="w-full justify-between hover:bg-[#52796F]/5 text-[#52796F] font-bold text-xs group/btn">
-                View Opportunity
+                {job.visibility === 'EXTERNAL' ? 'View Details & Apply' : 'View Opportunity'}
                 <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
               </Button>
             </Link>

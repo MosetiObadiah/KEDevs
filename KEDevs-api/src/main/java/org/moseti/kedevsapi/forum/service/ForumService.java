@@ -20,8 +20,10 @@ import org.moseti.kedevsapi.users.entity.User;
 import org.moseti.kedevsapi.users.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.moseti.kedevsapi.shared.dto.WebSocketEvent;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -36,6 +38,11 @@ public class ForumService {
     private final CommentFlagRepository flagRepository;
     private final JobPostRepository jobPostRepository;
     private final UserRepository userRepository;
+    private final SimpMessagingTemplate messagingTemplate;
+
+    private void pushForumEvent(UUID jobId, String type, Object data) {
+        messagingTemplate.convertAndSend("/topic/forum/" + jobId, new WebSocketEvent<>(type, data));
+    }
 
     @Transactional
     public CommentResponse addComment(UUID userId, UUID jobId, AddCommentRequest request) {
@@ -53,7 +60,9 @@ public class ForumService {
         comment.setContent(request.content());
 
         ForumComment saved = commentRepository.save(comment);
-        return toCommentResponse(saved, userId, false);
+        CommentResponse response = toCommentResponse(saved, userId, false);
+        pushForumEvent(jobId, "NEW_COMMENT", response);
+        return response;
     }
 
     @Transactional
@@ -83,7 +92,9 @@ public class ForumService {
         reply.setContent(request.content());
 
         ForumComment saved = commentRepository.save(reply);
-        return toCommentResponse(saved, userId, false);
+        CommentResponse response = toCommentResponse(saved, userId, false);
+        pushForumEvent(jobId, "NEW_REPLY", response);
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -162,7 +173,11 @@ public class ForumService {
         int downvotes = voteRepository.countByCommentIdAndVoteType(commentId, VoteType.DOWNVOTE);
         comment.setUpvoteCount(upvotes - downvotes);
         commentRepository.save(comment);
+        
+        pushForumEvent(comment.getJobId(), "VOTE_UPDATE", new VoteUpdate(commentId, comment.getUpvoteCount()));
     }
+
+    public record VoteUpdate(UUID commentId, int upvoteCount) {}
 
     @Transactional
     public void flagComment(UUID userId, UUID commentId, FlagCommentRequest request) {

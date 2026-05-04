@@ -1,17 +1,28 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bell } from 'lucide-react';
 import Link from 'next/link';
 import { getUnreadCount } from '@/lib/api/notifications';
 import { cn } from '@/lib/utils';
+import { useWebSocket } from '@/hooks/useWebSocket';
+import { useEffect } from 'react';
 
-export function NotificationBell({ className }: { className?: string }) {
-  const { data: count = 0 } = useQuery({
+interface NotificationBellProps {
+  className?: string;
+}
+
+export function NotificationBell({ className }: NotificationBellProps) {
+  const queryClient = useQueryClient();
+  const { data: count = 0, refetch } = useQuery({
     queryKey: ['notifications', 'unread-count'],
     queryFn: getUnreadCount,
-    refetchInterval: 30 * 1000, // poll every 30 seconds
-    retry: false,
+  });
+
+  // Real-time updates via WebSocket
+  useWebSocket('/user/queue/notifications', () => {
+    queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] });
+    refetch();
   });
 
   return (

@@ -90,7 +90,7 @@ function LoginForm() {
             Please verify your email address to activate your account.
           </p>
           <Button
-            onClick={() => router.replace(`/verify-email?userId=${unverifiedUserId}&redirect=${encodeURIComponent(from)}`)}
+            onClick={() => router.replace(`/verify-email?userId=${unverifiedUserId}&redirect=${encodeURIComponent(from || '/dashboard')}`)}
             className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold h-9 text-xs"
           >
             Verify Email Now

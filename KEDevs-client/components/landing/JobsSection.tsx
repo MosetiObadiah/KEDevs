@@ -56,7 +56,7 @@ export function JobsSection() {
                     </div>
                     <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#f4f6f5] text-[#52796F] text-xs font-bold">
                       <ArrowUpCircle className="w-3.5 h-3.5" />
-                      {job.upvotes}
+                      {job.upvoteCount}
                     </div>
                   </div>
                 </CardHeader>

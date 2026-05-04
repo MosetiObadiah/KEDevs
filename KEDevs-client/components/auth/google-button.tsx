@@ -72,8 +72,16 @@ export function GoogleButton({ mode, role }: GoogleButtonProps) {
     const timeout = setTimeout(() => {
       if (window.google?.accounts?.id && !window.google._isPrompted) {
         window.google.accounts.id.prompt((notification: any) => {
-          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            console.log('Google One Tap not displayed:', notification.getNotDisplayedReason());
+          // FedCM-compatible moment checking
+          const momentType = notification.getMomentType();
+          if (notification.isNotDisplayed()) {
+            console.log('Google One Tap not displayed (legacy check)');
+          }
+          if (momentType === 'display') {
+             console.log('Google One Tap displayed via FedCM');
+          }
+          if (momentType === 'skipped') {
+             console.log('Google One Tap skipped');
           }
         });
         window.google._isPrompted = true;

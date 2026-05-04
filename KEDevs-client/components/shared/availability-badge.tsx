@@ -6,12 +6,12 @@ const STATUS_CONFIG: Record<
   AvailabilityStatus,
   { label: string; className: string }
 > = {
-  AVAILABLE: {
+  AVAILABLE_NOW: {
     label: 'Available',
     className: 'bg-teal/15 text-teal border-teal/30 hover:bg-teal/20',
   },
-  NOT_AVAILABLE: {
-    label: 'Not Available',
+  BUSY: {
+    label: 'Busy',
     className: 'bg-destructive/15 text-destructive border-destructive/30 hover:bg-destructive/20',
   },
   OPEN_TO_OFFERS: {
@@ -26,7 +26,7 @@ interface AvailabilityBadgeProps {
 }
 
 export function AvailabilityBadge({ status, className }: AvailabilityBadgeProps) {
-  const config = STATUS_CONFIG[status];
+  const config = STATUS_CONFIG[status] || STATUS_CONFIG.BUSY;
   return (
     <Badge
       variant="outline"

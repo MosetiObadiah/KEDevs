@@ -21,7 +21,9 @@ import {
   XCircle,
   Trash2,
   CheckCircle2,
-  Loader2
+  Loader2,
+  ExternalLink,
+  Info
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/lib/auth/hooks';
@@ -100,8 +102,9 @@ export default function JobDetailPage() {
     </div>
   );
 
-  const isOwner = user?.id === job.employerId;
-  const canApply = user && user.role === 'DEVELOPER' && !isOwner && !job.hasApplied && job.status === 'OPEN';
+  const isOwner = user?.id === job.employerId || user?.id === (job as any).postedById;
+  const isExternal = job.visibility === 'EXTERNAL';
+  const canApply = user && user.role === 'DEVELOPER' && !isOwner && !job.hasApplied && job.status === 'OPEN' && !isExternal;
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -114,13 +117,23 @@ export default function JobDetailPage() {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-10">
           <section className="bg-white rounded-[40px] p-8 md:p-12 border border-[#CAD2C5]/50 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8">
+            <div className="absolute top-0 right-0 p-8 flex flex-col items-end gap-2">
                <Badge className={cn(
                  "px-4 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-widest border-0",
                  job.status === 'OPEN' ? "bg-teal/10 text-teal" : "bg-red-500/10 text-red-500"
                )}>
                  {job.status}
                </Badge>
+               {isExternal && (
+                 <Badge variant="outline" className="px-4 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-widest border-teal/20 bg-teal/5 text-teal">
+                   Hidden Job
+                 </Badge>
+               )}
+               {job.isPeerSourced && (
+                 <Badge variant="outline" className="px-4 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-widest border-amber-200 bg-amber-50 text-amber-600">
+                   <Share2 className="w-3 h-3 mr-1" /> Shared by Peer
+                 </Badge>
+               )}
             </div>
 
             <div className="space-y-6">
@@ -186,25 +199,27 @@ export default function JobDetailPage() {
                 <div className="text-center flex-1">
                    <p className="text-[#CAD2C5]/60 text-[10px] font-bold uppercase tracking-widest mb-1">Community Trust</p>
                    <div className="flex justify-center">
-                     <VoteButtons
-                        initialUpvotes={job.upvotes || 0}
-                        initialDownvotes={job.downvotes || 0}
-                        initialUserVote={job.userVote}
+                      <VoteButtons
+                        initialUpvotes={job.upvoteCount || 0}
+                        initialDownvotes={0}
+                        initialUserVote={job.currentUserVote}
                         onVote={(type) => voteMutation.mutateAsync(type)}
                         orientation="horizontal"
                         className="bg-white/10 border-white/5"
-                     />
+                      />
                    </div>
                 </div>
              </div>
 
              <div className="space-y-4 mb-8">
-                <div className="flex items-center justify-between text-sm">
-                   <span className="text-[#CAD2C5]/60">Applicants</span>
-                   <span className="font-bold flex items-center gap-1.5">
-                     <Users className="w-4 h-4" /> {job.applicationCount}
-                   </span>
-                </div>
+                {!isExternal && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-[#CAD2C5]/60">Applicants</span>
+                    <span className="font-bold flex items-center gap-1.5">
+                      <Users className="w-4 h-4" /> {job.applicationCount}
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-center justify-between text-sm">
                    <span className="text-[#CAD2C5]/60">Posted</span>
                    <span className="font-bold flex items-center gap-1.5">
@@ -220,7 +235,16 @@ export default function JobDetailPage() {
              </div>
 
              <div className="space-y-3">
-                {canApply ? (
+                {isExternal ? (
+                  <a href={job.sourceUrl} target="_blank" rel="noopener noreferrer" className="block">
+                    <Button 
+                      className="w-full h-14 bg-teal hover:bg-[#84A98C] text-[#2F3E46] font-extrabold text-lg rounded-2xl shadow-lg shadow-teal/20"
+                    >
+                      Apply at Source
+                      <ExternalLink className="w-5 h-5 ml-2" />
+                    </Button>
+                  </a>
+                ) : canApply ? (
                   <Button 
                     onClick={() => setIsApplyModalOpen(true)}
                     className="w-full h-14 bg-teal hover:bg-[#84A98C] text-[#2F3E46] font-extrabold text-lg rounded-2xl shadow-lg shadow-teal/20"
@@ -234,10 +258,17 @@ export default function JobDetailPage() {
                   </Button>
                 ) : null}
 
+                {isExternal && (
+                  <p className="text-[10px] text-[#CAD2C5]/60 text-center flex items-center justify-center gap-1">
+                    <Info className="w-3 h-3" />
+                    This link will take you to the original source.
+                  </p>
+                )}
+
                 {!user && (
                    <Link href={`/login?from=/jobs/${id}`} className="block">
                      <Button className="w-full h-14 bg-white/10 hover:bg-white/20 text-white font-bold rounded-2xl border border-white/10">
-                        Sign in to Apply
+                        Sign in to {isExternal ? 'View Link' : 'Apply'}
                      </Button>
                    </Link>
                 )}
@@ -275,7 +306,7 @@ export default function JobDetailPage() {
                       Delete Post
                     </Button>
 
-                    {user?.role === 'EMPLOYER' && (
+                    {!isExternal && user?.role === 'EMPLOYER' && (
                       <Link href={`/jobs/${id}/applications`} className="block">
                          <Button className="w-full h-12 bg-white text-[#2F3E46] hover:bg-[#CAD2C5] font-bold rounded-xl">
                             Review Applicants ({job.applicationCount})

@@ -44,10 +44,10 @@ function DeveloperFeed() {
     queryKey: ['jobs', filters],
     queryFn: ({ pageParam = 0 }) => getJobs({ ...filters, page: pageParam, size: 10 }),
     initialPageParam: 0,
-    getNextPageParam: (lastPage) => (lastPage.last ? undefined : lastPage.number + 1),
+    getNextPageParam: (lastPage: any) => (lastPage?.last ? undefined : (lastPage?.number ?? 0) + 1),
   });
 
-  const allJobs = data?.pages.flatMap((page) => page.content) || [];
+  const allJobs = (data?.pages || []).flatMap((page) => page?.content || []) || [];
 
   return (
     <>
@@ -96,7 +96,7 @@ function DeveloperFeed() {
             <>
               <div className="grid grid-cols-1 gap-6">
                 {allJobs.map((job) => (
-                  <JobCard key={job.id} job={job} />
+                  <JobCard key={job?.id || Math.random()} job={job} />
                 ))}
               </div>
 
@@ -133,10 +133,10 @@ function EmployerFeed() {
     queryKey: ['developers', 'public'],
     queryFn: ({ pageParam = 0 }) => profileApi.getPublicDevelopers({ page: pageParam, size: 10 }),
     initialPageParam: 0,
-    getNextPageParam: (lastPage) => (lastPage.last ? undefined : lastPage.number + 1),
+    getNextPageParam: (lastPage: any) => (lastPage?.last ? undefined : (lastPage?.number ?? 0) + 1),
   });
 
-  const allDevelopers = data?.pages.flatMap((page) => page.content) || [];
+  const allDevelopers = (data?.pages || []).flatMap((page) => page?.content || []) || [];
 
   return (
     <>
@@ -206,7 +206,7 @@ function EmployerFeed() {
             <>
               <div className="grid grid-cols-1 gap-6">
                 {allDevelopers.map((dev) => (
-                  <DeveloperCard key={dev.id} developer={dev} />
+                  <DeveloperCard key={dev?.id || Math.random()} developer={dev} />
                 ))}
               </div>
 
@@ -226,8 +226,6 @@ function EmployerFeed() {
           )}
         </main>
       </div>
-
-      <JobFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </>
   );
 }

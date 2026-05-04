@@ -106,17 +106,17 @@ export default function ApplicationsInboxPage() {
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-4">
                       <Avatar className="w-12 h-12 border-2 border-white shadow-sm">
-                        <AvatarImage src={app.developerProfileImageUrl} />
+                        <AvatarImage src={app.applicantProfileImage} />
                         <AvatarFallback className="bg-[#52796F] text-white font-bold">
-                          {app.developerName.charAt(0).toUpperCase()}
+                          {app.applicantName.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <p className="font-bold text-[#2F3E46] text-base group-hover:text-[#52796F] transition-colors">
-                          {app.developerName}
+                          {app.applicantName}
                         </p>
                         <p className="text-xs text-[#84A98C] flex items-center gap-1">
-                          <Mail className="w-3 h-3" /> {app.developerEmail}
+                          <Mail className="w-3 h-3" /> {app.applicantEmail}
                         </p>
                       </div>
                     </div>
@@ -147,7 +147,7 @@ export default function ApplicationsInboxPage() {
                   </td>
                   <td className="px-6 py-6">
                     <div className="flex items-center gap-2">
-                       <Link href={`/developers/${app.developerId}`}>
+                       <Link href={`/developers/${app.applicantId}`}>
                          <Button variant="ghost" size="sm" className="h-10 rounded-xl font-bold text-xs hover:bg-[#52796F]/5 text-[#52796F]">
                             <User className="w-4 h-4 mr-2" />
                             Profile
@@ -161,16 +161,6 @@ export default function ApplicationsInboxPage() {
                             onClick={() => alert(`Cover Letter:\n\n${app.coverLetter}`)}
                           >
                              <FileText className="w-4 h-4" />
-                          </Button>
-                       )}
-                       {app.resumeUrl && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-10 w-10 p-0 rounded-xl hover:bg-[#f4f6f5] text-[#84A98C]"
-                            onClick={() => window.open(app.resumeUrl, '_blank')}
-                          >
-                             <Download className="w-4 h-4" />
                           </Button>
                        )}
                     </div>

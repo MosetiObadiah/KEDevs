@@ -15,6 +15,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,7 +47,7 @@ class VerificationCodeServiceTest {
         assertNotNull(code);
         assertEquals(6, code.length());
         assertTrue(code.matches("\\d{6}")); // 6 digits
-        verify(verificationCodeRepository).deleteByUserId(testUserId);
+        verify(verificationCodeRepository).deleteByUserIdAndType(eq(testUserId), eq(VerificationCode.CodeType.EMAIL_VERIFICATION));
         verify(verificationCodeRepository).save(any(VerificationCode.class));
     }
 
@@ -60,7 +61,7 @@ class VerificationCodeServiceTest {
         verificationCodeService.generateCode(testUserId, VerificationCode.CodeType.EMAIL_VERIFICATION);
 
         // Then
-        verify(verificationCodeRepository).deleteByUserId(testUserId);
+        verify(verificationCodeRepository).deleteByUserIdAndType(eq(testUserId), eq(VerificationCode.CodeType.EMAIL_VERIFICATION));
     }
 
     @Test
@@ -139,4 +140,3 @@ class VerificationCodeServiceTest {
         assertEquals(6, resetCode.length());
     }
 }
-

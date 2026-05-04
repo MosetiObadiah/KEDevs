@@ -9,19 +9,25 @@ import { Textarea } from '@/components/ui/textarea';
 import { MessageSquare, Send, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth/hooks';
+import { useWebSocket } from '@/hooks/useWebSocket';
 
 interface ForumSectionProps {
   jobId: string;
 }
 
 export function ForumSection({ jobId }: ForumSectionProps) {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
   const [newComment, setNewComment] = useState('');
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const { data: comments, isLoading } = useQuery({
     queryKey: ['forum', jobId],
     queryFn: () => getComments(jobId),
+  });
+
+  // Real-time updates via WebSocket
+  useWebSocket(`/topic/forum/${jobId}`, () => {
+    queryClient.invalidateQueries({ queryKey: ['forum', jobId] });
   });
 
   const postMutation = useMutation({

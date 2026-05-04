@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getNotifications, markAsRead, markAllAsRead, getNotificationPreferences, updateNotificationPreference } from '@/lib/api/notifications';
+import { NotificationPreference } from '@/lib/types/notification';
 import { profileApi } from '@/lib/api/profile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -46,7 +47,7 @@ export default function NotificationsPage() {
     queryKey: ['notifications', 'all'],
     queryFn: ({ pageParam = 0 }) => getNotifications(pageParam, 50),
     initialPageParam: 0,
-    getNextPageParam: (lastPage) => (lastPage.last ? undefined : lastPage.number + 1),
+    getNextPageParam: (lastPage: any) => (lastPage.last ? undefined : lastPage.number + 1),
   });
 
   const markReadMutation = useMutation({
@@ -79,7 +80,7 @@ export default function NotificationsPage() {
     },
   });
 
-  const allNotifications = data?.pages.flatMap((page) => page.content) || [];
+  const allNotifications = (data?.pages || []).flatMap((page) => page?.content || []) || [];
 
   const filteredNotifications = allNotifications.filter(n => {
     if (filter === 'UNREAD') return !n.isRead;
@@ -101,15 +102,15 @@ export default function NotificationsPage() {
   const PREFERENCE_CONFIG = [
     { label: 'Job Applications', emailKey: 'emailOnJobApplication', inAppKey: 'inAppOnJobApplication' },
     { label: 'Spotlight Expiry', emailKey: 'emailOnSpotlightExpired', inAppKey: 'inAppOnSpotlightExpired' },
-    { label: 'Payment Receipts', emailKey: 'emailOnPaymentReceipt' },
-    { label: 'Job Post Flags', emailKey: 'emailOnJobFlagged' },
-    { label: 'Subscription Expiry', emailKey: 'emailOnSubscriptionExpiry' },
-    { label: 'Spotlight Overrides', emailKey: 'emailOnSpotlightOverridden' },
-    { label: 'Verified Badge Awards', emailKey: 'emailOnVerifiedBadge' },
-    { label: 'Pro Account Upgrades', emailKey: 'emailOnProUpgrade' },
-    { label: 'Comment Replies', inAppKey: 'inAppOnCommentReply' },
-    { label: 'Profile Endorsements', inAppKey: 'inAppOnEndorsement' },
-    { label: 'Flag Reviews', inAppKey: 'inAppOnFlagReviewed' },
+    { label: 'Payment Receipts', emailKey: 'emailOnPaymentReceipt', inAppKey: undefined },
+    { label: 'Job Post Flags', emailKey: 'emailOnJobFlagged', inAppKey: undefined },
+    { label: 'Subscription Expiry', emailKey: 'emailOnSubscriptionExpiry', inAppKey: undefined },
+    { label: 'Spotlight Overrides', emailKey: 'emailOnSpotlightOverridden', inAppKey: undefined },
+    { label: 'Verified Badge Awards', emailKey: 'emailOnVerifiedBadge', inAppKey: undefined },
+    { label: 'Pro Account Upgrades', emailKey: 'emailOnProUpgrade', inAppKey: undefined },
+    { label: 'Comment Replies', inAppKey: 'inAppOnCommentReply', emailKey: undefined },
+    { label: 'Profile Endorsements', inAppKey: 'inAppOnEndorsement', emailKey: undefined },
+    { label: 'Flag Reviews', inAppKey: 'inAppOnFlagReviewed', emailKey: undefined },
   ] as const;
 
   const handleTogglePref = (field: keyof NotificationPreference, value: boolean) => {
@@ -150,7 +151,7 @@ export default function NotificationsPage() {
             <CardTitle className="text-lg flex items-center"><Settings2 className="w-5 h-5 mr-2"/> Notification Preferences</CardTitle>
           </CardHeader>
           <CardContent>
-            {(!preferences || preferences.length === 0) ? (
+            {(!preferences) ? (
               <p className="text-sm text-muted-foreground">Loading preferences...</p>
             ) : (
               <div className="space-y-4">
@@ -167,7 +168,7 @@ export default function NotificationsPage() {
                     <div className="col-span-3 flex justify-center">
                       {row.inAppKey ? (
                         <Switch 
-                          checked={!!preferences[row.inAppKey]} 
+                          checked={!!(preferences as any)[row.inAppKey]} 
                           onCheckedChange={(v) => handleTogglePref(row.inAppKey!, v)} 
                         />
                       ) : (
@@ -177,7 +178,7 @@ export default function NotificationsPage() {
                     <div className="col-span-3 flex justify-center">
                       {row.emailKey ? (
                         <Switch 
-                          checked={!!preferences[row.emailKey]} 
+                          checked={!!(preferences as any)[row.emailKey]} 
                           onCheckedChange={(v) => handleTogglePref(row.emailKey!, v)} 
                         />
                       ) : (

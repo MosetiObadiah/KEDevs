@@ -32,6 +32,8 @@ import {
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { useWebSocket } from '@/hooks/useWebSocket';
+import { useQueryClient } from '@tanstack/react-query';
 
 function Sidebar() {
   const pathname = usePathname();
@@ -188,10 +190,7 @@ function Sidebar() {
   );
 }
 
-function TopBar() {
-  const { user } = useAuth();
-  const isUnapprovedEmployer = user?.role === 'EMPLOYER' && !user?.isApprovedByAdmin;
-
+function TopBar({ isUnapprovedEmployer }: { isUnapprovedEmployer: boolean }) {
   return (
     <>
       <header className={cn(
@@ -200,8 +199,6 @@ function TopBar() {
       )}>
         <NotificationBell />
       </header>
-
-
 
       {isUnapprovedEmployer && (
         <div className="fixed top-0 right-0 left-[280px] h-14 bg-amber-500/10 border-b border-amber-500/20 z-40 flex items-center px-6">
@@ -228,22 +225,36 @@ function TopBar() {
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
+  const queryClient = useQueryClient();
   const isUnapprovedEmployer = user?.role === 'EMPLOYER' && !user?.isApprovedByAdmin;
+
+  // Global WebSocket listener for status updates (e.g., account approved, banned, verified)
+  useWebSocket('/user/queue/status', (event) => {
+    toast.info('Your account status has been updated.');
+    // Refresh the local profile state
+    refreshProfile();
+    // Invalidate all queries to ensure UI reflects new status (e.g., Pro features)
+    queryClient.invalidateQueries();
+  });
 
   return (
     <AuthGuard>
       <OnboardingGuard>
         <div className="min-h-screen bg-background">
           <Sidebar />
-          <TopBar />
-          <main className={cn(
-            "ml-[280px] pt-16 min-h-screen transition-all duration-300",
-            isUnapprovedEmployer && "pt-[120px]"
-          )}>
-            <ProfileCompletionBanner />
-            <div className="p-6 max-w-7xl mx-auto">{children}</div>
-          </main>
+          <div className="pl-[280px]">
+            <TopBar isUnapprovedEmployer={isUnapprovedEmployer} />
+            <main className={cn(
+              "min-h-[calc(100vh-64px)] p-8",
+              isUnapprovedEmployer ? "pt-[120px]" : "pt-24"
+            )}>
+              <div className="max-w-7xl mx-auto">
+                <ProfileCompletionBanner />
+                {children}
+              </div>
+            </main>
+          </div>
         </div>
       </OnboardingGuard>
     </AuthGuard>

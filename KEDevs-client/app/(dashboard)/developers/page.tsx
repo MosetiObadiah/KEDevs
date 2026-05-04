@@ -20,7 +20,7 @@ export default function DevelopersPage() {
     queryKey: ['developers', 'public'],
     queryFn: ({ pageParam = 0 }) => profileApi.getPublicDevelopers({ page: pageParam, size: 10 }),
     initialPageParam: 0,
-    getNextPageParam: (lastPage) => (lastPage.last ? undefined : lastPage.number + 1),
+    getNextPageParam: (lastPage: any) => (lastPage?.last ? undefined : (lastPage?.number ?? 0) + 1),
     enabled: !isFiltered,
   });
 
@@ -29,8 +29,6 @@ export default function DevelopersPage() {
     mutationFn: (f: any) => profileApi.filterDevelopers(f, { page: 0, size: 10 }),
     onSuccess: (data) => {
       setIsFiltered(true);
-      // In a real app, we might want to use another infinite query for filtered results
-      // or just replace the data in a local state.
     },
     onError: (error: any) => {
       if (error.response?.status === 402 || error.response?.status === 403) {
@@ -43,7 +41,7 @@ export default function DevelopersPage() {
   });
 
   const handleFilter = (newFilters: any) => {
-    if (Object.keys(newFilters).length === 0) {
+    if (Object.keys(newFilters || {}).length === 0) {
       setIsFiltered(false);
       setFilters({});
       return;
@@ -54,7 +52,7 @@ export default function DevelopersPage() {
 
   const developers = isFiltered 
     ? filterMutation.data?.content || [] 
-    : publicQuery.data?.pages.flatMap(p => p.content) || [];
+    : (publicQuery.data?.pages || []).flatMap(p => p?.content || []) || [];
 
   const isLoading = isFiltered ? filterMutation.isPending : publicQuery.isLoading;
 
@@ -93,7 +91,7 @@ export default function DevelopersPage() {
           ) : (
             <div className="grid grid-cols-1 gap-6">
               {developers.map((dev: any) => (
-                <DeveloperCard key={dev.id} developer={dev} />
+                <DeveloperCard key={dev?.id || Math.random()} developer={dev} />
               ))}
               
               {!isFiltered && publicQuery.hasNextPage && (

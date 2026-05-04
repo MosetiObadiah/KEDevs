@@ -92,25 +92,36 @@ export default function AdminFlagsPage() {
   const isPending = reviewJobFlagMutation.isPending || reviewCommentFlagMutation.isPending || reviewUserFlagMutation.isPending;
 
   const renderFlagCard = (flag: any, type: string) => (
-    <Card key={flag.id} className="border-secondary shadow-sm mb-4">
+    <Card key={flag.id} className="border-secondary shadow-sm mb-4 group hover:border-primary/30 transition-all">
       <CardContent className="p-6">
         <div className="flex justify-between items-start mb-4">
-          <div>
-            <Badge className={flag.status === 'PENDING' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'}>
-              {flag.status}
-            </Badge>
-            <h4 className="font-bold text-foreground mt-2">Target ID: {flag.targetId}</h4>
-            <p className="text-sm text-muted-foreground mt-1">Reported by {flag.reporterName} on {new Date(flag.createdAt).toLocaleDateString()}</p>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Badge className={flag.status === 'PENDING' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'}>
+                {flag.status}
+              </Badge>
+              <span className="text-[10px] text-muted-foreground font-mono">#{flag.id.slice(0, 8)}</span>
+            </div>
+            <h4 className="font-black text-lg text-foreground mt-2">
+              {flag.targetTitle || `Target ID: ${flag.targetId}`}
+            </h4>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+              <ShieldAlert className="w-3.5 h-3.5" />
+              <span>Reported by <span className="text-primary">{flag.reporterName}</span> on {new Date(flag.createdAt).toLocaleDateString()}</span>
+            </div>
           </div>
           {flag.status === 'PENDING' && (
-            <Button onClick={() => handleReviewClick(flag, type)} className="bg-primary hover:bg-[#2a6f4d] text-white">
-              Review
+            <Button onClick={() => handleReviewClick(flag, type)} className="bg-primary hover:bg-[#354F52] text-white font-bold rounded-xl px-6">
+              Take Action
             </Button>
           )}
         </div>
-        <div className="bg-red-50 p-4 rounded-xl border border-red-100 mt-4">
-          <p className="text-sm font-semibold text-red-900 mb-1">Report Reason:</p>
-          <p className="text-sm text-red-800">{flag.reason}</p>
+        <div className="bg-red-50/50 p-4 rounded-2xl border border-red-100/50 mt-4 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-2 opacity-5">
+            <Flag className="w-8 h-8 text-red-900" />
+          </div>
+          <p className="text-xs font-black text-red-900 uppercase tracking-widest mb-2 opacity-60">Report Details</p>
+          <p className="text-sm text-red-800 font-medium leading-relaxed">{flag.reason}</p>
         </div>
       </CardContent>
     </Card>

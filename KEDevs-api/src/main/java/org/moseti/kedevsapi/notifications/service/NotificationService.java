@@ -16,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.moseti.kedevsapi.shared.dto.WebSocketEvent;
 
 import java.util.UUID;
 
@@ -27,6 +29,7 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final NotificationPreferenceRepository preferenceRepository;
 
+    private final SimpMessagingTemplate messagingTemplate;
     @Lazy
     private final EmailService emailService;
 
@@ -48,6 +51,13 @@ public class NotificationService {
         notificationRepository.save(notification);
 
         log.info("In-app notification saved for user: {}", userId);
+        
+        // Push via WebSocket
+        messagingTemplate.convertAndSendToUser(
+            userId.toString(), 
+            "/queue/notifications", 
+            new WebSocketEvent<>("NEW_NOTIFICATION", mapToResponse(notification))
+        );
 
         // 2. Handle email logic would typically be here, but the user request 
         // specified that the CALLER calls emailService directly after notify() in some hooks, 

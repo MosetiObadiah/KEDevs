@@ -19,6 +19,7 @@ import org.moseti.kedevsapi.jobs.repository.JobFlagRepository;
 import org.moseti.kedevsapi.jobs.repository.JobPostRepository;
 import org.moseti.kedevsapi.notifications.service.NotificationService;
 import org.moseti.kedevsapi.payments.entity.PlatformSetting;
+import org.moseti.kedevsapi.payments.entity.UserFlag;
 import org.moseti.kedevsapi.payments.repository.PaymentRepository;
 import org.moseti.kedevsapi.payments.repository.PlatformSettingRepository;
 import org.moseti.kedevsapi.payments.repository.SubscriptionRepository;
@@ -38,6 +39,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.moseti.kedevsapi.shared.dto.WebSocketEvent;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -58,13 +61,14 @@ public class AdminService {
     private final EmployerProfileRepository employerProfileRepository;
     private final JobPostRepository jobPostRepository;
     private final JobFlagRepository jobFlagRepository;
-    private final JobApplicationRepository jobApplicationRepository;
     private final ForumCommentRepository forumCommentRepository;
     private final CommentFlagRepository commentFlagRepository;
+    private final UserFlagRepository userFlagRepository;
     private final PaymentRepository paymentRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final PlatformSettingRepository platformSettingRepository;
-    private final UserFlagRepository userFlagRepository;
+    private final JobApplicationRepository jobApplicationRepository;
+    private final SimpMessagingTemplate messagingTemplate;
     
     @Lazy private final NotificationService notificationService;
     @Lazy private final SpotlightService spotlightService;
@@ -114,25 +118,30 @@ public class AdminService {
         userRepository.save(user);
         employerProfileRepository.save(profile);
         logAction(adminId, actionType, "USER", user.getId(), request.notes(), outcome);
+        
+        // Push status update
+        messagingTemplate.convertAndSendToUser(
+            user.getId().toString(),
+            "/queue/status",
+            new WebSocketEvent<>("STATUS_UPDATE", Map.of("accountStatus", user.getAccountStatus(), "isApproved", profile.isApproved()))
+        );
     }
 
     public Page<UserSummaryResponse> getAllUsers(Role role, AccountStatus status, Pageable pageable) {
-        // Simple filtering - for production a specification would be better
         if (role != null && status != null) {
-            // Need to add this to repo or just use findAll and filter if small, but let's assume large
-            // For now I'll just use findAll and we can add custom queries if needed.
-            // Actually I'll just implement the ones I added to repo
-            return userRepository.findAll(pageable).map(this::toUserSummary);
+            return userRepository.findByRoleAndAccountStatus(role, status, pageable).map(this::toUserSummary);
         } else if (role != null) {
-            return userRepository.findAll(pageable).map(this::toUserSummary); // Should use findByRole but repo returns List
+            return userRepository.findByRole(role, pageable).map(this::toUserSummary);
+        } else if (status != null) {
+            return userRepository.findByAccountStatus(status, pageable).map(this::toUserSummary);
         }
         return userRepository.findAll(pageable).map(this::toUserSummary);
     }
 
-    public UserSummaryResponse getUserById(UUID userId) {
-        User user = userRepository.findById(userId)
+    public UserSummaryResponse getUserById(UUID id) {
+        return userRepository.findById(id)
+                .map(this::toUserSummary)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        return toUserSummary(user);
     }
 
     public void performUserAction(UUID adminId, UUID targetUserId, UserActionRequest request) {
@@ -176,6 +185,13 @@ public class AdminService {
         userRepository.save(user);
         logAction(adminId, actionType, "USER", targetUserId, request.notes(), outcome);
         notificationService.notify(targetUserId, NotificationCategory.ADMIN, notifyTitle, notifyMsg, null);
+
+        // Push status update
+        messagingTemplate.convertAndSendToUser(
+            targetUserId.toString(),
+            "/queue/status",
+            new WebSocketEvent<>("STATUS_UPDATE", Map.of("accountStatus", user.getAccountStatus()))
+        );
     }
 
     // --- Flagged Content ---
@@ -205,7 +221,6 @@ public class AdminService {
         String outcome = request.outcome().toUpperCase();
         if ("LEGITIMATE".equals(outcome)) {
             flag.setStatus(FlagStatus.REVIEWED_LEGITIMATE);
-            // Check if other pending flags exist
             if (jobFlagRepository.countByJobIdAndStatus(job.getId(), FlagStatus.PENDING) <= 1) {
                 job.setFlagged(false);
             }
@@ -218,8 +233,10 @@ public class AdminService {
         } else if ("WARN".equals(outcome)) {
             flag.setStatus(FlagStatus.REVIEWED_LEGITIMATE);
             notificationService.notify(job.getPostedById(), NotificationCategory.FLAG,
-                    "Warning: Job Post",
-                    "Your job post has been reviewed and flagged as potentially misleading.", null);
+                    "Job Post Warning",
+                    "Your job post '" + job.getTitle() + "' has been flagged. Please ensure it follows guidelines.", null);
+        } else {
+            throw new InvalidAdminActionException("Invalid outcome: " + outcome);
         }
 
         flag.setReviewedById(adminId);
@@ -242,7 +259,7 @@ public class AdminService {
     }
 
     public void reviewUserFlag(UUID adminId, UUID flagId, ReviewUserFlagRequest request) {
-        org.moseti.kedevsapi.payments.entity.UserFlag flag = userFlagRepository.findById(flagId)
+        UserFlag flag = userFlagRepository.findById(flagId)
                 .orElseThrow(() -> new ResourceNotFoundException("Flag not found"));
         
         String outcome = request.outcome().toUpperCase();
@@ -328,13 +345,20 @@ public class AdminService {
         notificationService.notify(targetUserId, NotificationCategory.ADMIN,
                 verified ? "Verified Badge Granted" : "Verified Badge Revoked",
                 verified ? "You have been granted a verified badge." : "Your verified badge has been revoked.", null);
+
+        // Push status update
+        messagingTemplate.convertAndSendToUser(
+            targetUserId.toString(),
+            "/queue/status",
+            new WebSocketEvent<>("STATUS_UPDATE", Map.of("isVerified", verified))
+        );
     }
 
     // --- Platform Settings ---
 
     public List<PlatformSettingResponse> getPlatformSettings() {
         return platformSettingRepository.findAll().stream()
-                .map(s -> new PlatformSettingResponse(s.getSettingKey(), s.getSettingValue(),
+                .map(s -> new PlatformSettingResponse(s.getSettingKey(), s.getSettingValue(), 
                         s.getDescription(), s.getUpdatedByAdminId(), s.getUpdatedAt()))
                 .collect(Collectors.toList());
     }

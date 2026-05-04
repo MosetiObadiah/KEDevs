@@ -23,6 +23,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.moseti.kedevsapi.shared.dto.WebSocketEvent;
+import java.util.Map;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -45,6 +48,7 @@ public class PaymentService {
     private final SpotlightService spotlightService;
     private final org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
     private final org.moseti.kedevsapi.auth.service.EmailService emailService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     // ====================== Helper ======================
 
@@ -245,11 +249,23 @@ public class PaymentService {
             payment.setPaidAt(LocalDateTime.now());
             paymentRepository.save(payment);
             processSuccessfulPayment(payment);
+            
+            messagingTemplate.convertAndSendToUser(
+                payment.getUserId().toString(),
+                "/queue/status",
+                new WebSocketEvent<>("PAYMENT_COMPLETED", Map.of("paymentId", payment.getId(), "type", payment.getType()))
+            );
         } else {
             log.warn("Payment {} failed with ResultCode {}: {}", payment.getId(),
                     stkCallback.resultCode(), stkCallback.resultDesc());
             payment.setStatus(PaymentStatus.FAILED);
             paymentRepository.save(payment);
+            
+            messagingTemplate.convertAndSendToUser(
+                payment.getUserId().toString(),
+                "/queue/status",
+                new WebSocketEvent<>("PAYMENT_FAILED", Map.of("paymentId", payment.getId(), "reason", stkCallback.resultDesc()))
+            );
         }
     }
 
@@ -303,6 +319,11 @@ public class PaymentService {
                     );
                     emailService.sendPaymentConfirmationEmail(user.getEmail(), user.getFullName(), "Annual Membership", payment.getAmount(), payment.getMpesaReceiptNo());
                 }
+                messagingTemplate.convertAndSendToUser(
+                    payment.getUserId().toString(),
+                    "/queue/status",
+                    new WebSocketEvent<>("STATUS_UPDATE", Map.of("membershipActive", true, "subscriptionExpiresAt", endDate))
+                );
             }
             case EMPLOYER_PRO -> {
                 LocalDateTime now = LocalDateTime.now();
@@ -332,6 +353,11 @@ public class PaymentService {
                     );
                     emailService.sendPaymentConfirmationEmail(user.getEmail(), user.getFullName(), "Employer Pro Upgrade", payment.getAmount(), payment.getMpesaReceiptNo());
                 }
+                messagingTemplate.convertAndSendToUser(
+                    payment.getUserId().toString(),
+                    "/queue/status",
+                    new WebSocketEvent<>("STATUS_UPDATE", Map.of("isProAccount", true))
+                );
             }
             case VERIFIED_BADGE -> {
                 userRepository.findById(payment.getUserId()).ifPresent(user -> {
@@ -358,6 +384,11 @@ public class PaymentService {
                     );
                     emailService.sendPaymentConfirmationEmail(user.getEmail(), user.getFullName(), "Verified Badge", payment.getAmount(), payment.getMpesaReceiptNo());
                 }
+                messagingTemplate.convertAndSendToUser(
+                    payment.getUserId().toString(),
+                    "/queue/status",
+                    new WebSocketEvent<>("STATUS_UPDATE", Map.of("isVerified", true))
+                );
             }
             case SPOTLIGHT_DAY, SPOTLIGHT_WEEK -> {
                 UUID developerId = payment.getUserId();

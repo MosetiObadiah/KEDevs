@@ -102,8 +102,8 @@ export interface FlagItem {
 }
 
 export async function getJobFlags(): Promise<FlagItem[]> {
-  const res = await apiClient.get<FlagItem[]>('/admin/flags/jobs');
-  return res.data;
+  const res = await apiClient.get<Page<FlagItem>>('/admin/flags/jobs');
+  return res.data.content || [];
 }
 
 export async function reviewJobFlag(
@@ -115,8 +115,8 @@ export async function reviewJobFlag(
 }
 
 export async function getUserFlags(): Promise<FlagItem[]> {
-  const res = await apiClient.get<FlagItem[]>('/admin/flags/users');
-  return res.data;
+  const res = await apiClient.get<Page<FlagItem>>('/admin/flags/users');
+  return res.data.content || [];
 }
 
 export async function reviewUserFlag(
@@ -128,8 +128,8 @@ export async function reviewUserFlag(
 }
 
 export async function getCommentFlags(): Promise<FlagItem[]> {
-  const res = await apiClient.get<FlagItem[]>('/admin/flags/comments');
-  return res.data;
+  const res = await apiClient.get<Page<FlagItem>>('/admin/flags/comments');
+  return res.data.content || [];
 }
 
 export async function reviewCommentFlag(

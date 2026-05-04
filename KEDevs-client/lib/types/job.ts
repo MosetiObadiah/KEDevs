@@ -24,30 +24,38 @@ export interface JobTag {
 
 export interface JobPost {
   id: string;
-  employerId?: string;
+  postedById: string;
+  posterName?: string;
+  employerId?: string; // Legacy/Compat
   companyName: string;
   companyLogoUrl?: string;
   title: string;
-  description?: string;
+  summary?: string;
+  description: string;
   locationCity?: string;
   locationCountry?: string;
   salary?: string;
+  salaryRangeMin?: number;
+  salaryRangeMax?: number;
+  salaryCurrency?: string;
   workType: WorkType;
   experienceLevel: ExperienceLevel;
   jobType: JobType;
+  minQualification?: string;
+  minExperienceYears?: number;
   status: JobStatus;
   visibility: JobVisibility;
   tags?: JobTag[] | string[];
-  upvotes?: number;
-  upvoteCount?: number;
-  downvotes?: number;
-  applicationCount?: number;
-  userVote?: VoteType | null;
+  upvoteCount: number;
+  isFlagged: boolean;
   currentUserVote?: VoteType | null;
   hasApplied?: boolean;
+  applicationCount: number;
+  sourceUrl?: string;
+  isPeerSourced: boolean;
   createdAt: string;
   updatedAt?: string;
-  expiresAt?: string;
+  applicationDeadline?: string;
 }
 
 export interface JobApplication {
@@ -55,13 +63,12 @@ export interface JobApplication {
   jobId: string;
   jobTitle: string;
   companyName: string;
-  developerId: string;
-  developerName: string;
-  developerEmail: string;
-  developerProfileImageUrl?: string;
-  status: ApplicationStatus;
+  applicantId: string;
+  applicantName: string;
+  applicantEmail: string;
+  applicantProfileImage?: string;
   coverLetter?: string;
-  resumeUrl?: string;
+  status: ApplicationStatus;
   createdAt: string;
   updatedAt: string;
 }

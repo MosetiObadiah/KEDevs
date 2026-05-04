@@ -245,7 +245,6 @@ export function PublicDeveloperProfileView({ profileId }: PublicDeveloperProfile
       <PaywallModal 
         open={showPaywall} 
         onOpenChange={setShowPaywall}
-        requiredFeature="PRO_UPGRADE"
       />
     </div>
   );

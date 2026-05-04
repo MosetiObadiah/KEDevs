@@ -46,8 +46,10 @@ export function DevelopersSection() {
               <div key={i} className="h-[320px] rounded-3xl bg-white animate-pulse" />
             ))
           ) : developers.length > 0 ? (
-            developers.map((dev) => {
-              const initials = (dev.fullName ?? dev.name ?? 'U')
+            developers.map((dev: any) => {
+              // Handle DeveloperSummaryResponse fields (firstName, lastName) vs DeveloperProfile (fullName)
+              const name = dev.fullName || `${dev.firstName || ''} ${dev.lastName || ''}`.trim() || 'Developer';
+              const initials = name
                   .split(' ')
                   .map((n: string) => n[0])
                   .join('')
@@ -59,31 +61,31 @@ export function DevelopersSection() {
                   <CardContent className="pt-8 flex flex-col items-center text-center">
                     <div className="relative mb-4">
                       <Avatar className="w-20 h-20 ring-4 ring-[#f4f6f5] border-2 border-white">
-                        <AvatarImage src={dev.profileImageUrl} />
+                        <AvatarImage src={dev.profilePhoto || dev.profileImageUrl} />
                         <AvatarFallback className="bg-[#CAD2C5] text-[#2F3E46] text-xl font-bold">
                           {initials}
                         </AvatarFallback>
                       </Avatar>
                       {dev.isVerified && (
                         <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-sm">
-                          <ShieldCheck className="w-5 h-5 text-teal" />
+                          <ShieldCheck className="w-5 h-5 text-[#4ccb8c]" />
                         </div>
                       )}
                     </div>
                     <h3 className="font-bold text-[#2F3E46] text-lg group-hover:text-[#52796F] transition-colors truncate w-full px-2">
-                      {dev.fullName}
+                      {name}
                     </h3>
                     <p className="text-[#84A98C] text-xs mb-4 h-8 line-clamp-2 px-2">
-                      {dev.headline || 'Software Engineer'}
+                      {dev.currentLastRole || dev.headline || 'Software Engineer'}
                     </p>
                     <div className="flex items-center gap-1.5 text-[#84A98C] text-[10px] mb-4">
                       <MapPin className="w-3 h-3" />
                       {dev.locationCity || 'Kenya'}
                     </div>
                     <div className="flex flex-wrap justify-center gap-1.5 h-[52px] overflow-hidden">
-                      {dev.skills?.slice(0, 3).map((skill, index) => (
-                        <Badge key={skill.id || skill.name || index} variant="secondary" className="bg-[#f4f6f5] text-[#354F52] text-[10px] border-0">
-                          {skill.name}
+                      {Array.isArray(dev.skills) && dev.skills.slice(0, 3).map((skill: any, index: number) => (
+                        <Badge key={index} variant="secondary" className="bg-[#f4f6f5] text-[#354F52] text-[10px] border-0">
+                          {typeof skill === 'string' ? skill : skill.name}
                         </Badge>
                       ))}
                     </div>

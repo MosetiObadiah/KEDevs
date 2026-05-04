@@ -458,17 +458,22 @@ public class JobService {
     }
 
     private JobApplicationResponse toJobApplicationResponse(JobApplication application) {
-        String applicantName = userRepository.findById(application.getApplicantId())
-                .map(User::getFullName)
-                .orElse("Unknown");
+        User applicant = userRepository.findById(application.getApplicantId()).orElse(null);
+        String applicantName = applicant != null ? applicant.getFullName() : "Unknown";
+        String applicantEmail = applicant != null ? applicant.getEmail() : "Unknown";
+        String applicantProfileImage = applicant != null ? applicant.getProfileImageUrl() : null;
         String jobTitle = application.getJobPost() != null ? application.getJobPost().getTitle() : null;
+        String companyName = application.getJobPost() != null ? application.getJobPost().getCompanyName() : null;
 
         return new JobApplicationResponse(
                 application.getId(),
                 application.getJobPost().getId(),
                 jobTitle,
+                companyName,
                 application.getApplicantId(),
                 applicantName,
+                applicantEmail,
+                applicantProfileImage,
                 application.getCoverLetter(),
                 application.getStatus(),
                 application.getCreatedAt(),
