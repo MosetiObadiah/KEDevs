@@ -230,7 +230,7 @@ function EmployerFeed() {
   );
 }
 
-function DashboardContent() {
+export function DashboardContent() {
   const { user } = useAuth();
   const router = useRouter();
   
@@ -247,7 +247,7 @@ function DashboardContent() {
   return <DeveloperFeed />;
 }
 
-function DashboardSkeleton() {
+export function DashboardSkeleton() {
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

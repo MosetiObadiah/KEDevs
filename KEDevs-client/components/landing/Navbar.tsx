@@ -75,12 +75,12 @@ export function Navbar() {
           <div className="flex items-center gap-4">
             <Link href="/login">
               <Button variant="ghost" className="text-[#CAD2C5] hover:text-white hover:bg-white/5 font-medium">
-                Sign in
+                Login
               </Button>
             </Link>
             <Link href="/register">
               <Button className="bg-[#52796F] hover:bg-[#84A98C] text-white px-6 shadow-lg shadow-[#52796F]/20 transition-all duration-200 hover:scale-105 active:scale-95">
-                Join Community
+                Sign Up
               </Button>
             </Link>
           </div>
@@ -114,12 +114,12 @@ export function Navbar() {
                 <div className="flex flex-col gap-3 mt-4">
                   <Link href="/login">
                     <Button variant="outline" className="w-full border-[#CAD2C5]/20 text-[#CAD2C5] hover:bg-white/5">
-                      Sign in
+                      Login
                     </Button>
                   </Link>
                   <Link href="/register">
                     <Button className="w-full bg-[#52796F] hover:bg-[#84A98C] text-white">
-                      Join Community
+                      Sign Up
                     </Button>
                   </Link>
                 </div>

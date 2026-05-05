@@ -91,7 +91,7 @@ function RegisterForm() {
         role: data.role,
       });
       toast.success('Account created! Check your email for a verification code.');
-      router.replace(`/verify-email?userId=${userId}`);
+      router.replace(`/verify-email/${userId}`);
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : 'Registration failed';
       if (msg.toLowerCase().includes('email')) {

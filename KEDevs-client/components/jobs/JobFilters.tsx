@@ -1,7 +1,7 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useTransition } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { Search, X, SlidersHorizontal } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -21,8 +21,23 @@ const EXP_LEVELS = ['ENTRY', 'MID', 'SENIOR', 'LEAD', 'EXECUTIVE'];
 
 export function JobFilters() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  const [keyword, setKeyword] = useState(searchParams.get('keyword') || '');
+  const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    setKeyword(searchParams.get('keyword') || '');
+  }, [searchParams]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
+  }, []);
 
   const createQueryString = useCallback(
     (name: string, value: string | null) => {
@@ -44,9 +59,19 @@ export function JobFilters() {
     });
   };
 
+  const handleKeywordChange = (value: string) => {
+    setKeyword(value);
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+    debounceTimeout.current = setTimeout(() => {
+      handleFilterChange('keyword', value || null);
+    }, 500);
+  };
+
   const clearFilters = () => {
     startTransition(() => {
-      router.push('/dashboard');
+      router.push(pathname || '/dashboard');
     });
   };
 
@@ -77,12 +102,8 @@ export function JobFilters() {
         <Input
           placeholder="Search jobs, skills..."
           className="pl-9 bg-[#f4f6f5] border-0 focus-visible:ring-1 focus-visible:ring-[#52796F]"
-          defaultValue={searchParams.get('keyword') || ''}
-          onChange={(e) => {
-            const val = e.target.value;
-            const timeout = setTimeout(() => handleFilterChange('keyword', val), 500);
-            return () => clearTimeout(timeout);
-          }}
+          value={keyword}
+          onChange={(e) => handleKeywordChange(e.target.value)}
         />
       </div>
 

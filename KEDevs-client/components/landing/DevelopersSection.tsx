@@ -75,15 +75,29 @@ export function DevelopersSection() {
                     <h3 className="font-bold text-[#2F3E46] text-lg group-hover:text-[#52796F] transition-colors truncate w-full px-2">
                       {name}
                     </h3>
-                    <p className="text-[#84A98C] text-xs mb-4 h-8 line-clamp-2 px-2">
+                    <div className="flex flex-wrap justify-center gap-2 mb-4">
+                      {dev.availability && (
+                        <Badge variant="outline" className="bg-[#f4f6f5] text-[#52796F] text-[10px] px-3 py-1 rounded-full">
+                          {String(dev.availability).replace(/_/g, ' ').toLowerCase().replace(/^./, (c) => c.toUpperCase())}
+                        </Badge>
+                      )}
+                      {dev.isVerified && (
+                        <Badge variant="outline" className="bg-[#f4f6f5] text-[#2F855A] text-[10px] px-3 py-1 rounded-full">
+                          Verified
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-[#84A98C] text-xs mb-2 h-8 line-clamp-2 px-2">
                       {dev.currentLastRole || dev.headline || 'Software Engineer'}
                     </p>
-                    <div className="flex items-center gap-1.5 text-[#84A98C] text-[10px] mb-4">
+                    <div className="flex items-center justify-center gap-2 text-[#84A98C] text-[10px] mb-4">
                       <MapPin className="w-3 h-3" />
                       {dev.locationCity || 'Kenya'}
+                      <span className="inline-flex items-center gap-1">•</span>
+                      <span>{(dev.endorsements?.length ?? 0)} endorsements</span>
                     </div>
                     <div className="flex flex-wrap justify-center gap-1.5 h-[52px] overflow-hidden">
-                      {Array.isArray(dev.skills) && dev.skills.slice(0, 3).map((skill: any, index: number) => (
+                      {Array.isArray(dev.skills) && dev.skills.slice(0, 4).map((skill: any, index: number) => (
                         <Badge key={index} variant="secondary" className="bg-[#f4f6f5] text-[#354F52] text-[10px] border-0">
                           {typeof skill === 'string' ? skill : skill.name}
                         </Badge>

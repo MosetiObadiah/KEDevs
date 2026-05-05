@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, KeyboardEvent, Suspense, useEffect } from 'react';
+import { useRef, useState, KeyboardEvent, Suspense, useEffect, ClipboardEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 import { verifyEmail, resendVerification } from '@/lib/api/auth';
@@ -12,11 +12,10 @@ import { Loader2, MailCheck, RefreshCw } from 'lucide-react';
 
 const CODE_LENGTH = 6;
 
-function VerifyEmailContent() {
+function VerifyEmailContent({ userId }: { userId: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const userId = searchParams.get('userId') ?? '';
-
+  const redirect = searchParams.get('redirect') ?? '/dashboard';
   const { completeAuth } = useAuth();
   const [digits, setDigits] = useState<string[]>(Array(CODE_LENGTH).fill(''));
   const [countdown, setCountdown] = useState(60);
@@ -29,7 +28,6 @@ function VerifyEmailContent() {
     }
   }, [countdown]);
 
-  // ── Verify mutation ─────────────────────────────────────────────────────
   const { mutate: verify, isPending: isVerifying } = useMutation({
     mutationFn: () => {
       const code = digits.join('').trim();
@@ -41,8 +39,6 @@ function VerifyEmailContent() {
     onSuccess: (data) => {
       toast.success('Account verified successfully!');
       completeAuth(data);
-      
-      const redirect = searchParams.get('redirect') ?? '/dashboard';
       router.replace(redirect);
     },
     onError: (err: Error) => {
@@ -52,7 +48,6 @@ function VerifyEmailContent() {
     },
   });
 
-  // ── Resend mutation ─────────────────────────────────────────────────────
   const { mutate: resend, isPending: isResending } = useMutation({
     mutationFn: () => resendVerification(userId),
     onSuccess: () => {
@@ -62,7 +57,6 @@ function VerifyEmailContent() {
     onError: (err: Error) => toast.error(err.message ?? 'Could not resend code.'),
   });
 
-  // ── OTP input handlers ──────────────────────────────────────────────────
   function handleChange(index: number, value: string) {
     const char = value.replace(/\D/g, '').slice(-1);
     const next = [...digits];
@@ -71,7 +65,6 @@ function VerifyEmailContent() {
     if (char && index < CODE_LENGTH - 1) {
       inputRefs.current[index + 1]?.focus();
     }
-    // Auto-submit when all filled
     if (next.every((d) => d !== '') && char && !isVerifying) {
       verify();
     }
@@ -83,12 +76,14 @@ function VerifyEmailContent() {
     }
   }
 
-  function handlePaste(e: React.ClipboardEvent) {
+  function handlePaste(e: ClipboardEvent<HTMLDivElement>) {
     e.preventDefault();
     const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, CODE_LENGTH);
     if (!pasted) return;
     const next = [...digits];
-    [...pasted].forEach((c, i) => { next[i] = c; });
+    [...pasted].forEach((c, i) => {
+      next[i] = c;
+    });
     setDigits(next);
     const lastFilled = Math.min(pasted.length, CODE_LENGTH - 1);
     inputRefs.current[lastFilled]?.focus();
@@ -97,10 +92,8 @@ function VerifyEmailContent() {
 
   const isComplete = digits.every((d) => d !== '');
 
-
   return (
     <>
-      {/* Icon */}
       <div className="flex justify-center mb-6">
         <div className="w-16 h-16 rounded-2xl bg-teal/20 border border-teal/30 flex items-center justify-center">
           <MailCheck className="w-8 h-8 text-teal" />
@@ -114,7 +107,6 @@ function VerifyEmailContent() {
         </p>
       </div>
 
-      {/* OTP inputs */}
       <div className="flex gap-2 justify-center mb-6" onPaste={handlePaste}>
         {digits.map((digit, i) => (
           <Input
@@ -134,7 +126,6 @@ function VerifyEmailContent() {
         ))}
       </div>
 
-      {/* Actions */}
       <div className="space-y-3">
         <Button
           onClick={() => verify()}
@@ -174,6 +165,34 @@ function VerifyEmailContent() {
   );
 }
 
+function VerifyEmailRoute() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const userId = searchParams.get('userId') ?? '';
+  const redirect = searchParams.get('redirect') ?? '';
+
+  useEffect(() => {
+    if (userId) {
+      const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : '';
+      router.replace(`/verify-email/${userId}${redirectParam}`);
+    }
+  }, [userId, redirect, router]);
+
+  if (!userId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4 text-center">
+        <div className="max-w-md p-6 rounded-3xl bg-slate-950/80 border border-sage/10">
+          <h1 className="text-xl font-semibold text-white mb-3">Invalid verification request</h1>
+          <p className="text-sage/60 mb-4">We couldn't find the verification details. Please return to registration and try again.</p>
+          <a href="/register" className="text-teal hover:underline">Back to register</a>
+        </div>
+      </div>
+    );
+  }
+
+  return <VerifyEmailContent userId={userId} />;
+}
+
 export default function VerifyEmailPage() {
   return (
     <Suspense fallback={
@@ -181,7 +200,7 @@ export default function VerifyEmailPage() {
         <Loader2 className="w-6 h-6 text-teal animate-spin" />
       </div>
     }>
-      <VerifyEmailContent />
+      <VerifyEmailRoute />
     </Suspense>
   );
 }
