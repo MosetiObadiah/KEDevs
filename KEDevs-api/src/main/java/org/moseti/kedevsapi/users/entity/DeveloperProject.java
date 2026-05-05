@@ -32,6 +32,9 @@ public class DeveloperProject extends BaseEntity {
 
     private String repoUrl;
 
+    @Column(name = "screenshot_url", columnDefinition = "TEXT")
+    private String screenshotUrl;
+
     @Column(nullable = false)
     private boolean isFeatured = false;
 }

@@ -15,6 +15,7 @@ import org.moseti.kedevsapi.shared.enums.JobStatus;
 import org.moseti.kedevsapi.shared.enums.VoteType;
 import org.moseti.kedevsapi.shared.exception.BadRequestException;
 import org.moseti.kedevsapi.shared.exception.ForbiddenException;
+import org.moseti.kedevsapi.shared.util.Constants;
 import org.moseti.kedevsapi.shared.exception.ResourceNotFoundException;
 import org.moseti.kedevsapi.users.entity.User;
 import org.moseti.kedevsapi.users.repository.UserRepository;
@@ -136,6 +137,10 @@ public class ForumService {
     public void deleteComment(UUID userId, UUID commentId) {
         ForumComment comment = commentRepository.findByIdAndAuthorId(commentId, userId)
                 .orElseThrow(() -> new CommentNotFoundException("Comment not found or you are not the author"));
+
+        if (LocalDateTime.now().isAfter(comment.getCreatedAt().plusMinutes(Constants.DELETE_WINDOW_MINUTES))) {
+            throw new CommentDeleteWindowExpiredException("Delete window has expired. Comments can only be deleted within 60 minutes of posting.");
+        }
 
         comment.setContent("[deleted]");
         comment.setAuthorId(null);

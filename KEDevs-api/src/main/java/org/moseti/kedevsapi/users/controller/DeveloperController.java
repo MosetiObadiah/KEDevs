@@ -16,10 +16,12 @@ import org.moseti.kedevsapi.users.service.EmployerProfileService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -364,7 +366,22 @@ public class DeveloperController {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Featured status toggled"));
     }
 
-    @Operation(summary = "Endorse a developer")
+    @Operation(summary = "Upload a screenshot for a project", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Screenshot uploaded successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid or missing screenshot file"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "404", description = "Project not found")
+    })
+    @PostMapping(value = "/profile/projects/{id}/screenshot", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.DeveloperProjectResponse>> uploadProjectScreenshot(
+            Authentication authentication,
+            @Parameter(description = "ID of the project entry") @PathVariable UUID id,
+            @RequestPart("screenshot") MultipartFile screenshot) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Screenshot uploaded", developerProfileService.uploadProjectScreenshot(userId, id, screenshot)));
+    }
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Endorsement added successfully"),
         @ApiResponse(responseCode = "400", description = "Cannot self-endorse"),
@@ -392,7 +409,7 @@ public class DeveloperController {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Developers retrieved", developerProfileService.getPublicDevelopers(pageable)));
     }
 
-    @Operation(summary = "Filter developers (Pro or token required)", description = "Requires EMPLOYER role.")
+    @Operation(summary = "Filter developers (Hiring Assist required)", description = "Requires EMPLOYER role.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Filtered developers retrieved successfully"),
         @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
@@ -400,12 +417,13 @@ public class DeveloperController {
         @ApiResponse(responseCode = "403", description = "Insufficient permissions")
     })
     @PostMapping("/filter")
-    @PreAuthorize("hasRole('EMPLOYER') and @employerProfileService.isProAccount(authentication.principal)")
+    @PreAuthorize("hasRole('EMPLOYER')")
     public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<UserDtos.DeveloperSummaryResponse>>> filterDevelopers(
             Authentication authentication,
             @RequestBody UserDtos.DeveloperFilterRequest request,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
+        UUID userId = (UUID) authentication.getPrincipal();
         Pageable pageable = PageRequest.of(page, Math.min(size, 50));
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Filtered developers retrieved",
                 developerProfileService.filterDevelopers(request, pageable)));

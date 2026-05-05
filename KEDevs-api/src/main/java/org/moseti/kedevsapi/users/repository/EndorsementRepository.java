@@ -12,4 +12,6 @@ import java.util.UUID;
 public interface EndorsementRepository extends JpaRepository<Endorsement, UUID> {
 
     Page<Endorsement> findByRecipientId(UUID recipientId, Pageable pageable);
+
+    boolean existsByAuthorIdAndRecipientId(UUID authorId, UUID recipientId);
 }

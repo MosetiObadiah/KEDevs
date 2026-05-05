@@ -231,6 +231,7 @@ public class UserDtos {
             String techStack,
             String projectUrl,
             String repoUrl,
+            String screenshotUrl,
             boolean isFeatured,
             java.time.LocalDateTime createdAt
     ) {}

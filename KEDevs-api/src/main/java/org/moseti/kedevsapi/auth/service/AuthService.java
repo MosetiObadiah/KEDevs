@@ -327,16 +327,7 @@ public class AuthService {
             );
         }
 
-        // Check grace period and subscription
-        LocalDateTime now = LocalDateTime.now();
-        boolean gracePeriodExpired = user.getGracePeriodEndsAt() != null &&
-                                     user.getGracePeriodEndsAt().isBefore(now);
-
-        if (gracePeriodExpired && !user.isSubscriptionActive()) {
-            throw new org.moseti.kedevsapi.shared.exception.ForbiddenException(
-                    "Your grace period has expired. Please renew your subscription to continue."
-            );
-        }
+        // Grace period and subscription gating is no longer enforced for current users.
     }
 
     private AuthResponse buildAuthResponse(User user, String accessToken, String refreshToken) {

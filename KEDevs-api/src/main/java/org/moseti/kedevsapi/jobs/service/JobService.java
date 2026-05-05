@@ -461,7 +461,7 @@ public class JobService {
         User applicant = userRepository.findById(application.getApplicantId()).orElse(null);
         String applicantName = applicant != null ? applicant.getFullName() : "Unknown";
         String applicantEmail = applicant != null ? applicant.getEmail() : "Unknown";
-        String applicantProfileImage = applicant != null ? applicant.getProfileImageUrl() : null;
+        String applicantProfileImage = null;
         String jobTitle = application.getJobPost() != null ? application.getJobPost().getTitle() : null;
         String companyName = application.getJobPost() != null ? application.getJobPost().getCompanyName() : null;
 

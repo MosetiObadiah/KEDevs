@@ -7,7 +7,6 @@ import org.moseti.kedevsapi.payments.repository.SubscriptionRepository;
 import org.moseti.kedevsapi.shared.enums.SubscriptionStatus;
 import org.moseti.kedevsapi.shared.enums.SubscriptionType;
 import org.moseti.kedevsapi.users.repository.EmployerProfileRepository;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +24,6 @@ public class SubscriptionExpiryScheduler {
     private final org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
     private final org.moseti.kedevsapi.auth.service.EmailService emailService;
 
-    @Scheduled(cron = "0 0 2 * * *")
     @Transactional
     public void checkExpiredSubscriptions() {
         log.info("Running subscription expiry check...");

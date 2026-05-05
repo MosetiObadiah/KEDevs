@@ -9,14 +9,18 @@ import org.moseti.kedevsapi.shared.exception.BadRequestException;
 import org.moseti.kedevsapi.shared.exception.ResourceNotFoundException;
 import org.moseti.kedevsapi.users.dto.UserDtos;
 import org.moseti.kedevsapi.users.entity.*;
+import org.moseti.kedevsapi.users.exception.AlreadyEndorsedException;
 import org.moseti.kedevsapi.users.exception.EndorsementNotAllowedException;
 import org.moseti.kedevsapi.users.exception.ProfileAlreadyExistsException;
 import org.moseti.kedevsapi.users.exception.ProfileNotFoundException;
 import org.moseti.kedevsapi.users.repository.*;
+import org.moseti.kedevsapi.payments.exception.PaywallException;
+import org.moseti.kedevsapi.shared.service.FileUploadService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -36,6 +40,7 @@ public class DeveloperProfileService {
     private final DeveloperProjectRepository projectRepository;
     private final EndorsementRepository endorsementRepository;
     private final UserRepository userRepository;
+    private final FileUploadService fileUploadService;
 
     // ----------------------------------------------------------------
     // Profile CRUD
@@ -258,7 +263,14 @@ public class DeveloperProfileService {
         project.setTechStack(request.techStack());
         project.setProjectUrl(request.projectUrl());
         project.setRepoUrl(request.repoUrl());
+        project.setScreenshotUrl(null);
         project.setFeatured(request.isFeatured());
+
+        if (project.isFeatured()) {
+            validateFeaturedProjectRequirements(project);
+            resetFeaturedProjects(profile.getId(), null);
+        }
+
         project = projectRepository.save(project);
         return toProjectResponse(project);
     }
@@ -277,6 +289,27 @@ public class DeveloperProfileService {
         project.setProjectUrl(request.projectUrl());
         project.setRepoUrl(request.repoUrl());
         project.setFeatured(request.isFeatured());
+
+        if (project.isFeatured()) {
+            validateFeaturedProjectRequirements(project);
+            resetFeaturedProjects(profile.getId(), project.getId());
+        }
+
+        project = projectRepository.save(project);
+        return toProjectResponse(project);
+    }
+
+    @Transactional
+    public UserDtos.DeveloperProjectResponse uploadProjectScreenshot(UUID userId, UUID projectId, MultipartFile screenshot) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        DeveloperProject project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+        if (!project.getDeveloperId().equals(profile.getId())) {
+            throw new BadRequestException("Project does not belong to this profile");
+        }
+
+        String url = fileUploadService.uploadFile(screenshot, "kedevs/projects");
+        project.setScreenshotUrl(url);
         project = projectRepository.save(project);
         return toProjectResponse(project);
     }
@@ -300,8 +333,36 @@ public class DeveloperProfileService {
         if (!project.getDeveloperId().equals(profile.getId())) {
             throw new BadRequestException("Project does not belong to this profile");
         }
-        project.setFeatured(!project.isFeatured());
+
+        boolean desiredFeatured = !project.isFeatured();
+        if (desiredFeatured) {
+            validateFeaturedProjectRequirements(project);
+            resetFeaturedProjects(profile.getId(), project.getId());
+        }
+
+        project.setFeatured(desiredFeatured);
         projectRepository.save(project);
+    }
+
+    private void validateFeaturedProjectRequirements(DeveloperProject project) {
+        if (project.getProjectUrl() == null || project.getProjectUrl().isBlank()) {
+            throw new BadRequestException("Live project URL is required to feature a project");
+        }
+        if (project.getScreenshotUrl() == null || project.getScreenshotUrl().isBlank()) {
+            throw new BadRequestException("Project screenshot is required to feature a project");
+        }
+    }
+
+    private void resetFeaturedProjects(UUID developerId, UUID exceptProjectId) {
+        List<DeveloperProject> featuredProjects = projectRepository.findByDeveloperIdAndIsFeatured(developerId, true);
+        for (DeveloperProject featured : featuredProjects) {
+            if (exceptProjectId == null || !featured.getId().equals(exceptProjectId)) {
+                featured.setFeatured(false);
+            }
+        }
+        if (!featuredProjects.isEmpty()) {
+            projectRepository.saveAll(featuredProjects);
+        }
     }
 
     // ----------------------------------------------------------------
@@ -321,6 +382,10 @@ public class DeveloperProfileService {
         // Check author exists
         userRepository.findById(authorUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (endorsementRepository.existsByAuthorIdAndRecipientId(authorUserId, recipientProfileId)) {
+            throw new AlreadyEndorsedException("You have already endorsed this developer profile");
+        }
 
         Endorsement endorsement = new Endorsement();
         endorsement.setRecipientId(recipientProfileId);
@@ -464,7 +529,7 @@ public class DeveloperProfileService {
     }
 
     private UserDtos.DeveloperProjectResponse toProjectResponse(DeveloperProject p) {
-        return new UserDtos.DeveloperProjectResponse(p.getId(), p.getTitle(), p.getDescription(), p.getTechStack(), p.getProjectUrl(), p.getRepoUrl(), p.isFeatured(), p.getCreatedAt());
+        return new UserDtos.DeveloperProjectResponse(p.getId(), p.getTitle(), p.getDescription(), p.getTechStack(), p.getProjectUrl(), p.getRepoUrl(), p.getScreenshotUrl(), p.isFeatured(), p.getCreatedAt());
     }
 
     private UserDtos.EndorsementResponse toEndorsementResponse(Endorsement e, UUID authorUserId) {
