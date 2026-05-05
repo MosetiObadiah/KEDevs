@@ -258,31 +258,23 @@ public class AuthService {
             log.info("Google OAuth login successful for existing user: {}", user.getEmail());
 
             return buildAuthResponse(user, accessToken, refreshToken);
-
         } else {
             // New user - create account
-            if (request.getRole() == null) {
-                throw new org.moseti.kedevsapi.shared.exception.BadRequestException(
-                        "Role is required for new user registration"
-                );
-            }
-
-            if (request.getRole() == Role.ADMIN) {
-                throw new org.moseti.kedevsapi.shared.exception.BadRequestException(
-                        "Cannot register as admin via Google OAuth"
-                );
+            Role userRole = request.getRole() != null ? request.getRole() : Role.DEVELOPER;
+            if (userRole == Role.ADMIN) {
+                throw new org.moseti.kedevsapi.shared.exception.BadRequestException("Cannot register as admin via Google OAuth");
             }
 
             User newUser = new User();
             newUser.setEmail(tokenInfo.getEmail());
             newUser.setFullName(tokenInfo.getName() != null ? tokenInfo.getName() : tokenInfo.getEmail());
             newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString())); // Random password
-            newUser.setRole(request.getRole());
+            newUser.setRole(userRole);
             newUser.setAuthProvider(AuthProvider.GOOGLE);
             newUser.setGoogleId(tokenInfo.getSub());
             newUser.setEmailVerified(true); // Google already verified
             newUser.setAccountStatus(AccountStatus.ACTIVE);
-            newUser.setApprovedByAdmin(request.getRole() == Role.DEVELOPER); // Employers need approval
+            newUser.setApprovedByAdmin(userRole == Role.DEVELOPER); // Employers need approval
             newUser.setGracePeriodEndsAt(LocalDateTime.now().plusDays(Constants.GRACE_PERIOD_DAYS));
 
             log.info("Saving new Google user: email={}, role={}", newUser.getEmail(), newUser.getRole());
@@ -349,4 +341,3 @@ public class AuthService {
                 .build();
     }
 }
-

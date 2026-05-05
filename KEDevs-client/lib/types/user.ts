@@ -57,36 +57,31 @@ export interface DeveloperLanguage {
 export interface DeveloperEducation {
   id: string;
   institution: string;
-  degree: string;
-  fieldOfStudy: string;
-  startYear: number;
-  endYear?: number;
-  current: boolean;
+  qualification: string;
+  yearCompleted: number;
+  isCertification: boolean;
 }
 
 export interface DeveloperCertification {
   id: string;
   name: string;
-  issuer: string;
-  issuedDate: string;
-  expiryDate?: string;
-  credentialUrl?: string;
+  issuedBy: string;
+  yearIssued: number;
+  certUrl?: string;
 }
 
 export interface DeveloperOssContribution {
   id: string;
   projectName: string;
-  repoUrl: string;
+  contributionUrl?: string;
   description: string;
-  role: string;
 }
 
 export interface DeveloperAchievement {
   id: string;
   title: string;
   description: string;
-  date: string;
-  url?: string;
+  year: number;
 }
 
 export interface DeveloperProject {
@@ -96,48 +91,52 @@ export interface DeveloperProject {
   techStack: string;
   projectUrl?: string;
   repoUrl?: string;
-  startDate: string;
+  screenshotUrl?: string;
+  isFeatured: boolean;
+  startDate?: string;
   endDate?: string;
-  current: boolean;
+  current?: boolean;
 }
 
-export interface Endorsement {
+export interface EndorsementResponse {
   id: string;
-  skillName: string;
-  endorserId: string;
-  endorserName: string;
-  endorserProfileImageUrl?: string;
+  content: string;
+  authorName: string;
+  authorId: string;
   createdAt: string;
 }
 
 export interface DeveloperProfile {
   id: string;
   userId: string;
-  fullName: string;
-  email: string;
+  firstName: string;
+  lastName: string;
+  profilePhoto?: string;
   bio?: string;
-  headline?: string;
+  currentLastRole?: string;
+  yearsOfExperience?: YearsOfExperience;
+  numberOfProjects?: number;
+  availabilityStatus: AvailabilityStatus;
+  preferredWorkType?: WorkType;
   locationCity?: string;
   locationCountry?: string;
-  githubUrl?: string;
-  linkedinUrl?: string;
-  portfolioUrl?: string;
-  profileImageUrl?: string;
-  availability: AvailabilityStatus;
-  visibility: ProfileVisibility;
-  yearsOfExperience?: YearsOfExperience;
+  profileVisibility: ProfileVisibility;
   isVerified: boolean;
-  isProAccount: boolean;
-  skills: DeveloperSkill[];
-  languages: DeveloperLanguage[];
+  linkedinUrl?: string;
+  githubUrl?: string;
+  portfolioUrl?: string;
+  publicEmail?: string;
+  publicPhone?: string;
+  skills: string[];
+  languages: string[];
   education: DeveloperEducation[];
   certifications: DeveloperCertification[];
   ossContributions: DeveloperOssContribution[];
   achievements: DeveloperAchievement[];
   projects: DeveloperProject[];
-  endorsements: Endorsement[];
+  endorsements: EndorsementResponse[];
+  endorsementCount: number;
   createdAt: string;
-  updatedAt: string;
 }
 
 // ── Employer Profile ──────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState, useRef, KeyboardEvent, ClipboardEvent } from 'react';
+import { Suspense, useEffect, useState, useRef, KeyboardEvent, ClipboardEvent, use } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 import { verifyEmail, resendVerification } from '@/lib/api/auth';
@@ -165,8 +165,8 @@ function VerifyEmailContent({ userId }: { userId: string }) {
   );
 }
 
-export default function VerifyEmailPage({ params }: { params: { userId: string } }) {
-  const userId = params.userId;
+export default function VerifyEmailPage({ params }: { params: Promise<{ userId: string }> }) {
+  const { userId } = use(params);
 
   if (!userId) {
     return (

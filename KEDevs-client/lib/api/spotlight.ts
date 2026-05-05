@@ -11,6 +11,11 @@ export async function getSpotlightAvailability(): Promise<SpotlightAvailability>
   return res.data;
 }
 
+export async function getMySpotlightStatus(): Promise<SpotlightSlot | null> {
+  const res = await apiClient.get<SpotlightSlot | null>('/spotlight/my-status');
+  return res.data;
+}
+
 export async function activateSpotlight(paymentId: string): Promise<SpotlightSlot> {
   const res = await apiClient.post<SpotlightSlot>('/spotlight/activate', { paymentId });
   return res.data;

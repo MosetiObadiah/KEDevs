@@ -17,6 +17,9 @@ public interface SpotlightSlotRepository extends JpaRepository<SpotlightSlot, UU
 
     boolean existsByTypeAndIsActiveTrue(SpotlightType type);
 
+
+    Optional<SpotlightSlot> findByDeveloperIdAndIsActiveTrue(UUID developerId);
+
     Optional<SpotlightSlot> findByDeveloperIdAndTypeAndIsActiveTrue(UUID developerId, SpotlightType type);
 
     List<SpotlightSlot> findAllByIsActiveTrueAndEndDateBefore(LocalDateTime date);

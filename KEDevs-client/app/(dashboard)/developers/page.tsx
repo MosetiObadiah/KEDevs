@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useInfiniteQuery, useMutation } from '@tanstack/react-query';
-import { profileApi } from '@/lib/api/profile';
+import * as profileApi from '@/lib/api/developers';
 import { DeveloperCard, DeveloperSkeleton } from '@/components/developers/DeveloperCard';
 import { DeveloperFilterPanel } from '@/components/developers/DeveloperFilterPanel';
 import { Button } from '@/components/ui/button';
@@ -26,7 +26,7 @@ export default function DevelopersPage() {
 
   // Filter mutation (for checking permissions/tokens)
   const filterMutation = useMutation({
-    mutationFn: (f: any) => profileApi.filterDevelopers(f, { page: 0, size: 10 }),
+    mutationFn: (f: any) => profileApi.filterDevelopers({ ...f, page: 0, size: 10 }),
     onSuccess: (data) => {
       setIsFiltered(true);
     },
@@ -51,10 +51,13 @@ export default function DevelopersPage() {
   };
 
   const developers = isFiltered 
-    ? filterMutation.data?.content || [] 
-    : (publicQuery.data?.pages || []).flatMap(p => p?.content || []) || [];
+    ? (filterMutation.data as any)?.content || [] 
+    : (publicQuery.data?.pages || []).flatMap((p: any) => p?.content || []) || [];
 
   const isLoading = isFiltered ? filterMutation.isPending : publicQuery.isLoading;
+
+  // Defensive check to ensure developers is always an array
+  const safeDevelopers = Array.isArray(developers) ? developers : [];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -77,7 +80,7 @@ export default function DevelopersPage() {
             <div className="grid grid-cols-1 gap-6">
               {Array.from({ length: 5 }).map((_, i) => <DeveloperSkeleton key={i} />)}
             </div>
-          ) : developers.length === 0 ? (
+          ) : safeDevelopers.length === 0 ? (
             <div className="py-24 text-center bg-secondary/10 rounded-[40px] border-2 border-dashed border-secondary">
               <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
                 <Search className="w-8 h-8 text-muted-foreground" />
@@ -90,7 +93,7 @@ export default function DevelopersPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6">
-              {developers.map((dev: any) => (
+              {safeDevelopers.map((dev: any) => (
                 <DeveloperCard key={dev?.id || Math.random()} developer={dev} />
               ))}
               

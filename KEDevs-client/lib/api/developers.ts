@@ -8,7 +8,7 @@ import type {
   DeveloperOssContribution,
   DeveloperAchievement,
   DeveloperProject,
-  Endorsement,
+  EndorsementResponse,
 } from '@/lib/types/user';
 import type { Page } from '@/lib/types/job';
 
@@ -61,11 +61,11 @@ export async function updateDeveloperProfile(data: Partial<DeveloperProfile>): P
 }
 
 export async function updateAvailability(status: string): Promise<void> {
-  await apiClient.patch('/developers/profile/availability', { availabilityStatus: status });
+  await apiClient.patch(`/developers/profile/availability?status=${status}`);
 }
 
 export async function updateVisibility(visibility: string): Promise<void> {
-  await apiClient.patch('/developers/profile/visibility', { profileVisibility: visibility });
+  await apiClient.patch(`/developers/profile/visibility?visibility=${visibility}`);
 }
 
 // ── Skills ────────────────────────────────────────────────────────────────
@@ -134,6 +134,8 @@ export async function deleteAchievement(id: string): Promise<void> {
   await apiClient.delete(`/developers/profile/achievements/${id}`);
 }
 
+
+
 // ── Projects ──────────────────────────────────────────────────────────────
 
 export async function addProject(data: Partial<DeveloperProject>): Promise<DeveloperProject> {
@@ -143,6 +145,15 @@ export async function addProject(data: Partial<DeveloperProject>): Promise<Devel
 
 export async function updateProject(id: string, data: Partial<DeveloperProject>): Promise<DeveloperProject> {
   const res = await apiClient.put<DeveloperProject>(`/developers/profile/projects/${id}`, data);
+  return res.data;
+}
+
+export async function uploadProjectScreenshot(id: string, file: File): Promise<DeveloperProject> {
+  const formData = new FormData();
+  formData.append('screenshot', file);
+  const res = await apiClient.post<DeveloperProject>(`/developers/profile/projects/${id}/screenshot`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
   return res.data;
 }
 
@@ -156,10 +167,10 @@ export async function toggleProjectFeatured(id: string): Promise<void> {
 
 // ── Endorsements ──────────────────────────────────────────────────────────
 
-export async function endorseDeveloper(profileId: string, endorsementText: string): Promise<Endorsement> {
-  const res = await apiClient.post<Endorsement>(
+export async function endorseDeveloper(profileId: string, content: string): Promise<any> {
+  const res = await apiClient.post(
     `/developers/${profileId}/endorsements`,
-    { endorsementText }
+    { content }
   );
   return res.data;
 }

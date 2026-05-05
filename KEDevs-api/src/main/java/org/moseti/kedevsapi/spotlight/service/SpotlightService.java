@@ -136,6 +136,28 @@ public class SpotlightService {
                 });
     }
 
+    public SpotlightSlotResponse getMySpotlightStatus(UUID developerId) {
+        return spotlightSlotRepository.findByDeveloperIdAndIsActiveTrue(developerId)
+                .map(slot -> {
+                    String devName = userRepository.findById(slot.getDeveloperId())
+                            .map(User::getFullName)
+                            .orElse("Unknown Developer");
+                    return new SpotlightSlotResponse(
+                            slot.getId(),
+                            slot.getDeveloperId(),
+                            devName,
+                            slot.getType(),
+                            slot.getStartDate(),
+                            slot.getEndDate(),
+                            slot.isActive(),
+                            slot.isOverriddenByAdmin(),
+                            slot.getPaymentId(),
+                            slot.getCreatedAt()
+                    );
+                })
+                .orElse(null);
+    }
+
     @Transactional
     public SpotlightSlotResponse adminOverride(UUID slotId, AdminOverrideRequest request) {
         SpotlightSlot slot = spotlightSlotRepository.findById(slotId)

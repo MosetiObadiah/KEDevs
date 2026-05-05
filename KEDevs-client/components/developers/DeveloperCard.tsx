@@ -20,7 +20,9 @@ export function DeveloperCard({ developer }: DeveloperCardProps) {
   const [showPaywall, setShowPaywall] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
 
-  const initials = `${developer.firstName[0]}${developer.lastName[0]}`.toUpperCase();
+  const firstName = developer?.firstName || '';
+  const lastName = developer?.lastName || '';
+  const initials = `${firstName[0] || ''}${lastName[0] || ''}`.toUpperCase() || '??';
 
   const handleBookmark = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -103,9 +105,9 @@ export function DeveloperCard({ developer }: DeveloperCardProps) {
                     {skill}
                   </Badge>
                 ))}
-                {developer.skills?.length > 4 && (
+                {(developer.skills?.length || 0) > 4 && (
                   <Badge variant="outline" className="border-secondary text-muted-foreground px-2 font-bold">
-                    +{developer.skills.length - 4}
+                    +{(developer.skills?.length || 0) - 4}
                   </Badge>
                 )}
               </div>

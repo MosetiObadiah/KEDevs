@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -43,6 +44,21 @@ public class SpotlightController {
     public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<SlotAvailabilityResponse>> checkAvailability() {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Spotlight availability fetched",
                 spotlightService.checkSlotAvailability()));
+    }
+
+    @Operation(summary = "Get my active spotlight slot", description = "Returns the developer's current active spotlight slot, or null if none.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "My spotlight status fetched"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+    })
+    @GetMapping("/my-status")
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<SpotlightSlotResponse>> getMySpotlightStatus(
+            Authentication authentication) {
+        UUID developerId = (UUID) authentication.getPrincipal();
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("My spotlight status fetched",
+                spotlightService.getMySpotlightStatus(developerId)));
     }
 
     @Operation(summary = "Admin: paginated spotlight slot history", description = "Requires ADMIN role.")

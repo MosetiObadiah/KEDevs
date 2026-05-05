@@ -182,6 +182,8 @@ public class UserDtos {
             java.util.List<OssContributionResponse> ossContributions,
             java.util.List<AchievementResponse> achievements,
             java.util.List<DeveloperProjectResponse> projects,
+            java.util.List<EndorsementResponse> endorsements,
+            int endorsementCount,
             java.time.LocalDateTime createdAt
     ) {}
 

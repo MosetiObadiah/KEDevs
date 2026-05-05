@@ -483,6 +483,8 @@ public class DeveloperProfileService {
                 .stream().map(this::toAchievementResponse).toList();
         List<UserDtos.DeveloperProjectResponse> projects = projectRepository.findByDeveloperId(profile.getId())
                 .stream().map(this::toProjectResponse).toList();
+        List<UserDtos.EndorsementResponse> endorsements = endorsementRepository.findAllByRecipientId(profile.getId())
+                .stream().map(e -> toEndorsementResponse(e, e.getAuthorId())).toList();
 
         return new UserDtos.DeveloperProfileResponse(
                 profile.getId(), profile.getUserId(),
@@ -496,6 +498,7 @@ public class DeveloperProfileService {
                 profile.getGithubUrl(), profile.getPortfolioUrl(),
                 profile.getPublicEmail(), profile.getPublicPhone(),
                 skills, languages, education, certs, oss, achievements, projects,
+                endorsements, endorsements.size(),
                 profile.getCreatedAt()
         );
     }
