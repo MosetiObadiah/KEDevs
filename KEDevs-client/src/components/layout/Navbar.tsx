@@ -42,9 +42,10 @@ const Navbar = () => {
   const isAdmin = user?.userType === 'ADMIN';
 
   const navItems = [
-    { label: 'Jobs', href: '/feed' },
+    { label: 'Jobs', href: '/jobs' },
     { label: 'Developers', href: '/developers' },
     { label: 'Companies', href: '/companies' },
+    { label: 'Contact Us', href: '/contact' },
     ...(isEmp ? [{ label: 'Hiring Assist', href: '/hiring-assist' }] : []),
     ...(isAdmin ? [{ label: 'Admin Panel', href: '/admin/dashboard' }] : []),
   ];

@@ -5,7 +5,7 @@ import React, { useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
 
-const publicRoutes = ['/', '/login', '/register', '/jobs', '/developers', '/companies', '/verify-email', '/reset-password'];
+const publicRoutes = ['/', '/login', '/register', '/jobs', '/developers', '/companies', '/contact', '/verify-email', '/reset-password'];
 const devOnboarding = '/onboarding/developer';
 const empOnboarding = '/onboarding/employer';
 const pendingApproval = '/pending-approval';
@@ -21,23 +21,33 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
     );
 
     if (isLoggedIn && user) {
-      const isDev = user.userType === 'DEVELOPER';
-      const isEmp = user.userType === 'EMPLOYER';
+      const isDev = user.role === 'DEVELOPER';
+      const isEmp = user.role === 'EMPLOYER';
+      const isAdmin = user.role === 'ADMIN';
+
+      // 1. Skip onboarding for ADMIN
+      if (isAdmin) {
+        if (pathname === devOnboarding || pathname === empOnboarding || pathname === pendingApproval) {
+          router.push('/admin/dashboard');
+        }
+        return;
+      }
+
       const onboardingPath = isDev ? devOnboarding : empOnboarding;
 
-      // 1. Force Onboarding
+      // 2. Force Onboarding
       if (!isOnboarded && pathname !== onboardingPath) {
         router.push(onboardingPath);
         return;
       }
 
-      // 2. Force Approval for Employers
+      // 3. Force Approval for Employers
       if (isOnboarded && isEmp && !user.isApproved && pathname !== pendingApproval && pathname !== empOnboarding) {
         router.push(pendingApproval);
         return;
       }
 
-      // 3. Prevent accessing onboarding/pending if already done
+      // 4. Prevent accessing onboarding/pending if already done
       if (isOnboarded && (pathname === devOnboarding || pathname === empOnboarding)) {
         router.push('/feed');
         return;

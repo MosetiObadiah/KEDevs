@@ -15,6 +15,7 @@ import {
   Divider,
   Avatar,
   Skeleton,
+  TextField,
 } from '@mui/material';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import VerifiedIcon from '@mui/icons-material/Verified';
@@ -27,16 +28,19 @@ import { JobSummary, DeveloperSummary } from '@/lib/types';
 export default function HomePage() {
   const [featuredJobs, setFeaturedJobs] = useState<JobSummary[]>([]);
   const [spotlightDevs, setSpotlightDevs] = useState<DeveloperSummary[]>([]);
+  const [randomJob, setRandomJob] = useState<JobSummary | null>(null);
+  const [randomDev, setRandomDev] = useState<DeveloperSummary | null>(null);
   const [isLoadingJobs, setIsLoadingJobs] = useState(true);
   const [isLoadingDevs, setIsLoadingDevs] = useState(true);
+  const [contactForm, setContactForm] = useState({ name: '', email: '', subject: '', message: '' });
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchLandingData = async () => {
       try {
-        // Fetch Jobs
-        const jobsResponse = await jobService.getExternalJobs(0, 3);
+        // Fetch Jobs (spotlight jobs ordered by upvotes + recency)
+        const jobsResponse = await jobService.getExternalJobs(0, 4);
         if (jobsResponse.success) {
           setFeaturedJobs(jobsResponse.data.content);
         }
@@ -91,13 +95,38 @@ export default function HomePage() {
     fetchLandingData();
   }, []);
 
+  // Set random job and developer for hero display
+  React.useEffect(() => {
+    if (featuredJobs.length > 0) {
+      const randomJobIdx = Math.floor(Math.random() * featuredJobs.length);
+      setRandomJob(featuredJobs[randomJobIdx]);
+    }
+  }, [featuredJobs]);
+
+  React.useEffect(() => {
+    if (spotlightDevs.length > 0) {
+      const randomDevIdx = Math.floor(Math.random() * spotlightDevs.length);
+      setRandomDev(spotlightDevs[randomDevIdx]);
+    }
+  }, [spotlightDevs]);
+
+  const handleContactSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const { name, email, subject, message } = contactForm;
+    const mailtoLink = `mailto:support@kedevs.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
+      `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`
+    )}`;
+    window.location.href = mailtoLink;
+    setContactForm({ name: '', email: '', subject: '', message: '' });
+  };
+
   const formatJobType = (type: string) => {
     return type.replace('_', '-').toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
   };
 
   return (
     <Box>
-      <Hero />
+      <Hero randomJob={randomJob} randomDev={randomDev} />
 
       {/* Featured Jobs Section */}
       <Box sx={{ bgcolor: 'background.subtle', py: { xs: 10, md: 14 } }}>
@@ -106,12 +135,15 @@ export default function HomePage() {
             <Box>
               <PillBadge variant="sage">OPPORTUNITIES</PillBadge>
               <Typography variant="h2" sx={{ mt: 2 }}>
-                Featured <Box component="span" sx={{ color: 'primary.main' }}>Jobs</Box>
+                Spotlight <Box component="span" sx={{ color: 'primary.main' }}>Jobs</Box>
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1, maxWidth: 520 }}>
+                The most upvoted and newest jobs currently available for developers.
               </Typography>
             </Box>
             <Button 
               component={Link} 
-              href="/feed" 
+              href="/jobs" 
               endIcon={<ArrowForwardIcon />}
               sx={{ fontWeight: 700, mb: 1 }}
             >
@@ -280,6 +312,71 @@ export default function HomePage() {
               Browse Developer Directory
             </Button>
           </Box>
+        </Container>
+      </Box>
+
+      {/* Contact Section */}
+      <Box sx={{ bgcolor: 'background.subtle', py: { xs: 10, md: 14 } }}>
+        <Container maxWidth="md">
+          <Box sx={{ mb: 6, textAlign: 'center' }}>
+            <Typography variant="h2" sx={{ mb: 3, fontWeight: 900 }}>
+              Get in Touch
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 5, fontSize: '1.1rem' }}>
+              Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+            </Typography>
+          </Box>
+
+          <Card sx={{ p: 4, boxShadow: 3 }}>
+            <form onSubmit={handleContactSubmit}>
+              <Stack spacing={3}>
+                <TextField
+                  fullWidth
+                  label="Your Name"
+                  variant="outlined"
+                  value={contactForm.name}
+                  onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                  required
+                />
+                <TextField
+                  fullWidth
+                  label="Your Email"
+                  type="email"
+                  variant="outlined"
+                  value={contactForm.email}
+                  onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                  required
+                />
+                <TextField
+                  fullWidth
+                  label="Subject"
+                  variant="outlined"
+                  value={contactForm.subject}
+                  onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
+                  required
+                />
+                <TextField
+                  fullWidth
+                  label="Message"
+                  multiline
+                  rows={5}
+                  variant="outlined"
+                  value={contactForm.message}
+                  onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                  required
+                />
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  size="large"
+                  sx={{ fontWeight: 800, py: 1.5, borderRadius: 2 }}
+                >
+                  Send us a message
+                </Button>
+              </Stack>
+            </form>
+          </Card>
         </Container>
       </Box>
 

@@ -6,6 +6,7 @@ export type ExperienceLevel = 'INTERN' | 'JUNIOR' | 'MID_LEVEL' | 'SENIOR' | 'LE
 export type JobStatus = 'OPEN' | 'CLOSED' | 'FILLED' | 'CANCELLED';
 export type JobVisibility = 'PUBLIC' | 'INTERNAL' | 'PRIVATE';
 export type AvailabilityStatus = 'AVAILABLE_NOW' | 'OPEN_TO_OFFERS' | 'NOT_AVAILABLE' | 'HIRED';
+export type YearsOfExperience = 'ZERO_TO_ONE' | 'ONE_TO_THREE' | 'THREE_TO_FIVE' | 'FIVE_TO_TEN' | 'TEN_PLUS';
 
 export interface JobSummary {
   id: string;
@@ -71,9 +72,14 @@ export interface User {
 }
 
 export interface AuthResponse {
-  user: User;
   accessToken: string;
   refreshToken: string;
+  userId: string;
+  email: string;
+  fullName: string;
+  role: 'DEVELOPER' | 'EMPLOYER' | 'ADMIN';
+  emailVerified: boolean;
+  requiresApproval: boolean;
 }
 
 

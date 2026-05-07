@@ -27,6 +27,7 @@ public class GoogleOAuthService {
      */
     public GoogleTokenInfo verifyToken(String idToken) {
         try {
+            log.info("Attempting to verify Google token via tokeninfo...");
             GoogleTokenInfo tokenInfo = webClientBuilder.build()
                     .get()
                     .uri(uriBuilder -> uriBuilder
@@ -39,21 +40,38 @@ public class GoogleOAuthService {
                     .bodyToMono(GoogleTokenInfo.class)
                     .block();
 
-            if (tokenInfo == null) {
-                log.error("Google token verification returned null");
-                throw new InvalidTokenException("Failed to verify Google token");
+            if (tokenInfo != null) {
+                validateTokenInfo(tokenInfo);
+                log.info("Successfully verified Google id_token for email: {}", tokenInfo.getEmail());
+                return tokenInfo;
             }
-
-            // Verify the token is valid
-            validateTokenInfo(tokenInfo);
-
-            log.info("Successfully verified Google token for email: {}", tokenInfo.getEmail());
-            return tokenInfo;
+            throw new InvalidTokenException("Failed to verify Google token");
 
         } catch (WebClientResponseException e) {
-            log.error("Google API error: {} - {} - Response: {}", 
-                e.getStatusCode(), e.getMessage(), e.getResponseBodyAsString());
+            log.warn("Google tokeninfo verification failed ({}). Attempting userinfo fallback...", e.getStatusCode());
             
+            // If tokeninfo fails, it might be an access_token. Try userinfo endpoint.
+            try {
+                GoogleTokenInfo userInfo = webClientBuilder.build()
+                        .get()
+                        .uri("https://www.googleapis.com/oauth2/v3/userinfo")
+                        .header("Authorization", "Bearer " + idToken)
+                        .retrieve()
+                        .bodyToMono(GoogleTokenInfo.class)
+                        .block();
+
+                if (userInfo != null) {
+                    // For userinfo, some fields like 'iss' and 'aud' are missing, so we skip standard JWT validation
+                    if (userInfo.getEmail() == null || userInfo.getEmail().isEmpty()) {
+                        throw new InvalidTokenException("Google userinfo does not contain email");
+                    }
+                    log.info("Successfully verified Google access_token via userinfo for email: {}", userInfo.getEmail());
+                    return userInfo;
+                }
+            } catch (Exception ex) {
+                log.error("Google userinfo fallback also failed: {}", ex.getMessage());
+            }
+
             if (e.getStatusCode().is4xxClientError()) {
                 throw new InvalidTokenException("Invalid Google ID token or credentials");
             }

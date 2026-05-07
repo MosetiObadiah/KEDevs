@@ -279,37 +279,15 @@ export default function JobFeed() {
                             <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main', mb: 2 }}>
                               {job.workType}
                             </Typography>
-                            {user?.role === 'DEVELOPER' ? (
-                              <Button 
-                                variant="contained" 
-                                fullWidth 
-                                component={Link}
-                                href={`/jobs/${job.id}`}
-                                sx={{ borderRadius: 2, fontWeight: 800 }}
-                              >
-                                Apply Now
-                              </Button>
-                            ) : job.postedById === user?.id ? (
-                              <Button 
-                                variant="outlined" 
-                                fullWidth 
-                                component={Link}
-                                href={`/jobs/${job.id}/applications`}
-                                sx={{ borderRadius: 2, fontWeight: 800 }}
-                              >
-                                Manage Applications
-                              </Button>
-                            ) : (
-                              <Button 
-                                variant="outlined" 
-                                fullWidth 
-                                component={Link}
-                                href={`/jobs/${job.id}`}
-                                sx={{ borderRadius: 2, fontWeight: 800 }}
-                              >
-                                View Opportunity
-                              </Button>
-                            )}
+                            <Button 
+                              variant={user?.role === 'DEVELOPER' ? 'contained' : 'outlined'} 
+                              fullWidth 
+                              component={Link}
+                              href={`/jobs/${job.id}`}
+                              sx={{ borderRadius: 2, fontWeight: 800 }}
+                            >
+                              {user?.role === 'DEVELOPER' ? 'Apply Now' : 'View Opportunity'}
+                            </Button>
                           </Box>
                         </Grid>
                       </Grid>

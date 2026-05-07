@@ -94,22 +94,6 @@ export default function RegisterPage() {
                 </ToggleButtonGroup>
               </Box>
 
-              <Button 
-                variant="outlined" 
-                color="secondary"
-                fullWidth 
-                startIcon={<GoogleIcon />} 
-                onClick={() => handleGoogleLogin()}
-                disabled={loading}
-                sx={{ py: 1.5, borderRadius: 2, fontWeight: 700 }}
-              >
-                {loading ? 'Processing...' : 'Sign up with Google'}
-              </Button>
-
-              <Divider sx={{ my: 2 }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.disabled' }}>OR EMAIL</Typography>
-              </Divider>
-
               <TextField 
                 fullWidth 
                 label="Full Name" 
@@ -146,6 +130,22 @@ export default function RegisterPage() {
                 sx={{ py: 2, borderRadius: 3, fontWeight: 800 }}
               >
                 {loading ? 'Creating Account...' : 'Create My Account'}
+              </Button>
+
+              <Divider sx={{ my: 2 }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.disabled' }}>OR CONTINUE WITH</Typography>
+              </Divider>
+
+              <Button 
+                variant="outlined" 
+                color="secondary"
+                fullWidth 
+                startIcon={<GoogleIcon />} 
+                onClick={() => handleGoogleLogin()}
+                disabled={loading}
+                sx={{ py: 1.5, borderRadius: 2, fontWeight: 700 }}
+              >
+                {loading ? 'Processing...' : 'Sign up with Google'}
               </Button>
 
               <Typography variant="body2" sx={{ textAlign: 'center', fontWeight: 600 }}>

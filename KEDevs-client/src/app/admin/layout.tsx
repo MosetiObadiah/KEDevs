@@ -161,7 +161,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             >
               Public Site
             </Button>
-            <Avatar sx={{ bgcolor: 'primary.main', fontWeight: 800 }}>{user?.name.charAt(0)}</Avatar>
+            <Avatar sx={{ bgcolor: 'primary.main', fontWeight: 800 }}>{user?.fullName?.charAt(0)}</Avatar>
           </Box>
         </Toolbar>
       </AppBar>

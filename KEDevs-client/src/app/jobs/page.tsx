@@ -1,6 +1,6 @@
 // src/app/jobs/page.tsx
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   Box,
@@ -14,22 +14,58 @@ import {
   MenuItem,
   Stack,
   InputAdornment,
-  Divider,
+  Skeleton,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import { jobs } from '@/data/mockData';
 import VerifiedIcon from '@mui/icons-material/Verified';
+import { jobService } from '@/services/jobService';
+import { JobSummary } from '@/lib/types';
 
 export default function JobsPage() {
+  const [jobs, setJobs] = useState<JobSummary[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [workType, setWorkType] = useState('All');
+  const [sortBy, setSortBy] = useState('newest');
 
-  const filteredJobs = jobs.filter(job => {
-    const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         job.company.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = workType === 'All' || job.workType === workType;
-    return matchesSearch && matchesType;
-  });
+  useEffect(() => {
+    const fetchJobs = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const query: Record<string, string> = { page: '0', size: '20' };
+        if (searchTerm.trim()) query.title = searchTerm.trim();
+        if (workType !== 'All') query.workType = workType;
+
+        const response = await jobService.getJobs(query);
+        if (response.success) {
+          setJobs(response.data.content);
+        }
+      } catch (err) {
+        console.error(err);
+        setError('Unable to load jobs right now. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const timer = setTimeout(fetchJobs, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm, workType]);
+
+  const sortedJobs = React.useMemo(() => {
+    return [...jobs].sort((a, b) => {
+      if (sortBy === 'upvotes') {
+        return b.upvoteCount - a.upvoteCount;
+      }
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }, [jobs, sortBy]);
+
+  const formatWorkType = (value: string) => {
+    return value.replace('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  };
 
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
@@ -53,7 +89,7 @@ export default function JobsPage() {
                       <SearchIcon color="action" />
                     </InputAdornment>
                   ),
-                }
+                },
               }}
             />
           </Grid>
@@ -66,9 +102,9 @@ export default function JobsPage() {
               onChange={(e) => setWorkType(e.target.value)}
             >
               <MenuItem value="All">All Types</MenuItem>
-              <MenuItem value="Remote">Remote</MenuItem>
-              <MenuItem value="On-site">On-site</MenuItem>
-              <MenuItem value="Hybrid">Hybrid</MenuItem>
+              <MenuItem value="REMOTE">Remote</MenuItem>
+              <MenuItem value="ON_SITE">On-site</MenuItem>
+              <MenuItem value="HYBRID">Hybrid</MenuItem>
             </TextField>
           </Grid>
           <Grid size={{ xs: 12, md: 3 }}>
@@ -76,7 +112,8 @@ export default function JobsPage() {
               select
               fullWidth
               label="Sort By"
-              defaultValue="newest"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
             >
               <MenuItem value="newest">Newest First</MenuItem>
               <MenuItem value="upvotes">Most Upvoted</MenuItem>
@@ -85,10 +122,25 @@ export default function JobsPage() {
         </Grid>
       </Box>
 
-      {/* Results */}
+      {error && (
+        <Box sx={{ mb: 4 }}>
+          <Typography color="error.main" sx={{ fontWeight: 700 }}>{error}</Typography>
+        </Box>
+      )}
+
       <Stack spacing={3}>
-        {filteredJobs.length > 0 ? (
-          filteredJobs.map((job) => (
+        {isLoading ? (
+          [1, 2, 3, 4].map((placeholder) => (
+            <Card key={placeholder} sx={{ p: 3 }}>
+              <Stack spacing={2}>
+                <Skeleton variant="text" width="40%" height={36} />
+                <Skeleton variant="text" width="30%" />
+                <Skeleton variant="rectangular" height={120} sx={{ borderRadius: 2 }} />
+              </Stack>
+            </Card>
+          ))
+        ) : sortedJobs.length > 0 ? (
+          sortedJobs.map((job) => (
             <Card 
               key={job.id} 
               component={Link} 
@@ -96,37 +148,39 @@ export default function JobsPage() {
               sx={{ 
                 textDecoration: 'none',
                 transition: 'border-color 0.2s',
-                '&:hover': { borderColor: 'primary.main', border: '1px solid' }
+                border: '1px solid transparent',
+                '&:hover': { borderColor: 'primary.main' }
               }}
             >
               <CardContent sx={{ p: 3 }}>
                 <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, sm: 8 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                  <Grid size={{ xs: 12, md: 8 }}>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, mb: 1 }}>
                       <Typography variant="h5" component="h2" sx={{ fontWeight: 700, color: 'text.primary' }}>
                         {job.title}
                       </Typography>
-                      {job.isVerified && <VerifiedIcon color="primary" fontSize="small" />}
+                      {job.status === 'OPEN' && <VerifiedIcon color="primary" fontSize="small" />}
                     </Box>
                     <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-                      {job.company} • {job.location}
+                      {job.companyName} • {job.locationCity}, {job.locationCountry}
                     </Typography>
-                    <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-                      <Chip label={job.type} size="small" variant="filled" color="primary" />
-                      <Chip label={job.workType} size="small" variant="outlined" />
-                      {job.tags.map(tag => (
-                        <Chip key={tag} label={tag} size="small" />
+                    <Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: 'wrap' }}>
+                      <Chip label={formatWorkType(job.jobType)} size="small" variant="outlined" />
+                      <Chip label={formatWorkType(job.workType)} size="small" />
+                      {job.tags.slice(0, 3).map((tag) => (
+                        <Chip key={tag} label={tag} size="small" variant="outlined" />
                       ))}
                     </Stack>
                   </Grid>
-                  <Grid size={{ xs: 12, sm: 4 }} sx={{ textAlign: { sm: 'right' }, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <Typography variant="h6" color="primary.main" sx={{ fontWeight: 700 }}>
-                      {job.upvoteCount} Upvotes
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Posted on {job.postedDate}
-                    </Typography>
-                    <Box sx={{ mt: 2 }}>
+
+                  <Grid size={{ xs: 12, md: 4 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center', textAlign: { xs: 'left', md: 'right' } }}>
+                      <Typography variant="h6" color="primary.main" sx={{ fontWeight: 700 }}>
+                        {job.upvoteCount} Upvotes
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        Posted {new Date(job.createdAt).toLocaleDateString()}
+                      </Typography>
                       <Typography 
                         variant="button" 
                         sx={{ 

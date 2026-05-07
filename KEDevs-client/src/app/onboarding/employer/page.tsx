@@ -24,6 +24,7 @@ import BusinessIcon from '@mui/icons-material/Business';
 import InfoIcon from '@mui/icons-material/Info';
 import DoneIcon from '@mui/icons-material/Done';
 import { employerService } from '@/services/employerService';
+import { KENYA_COUNTIES } from '@/lib/constants';
 
 const steps = ['Company Details', 'Account Details', 'Finish'];
 
@@ -103,7 +104,7 @@ export default function EmployerOnboarding() {
           ))}
         </Stepper>
 
-        <Box sx={{ minHeight: 350 }}>
+        <Box component="form" onSubmit={(e) => { e.preventDefault(); handleNext(); }} sx={{ minHeight: 350 }}>
           {activeStep === 0 && (
             <Stack spacing={3}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
@@ -207,13 +208,29 @@ export default function EmployerOnboarding() {
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
                   <TextField 
+                    select
                     fullWidth 
-                    label="City" 
+                    label="County" 
                     name="locationCity"
                     value={formData.locationCity}
                     onChange={handleChange}
-                    placeholder="Nairobi" 
-                  />
+                    SelectProps={{
+                      MenuProps: {
+                        PaperProps: {
+                          sx: {
+                            maxHeight: 300,
+                            overflow: 'auto'
+                          },
+                        },
+                      },
+                    }}
+                  >
+                    {KENYA_COUNTIES.map((county) => (
+                      <MenuItem key={county} value={county}>
+                        {county}
+                      </MenuItem>
+                    ))}
+                  </TextField>
                 </Grid>
                 <Grid size={{ xs: 12 }}>
                   <TextField 
@@ -242,23 +259,22 @@ export default function EmployerOnboarding() {
               </Typography>
             </Stack>
           )}
-        </Box>
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4, pt: 4, borderTop: '1px solid', borderColor: 'divider' }}>
-          <Button disabled={activeStep === 0} onClick={handleBack} sx={{ fontWeight: 700 }}>
-            Back
-          </Button>
-          <Button 
-            variant="contained" 
-            onClick={handleNext} 
-            sx={{ px: 4, py: 1.5, borderRadius: 2, fontWeight: 700 }}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? <CircularProgress size={24} color="inherit" /> : activeStep === steps.length - 1 ? 'Complete & Submit' : 'Next'}
-          </Button>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4, pt: 4, borderTop: '1px solid', borderColor: 'divider' }}>
+            <Button disabled={activeStep === 0} onClick={handleBack} sx={{ fontWeight: 700 }}>
+              Back
+            </Button>
+            <Button 
+              variant="contained" 
+              type="submit"
+              sx={{ px: 4, py: 1.5, borderRadius: 2, fontWeight: 700 }}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? <CircularProgress size={24} color="inherit" /> : activeStep === steps.length - 1 ? 'Complete & Submit' : 'Next'}
+            </Button>
+          </Box>
         </Box>
       </Paper>
     </Container>
   );
 }
-

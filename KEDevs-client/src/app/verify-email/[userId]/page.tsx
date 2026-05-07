@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
 import { authService } from '@/services/authService';
+import { useAuth } from '@/context/AuthContext';
 
 export default function VerifyEmailPage() {
   const { userId } = useParams();
@@ -21,6 +22,7 @@ export default function VerifyEmailPage() {
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const { setAuthData } = useAuth();
 
   const handleVerify = async () => {
     if (!userId || code.length !== 6) return;
@@ -30,7 +32,7 @@ export default function VerifyEmailPage() {
     try {
       const response = await authService.verifyEmail(userId as string, code);
       if (response.success) {
-        const { accessToken, userId, email, fullName, role, emailVerified, requiresApproval } = response.data;
+        const { accessToken, refreshToken, userId, email, fullName, role, emailVerified, requiresApproval } = response.data;
         
         const userData = {
           id: userId,
@@ -41,11 +43,11 @@ export default function VerifyEmailPage() {
           isApproved: !requiresApproval
         };
 
-        localStorage.setItem('user', JSON.stringify(userData));
-        localStorage.setItem('token', accessToken);
+        setAuthData(userData, accessToken, refreshToken);
         
         if (role === 'DEVELOPER') router.push('/onboarding/developer');
         else if (role === 'EMPLOYER') router.push('/onboarding/employer');
+        else if (role === 'ADMIN') router.push('/admin/dashboard');
         else router.push('/feed');
       }
     } catch (err: any) {
@@ -102,4 +104,3 @@ export default function VerifyEmailPage() {
     </Container>
   );
 }
-

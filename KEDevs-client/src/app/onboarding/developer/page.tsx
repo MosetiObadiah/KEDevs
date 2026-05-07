@@ -22,12 +22,22 @@ import {
   Alert,
 } from '@mui/material';
 import { useAuth } from '@/context/AuthContext';
+import { developerService } from '@/services/developerService';
+import { KENYA_COUNTIES } from '@/lib/constants';
 
 const steps = ['Basic Info', 'Skills & Status', 'Experience'];
 
 const skillsOptions = [
   'React', 'Next.js', 'TypeScript', 'Node.js', 'Python', 'Java', 'Spring Boot',
   'PostgreSQL', 'Docker', 'AWS', 'Kubernetes', 'Tailwind CSS', 'MUI', 'Figma',
+];
+
+const experienceLevels = [
+  { value: 'ZERO_TO_ONE', label: '0 - 1 Year' },
+  { value: 'ONE_TO_THREE', label: '1 - 3 Years' },
+  { value: 'THREE_TO_FIVE', label: '3 - 5 Years' },
+  { value: 'FIVE_TO_TEN', label: '5 - 10 Years' },
+  { value: 'TEN_PLUS', label: '10+ Years' },
 ];
 
 export default function DeveloperOnboarding() {
@@ -37,13 +47,15 @@ export default function DeveloperOnboarding() {
 
   // Form State
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    role: user?.role || '',
-    city: user?.city || '',
-    bio: user?.bio || '',
-    skills: user?.skills || [],
-    availability: user?.availability || 'Available',
-    experience: user?.experience || '',
+    firstName: user?.fullName?.split(' ')[0] || '',
+    lastName: user?.fullName?.split(' ').slice(1).join(' ') || '',
+    role: '',
+    city: 'Nairobi',
+    bio: '',
+    skills: [],
+    availability: 'Available',
+    yearsOfExperience: 'ZERO_TO_ONE',
+    summary: '',
   });
 
   useEffect(() => {
@@ -63,11 +75,14 @@ export default function DeveloperOnboarding() {
       setError(null);
       try {
         const payload = {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
           bio: formData.bio,
           currentLastRole: formData.role,
           locationCity: formData.city.split(',')[0].trim(),
           locationCountry: formData.city.split(',')[1]?.trim() || 'Kenya',
           availabilityStatus: formData.availability === 'Available' ? 'AVAILABLE_NOW' : 'OPEN_TO_OFFERS',
+          yearsOfExperience: formData.yearsOfExperience,
           visibility: 'PUBLIC',
           skills: formData.skills,
           portfolioUrl: '',
@@ -76,6 +91,7 @@ export default function DeveloperOnboarding() {
         };
         const response = await developerService.createProfile(payload);
         if (response.success) {
+          completeOnboarding();
           router.push('/feed');
         }
       } catch (err: any) {
@@ -119,16 +135,26 @@ export default function DeveloperOnboarding() {
           ))}
         </Stepper>
 
-        <Box sx={{ minHeight: 400 }}>
+        <Box component="form" onSubmit={(e) => { e.preventDefault(); handleNext(); }} sx={{ minHeight: 400 }}>
           {activeStep === 0 && (
             <Fade in={activeStep === 0}>
               <Grid container spacing={3}>
                 <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
                     fullWidth
-                    label="Full Name"
-                    name="name"
-                    value={formData.name}
+                    label="First Name"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <TextField
+                    fullWidth
+                    label="Last Name"
+                    name="lastName"
+                    value={formData.lastName}
                     onChange={handleChange}
                     variant="outlined"
                   />
@@ -145,13 +171,29 @@ export default function DeveloperOnboarding() {
                 </Grid>
                 <Grid size={{ xs: 12 }}>
                   <TextField
+                    select
                     fullWidth
-                    label="City / Location"
+                    label="County / Location"
                     name="city"
                     value={formData.city}
                     onChange={handleChange}
-                    placeholder="e.g. Nairobi, Kenya"
-                  />
+                    SelectProps={{
+                      MenuProps: {
+                        PaperProps: {
+                          sx: {
+                            maxHeight: 300,
+                            overflow: 'auto'
+                          },
+                        },
+                      },
+                    }}
+                  >
+                    {KENYA_COUNTIES.map((county) => (
+                      <MenuItem key={county} value={county}>
+                        {county}
+                      </MenuItem>
+                    ))}
+                  </TextField>
                 </Grid>
                 <Grid size={{ xs: 12 }}>
                   <TextField
@@ -206,14 +248,40 @@ export default function DeveloperOnboarding() {
               <Grid container spacing={3}>
                 <Grid size={{ xs: 12 }}>
                   <TextField
+                    select
+                    fullWidth
+                    label="Years of Experience"
+                    name="yearsOfExperience"
+                    value={formData.yearsOfExperience}
+                    onChange={handleChange}
+                    SelectProps={{
+                      MenuProps: {
+                        PaperProps: {
+                          sx: {
+                            maxHeight: 300,
+                            overflow: 'auto'
+                          },
+                        },
+                      },
+                    }}
+                  >
+                    {experienceLevels.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <TextField
                     fullWidth
                     multiline
                     rows={6}
-                    label="Years of Experience & Summary"
-                    name="experience"
-                    value={formData.experience}
+                    label="Professional Summary"
+                    name="summary"
+                    value={formData.summary}
                     onChange={handleChange}
-                    placeholder="Describe your career highlights and years of experience..."
+                    placeholder="Describe your career highlights and expertise..."
                   />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
@@ -224,23 +292,24 @@ export default function DeveloperOnboarding() {
               </Grid>
             </Fade>
           )}
-        </Box>
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
-          <Button
-            disabled={activeStep === 0}
-            onClick={handleBack}
-            sx={{ fontWeight: 700 }}
-          >
-            Back
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleNext}
-            sx={{ px: 4, py: 1.5, borderRadius: 2, fontWeight: 700, boxShadow: 0 }}
-          >
-            {activeStep === steps.length - 1 ? 'Finish Profile' : 'Continue'}
-          </Button>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+            <Button
+              disabled={activeStep === 0}
+              onClick={handleBack}
+              sx={{ fontWeight: 700 }}
+            >
+              Back
+            </Button>
+            <Button
+              variant="contained"
+              type="submit"
+              sx={{ px: 4, py: 1.5, borderRadius: 2, fontWeight: 700, boxShadow: 0 }}
+              disabled={loading}
+            >
+              {loading ? 'Processing...' : activeStep === steps.length - 1 ? 'Finish Profile' : 'Continue'}
+            </Button>
+          </Box>
         </Box>
       </Paper>
     </Container>
