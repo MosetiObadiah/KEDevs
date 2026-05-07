@@ -19,6 +19,7 @@ import {
   Alert
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import BusinessIcon from '@mui/icons-material/Business';
 import InfoIcon from '@mui/icons-material/Info';
@@ -256,6 +257,9 @@ export default function EmployerOnboarding() {
               <Typography variant="body1" color="text.secondary">
                 Your profile will be reviewed by our admin team for quality and authenticity. 
                 Approval usually takes less than 24 hours.
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                By completing onboarding, you agree to our <Link href="/terms" style={{ color: 'inherit', fontWeight: 700 }}>Terms of Service</Link> and <Link href="/privacy" style={{ color: 'inherit', fontWeight: 700 }}>Privacy Policy</Link>.
               </Typography>
             </Stack>
           )}

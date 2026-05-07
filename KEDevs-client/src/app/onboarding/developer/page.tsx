@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Container,
   Box,
@@ -286,7 +287,7 @@ export default function DeveloperOnboarding() {
                 </Grid>
                 <Grid size={{ xs: 12 }}>
                   <Typography variant="body2" color="text.secondary">
-                    By completing onboarding, you agree to our Terms of Service and Privacy Policy.
+                    By completing onboarding, you agree to our <Link href="/terms" style={{ color: 'inherit', fontWeight: 700 }}>Terms of Service</Link> and <Link href="/privacy" style={{ color: 'inherit', fontWeight: 700 }}>Privacy Policy</Link>.
                   </Typography>
                 </Grid>
               </Grid>
