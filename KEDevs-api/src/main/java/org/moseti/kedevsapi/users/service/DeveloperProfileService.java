@@ -57,7 +57,17 @@ public class DeveloperProfileService {
         applyCreateFields(profile, request);
         profile = profileRepository.save(profile);
 
-        log.info("Developer profile created for userId={}", userId);
+        // Save skills if provided
+        if (request.skills() != null && !request.skills().isEmpty()) {
+            for (String skillName : request.skills()) {
+                DeveloperSkill skill = new DeveloperSkill();
+                skill.setDeveloperId(profile.getId());
+                skill.setSkill(skillName.trim());
+                skillRepository.save(skill);
+            }
+        }
+
+        log.info("Developer profile created for userId={}, with {} skills", userId, request.skills() != null ? request.skills().size() : 0);
         return toFullResponse(profile);
     }
 
@@ -433,7 +443,9 @@ public class DeveloperProfileService {
         profile.setBio(request.bio());
         profile.setCurrentLastRole(request.currentLastRole());
         profile.setYearsOfExperience(request.yearsOfExperience());
-        profile.setNumberOfProjects(request.numberOfProjects());
+        if (request.numberOfProjects() != null) {
+            profile.setNumberOfProjects(request.numberOfProjects());
+        }
         profile.setAvailabilityStatus(request.availabilityStatus() != null ? request.availabilityStatus() : AvailabilityStatus.NOT_AVAILABLE);
         profile.setPreferredWorkType(request.preferredWorkType());
         profile.setLocationCity(request.locationCity());
@@ -453,7 +465,9 @@ public class DeveloperProfileService {
         if (request.bio() != null) profile.setBio(request.bio());
         if (request.currentLastRole() != null) profile.setCurrentLastRole(request.currentLastRole());
         if (request.yearsOfExperience() != null) profile.setYearsOfExperience(request.yearsOfExperience());
-        profile.setNumberOfProjects(request.numberOfProjects());
+        if (request.numberOfProjects() != null) {
+            profile.setNumberOfProjects(request.numberOfProjects());
+        }
         if (request.preferredWorkType() != null) profile.setPreferredWorkType(request.preferredWorkType());
         if (request.locationCity() != null) profile.setLocationCity(request.locationCity());
         if (request.locationCountry() != null) profile.setLocationCountry(request.locationCountry());

@@ -16,7 +16,9 @@ import {
   MenuItem,
   Stack,
   CircularProgress,
-  Alert
+  Alert,
+  Checkbox,
+  FormControlLabel
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -33,13 +35,14 @@ export default function EmployerOnboarding() {
   const [activeStep, setActiveStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { completeOnboarding } = useAuth();
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const { completeOnboarding, user } = useAuth();
   const router = useRouter();
 
   const [formData, setFormData] = useState({
     companyName: '',
     industry: 'Software Development',
-    companySize: '11-50 employees',
+    companySize: 'TEN_TO_FIFTY',
     bio: '',
     websiteUrl: '',
     linkedinUrl: '',
@@ -54,20 +57,21 @@ export default function EmployerOnboarding() {
 
   const handleNext = async () => {
     if (activeStep === steps.length - 1) {
+      if (!agreedToTerms) return;
       setIsSubmitting(true);
       setError(null);
       try {
         const response = await employerService.createProfile({
+          contactPersonName: user?.fullName || 'Employer',
           companyName: formData.companyName,
           companyBio: formData.bio,
-          websiteUrl: formData.websiteUrl,
+          companyWebsite: formData.websiteUrl,
           linkedinUrl: formData.linkedinUrl,
-          twitterHandle: formData.twitterHandle,
+          twitterUrl: formData.twitterHandle,
           industry: formData.industry,
           companySize: formData.companySize,
-          locationCity: formData.locationCity,
-          locationCountry: 'Kenya',
-          contactEmail: formData.contactEmail
+          locationHQ: `${formData.locationCity}, Kenya`,
+          logoUrl: ''
         });
         if (response.success) {
           completeOnboarding();
@@ -132,6 +136,18 @@ export default function EmployerOnboarding() {
                     name="industry"
                     value={formData.industry}
                     onChange={handleChange}
+                    slotProps={{
+                      select: {
+                        MenuProps: {
+                          PaperProps: {
+                            sx: {
+                              maxHeight: 300,
+                              overflow: 'auto'
+                            }
+                          }
+                        }
+                      }
+                    }}
                   >
                     <MenuItem value="Software Development">Software Development</MenuItem>
                     <MenuItem value="Fintech">Fintech</MenuItem>
@@ -147,11 +163,23 @@ export default function EmployerOnboarding() {
                     name="companySize"
                     value={formData.companySize}
                     onChange={handleChange}
+                    slotProps={{
+                      select: {
+                        MenuProps: {
+                          PaperProps: {
+                            sx: {
+                              maxHeight: 300,
+                              overflow: 'auto'
+                            }
+                          }
+                        }
+                      }
+                    }}
                   >
-                    <MenuItem value="1-10 employees">1-10 employees</MenuItem>
-                    <MenuItem value="11-50 employees">11-50 employees</MenuItem>
-                    <MenuItem value="51-200 employees">51-200 employees</MenuItem>
-                    <MenuItem value="200+ employees">200+ employees</MenuItem>
+                    <MenuItem value="ONE_TO_TEN">1-10 employees</MenuItem>
+                    <MenuItem value="TEN_TO_FIFTY">11-50 employees</MenuItem>
+                    <MenuItem value="FIFTY_TO_TWO_HUNDRED">51-200 employees</MenuItem>
+                    <MenuItem value="TWO_HUNDRED_PLUS">200+ employees</MenuItem>
                   </TextField>
                 </Grid>
                 <Grid size={{ xs: 12 }}>
@@ -215,15 +243,17 @@ export default function EmployerOnboarding() {
                     name="locationCity"
                     value={formData.locationCity}
                     onChange={handleChange}
-                    SelectProps={{
-                      MenuProps: {
-                        PaperProps: {
-                          sx: {
-                            maxHeight: 300,
-                            overflow: 'auto'
-                          },
-                        },
-                      },
+                    slotProps={{
+                      select: {
+                        MenuProps: {
+                          PaperProps: {
+                            sx: {
+                              maxHeight: 300,
+                              overflow: 'auto'
+                            }
+                          }
+                        }
+                      }
                     }}
                   >
                     {KENYA_COUNTIES.map((county) => (
@@ -258,9 +288,22 @@ export default function EmployerOnboarding() {
                 Your profile will be reviewed by our admin team for quality and authenticity. 
                 Approval usually takes less than 24 hours.
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                By completing onboarding, you agree to our <Link href="/terms" style={{ color: 'inherit', fontWeight: 700 }}>Terms of Service</Link> and <Link href="/privacy" style={{ color: 'inherit', fontWeight: 700 }}>Privacy Policy</Link>.
-              </Typography>
+              <FormControlLabel
+                control={
+                  <Checkbox 
+                    checked={agreedToTerms} 
+                    onChange={(e) => setAgreedToTerms(e.target.checked)}
+                    color="primary"
+                    required
+                  />
+                }
+                label={
+                  <Typography variant="body2" color="text.secondary">
+                    I agree to the <Link href="/terms" style={{ color: 'inherit', fontWeight: 700 }}>Terms of Service</Link> and <Link href="/privacy" style={{ color: 'inherit', fontWeight: 700 }}>Privacy Policy</Link>.
+                  </Typography>
+                }
+                sx={{ mt: 2 }}
+              />
             </Stack>
           )}
 
@@ -272,7 +315,7 @@ export default function EmployerOnboarding() {
               variant="contained" 
               type="submit"
               sx={{ px: 4, py: 1.5, borderRadius: 2, fontWeight: 700 }}
-              disabled={isSubmitting}
+              disabled={isSubmitting || (activeStep === steps.length - 1 && !agreedToTerms)}
             >
               {isSubmitting ? <CircularProgress size={24} color="inherit" /> : activeStep === steps.length - 1 ? 'Complete & Submit' : 'Next'}
             </Button>

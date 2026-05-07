@@ -161,6 +161,18 @@ export default function JobFeed() {
                   value={workType}
                   onChange={(e) => setWorkType(e.target.value)}
                   sx={{ mb: 4 }}
+                  slotProps={{
+                    select: {
+                      MenuProps: {
+                        PaperProps: {
+                          sx: {
+                            maxHeight: 300,
+                            overflow: 'auto'
+                          }
+                        }
+                      }
+                    }
+                  }}
                 >
                   <MenuItem value="All">All Types</MenuItem>
                   <MenuItem value="REMOTE">Remote</MenuItem>
@@ -173,6 +185,18 @@ export default function JobFeed() {
                   select
                   fullWidth
                   defaultValue="newest"
+                  slotProps={{
+                    select: {
+                      MenuProps: {
+                        PaperProps: {
+                          sx: {
+                            maxHeight: 300,
+                            overflow: 'auto'
+                          }
+                        }
+                      }
+                    }
+                  }}
                 >
                   <MenuItem value="newest">Newest First</MenuItem>
                   <MenuItem value="upvotes">Most Upvoted</MenuItem>
@@ -302,4 +326,3 @@ export default function JobFeed() {
     </Box>
   );
 }
-

@@ -21,7 +21,7 @@ public class UserDtos {
             @Size(max = 300, message = "Bio cannot exceed 300 characters") @Schema(description = "Short biography", example = "Full-stack developer with a passion for Java.") String bio,
             @Schema(description = "Current or last job title", example = "Senior Software Engineer") String currentLastRole,
             @Schema(description = "Years of professional experience", example = "FIVE_PLUS") YearsOfExperience yearsOfExperience,
-            @Schema(description = "Total number of completed projects", example = "12") int numberOfProjects,
+            @Schema(description = "Total number of completed projects", example = "12") Integer numberOfProjects,
             @Schema(description = "Current availability status", example = "AVAILABLE_NOW") AvailabilityStatus availabilityStatus,
             @Schema(description = "Preferred work arrangement", example = "REMOTE") WorkType preferredWorkType,
             @Schema(description = "City of residence", example = "Nairobi") String locationCity,
@@ -31,7 +31,8 @@ public class UserDtos {
             @Schema(description = "GitHub profile URL", example = "https://github.com/janedoe") String githubUrl,
             @Schema(description = "Portfolio website URL", example = "https://janedoe.dev") String portfolioUrl,
             @Schema(description = "Public contact email", example = "jane.public@example.com") String publicEmail,
-            @Schema(description = "Public contact phone", example = "+254712345678") String publicPhone
+            @Schema(description = "Public contact phone", example = "+254712345678") String publicPhone,
+            @Schema(description = "List of skills", example = "['Java', 'Spring Boot']") java.util.List<String> skills
     ) {}
 
     public record UpdateDeveloperProfileRequest(

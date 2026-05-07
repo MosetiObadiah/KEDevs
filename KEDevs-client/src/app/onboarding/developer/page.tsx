@@ -21,6 +21,8 @@ import {
   Stack,
   Fade,
   Alert,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material';
 import { useAuth } from '@/context/AuthContext';
 import { developerService } from '@/services/developerService';
@@ -45,6 +47,7 @@ export default function DeveloperOnboarding() {
   const router = useRouter();
   const { isLoggedIn, isOnboarded, completeOnboarding, user } = useAuth();
   const [activeStep, setActiveStep] = useState(0);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -82,7 +85,7 @@ export default function DeveloperOnboarding() {
           currentLastRole: formData.role,
           locationCity: formData.city.split(',')[0].trim(),
           locationCountry: formData.city.split(',')[1]?.trim() || 'Kenya',
-          availabilityStatus: formData.availability === 'Available' ? 'AVAILABLE_NOW' : 'OPEN_TO_OFFERS',
+          availabilityStatus: formData.availability === 'Available' ? 'AVAILABLE' : 'OPEN_TO_OFFERS',
           yearsOfExperience: formData.yearsOfExperience,
           visibility: 'PUBLIC',
           skills: formData.skills,
@@ -178,15 +181,17 @@ export default function DeveloperOnboarding() {
                     name="city"
                     value={formData.city}
                     onChange={handleChange}
-                    SelectProps={{
-                      MenuProps: {
-                        PaperProps: {
-                          sx: {
-                            maxHeight: 300,
-                            overflow: 'auto'
-                          },
-                        },
-                      },
+                    slotProps={{
+                      select: {
+                        MenuProps: {
+                          PaperProps: {
+                            sx: {
+                              maxHeight: 300,
+                              overflow: 'auto'
+                            }
+                          }
+                        }
+                      }
                     }}
                   >
                     {KENYA_COUNTIES.map((county) => (
@@ -234,6 +239,18 @@ export default function DeveloperOnboarding() {
                     name="availability"
                     value={formData.availability}
                     onChange={handleChange}
+                    slotProps={{
+                      select: {
+                        MenuProps: {
+                          PaperProps: {
+                            sx: {
+                              maxHeight: 300,
+                              overflow: 'auto'
+                            }
+                          }
+                        }
+                      }
+                    }}
                   >
                     <MenuItem value="Available">Available</MenuItem>
                     <MenuItem value="Open to Offers">Open to Offers</MenuItem>
@@ -255,15 +272,17 @@ export default function DeveloperOnboarding() {
                     name="yearsOfExperience"
                     value={formData.yearsOfExperience}
                     onChange={handleChange}
-                    SelectProps={{
-                      MenuProps: {
-                        PaperProps: {
-                          sx: {
-                            maxHeight: 300,
-                            overflow: 'auto'
-                          },
-                        },
-                      },
+                    slotProps={{
+                      select: {
+                        MenuProps: {
+                          PaperProps: {
+                            sx: {
+                              maxHeight: 300,
+                              overflow: 'auto'
+                            }
+                          }
+                        }
+                      }
                     }}
                   >
                     {experienceLevels.map((option) => (
@@ -286,9 +305,21 @@ export default function DeveloperOnboarding() {
                   />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    By completing onboarding, you agree to our <Link href="/terms" style={{ color: 'inherit', fontWeight: 700 }}>Terms of Service</Link> and <Link href="/privacy" style={{ color: 'inherit', fontWeight: 700 }}>Privacy Policy</Link>.
-                  </Typography>
+                  <FormControlLabel
+                    control={
+                      <Checkbox 
+                        checked={agreedToTerms} 
+                        onChange={(e) => setAgreedToTerms(e.target.checked)}
+                        color="primary"
+                        required
+                      />
+                    }
+                    label={
+                      <Typography variant="body2" color="text.secondary">
+                        I agree to the <Link href="/terms" style={{ color: 'inherit', fontWeight: 700 }}>Terms of Service</Link> and <Link href="/privacy" style={{ color: 'inherit', fontWeight: 700 }}>Privacy Policy</Link>.
+                      </Typography>
+                    }
+                  />
                 </Grid>
               </Grid>
             </Fade>
@@ -306,7 +337,7 @@ export default function DeveloperOnboarding() {
               variant="contained"
               type="submit"
               sx={{ px: 4, py: 1.5, borderRadius: 2, fontWeight: 700, boxShadow: 0 }}
-              disabled={loading}
+              disabled={loading || (activeStep === steps.length - 1 && !agreedToTerms)}
             >
               {loading ? 'Processing...' : activeStep === steps.length - 1 ? 'Finish Profile' : 'Continue'}
             </Button>

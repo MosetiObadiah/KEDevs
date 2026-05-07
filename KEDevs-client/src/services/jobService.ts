@@ -10,7 +10,10 @@ export const jobService = {
   },
   
   async getJobs(params: any): Promise<ApiResponse<PaginatedResponse<JobSummary>>> {
-    const query = new URLSearchParams(params).toString();
+    const cleanParams = Object.fromEntries(
+      Object.entries(params).filter(([_, v]) => v != null)
+    );
+    const query = new URLSearchParams(cleanParams as any).toString();
     return apiClient.get<ApiResponse<PaginatedResponse<JobSummary>>>(`/api/v1/jobs?${query}`);
   },
 
