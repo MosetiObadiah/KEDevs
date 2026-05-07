@@ -29,7 +29,11 @@ public class JobController {
     private final JobService jobService;
 
     private UUID getCurrentUserId() {
-        return (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof UUID) {
+            return (UUID) principal;
+        }
+        return null;
     }
 
     @Operation(summary = "Create a job post", description = "Requires authenticated user.")

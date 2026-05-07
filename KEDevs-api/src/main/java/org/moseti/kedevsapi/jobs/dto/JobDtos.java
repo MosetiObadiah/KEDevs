@@ -89,6 +89,7 @@ public class JobDtos {
             UUID id,
             UUID postedById,
             String posterName,
+            String contactEmail,
             String title,
             String summary,
             String description,

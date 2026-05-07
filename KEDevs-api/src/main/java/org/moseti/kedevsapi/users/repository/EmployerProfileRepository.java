@@ -20,4 +20,6 @@ public interface EmployerProfileRepository extends JpaRepository<EmployerProfile
     long countByIsApprovedFalse();
 
     org.springframework.data.domain.Page<EmployerProfile> findByIsApprovedFalse(org.springframework.data.domain.Pageable pageable);
+
+    org.springframework.data.domain.Page<EmployerProfile> findByIsApprovedTrue(org.springframework.data.domain.Pageable pageable);
 }

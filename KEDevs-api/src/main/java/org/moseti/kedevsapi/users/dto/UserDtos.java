@@ -204,6 +204,7 @@ public class UserDtos {
             java.util.UUID id,
             java.util.UUID userId,
             String contactPersonName,
+            String contactEmail,
             String companyName,
             String companyWebsite,
             String industry,

@@ -254,10 +254,27 @@ public class EmployerProfileService {
         if (request.twitterUrl() != null) profile.setTwitterUrl(request.twitterUrl());
     }
 
+    public Page<UserDtos.EmployerProfileResponse> getPublicProfiles(Pageable pageable) {
+        return employerProfileRepository.findByIsApprovedTrue(pageable)
+                .map(this::toResponse);
+    }
+
+    public UserDtos.EmployerProfileResponse getPublicProfileById(UUID id) {
+        EmployerProfile profile = employerProfileRepository.findById(id)
+                .orElseThrow(() -> new ProfileNotFoundException("Employer profile not found"));
+        return toResponse(profile);
+    }
+
     private UserDtos.EmployerProfileResponse toResponse(EmployerProfile profile) {
+        String email = "Unknown";
+        if (profile.getUser() != null) {
+            email = profile.getUser().getEmail();
+        }
+
         return new UserDtos.EmployerProfileResponse(
                 profile.getId(), profile.getUserId(),
-                profile.getContactPersonName(), profile.getCompanyName(),
+                profile.getContactPersonName(), email,
+                profile.getCompanyName(),
                 profile.getCompanyWebsite(), profile.getIndustry(),
                 profile.getCompanySize(), profile.getLocationHQ(),
                 profile.getCompanyBio(), profile.getLogoUrl(),

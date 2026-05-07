@@ -1,0 +1,248 @@
+// src/app/onboarding/developer/page.tsx
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  Container,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Paper,
+  Stepper,
+  Step,
+  StepLabel,
+  Grid,
+  Chip,
+  Autocomplete,
+  MenuItem,
+  Stack,
+  Fade,
+  Alert,
+} from '@mui/material';
+import { useAuth } from '@/context/AuthContext';
+
+const steps = ['Basic Info', 'Skills & Status', 'Experience'];
+
+const skillsOptions = [
+  'React', 'Next.js', 'TypeScript', 'Node.js', 'Python', 'Java', 'Spring Boot',
+  'PostgreSQL', 'Docker', 'AWS', 'Kubernetes', 'Tailwind CSS', 'MUI', 'Figma',
+];
+
+export default function DeveloperOnboarding() {
+  const router = useRouter();
+  const { isLoggedIn, isOnboarded, completeOnboarding, user } = useAuth();
+  const [activeStep, setActiveStep] = useState(0);
+
+  // Form State
+  const [formData, setFormData] = useState({
+    name: user?.name || '',
+    role: user?.role || '',
+    city: user?.city || '',
+    bio: user?.bio || '',
+    skills: user?.skills || [],
+    availability: user?.availability || 'Available',
+    experience: user?.experience || '',
+  });
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      router.push('/login');
+    } else if (isOnboarded) {
+      router.push('/feed');
+    }
+  }, [isLoggedIn, isOnboarded, router]);
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleNext = async () => {
+    if (activeStep === steps.length - 1) {
+      setLoading(true);
+      setError(null);
+      try {
+        const payload = {
+          bio: formData.bio,
+          currentLastRole: formData.role,
+          locationCity: formData.city.split(',')[0].trim(),
+          locationCountry: formData.city.split(',')[1]?.trim() || 'Kenya',
+          availabilityStatus: formData.availability === 'Available' ? 'AVAILABLE_NOW' : 'OPEN_TO_OFFERS',
+          visibility: 'PUBLIC',
+          skills: formData.skills,
+          portfolioUrl: '',
+          githubUrl: '',
+          linkedinUrl: ''
+        };
+        const response = await developerService.createProfile(payload);
+        if (response.success) {
+          router.push('/feed');
+        }
+      } catch (err: any) {
+        setError(err.message || 'Failed to create profile. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setActiveStep((prev) => prev + 1);
+    }
+  };
+
+
+  const handleBack = () => {
+    setActiveStep((prev) => prev - 1);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  if (!isLoggedIn || isOnboarded) return null;
+
+  return (
+    <Container maxWidth="md" sx={{ py: 8 }}>
+      <Paper sx={{ p: { xs: 3, md: 6 }, borderRadius: 4, boxShadow: '0 10px 40px rgba(0,0,0,0.05)' }}>
+        <Typography variant="h4" component="h1" align="center" gutterBottom sx={{ fontWeight: 800 }}>
+          Complete Your <Box component="span" sx={{ color: 'primary.main' }}>Profile</Box>
+        </Typography>
+        <Typography variant="body1" align="center" color="text.secondary" sx={{ mb: 6 }}>
+          Tell us more about yourself to get started on KEDevs.
+        </Typography>
+
+        {error && <Alert severity="error" sx={{ mb: 4 }}>{error}</Alert>}
+
+        <Stepper activeStep={activeStep} sx={{ mb: 8 }}>
+          {steps.map((label) => (
+            <Step key={label}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
+          ))}
+        </Stepper>
+
+        <Box sx={{ minHeight: 400 }}>
+          {activeStep === 0 && (
+            <Fade in={activeStep === 0}>
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <TextField
+                    fullWidth
+                    label="Full Name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    variant="outlined"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <TextField
+                    fullWidth
+                    label="Current Role"
+                    name="role"
+                    value={formData.role}
+                    onChange={handleChange}
+                    placeholder="e.g. Senior Frontend Engineer"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <TextField
+                    fullWidth
+                    label="City / Location"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleChange}
+                    placeholder="e.g. Nairobi, Kenya"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={4}
+                    label="Short Bio"
+                    name="bio"
+                    value={formData.bio}
+                    onChange={handleChange}
+                    placeholder="A brief description of your professional background..."
+                  />
+                </Grid>
+              </Grid>
+            </Fade>
+          )}
+
+          {activeStep === 1 && (
+            <Fade in={activeStep === 1}>
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12 }}>
+                  <Autocomplete
+                    multiple
+                    options={skillsOptions}
+                    value={formData.skills}
+                    onChange={(_, newValue) => setFormData({ ...formData, skills: newValue })}
+                    renderInput={(params) => (
+                      <TextField {...params} variant="outlined" label="Skills" placeholder="Add skills" />
+                    )}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Work Availability"
+                    name="availability"
+                    value={formData.availability}
+                    onChange={handleChange}
+                  >
+                    <MenuItem value="Available">Available</MenuItem>
+                    <MenuItem value="Open to Offers">Open to Offers</MenuItem>
+                    <MenuItem value="Busy">Busy</MenuItem>
+                  </TextField>
+                </Grid>
+              </Grid>
+            </Fade>
+          )}
+
+          {activeStep === 2 && (
+            <Fade in={activeStep === 2}>
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12 }}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={6}
+                    label="Years of Experience & Summary"
+                    name="experience"
+                    value={formData.experience}
+                    onChange={handleChange}
+                    placeholder="Describe your career highlights and years of experience..."
+                  />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    By completing onboarding, you agree to our Terms of Service and Privacy Policy.
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Fade>
+          )}
+        </Box>
+
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+          <Button
+            disabled={activeStep === 0}
+            onClick={handleBack}
+            sx={{ fontWeight: 700 }}
+          >
+            Back
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleNext}
+            sx={{ px: 4, py: 1.5, borderRadius: 2, fontWeight: 700, boxShadow: 0 }}
+          >
+            {activeStep === steps.length - 1 ? 'Finish Profile' : 'Continue'}
+          </Button>
+        </Box>
+      </Paper>
+    </Container>
+  );
+}

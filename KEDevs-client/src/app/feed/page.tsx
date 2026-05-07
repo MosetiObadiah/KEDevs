@@ -1,0 +1,327 @@
+// src/app/feed/page.tsx
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import {
+  Container,
+  Box,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  Chip,
+  TextField,
+  MenuItem,
+  Stack,
+  InputAdornment,
+  IconButton,
+  Button,
+  Tooltip,
+  Divider,
+  Paper,
+  Skeleton,
+  Alert,
+} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import ThumbUpIcon from '@mui/icons-material/ThumbUp';
+import ThumbDownIcon from '@mui/icons-material/ThumbDown';
+import FlagIcon from '@mui/icons-material/Flag';
+import VerifiedIcon from '@mui/icons-material/Verified';
+import { useAuth } from '@/context/AuthContext';
+import { PillBadge } from '@/components/shared/PillBadge';
+import { jobService } from '@/services/jobService';
+import { JobSummary } from '@/lib/types';
+
+export default function JobFeed() {
+  const { user } = useAuth();
+  const [jobs, setJobs] = useState<JobSummary[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  const [searchTerm, setSearchTerm] = useState('');
+  const [workType, setWorkType] = useState('All');
+  const [upvotedJobs, setUpvotedJobs] = useState<Set<string>>(new Set());
+  const [downvotedJobs, setDownvotedJobs] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await jobService.getJobs({
+          page: 0,
+          size: 20,
+          title: searchTerm,
+          workType: workType === 'All' ? undefined : workType
+        });
+        if (response.success) {
+          setJobs(response.data.content);
+        }
+      } catch (err: any) {
+        setError('Failed to fetch jobs. Please try again later.');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      fetchJobs();
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, workType]);
+
+  const handleUpvote = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // TODO: Connect to backend upvote API
+    const newUpvoted = new Set(upvotedJobs);
+    if (newUpvoted.has(id)) {
+      newUpvoted.delete(id);
+    } else {
+      newUpvoted.add(id);
+      const newDownvoted = new Set(downvotedJobs);
+      newDownvoted.delete(id);
+      setDownvotedJobs(newDownvoted);
+    }
+    setUpvotedJobs(newUpvoted);
+  };
+
+  const handleDownvote = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // TODO: Connect to backend downvote API
+    const newDownvoted = new Set(downvotedJobs);
+    if (newDownvoted.has(id)) {
+      newDownvoted.delete(id);
+    } else {
+      newDownvoted.add(id);
+      const newUpvoted = new Set(upvotedJobs);
+      newUpvoted.delete(id);
+      setUpvotedJobs(newUpvoted);
+    }
+    setDownvotedJobs(newDownvoted);
+  };
+
+  const formatJobType = (type: string) => {
+    return type.replace('_', '-').toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
+  };
+
+  return (
+    <Box sx={{ bgcolor: 'background.subtle', minHeight: '100vh', py: 8 }}>
+      <Container maxWidth="xl">
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 6 }}>
+          <Box>
+            <PillBadge variant="mint">OPPORTUNITIES</PillBadge>
+            <Typography variant="h2" sx={{ mt: 2 }}>
+              Job <Box component="span" sx={{ color: 'primary.main' }}>Feed</Box>
+            </Typography>
+          </Box>
+          <Button 
+            variant="contained" 
+            color="primary" 
+            size="large"
+            component={Link} 
+            href="/jobs/post"
+            sx={{ borderRadius: 2.5, fontWeight: 800, px: 4, py: 1.5 }}
+          >
+            Post a Job
+          </Button>
+        </Box>
+        
+        <Grid container spacing={4}>
+          {/* Filters Sidebar */}
+          <Grid size={{ xs: 12, md: 3 }}>
+            <Stack spacing={3}>
+              <Paper sx={{ p: 4, borderRadius: 4 }}>
+                <Typography variant="h6" sx={{ fontWeight: 800 }} gutterBottom>Search</Typography>
+                <TextField
+                  fullWidth
+                  placeholder="Title, company, etc."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                  sx={{ mb: 4 }}
+                />
+
+                <Typography variant="h6" sx={{ fontWeight: 800 }} gutterBottom>Work Type</Typography>
+                <TextField
+                  select
+                  fullWidth
+                  value={workType}
+                  onChange={(e) => setWorkType(e.target.value)}
+                  sx={{ mb: 4 }}
+                >
+                  <MenuItem value="All">All Types</MenuItem>
+                  <MenuItem value="REMOTE">Remote</MenuItem>
+                  <MenuItem value="ON_SITE">On-site</MenuItem>
+                  <MenuItem value="HYBRID">Hybrid</MenuItem>
+                </TextField>
+
+                <Typography variant="h6" sx={{ fontWeight: 800 }} gutterBottom>Sort By</Typography>
+                <TextField
+                  select
+                  fullWidth
+                  defaultValue="newest"
+                >
+                  <MenuItem value="newest">Newest First</MenuItem>
+                  <MenuItem value="upvotes">Most Upvoted</MenuItem>
+                </TextField>
+              </Paper>
+
+              <Card sx={{ bgcolor: 'background.inverse', color: 'white', p: 4 }}>
+                <Typography variant="h6" sx={{ fontWeight: 800 }} gutterBottom>Developer Forum</Typography>
+                <Typography variant="body2" sx={{ opacity: 0.8, mb: 3 }}>
+                  Join the conversation about salary, culture, and interview tips.
+                </Typography>
+                <Button variant="contained" fullWidth sx={{ fontWeight: 800 }}>Go to Forum</Button>
+              </Card>
+            </Stack>
+          </Grid>
+
+          {/* Job List */}
+          <Grid size={{ xs: 12, md: 9 }}>
+            {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+            
+            <Stack spacing={3}>
+              {isLoading ? (
+                [1, 2, 3, 4, 5].map(i => (
+                  <Card key={i} sx={{ p: 4 }}>
+                    <Grid container spacing={3}>
+                      <Grid size={{ xs: 12, md: 8 }}>
+                        <Skeleton variant="text" width="60%" height={40} sx={{ mb: 1 }} />
+                        <Skeleton variant="text" width="40%" sx={{ mb: 3 }} />
+                        <Stack direction="row" spacing={1}>
+                          <Skeleton variant="rectangular" width={60} height={24} />
+                          <Skeleton variant="rectangular" width={60} height={24} />
+                        </Stack>
+                      </Grid>
+                    </Grid>
+                  </Card>
+                ))
+              ) : jobs.length === 0 ? (
+                <Paper sx={{ p: 8, textAlign: 'center', borderRadius: 4 }}>
+                  <Typography variant="h5" color="text.secondary">No jobs found matching your criteria.</Typography>
+                </Paper>
+              ) : (
+                jobs.map((job) => (
+                  <Card 
+                    key={job.id} 
+                    sx={{ 
+                      p: 1,
+                      '&:hover': { transform: 'translateY(-2px)' }
+                    }}
+                  >
+                    <CardContent sx={{ p: 4 }}>
+                      <Grid container spacing={3}>
+                        <Grid size={{ xs: 12, md: 8 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                            <Typography 
+                              variant="h4" 
+                              component={Link} 
+                              href={`/jobs/${job.id}`}
+                              sx={{ fontWeight: 800, color: 'text.primary', textDecoration: 'none', '&:hover': { color: 'primary.main' } }}
+                            >
+                              {job.title}
+                            </Typography>
+                            {job.status === 'OPEN' && <VerifiedIcon color="primary" fontSize="small" />}
+                          </Box>
+                          <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 600, mb: 3 }}>
+                            {job.companyName} • {job.locationCity}, {job.locationCountry}
+                          </Typography>
+                          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                            <Chip label={formatJobType(job.jobType)} size="small" variant="outlined" sx={{ fontWeight: 700, borderRadius: 1.5 }} />
+                            <Chip label={job.workType} size="small" sx={{ borderRadius: 1.5 }} />
+                            {job.tags.slice(0, 3).map(tag => (
+                              <Chip key={tag} label={tag} size="small" variant="outlined" sx={{ borderRadius: 1.5 }} />
+                            ))}
+                          </Stack>
+                        </Grid>
+                        
+                        <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', alignItems: { md: 'flex-end' }, justifyContent: 'space-between' }}>
+                          <Stack direction="row" spacing={1}>
+                            <Tooltip title="Upvote">
+                              <IconButton 
+                                onClick={(e) => handleUpvote(job.id, e)}
+                                color={upvotedJobs.has(job.id) ? 'primary' : 'default'}
+                                sx={{ bgcolor: upvotedJobs.has(job.id) ? 'primary.light' : 'background.subtle' }}
+                              >
+                                <ThumbUpIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Downvote">
+                              <IconButton 
+                                onClick={(e) => handleDownvote(job.id, e)}
+                                color={downvotedJobs.has(job.id) ? 'error' : 'default'}
+                                sx={{ bgcolor: downvotedJobs.has(job.id) ? 'error.light' : 'background.subtle' }}
+                              >
+                                <ThumbDownIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Report Job">
+                              <IconButton sx={{ bgcolor: 'background.subtle' }}>
+                                <FlagIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
+                          
+                          <Box sx={{ width: '100%', textAlign: { md: 'right' }, mt: 2 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main', mb: 2 }}>
+                              {job.workType}
+                            </Typography>
+                            {user?.role === 'DEVELOPER' ? (
+                              <Button 
+                                variant="contained" 
+                                fullWidth 
+                                component={Link}
+                                href={`/jobs/${job.id}`}
+                                sx={{ borderRadius: 2, fontWeight: 800 }}
+                              >
+                                Apply Now
+                              </Button>
+                            ) : job.postedById === user?.id ? (
+                              <Button 
+                                variant="outlined" 
+                                fullWidth 
+                                component={Link}
+                                href={`/jobs/${job.id}/applications`}
+                                sx={{ borderRadius: 2, fontWeight: 800 }}
+                              >
+                                Manage Applications
+                              </Button>
+                            ) : (
+                              <Button 
+                                variant="outlined" 
+                                fullWidth 
+                                component={Link}
+                                href={`/jobs/${job.id}`}
+                                sx={{ borderRadius: 2, fontWeight: 800 }}
+                              >
+                                View Opportunity
+                              </Button>
+                            )}
+                          </Box>
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </Stack>
+          </Grid>
+        </Grid>
+      </Container>
+    </Box>
+  );
+}
+

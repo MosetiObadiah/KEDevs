@@ -400,10 +400,15 @@ public class JobService {
         List<String> tags = jobTagRepository.findByJobId(job.getId())
                 .stream().map(JobTag::getTag).toList();
 
+        String posterEmail = userRepository.findById(job.getPostedById())
+                .map(User::getEmail)
+                .orElse("Unknown");
+
         return new JobPostResponse(
                 job.getId(),
                 job.getPostedById(),
                 posterName,
+                posterEmail,
                 job.getTitle(),
                 job.getSummary(),
                 job.getDescription(),

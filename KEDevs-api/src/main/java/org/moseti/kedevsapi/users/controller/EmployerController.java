@@ -28,6 +28,22 @@ import java.util.UUID;
 public class EmployerController {
 
     private final EmployerProfileService employerProfileService;
+    
+    // --- Public Profiles ---
+
+    @Operation(summary = "List all approved employer profiles (public)")
+    @GetMapping("/public")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<UserDtos.EmployerProfileResponse>>> getPublicProfiles(
+            @org.springframework.data.web.PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Employer profiles fetched", employerProfileService.getPublicProfiles(pageable)));
+    }
+
+    @Operation(summary = "Get a single employer profile by ID (public)")
+    @GetMapping("/public/{id}")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.EmployerProfileResponse>> getPublicProfileById(
+            @Parameter(description = "ID of the employer profile") @PathVariable UUID id) {
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Employer profile fetched", employerProfileService.getPublicProfileById(id)));
+    }
 
     @Operation(summary = "Create employer profile", description = "Requires EMPLOYER role.")
     @ApiResponses({
