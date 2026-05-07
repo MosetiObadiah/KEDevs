@@ -1,10 +1,11 @@
 // src/app/jobs/page.tsx
 'use client';
-import React, { useEffect, useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
-  Box,
   Container,
+  Box,
   Typography,
   Grid,
   Card,
@@ -14,197 +15,318 @@ import {
   MenuItem,
   Stack,
   InputAdornment,
+  IconButton,
+  Button,
+  Tooltip,
+  Paper,
   Skeleton,
+  Alert,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import ThumbUpIcon from '@mui/icons-material/ThumbUp';
+import ThumbDownIcon from '@mui/icons-material/ThumbDown';
+import FlagIcon from '@mui/icons-material/Flag';
 import VerifiedIcon from '@mui/icons-material/Verified';
+import { useAuth } from '@/context/AuthContext';
+import { PillBadge } from '@/components/shared/PillBadge';
 import { jobService } from '@/services/jobService';
 import { JobSummary } from '@/lib/types';
 
 export default function JobsPage() {
+  const { user, isLoggedIn } = useAuth();
   const [jobs, setJobs] = useState<JobSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [workType, setWorkType] = useState('All');
-  const [sortBy, setSortBy] = useState('newest');
+  const [upvotedJobs, setUpvotedJobs] = useState<Set<string>>(new Set());
+  const [downvotedJobs, setDownvotedJobs] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchJobs = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const query: Record<string, string> = { page: '0', size: '20' };
-        if (searchTerm.trim()) query.title = searchTerm.trim();
-        if (workType !== 'All') query.workType = workType;
-
-        const response = await jobService.getJobs(query);
+        const response = await jobService.getJobs({
+          page: 0,
+          size: 20,
+          title: searchTerm,
+          workType: workType === 'All' ? undefined : workType
+        });
         if (response.success) {
           setJobs(response.data.content);
         }
-      } catch (err) {
+      } catch (err: any) {
+        setError('Failed to fetch jobs. Please try again later.');
         console.error(err);
-        setError('Unable to load jobs right now. Please try again later.');
       } finally {
         setIsLoading(false);
       }
     };
 
-    const timer = setTimeout(fetchJobs, 400);
+    const timer = setTimeout(() => {
+      fetchJobs();
+    }, 500);
+
     return () => clearTimeout(timer);
   }, [searchTerm, workType]);
 
-  const sortedJobs = React.useMemo(() => {
-    return [...jobs].sort((a, b) => {
-      if (sortBy === 'upvotes') {
-        return b.upvoteCount - a.upvoteCount;
-      }
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-  }, [jobs, sortBy]);
+  const handleUpvote = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isLoggedIn) return; // TODO: Show login prompt
 
-  const formatWorkType = (value: string) => {
-    return value.replace('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    const newUpvoted = new Set(upvotedJobs);
+    if (newUpvoted.has(id)) {
+      newUpvoted.delete(id);
+    } else {
+      newUpvoted.add(id);
+      const newDownvoted = new Set(downvotedJobs);
+      newDownvoted.delete(id);
+      setDownvotedJobs(newDownvoted);
+    }
+    setUpvotedJobs(newUpvoted);
+  };
+
+  const handleDownvote = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isLoggedIn) return; // TODO: Show login prompt
+
+    const newDownvoted = new Set(downvotedJobs);
+    if (newDownvoted.has(id)) {
+      newDownvoted.delete(id);
+    } else {
+      newDownvoted.add(id);
+      const newUpvoted = new Set(upvotedJobs);
+      newUpvoted.delete(id);
+      setUpvotedJobs(newUpvoted);
+    }
+    setDownvotedJobs(newDownvoted);
+  };
+
+  const formatJobType = (type: string) => {
+    return type.replace('_', '-').toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 6 }}>
-      <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 800 }}>
-        Browse <Box component="span" sx={{ color: 'primary.main' }}>Jobs</Box>
-      </Typography>
-      
-      {/* Filters */}
-      <Box sx={{ mb: 6, p: 3, bgcolor: 'white', borderRadius: 2, boxShadow: 1 }}>
-        <Grid container spacing={2} sx={{ alignItems: 'center' }}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <TextField
-              fullWidth
-              placeholder="Search by title or company..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon color="action" />
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 3 }}>
-            <TextField
-              select
-              fullWidth
-              label="Work Type"
-              value={workType}
-              onChange={(e) => setWorkType(e.target.value)}
-            >
-              <MenuItem value="All">All Types</MenuItem>
-              <MenuItem value="REMOTE">Remote</MenuItem>
-              <MenuItem value="ON_SITE">On-site</MenuItem>
-              <MenuItem value="HYBRID">Hybrid</MenuItem>
-            </TextField>
-          </Grid>
-          <Grid size={{ xs: 12, md: 3 }}>
-            <TextField
-              select
-              fullWidth
-              label="Sort By"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-            >
-              <MenuItem value="newest">Newest First</MenuItem>
-              <MenuItem value="upvotes">Most Upvoted</MenuItem>
-            </TextField>
-          </Grid>
-        </Grid>
-      </Box>
-
-      {error && (
-        <Box sx={{ mb: 4 }}>
-          <Typography color="error.main" sx={{ fontWeight: 700 }}>{error}</Typography>
-        </Box>
-      )}
-
-      <Stack spacing={3}>
-        {isLoading ? (
-          [1, 2, 3, 4].map((placeholder) => (
-            <Card key={placeholder} sx={{ p: 3 }}>
-              <Stack spacing={2}>
-                <Skeleton variant="text" width="40%" height={36} />
-                <Skeleton variant="text" width="30%" />
-                <Skeleton variant="rectangular" height={120} sx={{ borderRadius: 2 }} />
-              </Stack>
-            </Card>
-          ))
-        ) : sortedJobs.length > 0 ? (
-          sortedJobs.map((job) => (
-            <Card 
-              key={job.id} 
-              component={Link} 
-              href={`/jobs/${job.id}`}
-              sx={{ 
-                textDecoration: 'none',
-                transition: 'border-color 0.2s',
-                border: '1px solid transparent',
-                '&:hover': { borderColor: 'primary.main' }
-              }}
-            >
-              <CardContent sx={{ p: 3 }}>
-                <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, md: 8 }}>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, mb: 1 }}>
-                      <Typography variant="h5" component="h2" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                        {job.title}
-                      </Typography>
-                      {job.status === 'OPEN' && <VerifiedIcon color="primary" fontSize="small" />}
-                    </Box>
-                    <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-                      {job.companyName} • {job.locationCity}, {job.locationCountry}
-                    </Typography>
-                    <Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: 'wrap' }}>
-                      <Chip label={formatWorkType(job.jobType)} size="small" variant="outlined" />
-                      <Chip label={formatWorkType(job.workType)} size="small" />
-                      {job.tags.slice(0, 3).map((tag) => (
-                        <Chip key={tag} label={tag} size="small" variant="outlined" />
-                      ))}
-                    </Stack>
-                  </Grid>
-
-                  <Grid size={{ xs: 12, md: 4 }}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center', textAlign: { xs: 'left', md: 'right' } }}>
-                      <Typography variant="h6" color="primary.main" sx={{ fontWeight: 700 }}>
-                        {job.upvoteCount} Upvotes
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        Posted {new Date(job.createdAt).toLocaleDateString()}
-                      </Typography>
-                      <Typography 
-                        variant="button" 
-                        sx={{ 
-                          color: 'primary.main', 
-                          fontWeight: 700,
-                          '&:hover': { textDecoration: 'underline' }
-                        }}
-                      >
-                        Sign up to apply →
-                      </Typography>
-                    </Box>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          <Box sx={{ textAlign: 'center', py: 10 }}>
-            <Typography variant="h6" color="text.secondary">
-              No jobs found matching your criteria.
+    <Box sx={{ bgcolor: 'background.subtle', minHeight: '100vh', py: 8 }}>
+      <Container maxWidth="xl">
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 6 }}>
+          <Box>
+            <PillBadge variant="mint">OPPORTUNITIES</PillBadge>
+            <Typography variant="h2" sx={{ mt: 2 }}>
+              Job <Box component="span" sx={{ color: 'primary.main' }}>Board</Box>
             </Typography>
           </Box>
-        )}
-      </Stack>
-    </Container>
+          {isLoggedIn && (
+            <Button 
+              variant="contained" 
+              color="primary" 
+              size="large"
+              component={Link} 
+              href="/jobs/post"
+              sx={{ borderRadius: 2.5, fontWeight: 800, px: 4, py: 1.5 }}
+            >
+              Post a Job
+            </Button>
+          )}
+        </Box>
+        
+        <Grid container spacing={4}>
+          {/* Filters Sidebar */}
+          <Grid size={{ xs: 12, md: 3 }}>
+            <Stack spacing={3}>
+              <Paper sx={{ p: 4, borderRadius: 4 }}>
+                <Typography variant="h6" sx={{ fontWeight: 800 }} gutterBottom>Search</Typography>
+                <TextField
+                  fullWidth
+                  placeholder="Title, company, etc."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                  sx={{ mb: 4 }}
+                />
+
+                <Typography variant="h6" sx={{ fontWeight: 800 }} gutterBottom>Work Type</Typography>
+                <TextField
+                  select
+                  fullWidth
+                  value={workType}
+                  onChange={(e) => setWorkType(e.target.value)}
+                  sx={{ mb: 4 }}
+                  slotProps={{
+                    select: {
+                      MenuProps: {
+                        slotProps: {
+                          paper: {
+                            sx: {
+                              maxHeight: 300,
+                              overflow: 'auto'
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }}
+                >
+                  <MenuItem value="All">All Types</MenuItem>
+                  <MenuItem value="REMOTE">Remote</MenuItem>
+                  <MenuItem value="ON_SITE">On-site</MenuItem>
+                  <MenuItem value="HYBRID">Hybrid</MenuItem>
+                </TextField>
+
+                <Typography variant="h6" sx={{ fontWeight: 800 }} gutterBottom>Sort By</Typography>
+                <TextField
+                  select
+                  fullWidth
+                  defaultValue="newest"
+                  slotProps={{
+                    select: {
+                      MenuProps: {
+                        slotProps: {
+                          paper: {
+                            sx: {
+                              maxHeight: 300,
+                              overflow: 'auto'
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }}
+                >
+                  <MenuItem value="newest">Newest First</MenuItem>
+                  <MenuItem value="upvotes">Most Upvoted</MenuItem>
+                </TextField>
+              </Paper>
+
+
+            </Stack>
+          </Grid>
+
+          {/* Job List */}
+          <Grid size={{ xs: 12, md: 9 }}>
+            {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+            
+            <Stack spacing={3}>
+              {isLoading ? (
+                [1, 2, 3, 4, 5].map(i => (
+                  <Card key={i} sx={{ p: 4 }}>
+                    <Grid container spacing={3}>
+                      <Grid size={{ xs: 12, md: 8 }}>
+                        <Skeleton variant="text" width="60%" height={40} sx={{ mb: 1 }} />
+                        <Skeleton variant="text" width="40%" sx={{ mb: 3 }} />
+                        <Stack direction="row" spacing={1}>
+                          <Skeleton variant="rectangular" width={60} height={24} />
+                          <Skeleton variant="rectangular" width={60} height={24} />
+                        </Stack>
+                      </Grid>
+                    </Grid>
+                  </Card>
+                ))
+              ) : jobs.length === 0 ? (
+                <Paper sx={{ p: 8, textAlign: 'center', borderRadius: 4 }}>
+                  <Typography variant="h5" color="text.secondary">No jobs found matching your criteria.</Typography>
+                </Paper>
+              ) : (
+                jobs.map((job) => (
+                  <Card 
+                    key={job.id} 
+                    sx={{ 
+                      p: 1,
+                      transition: 'transform 0.2s',
+                      '&:hover': { transform: 'translateY(-2px)' }
+                    }}
+                  >
+                    <CardContent sx={{ p: 4 }}>
+                      <Grid container spacing={3}>
+                        <Grid size={{ xs: 12, md: 8 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                            <Typography 
+                              variant="h4" 
+                              component={Link} 
+                              href={`/jobs/${job.id}`}
+                              sx={{ fontWeight: 800, color: 'text.primary', textDecoration: 'none', '&:hover': { color: 'primary.main' } }}
+                            >
+                              {job.title}
+                            </Typography>
+                            {job.status === 'OPEN' && <VerifiedIcon color="primary" fontSize="small" />}
+                          </Box>
+                          <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 600, mb: 3 }}>
+                            {job.companyName} • {job.locationCity}, {job.locationCountry}
+                          </Typography>
+                          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+                            <Chip label={formatJobType(job.jobType)} size="small" variant="outlined" sx={{ fontWeight: 700, borderRadius: 1.5 }} />
+                            <Chip label={job.workType} size="small" sx={{ borderRadius: 1.5 }} />
+                            {job.tags.slice(0, 3).map(tag => (
+                              <Chip key={tag} label={tag} size="small" variant="outlined" sx={{ borderRadius: 1.5 }} />
+                            ))}
+                          </Stack>
+                        </Grid>
+                        
+                        <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', alignItems: { md: 'flex-end' }, justifyContent: 'space-between' }}>
+                          <Stack direction="row" spacing={1}>
+                            <Tooltip title={isLoggedIn ? "Upvote" : "Login to upvote"}>
+                              <IconButton 
+                                onClick={(e) => handleUpvote(job.id, e)}
+                                color={upvotedJobs.has(job.id) ? 'primary' : 'default'}
+                                disabled={!isLoggedIn}
+                                sx={{ bgcolor: upvotedJobs.has(job.id) ? 'primary.light' : 'background.subtle' }}
+                              >
+                                <ThumbUpIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title={isLoggedIn ? "Downvote" : "Login to downvote"}>
+                              <IconButton 
+                                onClick={(e) => handleDownvote(job.id, e)}
+                                color={downvotedJobs.has(job.id) ? 'error' : 'default'}
+                                disabled={!isLoggedIn}
+                                sx={{ bgcolor: downvotedJobs.has(job.id) ? 'error.light' : 'background.subtle' }}
+                              >
+                                <ThumbDownIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Report Job">
+                              <IconButton sx={{ bgcolor: 'background.subtle' }} disabled={!isLoggedIn}>
+                                <FlagIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
+                          
+                          <Box sx={{ width: '100%', textAlign: { md: 'right' }, mt: 2 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main', mb: 2 }}>
+                              {job.upvoteCount} Upvotes
+                            </Typography>
+                            <Button 
+                              variant={user?.role === 'DEVELOPER' ? 'contained' : 'outlined'} 
+                              fullWidth 
+                              component={Link}
+                              href={isLoggedIn ? `/jobs/${job.id}` : '/register'}
+                              sx={{ borderRadius: 2, fontWeight: 800 }}
+                            >
+                              {isLoggedIn ? (user?.role === 'DEVELOPER' ? 'Apply Now' : 'View Details') : 'Register to Apply'}
+                            </Button>
+                          </Box>
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </Stack>
+          </Grid>
+        </Grid>
+      </Container>
+    </Box>
   );
 }

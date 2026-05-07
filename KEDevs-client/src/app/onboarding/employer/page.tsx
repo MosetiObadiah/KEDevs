@@ -139,10 +139,12 @@ export default function EmployerOnboarding() {
                     slotProps={{
                       select: {
                         MenuProps: {
-                          PaperProps: {
-                            sx: {
-                              maxHeight: 300,
-                              overflow: 'auto'
+                          slotProps: {
+                            paper: {
+                              sx: {
+                                maxHeight: 300,
+                                overflow: 'auto'
+                              }
                             }
                           }
                         }
@@ -166,10 +168,12 @@ export default function EmployerOnboarding() {
                     slotProps={{
                       select: {
                         MenuProps: {
-                          PaperProps: {
-                            sx: {
-                              maxHeight: 300,
-                              overflow: 'auto'
+                          slotProps: {
+                            paper: {
+                              sx: {
+                                maxHeight: 300,
+                                overflow: 'auto'
+                              }
                             }
                           }
                         }
@@ -246,10 +250,12 @@ export default function EmployerOnboarding() {
                     slotProps={{
                       select: {
                         MenuProps: {
-                          PaperProps: {
-                            sx: {
-                              maxHeight: 300,
-                              overflow: 'auto'
+                          slotProps: {
+                            paper: {
+                              sx: {
+                                maxHeight: 300,
+                                overflow: 'auto'
+                              }
                             }
                           }
                         }
@@ -289,20 +295,22 @@ export default function EmployerOnboarding() {
                 Approval usually takes less than 24 hours.
               </Typography>
               <FormControlLabel
+                sx={{ alignItems: 'flex-start', mt: 2 }}
                 control={
                   <Checkbox 
+                    size="small"
                     checked={agreedToTerms} 
                     onChange={(e) => setAgreedToTerms(e.target.checked)}
                     color="primary"
                     required
+                    sx={{ pt: 0.5 }}
                   />
                 }
                 label={
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary" sx={{ pt: 0.5, textAlign: 'left' }}>
                     I agree to the <Link href="/terms" style={{ color: 'inherit', fontWeight: 700 }}>Terms of Service</Link> and <Link href="/privacy" style={{ color: 'inherit', fontWeight: 700 }}>Privacy Policy</Link>.
                   </Typography>
                 }
-                sx={{ mt: 2 }}
               />
             </Stack>
           )}

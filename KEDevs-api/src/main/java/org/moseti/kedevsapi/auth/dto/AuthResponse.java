@@ -26,6 +26,7 @@ public class AuthResponse {
     private Role role;
     private boolean emailVerified;
     private boolean requiresApproval;
+    private boolean onboarded;
     private boolean inGracePeriod;
 }
 

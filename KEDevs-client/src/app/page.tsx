@@ -315,70 +315,6 @@ export default function HomePage() {
         </Container>
       </Box>
 
-      {/* Contact Section */}
-      <Box sx={{ bgcolor: 'background.subtle', py: { xs: 10, md: 14 } }}>
-        <Container maxWidth="md">
-          <Box sx={{ mb: 6, textAlign: 'center' }}>
-            <Typography variant="h2" sx={{ mb: 3, fontWeight: 900 }}>
-              Get in Touch
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 5, fontSize: '1.1rem' }}>
-              Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
-            </Typography>
-          </Box>
-
-          <Card sx={{ p: 4, boxShadow: 3 }}>
-            <form onSubmit={handleContactSubmit}>
-              <Stack spacing={3}>
-                <TextField
-                  fullWidth
-                  label="Your Name"
-                  variant="outlined"
-                  value={contactForm.name}
-                  onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
-                  required
-                />
-                <TextField
-                  fullWidth
-                  label="Your Email"
-                  type="email"
-                  variant="outlined"
-                  value={contactForm.email}
-                  onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                  required
-                />
-                <TextField
-                  fullWidth
-                  label="Subject"
-                  variant="outlined"
-                  value={contactForm.subject}
-                  onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
-                  required
-                />
-                <TextField
-                  fullWidth
-                  label="Message"
-                  multiline
-                  rows={5}
-                  variant="outlined"
-                  value={contactForm.message}
-                  onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                  required
-                />
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  size="large"
-                  sx={{ fontWeight: 800, py: 1.5, borderRadius: 2 }}
-                >
-                  Send us a message
-                </Button>
-              </Stack>
-            </form>
-          </Card>
-        </Container>
-      </Box>
 
       {/* CTA Section */}
       <Box sx={{ bgcolor: 'background.inverse', color: 'white', py: { xs: 10, md: 14 } }}>
@@ -399,16 +335,6 @@ export default function HomePage() {
               sx={{ px: 6, py: 2, fontWeight: 800, borderRadius: 2 }}
             >
               Post a Job for Free
-            </Button>
-            <Button 
-              variant="outlined" 
-              color="inherit" 
-              size="large"
-              component={Link}
-              href="/hiring-assist"
-              sx={{ px: 6, py: 2, fontWeight: 800, borderRadius: 2 }}
-            >
-              Hiring Assist
             </Button>
           </Stack>
         </Container>

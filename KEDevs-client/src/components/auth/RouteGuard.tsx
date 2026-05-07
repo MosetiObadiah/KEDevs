@@ -4,6 +4,7 @@
 import React, { useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
+import { Box, CircularProgress } from '@mui/material';
 
 const publicRoutes = ['/', '/login', '/register', '/jobs', '/developers', '/companies', '/contact', '/verify-email', '/reset-password'];
 const devOnboarding = '/onboarding/developer';
@@ -11,14 +12,16 @@ const empOnboarding = '/onboarding/employer';
 const pendingApproval = '/pending-approval';
 
 export function RouteGuard({ children }: { children: React.ReactNode }) {
-  const { isLoggedIn, isOnboarded, user } = useAuth();
+  const { isLoggedIn, isOnboarded, user, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
+  const isPublicRoute = publicRoutes.some(route => 
+    pathname === route || pathname.startsWith(`${route}/`)
+  );
+
   useEffect(() => {
-    const isPublicRoute = publicRoutes.some(route => 
-      pathname === route || pathname.startsWith(`${route}/`)
-    );
+    if (isLoading) return;
 
     if (isLoggedIn && user) {
       const isDev = user.role === 'DEVELOPER';
@@ -49,18 +52,44 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
 
       // 4. Prevent accessing onboarding/pending if already done
       if (isOnboarded && (pathname === devOnboarding || pathname === empOnboarding)) {
-        router.push('/feed');
+        router.push('/developers');
         return;
       }
       if (isEmp && user.isApproved && pathname === pendingApproval) {
-        router.push('/feed');
+        router.push('/developers');
         return;
       }
 
     } else if (!isPublicRoute) {
       router.push('/login');
     }
-  }, [isLoggedIn, isOnboarded, user, pathname, router]);
+  }, [isLoggedIn, isOnboarded, user, pathname, router, isLoading, isPublicRoute]);
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  // Prevent flash of protected content
+  if (!isLoggedIn && !isPublicRoute) {
+    return null;
+  }
+
+  // Prevent flash of protected content if onboarding is required
+  if (isLoggedIn && user && user.role !== 'ADMIN' && !isOnboarded) {
+    const onboardingPath = user.role === 'DEVELOPER' ? devOnboarding : empOnboarding;
+    if (pathname !== onboardingPath) {
+      return null;
+    }
+  }
+
+  // Prevent flash for Employers awaiting approval
+  if (isLoggedIn && user && user.role === 'EMPLOYER' && isOnboarded && !user.isApproved && pathname !== pendingApproval && pathname !== empOnboarding) {
+    return null;
+  }
 
   return <>{children}</>;
 }

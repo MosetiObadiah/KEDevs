@@ -13,6 +13,8 @@ import org.moseti.kedevsapi.shared.enums.Role;
 import org.moseti.kedevsapi.shared.exception.ResourceNotFoundException;
 import org.moseti.kedevsapi.shared.util.Constants;
 import org.moseti.kedevsapi.users.entity.User;
+import org.moseti.kedevsapi.users.repository.DeveloperProfileRepository;
+import org.moseti.kedevsapi.users.repository.EmployerProfileRepository;
 import org.moseti.kedevsapi.users.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,8 @@ public class AuthService {
     private final VerificationCodeService verificationCodeService;
     private final EmailService emailService;
     private final GoogleOAuthService googleOAuthService;
+    private final DeveloperProfileRepository developerProfileRepository;
+    private final EmployerProfileRepository employerProfileRepository;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -328,6 +332,13 @@ public class AuthService {
                                 user.getGracePeriodEndsAt().isAfter(now) &&
                                 !user.isSubscriptionActive();
 
+        boolean onboarded = false;
+        if (user.getRole() == Role.DEVELOPER) {
+            onboarded = developerProfileRepository.existsByUserId(user.getId());
+        } else if (user.getRole() == Role.EMPLOYER) {
+            onboarded = employerProfileRepository.existsByUserId(user.getId());
+        }
+
         return AuthResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
@@ -337,6 +348,7 @@ public class AuthService {
                 .role(user.getRole())
                 .emailVerified(user.isEmailVerified())
                 .requiresApproval(user.getRole() == Role.EMPLOYER && !user.isApprovedByAdmin())
+                .onboarded(onboarded)
                 .inGracePeriod(inGracePeriod)
                 .build();
     }

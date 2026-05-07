@@ -37,9 +37,9 @@ const Navbar = () => {
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
 
-  const isDev = user?.userType === 'DEVELOPER';
-  const isEmp = user?.userType === 'EMPLOYER';
-  const isAdmin = user?.userType === 'ADMIN';
+  const isDev = user?.role === 'DEVELOPER';
+  const isEmp = user?.role === 'EMPLOYER';
+  const isAdmin = user?.role === 'ADMIN';
 
   const navItems = [
     { label: 'Jobs', href: '/jobs' },
@@ -203,7 +203,7 @@ const Navbar = () => {
                 >
                   <Box sx={{ px: 2, py: 1.5, minWidth: 200 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>{user?.name}</Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>{user?.userType} ACCOUNT</Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>{user?.role} ACCOUNT</Typography>
                   </Box>
                   <Divider />
                   <MenuItem onClick={() => handleNavigate('/profile/me')}>
