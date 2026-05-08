@@ -52,9 +52,10 @@ export interface DeveloperSpotlightCard {
   featuredProjects: {
     title: string;
     description: string;
-    techStack: string;
+    techStack: string[];
     projectUrl: string;
     repoUrl: string;
+    screenshotUrl?: string;
   }[];
 }
 

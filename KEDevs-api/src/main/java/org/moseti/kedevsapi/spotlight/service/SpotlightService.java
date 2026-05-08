@@ -234,7 +234,7 @@ public class SpotlightService {
                 .orElse("Unknown Developer");
 
         List<FeaturedProject> featuredProjects = developerProjectRepository
-                .findByDeveloperIdAndIsFeatured(developerId, true).stream()
+                .findByDeveloperIdAndIsFeatured(profile.getId(), true).stream()
                 .limit(3)
                 .map(p -> {
                     List<String> techStackList = p.getTechStack() != null && !p.getTechStack().isBlank()
@@ -248,7 +248,8 @@ public class SpotlightService {
                             p.getDescription(),
                             techStackList,
                             p.getProjectUrl(),
-                            p.getRepoUrl()
+                            p.getRepoUrl(),
+                            p.getScreenshotUrl()
                     );
                 })
                 .toList();

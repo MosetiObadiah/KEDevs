@@ -16,7 +16,8 @@ public class SpotlightDtos {
             String description,
             java.util.List<String> techStack,
             String projectUrl,
-            String repoUrl
+            String repoUrl,
+            String screenshotUrl
     ) {}
 
     public record DeveloperSpotlightCard(

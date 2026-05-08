@@ -399,29 +399,27 @@ export default function MyProfile() {
       }
       loadProfile(false);
     } catch (err) {
-      console.error(err);
-      alert('Failed to remove item.');
+      console.error('Failed to remove item', err);
     } finally {
       setIsRefreshing(false);
     }
   };
 
-
-  const handleToggleFeaturedProject = async (projectId: string, currentFeatured: boolean) => {
+  const handleToggleFeatured = async (projectId: string, currentFeatured: boolean) => {
     if (!currentFeatured) {
       const project = profile.projects.find((p: any) => p.id === projectId);
       if (project && (!project.projectUrl || !project.screenshotUrl)) {
-        alert('A project screenshot and Live URL are required to feature this project.');
+        toast.error('A project screenshot and Live URL are required to feature this project.');
         return;
       }
     }
     try {
       setIsRefreshing(true);
       await developerService.toggleFeaturedProject(projectId, !currentFeatured);
+      toast.success(!currentFeatured ? 'Project featured!' : 'Project unfeatured');
       loadProfile(false);
     } catch (err: any) {
-      console.error(err);
-      alert(err.message || 'Failed to toggle featured status.');
+      toast.error(err.message || 'Failed to update project status');
     } finally {
       setIsRefreshing(false);
     }
@@ -802,16 +800,32 @@ export default function MyProfile() {
                         </Grid>
                         <Grid size={{ xs: 12, md: 7 }}>
                           <CardContent sx={{ p: 4 }}>
-                             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                               <Typography variant="h5" sx={{ fontWeight: 900 }}>{project.title}</Typography>
-                               <IconButton color="error" onClick={() => handleRemoveItem('project', project.id)}><DeleteIcon /></IconButton>
+                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                               <Box>
+                                 <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1 }}>
+                                    <Typography variant="h5" sx={{ fontWeight: 900 }}>{project.title}</Typography>
+                                    {project.isFeatured && <PillBadge variant="mint">FEATURED</PillBadge>}
+                                 </Stack>
+                                 <Typography variant="body2" color="text.secondary">{project.description}</Typography>
+                               </Box>
+                               <Stack direction="row">
+                                 <Tooltip title={project.isFeatured ? "Unfeature project" : "Feature this project (requires screenshot + live URL)"}>
+                                   <IconButton 
+                                     color={project.isFeatured ? "primary" : "default"} 
+                                     onClick={() => handleToggleFeatured(project.id, project.isFeatured)}
+                                   >
+                                     {project.isFeatured ? <StarIcon /> : <StarBorderIcon />}
+                                   </IconButton>
+                                 </Tooltip>
+                                 <IconButton color="error" onClick={() => handleRemoveItem('project', project.id)}><DeleteIcon /></IconButton>
+                               </Stack>
                              </Box>
-                             <Typography variant="body2" color="text.secondary" sx={{ my: 2 }}>{project.description}</Typography>
-                             <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-                               {project.projectUrl && <Button size="small" variant="contained" href={project.projectUrl} target="_blank">Live</Button>}
-                               {project.repoUrl && <Button size="small" variant="outlined" href={project.repoUrl} target="_blank">Repo</Button>}
-                               <Button size="small" variant="outlined" startIcon={<CloudUploadIcon />} component="label">
-                                 Screenshot
+                             
+                             <Stack direction="row" spacing={1} sx={{ mt: 3, flexWrap: 'wrap', gap: 1 }}>
+                               {project.projectUrl && <Button size="small" variant="contained" href={project.projectUrl} target="_blank" sx={{ borderRadius: 2 }}>Live Demo</Button>}
+                               {project.repoUrl && <Button size="small" variant="outlined" href={project.repoUrl} target="_blank" sx={{ borderRadius: 2 }}>Source Code</Button>}
+                               <Button size="small" variant="outlined" startIcon={<CloudUploadIcon />} component="label" sx={{ borderRadius: 2 }}>
+                                 {project.screenshotUrl ? 'Update Screenshot' : 'Upload Screenshot'}
                                  <input type="file" hidden accept="image/*" onChange={(e) => handleFileUpload('project', project.id, e)} />
                                </Button>
                              </Stack>
