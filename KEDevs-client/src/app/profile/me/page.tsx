@@ -68,6 +68,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { PillBadge } from '@/components/shared/PillBadge';
 import { developerService } from '@/services/developerService';
+import { employerService } from '@/services/employerService';
 
 const COMMON_SKILLS = [
   'React', 'Java', 'Docker', 'Node.js', 'Python', 'TypeScript', 'Spring Boot', 'AWS', 
@@ -183,7 +184,9 @@ export default function MyProfile() {
     
     setError(null);
     try {
-      const response = await developerService.getMyProfile();
+      const response = user?.role === 'EMPLOYER'
+        ? await employerService.getMyProfile()
+        : await developerService.getMyProfile();
       if (response.success) {
         setProfile(response.data);
       }
@@ -199,21 +202,40 @@ export default function MyProfile() {
   const handleUpdateBasicInfo = async () => {
     setIsSaving(true);
     try {
-      const response = await developerService.updateProfile({
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        bio: profile.bio,
-        currentLastRole: profile.currentLastRole,
-        yearsOfExperience: profile.yearsOfExperience,
-        preferredWorkType: profile.preferredWorkType,
-        locationCity: profile.locationCity,
-        locationCountry: profile.locationCountry,
-        linkedinUrl: profile.linkedinUrl,
-        githubUrl: profile.githubUrl,
-        portfolioUrl: profile.portfolioUrl,
-        publicEmail: profile.publicEmail,
-        publicPhone: profile.publicPhone,
-      });
+      const isEmp = user?.role === 'EMPLOYER';
+      const payload = isEmp
+        ? {
+            contactPersonName: profile.contactPersonName || user?.fullName || 'Employer',
+            companyName: profile.companyName,
+            companyWebsite: profile.companyWebsite,
+            industry: profile.industry,
+            companySize: profile.companySize || 'TEN_TO_FIFTY',
+            locationHQ: profile.locationHQ,
+            companyBio: profile.companyBio,
+            logoUrl: profile.logoUrl,
+            linkedinUrl: profile.linkedinUrl,
+            twitterUrl: profile.twitterUrl,
+          }
+        : {
+            firstName: profile.firstName,
+            lastName: profile.lastName,
+            bio: profile.bio,
+            currentLastRole: profile.currentLastRole,
+            yearsOfExperience: profile.yearsOfExperience,
+            preferredWorkType: profile.preferredWorkType,
+            locationCity: profile.locationCity,
+            locationCountry: profile.locationCountry,
+            linkedinUrl: profile.linkedinUrl,
+            githubUrl: profile.githubUrl,
+            portfolioUrl: profile.portfolioUrl,
+            publicEmail: profile.publicEmail,
+            publicPhone: profile.publicPhone,
+          };
+
+      const response = isEmp
+        ? await employerService.updateProfile(payload)
+        : await developerService.updateProfile(payload);
+
       if (response.success) {
         setIsEditing(false);
         setProfile({ ...profile, ...response.data });
@@ -483,89 +505,174 @@ export default function MyProfile() {
                   </Box>
                   <Box sx={{ pt: { md: 2 }, flexGrow: 1, width: '100%' }}>
                     {isEditing ? (
-                      <Stack spacing={2} sx={{ width: '100%' }}>
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                          <TextField
-                            size="small"
-                            label="First Name"
-                            value={profile.firstName || ''}
-                            onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
-                            fullWidth
-                          />
-                          <TextField
-                            size="small"
-                            label="Last Name"
-                            value={profile.lastName || ''}
-                            onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
-                            fullWidth
-                          />
+                      user?.role === 'EMPLOYER' ? (
+                        <Stack spacing={2} sx={{ width: '100%' }}>
+                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                            <TextField
+                              size="small"
+                              label="Company Name"
+                              value={profile.companyName || ''}
+                              onChange={(e) => setProfile({ ...profile, companyName: e.target.value })}
+                              fullWidth
+                            />
+                            <TextField
+                              size="small"
+                              label="Industry"
+                              value={profile.industry || ''}
+                              onChange={(e) => setProfile({ ...profile, industry: e.target.value })}
+                              fullWidth
+                            />
+                          </Stack>
+                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                            <TextField
+                              size="small"
+                              label="Contact Person Name"
+                              value={profile.contactPersonName || ''}
+                              onChange={(e) => setProfile({ ...profile, contactPersonName: e.target.value })}
+                              fullWidth
+                            />
+                            <TextField
+                              size="small"
+                              label="Website URL"
+                              value={profile.companyWebsite || ''}
+                              onChange={(e) => setProfile({ ...profile, companyWebsite: e.target.value })}
+                              fullWidth
+                            />
+                          </Stack>
+                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                            <TextField
+                              size="small"
+                              label="Headquarters Location"
+                              value={profile.locationHQ || ''}
+                              onChange={(e) => setProfile({ ...profile, locationHQ: e.target.value })}
+                              fullWidth
+                            />
+                            <FormControl fullWidth size="small">
+                              <InputLabel id="company-size-label">Company Size</InputLabel>
+                              <Select
+                                labelId="company-size-label"
+                                value={profile.companySize || 'TEN_TO_FIFTY'}
+                                label="Company Size"
+                                onChange={(e) => setProfile({ ...profile, companySize: e.target.value })}
+                              >
+                                <MenuItem value="ONE_TO_TEN">1-10 employees</MenuItem>
+                                <MenuItem value="TEN_TO_FIFTY">11-50 employees</MenuItem>
+                                <MenuItem value="FIFTY_TO_TWO_HUNDRED">51-200 employees</MenuItem>
+                                <MenuItem value="TWO_HUNDRED_PLUS">200+ employees</MenuItem>
+                              </Select>
+                            </FormControl>
+                          </Stack>
                         </Stack>
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                          <TextField
-                            size="small"
-                            label="Professional Title"
-                            value={profile.currentLastRole || ''}
-                            onChange={(e) => setProfile({ ...profile, currentLastRole: e.target.value })}
-                            fullWidth
-                          />
-                          <FormControl fullWidth size="small">
-                            <InputLabel id="years-of-experience-label">Years of Experience</InputLabel>
-                            <Select
-                              labelId="years-of-experience-label"
-                              value={profile.yearsOfExperience || 'ZERO_TO_ONE'}
-                              label="Years of Experience"
-                              onChange={(e) => setProfile({ ...profile, yearsOfExperience: e.target.value })}
-                            >
-                              <MenuItem value="ZERO_TO_ONE">0 to 1 Year</MenuItem>
-                              <MenuItem value="ONE_TO_THREE">1 to 3 Years</MenuItem>
-                              <MenuItem value="THREE_TO_FIVE">3 to 5 Years</MenuItem>
-                              <MenuItem value="FIVE_TO_TEN">5 to 10 Years</MenuItem>
-                              <MenuItem value="TEN_PLUS">10+ Years</MenuItem>
-                            </Select>
-                          </FormControl>
+                      ) : (
+                        <Stack spacing={2} sx={{ width: '100%' }}>
+                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                            <TextField
+                              size="small"
+                              label="First Name"
+                              value={profile.firstName || ''}
+                              onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
+                              fullWidth
+                            />
+                            <TextField
+                              size="small"
+                              label="Last Name"
+                              value={profile.lastName || ''}
+                              onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
+                              fullWidth
+                            />
+                          </Stack>
+                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                            <TextField
+                              size="small"
+                              label="Professional Title"
+                              value={profile.currentLastRole || ''}
+                              onChange={(e) => setProfile({ ...profile, currentLastRole: e.target.value })}
+                              fullWidth
+                            />
+                            <FormControl fullWidth size="small">
+                              <InputLabel id="years-of-experience-label">Years of Experience</InputLabel>
+                              <Select
+                                labelId="years-of-experience-label"
+                                value={profile.yearsOfExperience || 'ZERO_TO_ONE'}
+                                label="Years of Experience"
+                                onChange={(e) => setProfile({ ...profile, yearsOfExperience: e.target.value })}
+                              >
+                                <MenuItem value="ZERO_TO_ONE">0 to 1 Year</MenuItem>
+                                <MenuItem value="ONE_TO_THREE">1 to 3 Years</MenuItem>
+                                <MenuItem value="THREE_TO_FIVE">3 to 5 Years</MenuItem>
+                                <MenuItem value="FIVE_TO_TEN">5 to 10 Years</MenuItem>
+                                <MenuItem value="TEN_PLUS">10+ Years</MenuItem>
+                              </Select>
+                            </FormControl>
+                          </Stack>
+                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                            <TextField
+                              size="small"
+                              label="City"
+                              value={profile.locationCity || ''}
+                              onChange={(e) => setProfile({ ...profile, locationCity: e.target.value })}
+                              fullWidth
+                            />
+                            <TextField
+                              size="small"
+                              label="Country"
+                              value={profile.locationCountry || ''}
+                              onChange={(e) => setProfile({ ...profile, locationCountry: e.target.value })}
+                              fullWidth
+                            />
+                          </Stack>
                         </Stack>
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                          <TextField
-                            size="small"
-                            label="City"
-                            value={profile.locationCity || ''}
-                            onChange={(e) => setProfile({ ...profile, locationCity: e.target.value })}
-                            fullWidth
-                          />
-                          <TextField
-                            size="small"
-                            label="Country"
-                            value={profile.locationCountry || ''}
-                            onChange={(e) => setProfile({ ...profile, locationCountry: e.target.value })}
-                            fullWidth
-                          />
-                        </Stack>
-                      </Stack>
+                      )
                     ) : (
-                      <>
-                        <Stack direction="row" spacing={1} sx={{ mb: 1.5, justifyContent: { xs: 'center', md: 'flex-start' } }}>
-                          <PillBadge variant="mint">DEVELOPER PROFILE</PillBadge>
-                          <PillBadge variant="neutral">Years of Experience: {profile.yearsOfExperience?.replace(/_/g, ' ')}</PillBadge>
-                        </Stack>
-                        <Typography variant="h2" sx={{ fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.1, mb: 1 }}>
-                          {profile.firstName} {profile.lastName}
-                        </Typography>
-                        <Typography variant="h5" color="text.secondary" sx={{ fontWeight: 600, mb: 2, opacity: 0.8 }}>
-                          {profile.currentLastRole || 'Awaiting Role Definition'}
-                        </Typography>
-                        <Stack direction="row" spacing={3} sx={{ justifyContent: { xs: 'center', md: 'flex-start' } }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
-                            <LocationOnIcon fontSize="small" />
-                            <Typography sx={{ fontWeight: 700 }}>{profile.locationCity || 'Location'}, {profile.locationCountry || 'Kenya'}</Typography>
-                          </Box>
-                          {profile.publicEmail && (
+                      user?.role === 'EMPLOYER' ? (
+                        <>
+                          <Stack direction="row" spacing={1} sx={{ mb: 1.5, justifyContent: { xs: 'center', md: 'flex-start' } }}>
+                            <PillBadge variant="mint">EMPLOYER PROFILE</PillBadge>
+                            <PillBadge variant="neutral">Size: {profile.companySize?.replace(/_/g, ' ')}</PillBadge>
+                          </Stack>
+                          <Typography variant="h2" sx={{ fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.1, mb: 1 }}>
+                            {profile.companyName || 'My Company'}
+                          </Typography>
+                          <Typography variant="h5" color="text.secondary" sx={{ fontWeight: 600, mb: 2, opacity: 0.8 }}>
+                            {profile.industry || 'Tech / Software'}
+                          </Typography>
+                          <Stack direction="row" spacing={3} sx={{ justifyContent: { xs: 'center', md: 'flex-start' } }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
+                              <LocationOnIcon fontSize="small" />
+                              <Typography sx={{ fontWeight: 700 }}>{profile.locationHQ || 'Location'}</Typography>
+                            </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
                               <EmailIcon fontSize="small" />
-                              <Typography sx={{ fontWeight: 700 }}>{profile.publicEmail}</Typography>
+                              <Typography sx={{ fontWeight: 700 }}>Contact: {profile.contactPersonName || 'HR'}</Typography>
                             </Box>
-                          )}
-                        </Stack>
-                      </>
+                          </Stack>
+                        </>
+                      ) : (
+                        <>
+                          <Stack direction="row" spacing={1} sx={{ mb: 1.5, justifyContent: { xs: 'center', md: 'flex-start' } }}>
+                            <PillBadge variant="mint">DEVELOPER PROFILE</PillBadge>
+                            <PillBadge variant="neutral">Years of Experience: {profile.yearsOfExperience?.replace(/_/g, ' ')}</PillBadge>
+                          </Stack>
+                          <Typography variant="h2" sx={{ fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.1, mb: 1 }}>
+                            {profile.firstName} {profile.lastName}
+                          </Typography>
+                          <Typography variant="h5" color="text.secondary" sx={{ fontWeight: 600, mb: 2, opacity: 0.8 }}>
+                            {profile.currentLastRole || 'Awaiting Role Definition'}
+                          </Typography>
+                          <Stack direction="row" spacing={3} sx={{ justifyContent: { xs: 'center', md: 'flex-start' } }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
+                              <LocationOnIcon fontSize="small" />
+                              <Typography sx={{ fontWeight: 700 }}>{profile.locationCity || 'Location'}, {profile.locationCountry || 'Kenya'}</Typography>
+                            </Box>
+                            {profile.publicEmail && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
+                                <EmailIcon fontSize="small" />
+                                <Typography sx={{ fontWeight: 700 }}>{profile.publicEmail}</Typography>
+                              </Box>
+                            )}
+                          </Stack>
+                        </>
+                      )
                     )}
                   </Box>
                 </Box>
