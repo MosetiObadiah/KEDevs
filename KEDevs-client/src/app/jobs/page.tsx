@@ -275,7 +275,16 @@ export default function JobsPage() {
                             >
                               {job.title}
                             </Typography>
-                            {job.status === 'OPEN' && <VerifiedIcon color="primary" fontSize="small" />}
+                            {(() => {
+                              const isExpired = job.applicationDeadline && new Date(job.applicationDeadline) < new Date();
+                              if (isExpired) {
+                                return <Chip label="Expired" size="small" color="error" sx={{ fontWeight: 800, borderRadius: 1.5 }} />;
+                              }
+                              if (job.status === 'OPEN') {
+                                return <Chip label="Open" size="small" color="success" sx={{ fontWeight: 800, borderRadius: 1.5 }} />;
+                              }
+                              return <Chip label="Closed" size="small" color="default" sx={{ fontWeight: 800, borderRadius: 1.5 }} />;
+                            })()}
                           </Box>
                           <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 600, mb: 3 }}>
                             {job.companyName} • {job.locationCity}, {job.locationCountry}
