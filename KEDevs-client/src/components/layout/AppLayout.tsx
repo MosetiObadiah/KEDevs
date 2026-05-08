@@ -88,6 +88,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         { label: 'My Jobs', href: '/jobs/my-posts', icon: <AssignmentIcon /> },
         { label: 'My Applications', href: '/jobs/my-applications', icon: <DescriptionIcon /> },
         { label: 'Spotlight', href: '/admin/spotlight', icon: <StarIcon /> },
+        { label: 'Notifications', href: '/notifications', icon: <NotificationsIcon /> },
       ]
     : [
         { label: 'Browse Developers', href: '/developers', icon: <PeopleIcon /> },
@@ -95,6 +96,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         { label: 'My Job Posts', href: '/jobs/my-posts', icon: <AssignmentIcon /> },
         { label: 'Received Applications', href: '/jobs/my-applications', icon: <DescriptionIcon /> },
         { label: 'Spotlight', href: '/admin/spotlight', icon: <StarIcon /> },
+        { label: 'Notifications', href: '/notifications', icon: <NotificationsIcon /> },
       ];
 
   const drawerContent = (
@@ -175,61 +177,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       <Divider />
 
-      {/* Style, Theme and Notifications Stack */}
-      <Stack direction="row" spacing={2} sx={{ px: 2, py: 1.5, justifyContent: 'space-around', alignItems: 'center' }}>
-        {/* Dark Mode Toggle */}
-        <Tooltip title={mode === 'dark' ? 'Light Mode' : 'Dark Mode'}>
-          <IconButton onClick={() => setTheme(mode === 'dark' ? 'light' : 'dark')} sx={{ color: 'text.secondary' }}>
-            {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-          </IconButton>
-        </Tooltip>
-
-        {/* Style Switcher */}
-        <Tooltip title="Switch Style">
-          <IconButton onClick={(e) => setAnchorElStyle(e.currentTarget)} sx={{ color: 'text.secondary' }}>
-            <PaletteIcon />
-          </IconButton>
-        </Tooltip>
-        <Menu
-          anchorEl={anchorElStyle}
-          open={Boolean(anchorElStyle)}
-          onClose={() => setAnchorElStyle(null)}
-          sx={{ mt: '-10px', '& .MuiPaper-root': { borderRadius: 3, boxShadow: muiTheme.shadows[3] } }}
-          anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
-          transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-        >
-          <MenuItem
-            onClick={() => {
-              setStyle('catppuccin');
-              setAnchorElStyle(null);
-            }}
-            selected={style === 'catppuccin'}
-          >
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>Catppuccin Frappé</Typography>
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              setStyle('material');
-              setAnchorElStyle(null);
-            }}
-            selected={style === 'material'}
-          >
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>Material Default</Typography>
-          </MenuItem>
-        </Menu>
-
-        {/* Notification Bell */}
-        <Tooltip title="Notifications">
-          <IconButton onClick={() => router.push('/notifications')} sx={{ color: 'text.secondary' }}>
-            <Badge badgeContent={3} color="error">
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
-        </Tooltip>
-      </Stack>
-
-      <Divider />
-
       {/* Settings & Profile Section */}
       <Box sx={{ p: 2 }}>
         <ListItemButton
@@ -284,6 +231,75 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             }
           />
         </ListItemButton>
+
+        {/* Theme Mode Toggle */}
+        <ListItemButton
+          onClick={() => setTheme(mode === 'dark' ? 'light' : 'dark')}
+          sx={{
+            borderRadius: 2,
+            color: 'text.secondary',
+            '&:hover': { color: 'primary.main', bgcolor: 'background.subtle' },
+          }}
+        >
+          <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
+            {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+          </ListItemIcon>
+          <ListItemText
+            primary={
+              <Typography sx={{ fontSize: '0.875rem', fontWeight: 600 }}>
+                {mode === 'dark' ? 'Light Mode' : 'Dark Mode'}
+              </Typography>
+            }
+          />
+        </ListItemButton>
+
+        {/* Switch Style */}
+        <ListItemButton
+          onClick={(e) => setAnchorElStyle(e.currentTarget)}
+          sx={{
+            borderRadius: 2,
+            color: 'text.secondary',
+            '&:hover': { color: 'primary.main', bgcolor: 'background.subtle' },
+          }}
+        >
+          <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
+            <PaletteIcon />
+          </ListItemIcon>
+          <ListItemText
+            primary={
+              <Typography sx={{ fontSize: '0.875rem', fontWeight: 600 }}>
+                Switch Style
+              </Typography>
+            }
+          />
+        </ListItemButton>
+        <Menu
+          anchorEl={anchorElStyle}
+          open={Boolean(anchorElStyle)}
+          onClose={() => setAnchorElStyle(null)}
+          sx={{ mt: '-10px', '& .MuiPaper-root': { borderRadius: 3, boxShadow: muiTheme.shadows[3] } }}
+          anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+        >
+          <MenuItem
+            onClick={() => {
+              setStyle('catppuccin');
+              setAnchorElStyle(null);
+            }}
+            selected={style === 'catppuccin'}
+          >
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>Catppuccin Frappé</Typography>
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              setStyle('material');
+              setAnchorElStyle(null);
+            }}
+            selected={style === 'material'}
+          >
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>Material Default</Typography>
+          </MenuItem>
+        </Menu>
 
         <ListItemButton
           onClick={handleLogout}
