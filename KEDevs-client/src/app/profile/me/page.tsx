@@ -37,6 +37,7 @@ import {
   Autocomplete,
   Fade,
   Zoom,
+  alpha,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
@@ -59,6 +60,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -115,6 +117,8 @@ export default function MyProfile() {
   const [dialogOpen, setDialogOpen] = useState<string | null>(null);
   const [newItem, setNewItem] = useState<any>({});
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   useEffect(() => {
     loadProfile(true);
@@ -198,6 +202,7 @@ export default function MyProfile() {
     
     setNewItem(initialNewItem);
     setSelectedFile(null);
+    setPreviewUrl(null);
     setDialogOpen(type);
   };
 
@@ -205,6 +210,16 @@ export default function MyProfile() {
     setDialogOpen(null);
     setNewItem({});
     setSelectedFile(null);
+    setPreviewUrl(null);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
   };
 
   const handleAddItem = async (type: string) => {
@@ -530,29 +545,52 @@ export default function MyProfile() {
                         boxShadow: project.isFeatured ? '0 20px 40px rgba(16, 185, 129, 0.1)' : '0 4px 10px rgba(0,0,0,0.02)',
                         border: project.isFeatured ? '2px solid' : '1px solid',
                         borderColor: project.isFeatured ? 'primary.main' : 'divider',
-                        position: 'relative'
+                        position: 'relative',
+                        '&:hover .project-overlay': { opacity: 1 }
                       }}>
                         <Grid container>
                           <Grid item xs={12} md={5}>
-                            <Box sx={{ position: 'relative', height: '100%', minHeight: 220 }}>
+                            <Box sx={{ position: 'relative', height: '100%', minHeight: 250, bgcolor: 'background.subtle' }}>
                               <Box
                                 sx={{
                                   width: '100%',
                                   height: '100%',
-                                  bgcolor: 'background.subtle',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
                                   backgroundImage: project.screenshotUrl ? `url(${project.screenshotUrl})` : 'none',
                                   backgroundSize: 'cover',
-                                  backgroundPosition: 'center',
+                                  backgroundPosition: 'top center',
+                                  transition: 'transform 0.5s ease',
+                                  '&:hover': { transform: 'scale(1.05)' }
                                 }}
                               >
-                                {!project.screenshotUrl && <CodeIcon sx={{ fontSize: 80, opacity: 0.1 }} />}
+                                {!project.screenshotUrl && (
+                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', opacity: 0.1 }}>
+                                    <CodeIcon sx={{ fontSize: 80 }} />
+                                  </Box>
+                                )}
                               </Box>
+                              
+                              {/* Overlay for viewing image */}
+                              {project.screenshotUrl && (
+                                <Box 
+                                  className="project-overlay"
+                                  onClick={() => setLightboxUrl(project.screenshotUrl)}
+                                  sx={{ 
+                                    position: 'absolute', 
+                                    top: 0, left: 0, 
+                                    width: '100%', height: '100%', 
+                                    bgcolor: alpha('#000', 0.4), 
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    opacity: 0, transition: 'opacity 0.3s ease', cursor: 'pointer'
+                                  }}
+                                >
+                                  <Button variant="contained" startIcon={<VisibilityIcon />} sx={{ borderRadius: 5, fontWeight: 800 }}>View Screenshot</Button>
+                                </Box>
+                              )}
+
                               <Box sx={{ position: 'absolute', top: 12, left: 12 }}>
                                 {project.isFeatured && <PillBadge variant="mint">FEATURED</PillBadge>}
                               </Box>
+                              
                               <Box sx={{ position: 'absolute', bottom: 12, right: 12 }}>
                                 <input
                                   type="file"
@@ -562,9 +600,11 @@ export default function MyProfile() {
                                   onChange={(e) => handleFileUpload('project', project.id, e)}
                                 />
                                 <label htmlFor={`project-upload-${project.id}`}>
-                                  <IconButton component="span" sx={{ bgcolor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(4px)', '&:hover': { bgcolor: 'white' } }}>
-                                    <PhotoCameraIcon fontSize="small" />
-                                  </IconButton>
+                                  <Tooltip title="Update Screenshot">
+                                    <IconButton component="span" sx={{ bgcolor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(4px)', '&:hover': { bgcolor: 'white' } }}>
+                                      <PhotoCameraIcon fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
                                 </label>
                               </Box>
                             </Box>
@@ -574,9 +614,11 @@ export default function MyProfile() {
                               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                                 <Typography variant="h5" sx={{ fontWeight: 900 }}>{project.title}</Typography>
                                 <Stack direction="row" spacing={1}>
-                                  <IconButton size="small" onClick={() => handleToggleFeaturedProject(project.id, project.isFeatured)}>
-                                    {project.isFeatured ? <StarIcon color="primary" /> : <StarBorderIcon />}
-                                  </IconButton>
+                                  <Tooltip title={project.isFeatured ? "Unfeature" : "Feature on Profile"}>
+                                    <IconButton size="small" onClick={() => handleToggleFeaturedProject(project.id, project.isFeatured)}>
+                                      {project.isFeatured ? <StarIcon color="primary" /> : <StarBorderIcon />}
+                                    </IconButton>
+                                  </Tooltip>
                                   <IconButton size="small" color="error" onClick={() => handleRemoveItem('project', project.id)}>
                                     <DeleteIcon />
                                   </IconButton>
@@ -719,7 +761,13 @@ export default function MyProfile() {
                         <Typography variant="body2" sx={{ fontWeight: 800 }}>{cert.name}</Typography>
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>{cert.issuedBy}</Typography>
                         {cert.certImageUrl && (
-                          <Link href={cert.certImageUrl} target="_blank" sx={{ fontSize: '0.75rem', fontWeight: 700, mt: 0.5, display: 'inline-block' }}>View Image</Link>
+                          <Link 
+                            component="button"
+                            onClick={() => setLightboxUrl(cert.certImageUrl)}
+                            sx={{ fontSize: '0.75rem', fontWeight: 700, mt: 0.5, display: 'inline-block', textDecoration: 'none' }}
+                          >
+                            View Credential Image
+                          </Link>
                         )}
                       </Box>
                       <Stack direction="row">
@@ -731,7 +779,9 @@ export default function MyProfile() {
                           onChange={(e) => handleFileUpload('certification', cert.id, e)}
                         />
                         <label htmlFor={`cert-upload-${cert.id}`}>
-                          <IconButton component="span" size="small"><CloudUploadIcon fontSize="small" /></IconButton>
+                          <Tooltip title="Upload Credential Image">
+                            <IconButton component="span" size="small"><CloudUploadIcon fontSize="small" /></IconButton>
+                          </Tooltip>
                         </label>
                         <IconButton size="small" color="error" onClick={() => handleRemoveItem('certification', cert.id)}><DeleteIcon fontSize="small" /></IconButton>
                       </Stack>
@@ -782,6 +832,28 @@ export default function MyProfile() {
             </Stack>
           </Grid>
         </Grid>
+
+        {/* --- Lightbox / Image Viewer --- */}
+        <Dialog 
+          open={!!lightboxUrl} 
+          onClose={() => setLightboxUrl(null)} 
+          maxWidth="lg" 
+          PaperProps={{ sx: { bgcolor: 'transparent', boxShadow: 'none', overflow: 'hidden' } }}
+        >
+          <Box sx={{ position: 'relative' }}>
+            <IconButton 
+              onClick={() => setLightboxUrl(null)} 
+              sx={{ position: 'absolute', top: 10, right: 10, bgcolor: 'rgba(0,0,0,0.5)', color: 'white', '&:hover': { bgcolor: 'rgba(0,0,0,0.8)' } }}
+            >
+              <DeleteIcon /> {/* Use X icon if available, Delete as placeholder */}
+            </IconButton>
+            <Box 
+              component="img" 
+              src={lightboxUrl || ''} 
+              sx={{ width: '100%', maxHeight: '90vh', borderRadius: 4, display: 'block' }} 
+            />
+          </Box>
+        </Dialog>
 
         {/* --- Unified Dialog System --- */}
 
@@ -887,25 +959,36 @@ export default function MyProfile() {
                   <Fade in>
                     <Box sx={{ mt: 2, pt: 2, borderTop: '1px dashed', borderColor: 'divider' }}>
                       <Typography variant="body2" sx={{ fontWeight: 800, mb: 1 }}>Project Screenshot *</Typography>
-                      <Button
-                        variant="outlined"
-                        component="label"
-                        fullWidth
-                        startIcon={<CloudUploadIcon />}
-                        sx={{ py: 1.5, borderRadius: 2, borderStyle: 'dashed' }}
-                      >
-                        {selectedFile ? selectedFile.name : 'Upload Screenshot'}
-                        <input
-                          type="file"
-                          hidden
-                          accept="image/*"
-                          onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                        />
-                      </Button>
-                      {selectedFile && (
-                        <Typography variant="caption" color="primary" sx={{ mt: 1, display: 'block', fontWeight: 700 }}>
-                          File selected: {selectedFile.name}
-                        </Typography>
+                      {previewUrl ? (
+                         <Box sx={{ position: 'relative', mb: 2 }}>
+                            <Box 
+                              component="img" 
+                              src={previewUrl} 
+                              sx={{ width: '100%', height: 200, objectFit: 'cover', borderRadius: 2, border: '1px solid', borderColor: 'divider' }} 
+                            />
+                            <IconButton 
+                              onClick={() => { setSelectedFile(null); setPreviewUrl(null); }}
+                              sx={{ position: 'absolute', top: 5, right: 5, bgcolor: 'rgba(255,255,255,0.8)', '&:hover': { bgcolor: 'white' } }}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                         </Box>
+                      ) : (
+                        <Button
+                          variant="outlined"
+                          component="label"
+                          fullWidth
+                          startIcon={<CloudUploadIcon />}
+                          sx={{ py: 3, borderRadius: 2, borderStyle: 'dashed' }}
+                        >
+                          Upload Screenshot
+                          <input
+                            type="file"
+                            hidden
+                            accept="image/*"
+                            onChange={handleFileChange}
+                          />
+                        </Button>
                       )}
                     </Box>
                   </Fade>
