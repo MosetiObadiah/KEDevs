@@ -495,7 +495,11 @@ export default function CreateJobPostPage() {
         setSuccessMessage('Job post created successfully. Redirecting...');
         localStorage.removeItem('jobPostDraft'); // Clear draft on success
         setTimeout(() => {
-          router.push(`/jobs/${response.data.id}`);
+          if (isDeveloper) {
+            router.push('/jobs');
+          } else {
+            router.push(`/jobs/${response.data.id}`);
+          }
         }, 1000);
       }
     } catch (err: any) {
