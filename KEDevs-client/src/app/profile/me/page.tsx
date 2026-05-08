@@ -341,7 +341,7 @@ export default function MyProfile() {
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: 'background.subtle' }}>
-        <Stack spacing={3} alignItems="center">
+        <Stack spacing={3} sx={{ alignItems: 'center' }}>
           <CircularProgress size={60} thickness={4} />
           <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 700 }}>Curating your professional story...</Typography>
         </Stack>
@@ -370,8 +370,8 @@ export default function MyProfile() {
         {/* Header Section */}
         <Fade in timeout={800}>
           <Box sx={{ mb: 6 }}>
-            <Grid container spacing={4} alignItems="center">
-              <Grid item xs={12} md={8}>
+            <Grid container spacing={4} sx={{ alignItems: 'center' }}>
+              <Grid size={{ xs: 12, md: 8 }}>
                 <Box sx={{ display: 'flex', alignItems: { xs: 'center', md: 'flex-start' }, flexDirection: { xs: 'column', md: 'row' }, gap: 4, textAlign: { xs: 'center', md: 'left' } }}>
                   <Box sx={{ position: 'relative' }}>
                     <Avatar
@@ -420,7 +420,7 @@ export default function MyProfile() {
                   </Box>
                 </Box>
               </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <Stack direction="row" spacing={2} sx={{ justifyContent: { xs: 'center', md: 'flex-end' } }}>
                   <Button
                     variant={isEditing ? "contained" : "outlined"}
@@ -455,7 +455,7 @@ export default function MyProfile() {
 
         <Grid container spacing={4}>
           {/* Main Column */}
-          <Grid item xs={12} lg={8}>
+          <Grid size={{ xs: 12, lg: 8 }}>
             <Stack spacing={4}>
               {/* Professional Narrative */}
               <Paper sx={{ p: 5, borderRadius: 6, position: 'relative', overflow: 'hidden' }}>
@@ -549,7 +549,7 @@ export default function MyProfile() {
                         '&:hover .project-overlay': { opacity: 1 }
                       }}>
                         <Grid container>
-                          <Grid item xs={12} md={5}>
+                          <Grid size={{ xs: 12, md: 5 }}>
                             <Box sx={{ position: 'relative', height: '100%', minHeight: 250, bgcolor: 'background.subtle' }}>
                               <Box
                                 sx={{
@@ -609,7 +609,7 @@ export default function MyProfile() {
                               </Box>
                             </Box>
                           </Grid>
-                          <Grid item xs={12} md={7}>
+                          <Grid size={{ xs: 12, md: 7 }}>
                             <CardContent sx={{ p: 4 }}>
                               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                                 <Typography variant="h5" sx={{ fontWeight: 900 }}>{project.title}</Typography>
@@ -675,7 +675,7 @@ export default function MyProfile() {
           </Grid>
 
           {/* Right Column / Sidebar */}
-          <Grid item xs={12} lg={4}>
+          <Grid size={{ xs: 12, lg: 4 }}>
             <Stack spacing={4}>
               {/* Availability & Socials Card */}
               <Paper sx={{ p: 4, borderRadius: 6, bgcolor: 'primary.main', color: 'white', boxShadow: '0 20px 40px rgba(16, 185, 129, 0.15)' }}>
@@ -838,7 +838,7 @@ export default function MyProfile() {
           open={!!lightboxUrl} 
           onClose={() => setLightboxUrl(null)} 
           maxWidth="lg" 
-          PaperProps={{ sx: { bgcolor: 'transparent', boxShadow: 'none', overflow: 'hidden' } }}
+          slotProps={{ paper: { sx: { bgcolor: 'transparent', boxShadow: 'none', overflow: 'hidden' } } }}
         >
           <Box sx={{ position: 'relative' }}>
             <IconButton 
@@ -923,22 +923,18 @@ export default function MyProfile() {
                 multiple
                 options={COMMON_SKILLS}
                 freeSolo
-                onChange={(event, newValue) => setNewItem({ ...newItem, techStack: newValue.join(', ') })}
-                renderTags={(value, getTagProps) =>
-                  value.map((option, index) => (
-                    <Chip label={option} {...getTagProps({ index })} size="small" />
-                  ))
-                }
+                value={newItem.techStack ? newItem.techStack.split(',').map((s: string) => s.trim()).filter(Boolean) : []}
+                onChange={(event, newValue) => setNewItem({ ...newItem, techStack: (newValue as string[]).join(', ') })}
                 renderInput={(params) => (
                   <TextField {...params} label="Technology Stack" placeholder="Select or type..." />
                 )}
               />
 
               <Grid container spacing={2}>
-                <Grid item xs={6}>
+                <Grid size={{ xs: 6 }}>
                   <TextField label="Live URL" fullWidth value={newItem.projectUrl || ''} onChange={(e) => setNewItem({ ...newItem, projectUrl: e.target.value })} />
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={{ xs: 6 }}>
                   <TextField label="Repo URL" fullWidth value={newItem.repoUrl || ''} onChange={(e) => setNewItem({ ...newItem, repoUrl: e.target.value })} />
                 </Grid>
               </Grid>
@@ -1018,10 +1014,10 @@ export default function MyProfile() {
               <TextField label="Degree / Qualification" fullWidth value={newItem.qualification || ''} onChange={(e) => setNewItem({ ...newItem, qualification: e.target.value })} />
               <TextField label="Field of Study" fullWidth value={newItem.fieldOfStudy || ''} onChange={(e) => setNewItem({ ...newItem, fieldOfStudy: e.target.value })} />
               <Grid container spacing={2}>
-                <Grid item xs={6}>
+                <Grid size={{ xs: 6 }}>
                   <TextField label="Start Year" type="number" fullWidth value={newItem.startYear || ''} onChange={(e) => setNewItem({ ...newItem, startYear: e.target.value })} />
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={{ xs: 6 }}>
                   <TextField label="End Year" type="number" fullWidth value={newItem.yearCompleted || ''} onChange={(e) => setNewItem({ ...newItem, yearCompleted: e.target.value })} />
                 </Grid>
               </Grid>
@@ -1048,11 +1044,11 @@ export default function MyProfile() {
               <TextField label="Certification Title" fullWidth value={newItem.name || ''} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} />
               <TextField label="Issuing Organization" fullWidth value={newItem.issuedBy || ''} onChange={(e) => setNewItem({ ...newItem, issuedBy: e.target.value })} />
               <Grid container spacing={2}>
-                <Grid item xs={6}>
-                   <TextField label="Issue Date" type="date" fullWidth InputLabelProps={{ shrink: true }} value={newItem.issuedDate || ''} onChange={(e) => setNewItem({ ...newItem, issuedDate: e.target.value })} />
+                <Grid size={{ xs: 6 }}>
+                   <TextField label="Issue Date" type="date" fullWidth slotProps={{ inputLabel: { shrink: true } }} value={newItem.issuedDate || ''} onChange={(e) => setNewItem({ ...newItem, issuedDate: e.target.value })} />
                 </Grid>
-                <Grid item xs={6}>
-                   <TextField label="Expiry Date (Optional)" type="date" fullWidth InputLabelProps={{ shrink: true }} value={newItem.expiryDate || ''} onChange={(e) => setNewItem({ ...newItem, expiryDate: e.target.value })} />
+                <Grid size={{ xs: 6 }}>
+                   <TextField label="Expiry Date (Optional)" type="date" fullWidth slotProps={{ inputLabel: { shrink: true } }} value={newItem.expiryDate || ''} onChange={(e) => setNewItem({ ...newItem, expiryDate: e.target.value })} />
                 </Grid>
               </Grid>
               <TextField label="Credential Verification URL" fullWidth value={newItem.certUrl || ''} onChange={(e) => setNewItem({ ...newItem, certUrl: e.target.value })} />
