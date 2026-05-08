@@ -100,7 +100,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const drawerContent = (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: 'background.paper' }}>
       {/* Brand Logo */}
-      <Box sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+      <Box sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 1.5, pb: 2 }}>
         <WorkIcon sx={{ fontSize: 28, color: 'primary.main' }} />
         <Typography
           variant="h6"
@@ -115,6 +115,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         >
           KEDevs
         </Typography>
+      </Box>
+
+      {/* Sidebar Search */}
+      <Box sx={{ px: 2, pb: 2 }}>
+        <TextField
+          size="small"
+          placeholder="Search..."
+          fullWidth
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" color="action" />
+                </InputAdornment>
+              ),
+              sx: { borderRadius: 2, bgcolor: 'background.subtle' },
+            },
+          }}
+        />
       </Box>
 
       <Divider />
@@ -153,6 +172,61 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           );
         })}
       </List>
+
+      <Divider />
+
+      {/* Style, Theme and Notifications Stack */}
+      <Stack direction="row" spacing={2} sx={{ px: 2, py: 1.5, justifyContent: 'space-around', alignItems: 'center' }}>
+        {/* Dark Mode Toggle */}
+        <Tooltip title={mode === 'dark' ? 'Light Mode' : 'Dark Mode'}>
+          <IconButton onClick={() => setTheme(mode === 'dark' ? 'light' : 'dark')} sx={{ color: 'text.secondary' }}>
+            {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+          </IconButton>
+        </Tooltip>
+
+        {/* Style Switcher */}
+        <Tooltip title="Switch Style">
+          <IconButton onClick={(e) => setAnchorElStyle(e.currentTarget)} sx={{ color: 'text.secondary' }}>
+            <PaletteIcon />
+          </IconButton>
+        </Tooltip>
+        <Menu
+          anchorEl={anchorElStyle}
+          open={Boolean(anchorElStyle)}
+          onClose={() => setAnchorElStyle(null)}
+          sx={{ mt: '-10px', '& .MuiPaper-root': { borderRadius: 3, boxShadow: muiTheme.shadows[3] } }}
+          anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+        >
+          <MenuItem
+            onClick={() => {
+              setStyle('catppuccin');
+              setAnchorElStyle(null);
+            }}
+            selected={style === 'catppuccin'}
+          >
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>Catppuccin Frappé</Typography>
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              setStyle('material');
+              setAnchorElStyle(null);
+            }}
+            selected={style === 'material'}
+          >
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>Material Default</Typography>
+          </MenuItem>
+        </Menu>
+
+        {/* Notification Bell */}
+        <Tooltip title="Notifications">
+          <IconButton onClick={() => router.push('/notifications')} sx={{ color: 'text.secondary' }}>
+            <Badge badgeContent={3} color="error">
+              <NotificationsIcon />
+            </Badge>
+          </IconButton>
+        </Tooltip>
+      </Stack>
 
       <Divider />
 
@@ -236,100 +310,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      {/* Top slim appbar */}
-      <AppBar
-        position="fixed"
-        elevation={0}
+      {/* Mobile Floating Drawer Trigger */}
+      <IconButton
+        color="inherit"
+        aria-label="open drawer"
+        edge="start"
+        onClick={handleDrawerToggle}
         sx={{
-          width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
-          ml: { md: `${DRAWER_WIDTH}px` },
+          position: 'fixed',
+          top: 16,
+          left: 16,
+          display: { md: 'none' },
           bgcolor: 'background.paper',
-          borderBottom: '1px solid',
-          borderColor: 'divider',
-          color: 'text.primary',
-          zIndex: (theme) => theme.zIndex.drawer + 1,
+          boxShadow: 2,
+          zIndex: 1100,
+          '&:hover': { bgcolor: 'background.subtle' }
         }}
       >
-        <Toolbar sx={{ justifyContent: 'space-between', height: 64, px: { xs: 2, md: 4 } }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              edge="start"
-              onClick={handleDrawerToggle}
-              sx={{ mr: 2, display: { md: 'none' } }}
-            >
-              <MenuIcon />
-            </IconButton>
-            <TextField
-              size="small"
-              placeholder="Search..."
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon fontSize="small" color="action" />
-                    </InputAdornment>
-                  ),
-                  sx: { borderRadius: 2, bgcolor: 'background.subtle', width: { xs: 150, md: 300 } },
-                },
-              }}
-            />
-          </Box>
-
-          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-            {/* Style Switcher */}
-            <Tooltip title="Switch Style">
-              <IconButton onClick={(e) => setAnchorElStyle(e.currentTarget)} sx={{ color: 'text.secondary' }}>
-                <PaletteIcon />
-              </IconButton>
-            </Tooltip>
-            <Menu
-              anchorEl={anchorElStyle}
-              open={Boolean(anchorElStyle)}
-              onClose={() => setAnchorElStyle(null)}
-              sx={{ mt: '45px', '& .MuiPaper-root': { borderRadius: 3, boxShadow: muiTheme.shadows[3] } }}
-              anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-            >
-              <MenuItem
-                onClick={() => {
-                  setStyle('catppuccin');
-                  setAnchorElStyle(null);
-                }}
-                selected={style === 'catppuccin'}
-              >
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>Catppuccin Frappé</Typography>
-              </MenuItem>
-              <MenuItem
-                onClick={() => {
-                  setStyle('material');
-                  setAnchorElStyle(null);
-                }}
-                selected={style === 'material'}
-              >
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>Material Default</Typography>
-              </MenuItem>
-            </Menu>
-
-            {/* Dark Mode Toggle */}
-            <Tooltip title={mode === 'dark' ? 'Light Mode' : 'Dark Mode'}>
-              <IconButton onClick={() => setTheme(mode === 'dark' ? 'light' : 'dark')} sx={{ color: 'text.secondary' }}>
-                {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-              </IconButton>
-            </Tooltip>
-
-            {/* Notification Bell */}
-            <Tooltip title="Notifications">
-              <IconButton onClick={() => router.push('/notifications')} sx={{ bgcolor: 'background.subtle' }}>
-                <Badge badgeContent={3} color="error">
-                  <NotificationsIcon />
-                </Badge>
-              </IconButton>
-            </Tooltip>
-          </Stack>
-        </Toolbar>
-      </AppBar>
+        <MenuIcon />
+      </IconButton>
 
       {/* Drawers */}
       <Box component="nav" sx={{ width: { md: DRAWER_WIDTH }, flexShrink: { md: 0 } }}>
@@ -367,7 +366,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           flexGrow: 1,
           width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
           minHeight: '100vh',
-          pt: '64px',
+          pt: 0,
           bgcolor: 'background.default',
         }}
       >
