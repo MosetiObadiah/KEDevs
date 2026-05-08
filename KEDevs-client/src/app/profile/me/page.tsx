@@ -545,7 +545,7 @@ export default function MyProfile() {
                       <>
                         <Stack direction="row" spacing={1} sx={{ mb: 1.5, justifyContent: { xs: 'center', md: 'flex-start' } }}>
                           <PillBadge variant="mint">DEVELOPER PROFILE</PillBadge>
-                          <PillBadge variant="neutral">{profile.yearsOfExperience?.replace(/_/g, ' ')}</PillBadge>
+                          <PillBadge variant="neutral">Years of Experience: {profile.yearsOfExperience?.replace(/_/g, ' ')}</PillBadge>
                         </Stack>
                         <Typography variant="h2" sx={{ fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.1, mb: 1 }}>
                           {profile.firstName} {profile.lastName}
