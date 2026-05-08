@@ -67,7 +67,7 @@ const initialFormState: FormState = {
   jobType: 'FULL_TIME',
   workType: 'REMOTE',
   experienceLevel: 'MID',
-  minQualification: '',
+  minQualification: 'BACHELORS',
   minExperienceYears: 1,
   salaryRangeMin: null,
   salaryRangeMax: null,
@@ -302,11 +302,23 @@ export default function CreateJobPostPage() {
             ))}
           </TextField>
           <TextField
+            select
             fullWidth
             label="Minimum Qualification"
-            value={state.minQualification}
+            value={state.minQualification || 'BACHELORS'}
             onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'minQualification', value: e.target.value })}
-          />
+          >
+            <MenuItem value="NONE">No Minimum Requirement</MenuItem>
+            <MenuItem value="HIGH_SCHOOL">High School Diploma</MenuItem>
+            <MenuItem value="CERTIFICATE">Professional Certificate</MenuItem>
+            <MenuItem value="DIPLOMA">Diploma</MenuItem>
+            <MenuItem value="ASSOCIATES">Associate's Degree</MenuItem>
+            <MenuItem value="BACHELORS">Bachelor's Degree</MenuItem>
+            <MenuItem value="MASTERS">Master's Degree</MenuItem>
+            <MenuItem value="PHD">PhD</MenuItem>
+            <MenuItem value="SELF_TAUGHT">Self-Taught / Bootcamp</MenuItem>
+            <MenuItem value="EQUIVALENT_EXPERIENCE">Equivalent Work Experience</MenuItem>
+          </TextField>
           <TextField
             fullWidth
             label="Min Experience Years"
