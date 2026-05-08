@@ -1,6 +1,7 @@
 // src/components/jobs/ApplyDialog.tsx
 'use client';
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Dialog,
   DialogTitle,
@@ -38,6 +39,7 @@ interface ApplyDialogProps {
 const steps = ['Profile Review', 'Upload Documents', 'Review & Submit'];
 
 export default function ApplyDialog({ open, onClose, job, onSuccess }: ApplyDialogProps) {
+  const router = useRouter();
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -185,9 +187,21 @@ export default function ApplyDialog({ open, onClose, job, onSuccess }: ApplyDial
         }
         if (!profile) {
           return (
-            <Alert severity="warning" sx={{ mt: 2 }}>
-              No profile found. Please complete your profile details on the profile page.
-            </Alert>
+            <Box sx={{ mt: 2, textAlign: 'center' }}>
+              <Alert severity="warning" sx={{ mb: 3, textAlign: 'left' }}>
+                No profile found. Please complete your profile details on the profile page before applying.
+              </Alert>
+              <Button
+                variant="contained"
+                onClick={() => {
+                  onClose();
+                  router.push('/profile/me');
+                }}
+                sx={{ borderRadius: 2, fontWeight: 700, px: 4 }}
+              >
+                Go to Profile Page
+              </Button>
+            </Box>
           );
         }
         return (

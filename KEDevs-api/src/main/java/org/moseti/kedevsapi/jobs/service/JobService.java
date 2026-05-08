@@ -316,6 +316,7 @@ public class JobService {
         return toJobApplicationResponse(application);
     }
 
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public Page<JobApplicationResponse> getJobApplications(UUID userId, UUID jobId, Pageable pageable) {
         JobPost job = jobPostRepository.findById(jobId)
                 .orElseThrow(() -> new JobNotFoundException("Job not found"));
@@ -345,6 +346,7 @@ public class JobService {
         return toJobApplicationResponse(application);
     }
 
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public Page<JobApplicationResponse> getMyApplications(UUID userId, Pageable pageable) {
         return jobApplicationRepository.findByApplicantId(userId, pageable)
                 .map(this::toJobApplicationResponse);
@@ -472,7 +474,7 @@ public class JobService {
 
         return new JobApplicationResponse(
                 application.getId(),
-                application.getJobPost().getId(),
+                application.getJobPost() != null ? application.getJobPost().getId() : null,
                 jobTitle,
                 companyName,
                 application.getApplicantId(),

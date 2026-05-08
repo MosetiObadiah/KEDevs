@@ -79,7 +79,9 @@ export default function JobDetailPage() {
       try {
         const response = await forumService.getJobComments(id as string);
         if (response.success) {
-          setComments(response.data || []);
+          // API returns a paginated Page object — extract .content array
+          const raw = response.data;
+          setComments(Array.isArray(raw) ? raw : raw?.content || []);
         }
       } catch (err: any) {
         console.error(err);
@@ -116,13 +118,20 @@ export default function JobDetailPage() {
     try {
       const response = await forumService.postJobComment(id as string, comment.trim());
       if (response.success) {
-        setComments((prev) => [{ ...response.data, content: comment.trim(), author: { fullName: 'You' }, createdAt: new Date().toISOString() }, ...prev]);
+        setComments((prev: any[]) => [{ ...response.data, createdAt: new Date().toISOString() }, ...prev]);
         setComment('');
       }
     } catch (err: any) {
       alert(err.message || 'Failed to post comment.');
     } finally {
       setCommentSubmitting(false);
+    }
+  };
+
+  const handleCommentKeyDown = (e: React.KeyboardEvent) => {
+    // Shift+Enter adds a new line; plain Enter does nothing (submit via button only)
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
     }
   };
 
@@ -291,9 +300,10 @@ export default function JobDetailPage() {
                       fullWidth
                       multiline
                       rows={2}
-                      placeholder="Ask a question or share an insight..."
+                      placeholder="Ask a question or share an insight... (Shift+Enter for new line)"
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
+                      onKeyDown={handleCommentKeyDown}
                       variant="standard"
                       sx={{ mt: 1 }}
                       slotProps={{ input: { disableUnderline: true } }}
@@ -402,15 +412,36 @@ export default function JobDetailPage() {
                   </Button>
                 ) : (
                   user?.role === 'DEVELOPER' && (
-                    <Button
-                      variant="contained"
-                      fullWidth
-                      size="large"
-                      onClick={() => setApplyOpen(true)}
-                      sx={{ py: 1.5, borderRadius: 2, fontWeight: 700, boxShadow: 0 }}
-                    >
-                      Apply for this Role
-                    </Button>
+                    job.hasApplied ? (
+                      <Button
+                        variant="outlined"
+                        color="success"
+                        fullWidth
+                        size="large"
+                        disabled
+                        sx={{ 
+                          py: 1.5, 
+                          borderRadius: 2, 
+                          fontWeight: 700, 
+                          '&.Mui-disabled': { 
+                            color: 'success.main', 
+                            borderColor: 'success.light' 
+                          } 
+                        }}
+                      >
+                        Already Applied
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="contained"
+                        fullWidth
+                        size="large"
+                        onClick={() => setApplyOpen(true)}
+                        sx={{ py: 1.5, borderRadius: 2, fontWeight: 700, boxShadow: 0 }}
+                      >
+                        Apply for this Role
+                      </Button>
+                    )
                   )
                 )
               ) : (

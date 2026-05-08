@@ -55,6 +55,8 @@ public class SecurityConfig {
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(PUBLIC_URLS).permitAll()
                                                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/developers/{profileId}").permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/forum/jobs/{jobId}/comments").permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/forum/comments/{commentId}/replies").permitAll()
                                                 .anyRequest().authenticated())
                                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
                 return http.build();

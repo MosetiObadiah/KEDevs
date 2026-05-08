@@ -6,6 +6,7 @@ public class Constants {
 
     // Grace period
     public static final int GRACE_PERIOD_DAYS = 3;
+    public static final int EDIT_WINDOW_MINUTES = 15;
     public static final int DELETE_WINDOW_MINUTES = 60;
 
     // JWT

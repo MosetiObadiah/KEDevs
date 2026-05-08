@@ -38,7 +38,59 @@ export interface PaginatedResponse<T> {
   empty: boolean;
 }
 
-async function handleResponse<T>(response: Response): Promise<T> {
+async function handleResponse<T>(response: Response, requestFn?: () => Promise<Response>): Promise<T> {
+  if (response.status === 401 || response.status === 403) {
+    if (response.url.includes('/api/v1/auth/refresh')) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('isOnboarded');
+        window.location.href = '/login';
+      }
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData?.message || 'Session expired.');
+    }
+
+    if (typeof window !== 'undefined') {
+      const hasSession = localStorage.getItem('user') || localStorage.getItem('token');
+      const refreshToken = localStorage.getItem('refreshToken');
+      
+      if (hasSession && refreshToken) {
+        try {
+          const refreshResponse = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ refreshToken }),
+          });
+
+          if (refreshResponse.ok) {
+            const refreshData = await refreshResponse.json();
+            const newAccessToken = refreshData.data?.accessToken || refreshData.accessToken;
+            if (newAccessToken) {
+              localStorage.setItem('token', newAccessToken);
+              if (requestFn) {
+                const retriedResponse = await requestFn();
+                return handleResponse<T>(retriedResponse);
+              }
+            }
+          }
+        } catch (refreshErr) {
+          console.error('Error refreshing token:', refreshErr);
+        }
+
+        // If refresh fails, clear session and redirect to login
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('isOnboarded');
+        window.location.href = '/login';
+      }
+    }
+  }
+
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     throw new Error(errorData?.message || `HTTP error! status: ${response.status}`);
@@ -69,51 +121,56 @@ export const apiClient = {
   },
 
   async get<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const execute = () => fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       method: 'GET',
       headers: this.getHeaders(options),
     });
-    return handleResponse<T>(response);
+    const response = await execute();
+    return handleResponse<T>(response, execute);
   },
 
   async post<T>(endpoint: string, body: any, options: RequestInit = {}): Promise<T> {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const execute = () => fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       method: 'POST',
       headers: this.getHeaders(options, body),
       body: body instanceof FormData ? body : JSON.stringify(body),
     });
-    return handleResponse<T>(response);
+    const response = await execute();
+    return handleResponse<T>(response, execute);
   },
 
   async put<T>(endpoint: string, body: any, options: RequestInit = {}): Promise<T> {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const execute = () => fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       method: 'PUT',
       headers: this.getHeaders(options, body),
       body: body instanceof FormData ? body : JSON.stringify(body),
     });
-    return handleResponse<T>(response);
+    const response = await execute();
+    return handleResponse<T>(response, execute);
   },
 
   async patch<T>(endpoint: string, body: any, options: RequestInit = {}): Promise<T> {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const execute = () => fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       method: 'PATCH',
       headers: this.getHeaders(options, body),
       body: body instanceof FormData ? body : JSON.stringify(body),
     });
-    return handleResponse<T>(response);
+    const response = await execute();
+    return handleResponse<T>(response, execute);
   },
 
   async delete<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const execute = () => fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       method: 'DELETE',
       headers: this.getHeaders(options),
     });
-    return handleResponse<T>(response);
+    const response = await execute();
+    return handleResponse<T>(response, execute);
   },
 };
 

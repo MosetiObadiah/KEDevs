@@ -124,7 +124,7 @@ public class ForumService {
             throw new ForbiddenException("Cannot edit a hidden comment");
         }
 
-        if (LocalDateTime.now().isAfter(comment.getCreatedAt().plusMinutes(15))) {
+        if (LocalDateTime.now().isAfter(comment.getCreatedAt().plusMinutes(Constants.EDIT_WINDOW_MINUTES))) {
             throw new CommentEditWindowExpiredException("Edit window has expired. Comments can only be edited within 15 minutes of posting.");
         }
 
