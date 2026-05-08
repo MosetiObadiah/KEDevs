@@ -77,24 +77,9 @@ const Navbar = () => {
     }}>
       <Container maxWidth="xl">
         <Toolbar disableGutters sx={{ height: { xs: 70, md: 80 } }}>
-          <Typography
-            variant="h5"
-            noWrap
-            component={Link}
-            href="/"
-            sx={{
-              mr: 4,
-              display: { xs: 'none', md: 'flex' },
-              fontWeight: 900,
-              letterSpacing: '-1.5px',
-              color: 'primary.main',
-              textDecoration: 'none',
-              alignItems: 'center',
-              gap: 1
-            }}
-          >
-            <WorkIcon sx={{ fontSize: 32 }} /> KEDevs
-          </Typography>
+          <Box component={Link} href="/" sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none', mr: 4 }}>
+            <Box component="img" src="/logo.svg" sx={{ height: { xs: 40, md: 50 }, width: 'auto' }} />
+          </Box>
 
           {/* Mobile Menu */}
           <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
@@ -115,22 +100,9 @@ const Navbar = () => {
             </Menu>
           </Box>
 
-          <Typography
-            variant="h6"
-            noWrap
-            component={Link}
-            href="/"
-            sx={{
-              flexGrow: 1,
-              display: { xs: 'flex', md: 'none' },
-              fontWeight: 900,
-              color: 'primary.main',
-              textDecoration: 'none',
-              letterSpacing: '-1px'
-            }}
-          >
-            KEDevs
-          </Typography>
+          <Box component={Link} href="/" sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' }, alignItems: 'center' }}>
+            <Box component="img" src="/logo.svg" sx={{ height: 36, width: 'auto' }} />
+          </Box>
 
           {/* Desktop Menu */}
           <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, gap: 1 }}>

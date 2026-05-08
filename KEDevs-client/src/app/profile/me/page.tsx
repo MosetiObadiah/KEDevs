@@ -1,4 +1,3 @@
-// src/app/profile/me/page.tsx
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
@@ -69,6 +68,8 @@ import { useRouter } from 'next/navigation';
 import { PillBadge } from '@/components/shared/PillBadge';
 import { developerService } from '@/services/developerService';
 import { employerService } from '@/services/employerService';
+import { spotlightService } from '@/services/spotlightService';
+import BuySpotlightDialog from '@/components/profile/BuySpotlightDialog';
 
 const COMMON_SKILLS = [
   'React', 'Java', 'Docker', 'Node.js', 'Python', 'TypeScript', 'Spring Boot', 'AWS', 
@@ -161,6 +162,9 @@ export default function MyProfile() {
     isVerified: false,
   });
 
+  const [spotlightStatus, setSpotlightStatus] = useState<any>(null);
+  const [buySpotlightOpen, setBuySpotlightOpen] = useState(false);
+
   // Dialog states
   const [dialogOpen, setDialogOpen] = useState<string | null>(null);
   const [newItem, setNewItem] = useState<any>({});
@@ -176,7 +180,21 @@ export default function MyProfile() {
 
   useEffect(() => {
     loadProfile(true);
+    if (user?.role === 'DEVELOPER') {
+      fetchSpotlightStatus();
+    }
   }, []);
+
+  const fetchSpotlightStatus = async () => {
+    try {
+      const response = await spotlightService.getMyStatus();
+      if (response.success) {
+        setSpotlightStatus(response.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch spotlight status', err);
+    }
+  };
 
   const loadProfile = async (initial = false) => {
     if (initial) setIsLoading(true);
@@ -266,10 +284,6 @@ export default function MyProfile() {
     }
   };
 
-  // ----------------------------------------------------------------
-  // Generic Handlers for Collections
-  // ----------------------------------------------------------------
-
   const openAddDialog = (type: string) => {
     let initialNewItem = {};
     if (type === 'project') initialNewItem = { isFeatured: false };
@@ -323,10 +337,17 @@ export default function MyProfile() {
           await developerService.addAchievement(newItem);
           break;
         case 'project':
-          if (newItem.isFeatured && !selectedFile) {
-            alert('A project screenshot is required to feature this project.');
-            setIsSaving(false);
-            return;
+          if (newItem.isFeatured) {
+            if (!selectedFile) {
+              alert('A project screenshot is required to feature this project.');
+              setIsSaving(false);
+              return;
+            }
+            if (!newItem.projectUrl) {
+              alert('A Live URL is required to feature this project.');
+              setIsSaving(false);
+              return;
+            }
           }
           await developerService.addProject({
             ...newItem,
@@ -380,7 +401,15 @@ export default function MyProfile() {
     }
   };
 
+
   const handleToggleFeaturedProject = async (projectId: string, currentFeatured: boolean) => {
+    if (!currentFeatured) {
+      const project = profile.projects.find((p: any) => p.id === projectId);
+      if (project && (!project.projectUrl || !project.screenshotUrl)) {
+        alert('A project screenshot and Live URL are required to feature this project.');
+        return;
+      }
+    }
     try {
       setIsRefreshing(true);
       await developerService.toggleFeaturedProject(projectId, !currentFeatured);
@@ -432,7 +461,6 @@ export default function MyProfile() {
       backgroundImage: 'radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.05) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.05) 0%, transparent 50%)'
     }}>
       <Container maxWidth="xl">
-        {/* Top Floating Refresh Indicator */}
         {isRefreshing && (
           <Box sx={{ position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 2000 }}>
             <Paper sx={{ px: 3, py: 1, borderRadius: 10, display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'primary.main', color: 'white', boxShadow: 6 }}>
@@ -442,7 +470,6 @@ export default function MyProfile() {
           </Box>
         )}
 
-        {/* Header Section */}
         <Fade in timeout={800}>
           <Box sx={{ mb: 6 }}>
             <Grid container spacing={4} sx={{ alignItems: 'center' }}>
@@ -508,45 +535,15 @@ export default function MyProfile() {
                       user?.role === 'EMPLOYER' ? (
                         <Stack spacing={2} sx={{ width: '100%' }}>
                           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <TextField
-                              size="small"
-                              label="Company Name"
-                              value={profile.companyName || ''}
-                              onChange={(e) => setProfile({ ...profile, companyName: e.target.value })}
-                              fullWidth
-                            />
-                            <TextField
-                              size="small"
-                              label="Industry"
-                              value={profile.industry || ''}
-                              onChange={(e) => setProfile({ ...profile, industry: e.target.value })}
-                              fullWidth
-                            />
+                            <TextField size="small" label="Company Name" value={profile.companyName || ''} onChange={(e) => setProfile({ ...profile, companyName: e.target.value })} fullWidth />
+                            <TextField size="small" label="Industry" value={profile.industry || ''} onChange={(e) => setProfile({ ...profile, industry: e.target.value })} fullWidth />
                           </Stack>
                           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <TextField
-                              size="small"
-                              label="Contact Person Name"
-                              value={profile.contactPersonName || ''}
-                              onChange={(e) => setProfile({ ...profile, contactPersonName: e.target.value })}
-                              fullWidth
-                            />
-                            <TextField
-                              size="small"
-                              label="Website URL"
-                              value={profile.companyWebsite || ''}
-                              onChange={(e) => setProfile({ ...profile, companyWebsite: e.target.value })}
-                              fullWidth
-                            />
+                            <TextField size="small" label="Contact Person Name" value={profile.contactPersonName || ''} onChange={(e) => setProfile({ ...profile, contactPersonName: e.target.value })} fullWidth />
+                            <TextField size="small" label="Website URL" value={profile.companyWebsite || ''} onChange={(e) => setProfile({ ...profile, companyWebsite: e.target.value })} fullWidth />
                           </Stack>
                           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <TextField
-                              size="small"
-                              label="Headquarters Location"
-                              value={profile.locationHQ || ''}
-                              onChange={(e) => setProfile({ ...profile, locationHQ: e.target.value })}
-                              fullWidth
-                            />
+                            <TextField size="small" label="Headquarters Location" value={profile.locationHQ || ''} onChange={(e) => setProfile({ ...profile, locationHQ: e.target.value })} fullWidth />
                             <FormControl fullWidth size="small">
                               <InputLabel id="company-size-label">Company Size</InputLabel>
                               <Select
@@ -566,29 +563,11 @@ export default function MyProfile() {
                       ) : (
                         <Stack spacing={2} sx={{ width: '100%' }}>
                           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <TextField
-                              size="small"
-                              label="First Name"
-                              value={profile.firstName || ''}
-                              onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
-                              fullWidth
-                            />
-                            <TextField
-                              size="small"
-                              label="Last Name"
-                              value={profile.lastName || ''}
-                              onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
-                              fullWidth
-                            />
+                            <TextField size="small" label="First Name" value={profile.firstName || ''} onChange={(e) => setProfile({ ...profile, firstName: e.target.value })} fullWidth />
+                            <TextField size="small" label="Last Name" value={profile.lastName || ''} onChange={(e) => setProfile({ ...profile, lastName: e.target.value })} fullWidth />
                           </Stack>
                           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <TextField
-                              size="small"
-                              label="Professional Title"
-                              value={profile.currentLastRole || ''}
-                              onChange={(e) => setProfile({ ...profile, currentLastRole: e.target.value })}
-                              fullWidth
-                            />
+                            <TextField size="small" label="Professional Title" value={profile.currentLastRole || ''} onChange={(e) => setProfile({ ...profile, currentLastRole: e.target.value })} fullWidth />
                             <FormControl fullWidth size="small">
                               <InputLabel id="years-of-experience-label">Years of Experience</InputLabel>
                               <Select
@@ -606,20 +585,8 @@ export default function MyProfile() {
                             </FormControl>
                           </Stack>
                           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <TextField
-                              size="small"
-                              label="City"
-                              value={profile.locationCity || ''}
-                              onChange={(e) => setProfile({ ...profile, locationCity: e.target.value })}
-                              fullWidth
-                            />
-                            <TextField
-                              size="small"
-                              label="Country"
-                              value={profile.locationCountry || ''}
-                              onChange={(e) => setProfile({ ...profile, locationCountry: e.target.value })}
-                              fullWidth
-                            />
+                            <TextField size="small" label="City" value={profile.locationCity || ''} onChange={(e) => setProfile({ ...profile, locationCity: e.target.value })} fullWidth />
+                            <TextField size="small" label="Country" value={profile.locationCountry || ''} onChange={(e) => setProfile({ ...profile, locationCountry: e.target.value })} fullWidth />
                           </Stack>
                         </Stack>
                       )
@@ -684,26 +651,10 @@ export default function MyProfile() {
                     startIcon={isEditing ? <SaveIcon /> : <EditIcon />}
                     onClick={() => isEditing ? handleUpdateBasicInfo() : setIsEditing(true)}
                     disabled={isSaving}
-                    sx={{ 
-                      borderRadius: 3, 
-                      fontWeight: 800, 
-                      px: 4, 
-                      py: 1.8,
-                      boxShadow: isEditing ? '0 10px 20px rgba(16, 185, 129, 0.2)' : 'none'
-                    }}
+                    sx={{ borderRadius: 3, fontWeight: 800, px: 4, py: 1.8 }}
                   >
-                    {isSaving ? 'Saving Changes...' : (isEditing ? 'Save Changes' : 'Edit Identity')}
+                    {isSaving ? 'Saving...' : (isEditing ? 'Save' : 'Edit Identity')}
                   </Button>
-                  {isEditing && (
-                    <Button 
-                      variant="text" 
-                      color="inherit" 
-                      onClick={() => setIsEditing(false)}
-                      sx={{ fontWeight: 700 }}
-                    >
-                      Cancel
-                    </Button>
-                  )}
                 </Stack>
               </Grid>
             </Grid>
@@ -711,700 +662,155 @@ export default function MyProfile() {
         </Fade>
 
         <Grid container spacing={4}>
-          {/* Main Column */}
           <Grid size={{ xs: 12, lg: 8 }}>
             <Stack spacing={4}>
-              {/* Professional Narrative */}
+              {user?.role === 'DEVELOPER' && (
+                <Box sx={{ display: { xs: 'block', lg: 'none' } }}>
+                   <SpotlightStatusCard status={spotlightStatus} onBuy={() => setBuySpotlightOpen(true)} />
+                </Box>
+              )}
+              
               <Paper sx={{ p: 5, borderRadius: 6, position: 'relative', overflow: 'hidden' }}>
                 <Box sx={{ position: 'absolute', top: 0, left: 0, width: 6, height: '100%', bgcolor: 'primary.main' }} />
-                <Typography variant="h4" sx={{ fontWeight: 900, mb: 3, letterSpacing: '-0.01em' }}>About Me</Typography>
+                <Typography variant="h4" sx={{ fontWeight: 900, mb: 3 }}>About Me</Typography>
                 {isEditing ? (
-                  <TextField 
-                    fullWidth 
-                    multiline 
-                    rows={5} 
-                    label="Tell your story..." 
-                    variant="filled"
-                    value={profile.bio} 
-                    onChange={(e) => setProfile({...profile, bio: e.target.value})} 
-                    sx={{ bgcolor: 'background.subtle', borderRadius: 2 }}
-                  />
+                  <TextField fullWidth multiline rows={5} value={profile.bio} onChange={(e) => setProfile({...profile, bio: e.target.value})} />
                 ) : (
-                  <Typography variant="body1" sx={{ fontSize: '1.15rem', lineHeight: 1.8, color: 'text.secondary', fontWeight: 500 }}>
-                    {profile.bio || "Craft your professional narrative. What drives you as a developer?"}
+                  <Typography variant="body1" sx={{ fontSize: '1.15rem', lineHeight: 1.8, color: 'text.secondary' }}>
+                    {profile.bio || "Craft your story..."}
                   </Typography>
                 )}
               </Paper>
 
-              {/* Expertise Matrix */}
               <Paper sx={{ p: 5, borderRadius: 6 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-                  <Typography variant="h4" sx={{ fontWeight: 900 }}>Expertise Matrix</Typography>
-                  <Button 
-                    startIcon={<AddIcon />} 
-                    variant="contained" 
-                    size="small" 
-                    onClick={() => openAddDialog('skill')}
-                    sx={{ borderRadius: 2, fontWeight: 700 }}
-                  >
-                    Add Skill
-                  </Button>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
+                  <Typography variant="h4" sx={{ fontWeight: 900 }}>Skills</Typography>
+                  <Button startIcon={<AddIcon />} variant="contained" onClick={() => openAddDialog('skill')}>Add Skill</Button>
                 </Box>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
                   {profile.skills.map((skill: string) => (
-                    <Zoom in key={skill}>
-                      <Chip
-                        label={skill}
-                        onDelete={() => handleRemoveItem('skill', skill)}
-                        sx={{ 
-                          fontWeight: 800, 
-                          px: 2, 
-                          py: 2.8, 
-                          borderRadius: 3, 
-                          bgcolor: 'background.subtle',
-                          border: '1px solid transparent',
-                          '&:hover': {
-                            borderColor: 'primary.main',
-                            bgcolor: 'white',
-                            color: 'primary.main'
-                          },
-                          transition: 'all 0.2s'
-                        }}
-                      />
-                    </Zoom>
+                    <Chip key={skill} label={skill} onDelete={() => handleRemoveItem('skill', skill)} sx={{ fontWeight: 800, px: 2, py: 2.5, borderRadius: 3 }} />
                   ))}
-                  {profile.skills.length === 0 && (
-                    <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>Your tech stack is currently empty.</Typography>
-                  )}
                 </Box>
               </Paper>
 
-              {/* Showcase Projects */}
               <Paper sx={{ p: 5, borderRadius: 6 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-                  <Typography variant="h4" sx={{ fontWeight: 900 }}>Projects Showcase</Typography>
-                  <Button 
-                    startIcon={<AddIcon />} 
-                    variant="outlined" 
-                    size="small" 
-                    onClick={() => openAddDialog('project')}
-                    sx={{ borderRadius: 2, fontWeight: 700 }}
-                  >
-                    New Project
-                  </Button>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
+                  <Typography variant="h4" sx={{ fontWeight: 900 }}>Projects</Typography>
+                  <Button startIcon={<AddIcon />} variant="outlined" onClick={() => openAddDialog('project')}>New Project</Button>
                 </Box>
                 <Stack spacing={4}>
                   {profile.projects.map((project: any) => (
-                    <Fade in key={project.id}>
-                      <Card sx={{ 
-                        borderRadius: 4, 
-                        overflow: 'hidden', 
-                        boxShadow: project.isFeatured ? '0 20px 40px rgba(16, 185, 129, 0.1)' : '0 4px 10px rgba(0,0,0,0.02)',
-                        border: project.isFeatured ? '2px solid' : '1px solid',
-                        borderColor: project.isFeatured ? 'primary.main' : 'divider',
-                        position: 'relative',
-                        '&:hover .project-overlay': { opacity: 1 }
-                      }}>
-                        <Grid container>
-                          <Grid size={{ xs: 12, md: 5 }}>
-                            <Box sx={{ position: 'relative', height: '100%', minHeight: 250, bgcolor: 'background.subtle' }}>
-                              <Box
-                                sx={{
-                                  width: '100%',
-                                  height: '100%',
-                                  backgroundImage: project.screenshotUrl ? `url(${project.screenshotUrl})` : 'none',
-                                  backgroundSize: 'cover',
-                                  backgroundPosition: 'top center',
-                                  transition: 'transform 0.5s ease',
-                                  '&:hover': { transform: 'scale(1.05)' }
-                                }}
-                              >
-                                {!project.screenshotUrl && (
-                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', opacity: 0.1 }}>
-                                    <CodeIcon sx={{ fontSize: 80 }} />
-                                  </Box>
-                                )}
-                              </Box>
-                              
-                              {/* Overlay for viewing image */}
-                              {project.screenshotUrl && (
-                                <Box 
-                                  className="project-overlay"
-                                  onClick={() => setLightboxUrl(project.screenshotUrl)}
-                                  sx={{ 
-                                    position: 'absolute', 
-                                    top: 0, left: 0, 
-                                    width: '100%', height: '100%', 
-                                    bgcolor: alpha('#000', 0.4), 
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    opacity: 0, transition: 'opacity 0.3s ease', cursor: 'pointer'
-                                  }}
-                                >
-                                  <Button variant="contained" startIcon={<VisibilityIcon />} sx={{ borderRadius: 5, fontWeight: 800 }}>View Screenshot</Button>
-                                </Box>
-                              )}
-
-                              <Box sx={{ position: 'absolute', top: 12, left: 12 }}>
-                                {project.isFeatured && <PillBadge variant="mint">FEATURED</PillBadge>}
-                              </Box>
-                              
-                              <Box sx={{ position: 'absolute', bottom: 12, right: 12 }}>
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  style={{ display: 'none' }}
-                                  id={`project-upload-${project.id}`}
-                                  onChange={(e) => handleFileUpload('project', project.id, e)}
-                                />
-                                <label htmlFor={`project-upload-${project.id}`}>
-                                  <Tooltip title="Update Screenshot">
-                                    <IconButton component="span" sx={{ bgcolor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(4px)', '&:hover': { bgcolor: 'white' } }}>
-                                      <PhotoCameraIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
-                                </label>
-                              </Box>
-                            </Box>
-                          </Grid>
-                          <Grid size={{ xs: 12, md: 7 }}>
-                            <CardContent sx={{ p: 4 }}>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                                <Typography variant="h5" sx={{ fontWeight: 900 }}>{project.title}</Typography>
-                                <Stack direction="row" spacing={1}>
-                                  <Tooltip title={project.isFeatured ? "Unfeature" : "Feature on Profile"}>
-                                    <IconButton size="small" onClick={() => handleToggleFeaturedProject(project.id, project.isFeatured)}>
-                                      {project.isFeatured ? <StarIcon color="primary" /> : <StarBorderIcon />}
-                                    </IconButton>
-                                  </Tooltip>
-                                  <IconButton size="small" color="error" onClick={() => handleRemoveItem('project', project.id)}>
-                                    <DeleteIcon />
-                                  </IconButton>
-                                </Stack>
-                              </Box>
-                              <Typography variant="body2" color="text.secondary" sx={{ mb: 3, minHeight: 48, fontWeight: 500, lineHeight: 1.6 }}>
-                                {project.description}
-                              </Typography>
-                              <Box sx={{ mb: 3, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                {(Array.isArray(project.techStack) ? project.techStack : (project.techStack?.split(',') || [])).map((tech: string) => (
-                                  <Chip key={tech} label={tech.trim()} size="small" sx={{ fontWeight: 700, bgcolor: 'background.subtle' }} />
-                                ))}
-                              </Box>
-                              <Stack direction="row" spacing={2}>
-                                {project.projectUrl && (
-                                  <Button 
-                                    variant="contained" 
-                                    size="small" 
-                                    startIcon={<OpenInNewIcon />} 
-                                    href={project.projectUrl} 
-                                    target="_blank"
-                                    sx={{ borderRadius: 2, fontWeight: 700 }}
-                                  >
-                                    Live Demo
-                                  </Button>
-                                )}
-                                {project.repoUrl && (
-                                  <Button 
-                                    variant="outlined" 
-                                    size="small" 
-                                    startIcon={<GitHubIcon />} 
-                                    href={project.repoUrl} 
-                                    target="_blank"
-                                    sx={{ borderRadius: 2, fontWeight: 700 }}
-                                  >
-                                    Repository
-                                  </Button>
-                                )}
-                              </Stack>
-                            </CardContent>
-                          </Grid>
+                    <Card key={project.id} sx={{ borderRadius: 4, overflow: 'hidden', border: '1px solid', borderColor: 'divider' }}>
+                      <Grid container>
+                        <Grid size={{ xs: 12, md: 5 }}>
+                          <Box sx={{ height: 250, bgcolor: 'background.subtle', position: 'relative' }}>
+                            {project.screenshotUrl ? (
+                              <Box component="img" src={project.screenshotUrl} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', opacity: 0.1 }}><CodeIcon sx={{ fontSize: 80 }} /></Box>
+                            )}
+                          </Box>
                         </Grid>
-                      </Card>
-                    </Fade>
+                        <Grid size={{ xs: 12, md: 7 }}>
+                          <CardContent sx={{ p: 4 }}>
+                             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                               <Typography variant="h5" sx={{ fontWeight: 900 }}>{project.title}</Typography>
+                               <IconButton color="error" onClick={() => handleRemoveItem('project', project.id)}><DeleteIcon /></IconButton>
+                             </Box>
+                             <Typography variant="body2" color="text.secondary" sx={{ my: 2 }}>{project.description}</Typography>
+                             <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+                               {project.projectUrl && <Button size="small" variant="contained" href={project.projectUrl} target="_blank">Live</Button>}
+                               {project.repoUrl && <Button size="small" variant="outlined" href={project.repoUrl} target="_blank">Repo</Button>}
+                             </Stack>
+                          </CardContent>
+                        </Grid>
+                      </Grid>
+                    </Card>
                   ))}
-                  {profile.projects.length === 0 && (
-                    <Box sx={{ textAlign: 'center', py: 8, bgcolor: 'background.subtle', borderRadius: 4, border: '2px dashed', borderColor: 'divider' }}>
-                       <Typography color="text.secondary" sx={{ fontWeight: 600 }}>Your portfolio is currently blank. Showcase your best work!</Typography>
-                    </Box>
-                  )}
                 </Stack>
               </Paper>
             </Stack>
           </Grid>
 
-          {/* Right Column / Sidebar */}
           <Grid size={{ xs: 12, lg: 4 }}>
             <Stack spacing={4}>
-              {/* Availability & Socials Card */}
-              <Paper sx={{ p: 4, borderRadius: 6, bgcolor: 'primary.main', color: 'white', boxShadow: '0 20px 40px rgba(16, 185, 129, 0.15)' }}>
-                <Typography variant="h6" sx={{ fontWeight: 900, mb: 3, letterSpacing: '0.05em' }}>PREFERENCES</Typography>
-                <Stack spacing={3}>
-                  <Box>
-                    <Typography variant="caption" sx={{ fontWeight: 800, opacity: 0.7, display: 'block', mb: 1, letterSpacing: '0.1em' }}>AVAILABILITY</Typography>
-                    <Select
-                      fullWidth
-                      size="small"
-                      value={profile.availabilityStatus}
-                      onChange={(e) => handleToggleAvailability(e.target.value)}
-                      sx={{ 
-                        color: 'white', 
-                        fontWeight: 700, 
-                        bgcolor: 'rgba(255,255,255,0.1)',
-                        '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.3)' },
-                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
-                        '& .MuiSvgIcon-root': { color: 'white' }
-                      }}
-                    >
-                      <MenuItem value="AVAILABLE">Available</MenuItem>
-                      <MenuItem value="OPEN_TO_OFFERS">Open to Offers</MenuItem>
-                      <MenuItem value="NOT_AVAILABLE">Not Available</MenuItem>
-                    </Select>
-                  </Box>
-                  <Box>
-                    <Typography variant="caption" sx={{ fontWeight: 800, opacity: 0.7, display: 'block', mb: 1, letterSpacing: '0.1em' }}>VISIBILITY</Typography>
-                    <Select
-                      fullWidth
-                      size="small"
-                      value={profile.profileVisibility}
-                      onChange={(e) => handleToggleVisibility(e.target.value)}
-                      sx={{ 
-                        color: 'white', 
-                        fontWeight: 700, 
-                        bgcolor: 'rgba(255,255,255,0.1)',
-                        '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.3)' },
-                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
-                        '& .MuiSvgIcon-root': { color: 'white' }
-                      }}
-                    >
-                      <MenuItem value="PUBLIC">Publicly Searchable</MenuItem>
-                      <MenuItem value="PRIVATE">Logged-in Members</MenuItem>
-                      <MenuItem value="HIDDEN">Admin Only</MenuItem>
-                    </Select>
-                  </Box>
-                </Stack>
+              {user?.role === 'DEVELOPER' && (
+                <SpotlightStatusCard status={spotlightStatus} onBuy={() => setBuySpotlightOpen(true)} />
+              )}
+              
+              <Paper sx={{ p: 4, borderRadius: 6, bgcolor: 'primary.main', color: 'white' }}>
+                 <Typography variant="h6" sx={{ fontWeight: 900, mb: 3 }}>PREFERENCES</Typography>
+                 <Stack spacing={3}>
+                    <Box>
+                      <Typography variant="caption" sx={{ fontWeight: 800, display: 'block', mb: 1 }}>AVAILABILITY</Typography>
+                      <Select fullWidth size="small" value={profile.availabilityStatus} onChange={(e) => handleToggleAvailability(e.target.value as string)} sx={{ color: 'white', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.3)' } }}>
+                        <MenuItem value="AVAILABLE">Available</MenuItem>
+                        <MenuItem value="OPEN_TO_OFFERS">Open to Offers</MenuItem>
+                        <MenuItem value="NOT_AVAILABLE">Not Available</MenuItem>
+                      </Select>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" sx={{ fontWeight: 800, display: 'block', mb: 1 }}>VISIBILITY</Typography>
+                      <Select fullWidth size="small" value={profile.profileVisibility} onChange={(e) => handleToggleVisibility(e.target.value as string)} sx={{ color: 'white', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.3)' } }}>
+                        <MenuItem value="PUBLIC">Public</MenuItem>
+                        <MenuItem value="PRIVATE">Private</MenuItem>
+                        <MenuItem value="HIDDEN">Hidden</MenuItem>
+                      </Select>
+                    </Box>
+                 </Stack>
               </Paper>
 
-              {/* Languages Card */}
               <Paper sx={{ p: 4, borderRadius: 6 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 900 }}>Communication</Typography>
-                  <IconButton size="small" color="primary" onClick={() => openAddDialog('language')}><AddIcon /></IconButton>
-                </Box>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  {profile.languages.map((lang: string) => (
-                    <Chip 
-                      key={lang} 
-                      label={lang} 
-                      onDelete={() => handleRemoveItem('language', lang)} 
-                      sx={{ fontWeight: 700, borderRadius: 2 }}
-                    />
-                  ))}
-                  {profile.languages.length === 0 && <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>No languages defined.</Typography>}
-                </Box>
-              </Paper>
-
-              {/* Certification & Education Card */}
-              <Paper sx={{ p: 4, borderRadius: 6 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 900 }}>Certifications</Typography>
-                  <IconButton size="small" color="primary" onClick={() => openAddDialog('certification')}><AddIcon /></IconButton>
-                </Box>
-                <Stack spacing={3}>
-                  {profile.certifications.map((cert: any) => (
-                    <Box key={cert.id} sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                      <Box sx={{ bgcolor: 'secondary.main', p: 1, borderRadius: 2, color: 'white', display: 'flex' }}>
-                        <WorkspacePremiumIcon fontSize="small" />
+                 <Typography variant="h6" sx={{ fontWeight: 900, mb: 3 }}>Certifications</Typography>
+                 <Stack spacing={2}>
+                    {profile.certifications.map((c: any) => (
+                      <Box key={c.id} sx={{ display: 'flex', gap: 2 }}>
+                        <WorkspacePremiumIcon color="secondary" />
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 800 }}>{c.name}</Typography>
+                          <Typography variant="caption" color="text.secondary">{c.issuedBy}</Typography>
+                        </Box>
                       </Box>
-                      <Box sx={{ flexGrow: 1 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 800 }}>{cert.name}</Typography>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>{cert.issuedBy}</Typography>
-                        {cert.certImageUrl && (
-                          <Link 
-                            component="button"
-                            onClick={() => setLightboxUrl(cert.certImageUrl)}
-                            sx={{ fontSize: '0.75rem', fontWeight: 700, mt: 0.5, display: 'inline-block', textDecoration: 'none' }}
-                          >
-                            View Credential Image
-                          </Link>
-                        )}
-                      </Box>
-                      <Stack direction="row">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          style={{ display: 'none' }}
-                          id={`cert-upload-${cert.id}`}
-                          onChange={(e) => handleFileUpload('certification', cert.id, e)}
-                        />
-                        <label htmlFor={`cert-upload-${cert.id}`}>
-                          <Tooltip title="Upload Credential Image">
-                            <IconButton component="span" size="small"><CloudUploadIcon fontSize="small" /></IconButton>
-                          </Tooltip>
-                        </label>
-                        <IconButton size="small" color="error" onClick={() => handleRemoveItem('certification', cert.id)}><DeleteIcon fontSize="small" /></IconButton>
-                      </Stack>
-                    </Box>
-                  ))}
-                </Stack>
-                
-                <Divider sx={{ my: 4 }} />
-                
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 900 }}>Education</Typography>
-                  <IconButton size="small" color="primary" onClick={() => openAddDialog('education')}><AddIcon /></IconButton>
-                </Box>
-                <Stack spacing={3}>
-                  {profile.education.map((edu: any) => (
-                    <Box key={edu.id} sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                      <Box sx={{ bgcolor: 'background.subtle', p: 1, borderRadius: 2, color: 'primary.main', display: 'flex' }}>
-                        <SchoolIcon fontSize="small" />
-                      </Box>
-                      <Box sx={{ flexGrow: 1 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 800 }}>{edu.qualification}</Typography>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600 }}>{edu.institution}</Typography>
-                        <Typography variant="caption" color="primary.main" sx={{ fontWeight: 800 }}>{edu.startYear} - {edu.yearCompleted}</Typography>
-                      </Box>
-                      <IconButton size="small" color="error" onClick={() => handleRemoveItem('education', edu.id)}><DeleteIcon fontSize="small" /></IconButton>
-                    </Box>
-                  ))}
-                </Stack>
-              </Paper>
-
-              {/* OSS & Achievements List */}
-              <Paper sx={{ p: 4, borderRadius: 6 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 900 }}>Achievements</Typography>
-                  <IconButton size="small" color="primary" onClick={() => openAddDialog('achievement')}><AddIcon /></IconButton>
-                </Box>
-                <Stack spacing={2}>
-                  {profile.achievements.map((a: any) => (
-                    <Box key={a.id} sx={{ p: 2, bgcolor: 'background.subtle', borderRadius: 3, position: 'relative' }}>
-                      <IconButton size="small" color="error" sx={{ position: 'absolute', top: 5, right: 5 }} onClick={() => handleRemoveItem('achievement', a.id)}><DeleteIcon fontSize="small" /></IconButton>
-                      <Typography variant="body2" sx={{ fontWeight: 800 }}>{a.title}</Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>{a.year}</Typography>
-                      <Typography variant="caption" sx={{ fontWeight: 500, display: 'block' }}>{a.description}</Typography>
-                    </Box>
-                  ))}
-                </Stack>
+                    ))}
+                 </Stack>
               </Paper>
             </Stack>
           </Grid>
         </Grid>
 
-        {/* --- Lightbox / Image Viewer --- */}
-        <Dialog 
-          open={!!lightboxUrl} 
-          onClose={() => setLightboxUrl(null)} 
-          maxWidth="lg" 
-          slotProps={{ paper: { sx: { bgcolor: 'transparent', boxShadow: 'none', overflow: 'hidden' } } }}
-        >
-          <Box sx={{ position: 'relative' }}>
-            <IconButton 
-              onClick={() => setLightboxUrl(null)} 
-              sx={{ position: 'absolute', top: 10, right: 10, bgcolor: 'rgba(0,0,0,0.5)', color: 'white', '&:hover': { bgcolor: 'rgba(0,0,0,0.8)' } }}
-            >
-              <DeleteIcon /> {/* Use X icon if available, Delete as placeholder */}
-            </IconButton>
-            <Box 
-              component="img" 
-              src={lightboxUrl || ''} 
-              sx={{ width: '100%', maxHeight: '90vh', borderRadius: 4, display: 'block' }} 
-            />
-          </Box>
-        </Dialog>
-
-        {/* --- Unified Dialog System --- */}
-
-        {/* Skill Dialog */}
-        <Dialog open={dialogOpen === 'skill'} onClose={closeDialog} fullWidth maxWidth="xs">
-          <DialogTitle sx={{ fontWeight: 900 }}>Add Expertise</DialogTitle>
-          <DialogContent>
-            <Autocomplete
-              options={COMMON_SKILLS}
-              freeSolo
-              onChange={(event, newValue) => setNewItem({ ...newItem, skill: newValue })}
-              renderInput={(params) => (
-                <TextField 
-                  {...params} 
-                  autoFocus 
-                  margin="dense" 
-                  label="Search or Enter Skill" 
-                  fullWidth 
-                  variant="outlined" 
-                  onBlur={(e) => setNewItem({ ...newItem, skill: e.target.value })}
-                />
-              )}
-            />
-          </DialogContent>
-          <DialogActions sx={{ p: 3 }}>
-            <Button onClick={closeDialog} sx={{ fontWeight: 700 }}>Cancel</Button>
-            <Button 
-              onClick={() => handleAddItem('skill')} 
-              variant="contained" 
-              disabled={!newItem.skill || isSaving}
-              sx={{ borderRadius: 2, fontWeight: 800 }}
-            >
-              Add Skill
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Language Dialog */}
-        <Dialog open={dialogOpen === 'language'} onClose={closeDialog} fullWidth maxWidth="xs">
-          <DialogTitle sx={{ fontWeight: 900 }}>Add Language</DialogTitle>
-          <DialogContent>
-            <TextField
-              autoFocus
-              margin="dense"
-              label="Language (e.g. Swahili, English)"
-              fullWidth
-              variant="outlined"
-              value={newItem.language || ''}
-              onChange={(e) => setNewItem({ ...newItem, language: e.target.value })}
-            />
-          </DialogContent>
-          <DialogActions sx={{ p: 3 }}>
-            <Button onClick={closeDialog} sx={{ fontWeight: 700 }}>Cancel</Button>
-            <Button onClick={() => handleAddItem('language')} variant="contained" disabled={!newItem.language || isSaving} sx={{ borderRadius: 2, fontWeight: 800 }}>Add Language</Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Project Dialog */}
-        <Dialog open={dialogOpen === 'project'} onClose={closeDialog} fullWidth maxWidth="sm">
-          <DialogTitle sx={{ fontWeight: 900 }}>Catalog New Project</DialogTitle>
-          <DialogContent>
-            <Stack spacing={3} sx={{ mt: 1 }}>
-              <TextField label="Project Title" fullWidth value={newItem.title || ''} onChange={(e) => setNewItem({ ...newItem, title: e.target.value })} />
-              <TextField label="Executive Summary" multiline rows={3} fullWidth value={newItem.description || ''} onChange={(e) => setNewItem({ ...newItem, description: e.target.value })} />
-              
-              <Autocomplete
-                multiple
-                options={COMMON_SKILLS}
-                freeSolo
-                value={newItem.techStack ? newItem.techStack.split(',').map((s: string) => s.trim()).filter(Boolean) : []}
-                onChange={(event, newValue) => setNewItem({ ...newItem, techStack: (newValue as string[]).join(', ') })}
-                renderInput={(params) => (
-                  <TextField {...params} label="Technology Stack" placeholder="Select or type..." />
-                )}
-              />
-
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 6 }}>
-                  <TextField label="Live URL" fullWidth value={newItem.projectUrl || ''} onChange={(e) => setNewItem({ ...newItem, projectUrl: e.target.value })} />
-                </Grid>
-                <Grid size={{ xs: 6 }}>
-                  <TextField label="Repo URL" fullWidth value={newItem.repoUrl || ''} onChange={(e) => setNewItem({ ...newItem, repoUrl: e.target.value })} />
-                </Grid>
-              </Grid>
-              
-              <Box sx={{ p: 2, bgcolor: 'background.subtle', borderRadius: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: newItem.isFeatured ? 2 : 0 }}>
-                  <Box>
-                    <Typography variant="body2" sx={{ fontWeight: 800 }}>Feature this project on profile?</Typography>
-                    <Typography variant="caption" color="text.secondary">Requires a screenshot and live URL</Typography>
-                  </Box>
-                  <Switch 
-                    checked={newItem.isFeatured || false} 
-                    onChange={(e) => setNewItem({ ...newItem, isFeatured: e.target.checked })} 
-                  />
-                </Box>
-                
-                {newItem.isFeatured && (
-                  <Fade in>
-                    <Box sx={{ mt: 2, pt: 2, borderTop: '1px dashed', borderColor: 'divider' }}>
-                      <Typography variant="body2" sx={{ fontWeight: 800, mb: 1 }}>Project Screenshot *</Typography>
-                      {previewUrl ? (
-                         <Box sx={{ position: 'relative', mb: 2 }}>
-                            <Box 
-                              component="img" 
-                              src={previewUrl} 
-                              sx={{ width: '100%', height: 200, objectFit: 'cover', borderRadius: 2, border: '1px solid', borderColor: 'divider' }} 
-                            />
-                            <IconButton 
-                              onClick={() => { setSelectedFile(null); setPreviewUrl(null); }}
-                              sx={{ position: 'absolute', top: 5, right: 5, bgcolor: 'rgba(255,255,255,0.8)', '&:hover': { bgcolor: 'white' } }}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                         </Box>
-                      ) : (
-                        <Button
-                          variant="outlined"
-                          component="label"
-                          fullWidth
-                          startIcon={<CloudUploadIcon />}
-                          sx={{ py: 3, borderRadius: 2, borderStyle: 'dashed' }}
-                        >
-                          Upload Screenshot
-                          <input
-                            type="file"
-                            hidden
-                            accept="image/*"
-                            onChange={handleFileChange}
-                          />
-                        </Button>
-                      )}
-                    </Box>
-                  </Fade>
-                )}
-              </Box>
-            </Stack>
-          </DialogContent>
-          <DialogActions sx={{ p: 3 }}>
-            <Button onClick={closeDialog} sx={{ fontWeight: 700 }}>Cancel</Button>
-            <Button 
-              onClick={() => handleAddItem('project')} 
-              variant="contained" 
-              disabled={isSaving || (newItem.isFeatured && !selectedFile)} 
-              sx={{ borderRadius: 2, fontWeight: 800 }}
-            >
-              {isSaving ? 'Saving...' : 'Save Project'}
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Education Dialog */}
-        <Dialog open={dialogOpen === 'education'} onClose={closeDialog} fullWidth maxWidth="sm">
-          <DialogTitle sx={{ fontWeight: 900 }}>Academic Background</DialogTitle>
-          <DialogContent>
-            <Stack spacing={2} sx={{ mt: 1 }}>
-              <TextField label="Institution" fullWidth value={newItem.institution || ''} onChange={(e) => setNewItem({ ...newItem, institution: e.target.value })} />
-              <TextField label="Degree / Qualification" fullWidth value={newItem.qualification || ''} onChange={(e) => setNewItem({ ...newItem, qualification: e.target.value })} />
-              <TextField label="Field of Study" fullWidth value={newItem.fieldOfStudy || ''} onChange={(e) => setNewItem({ ...newItem, fieldOfStudy: e.target.value })} />
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 6 }}>
-                  <TextField label="Start Year" type="number" fullWidth value={newItem.startYear || ''} onChange={(e) => setNewItem({ ...newItem, startYear: e.target.value })} />
-                </Grid>
-                <Grid size={{ xs: 6 }}>
-                  <TextField label="End Year" type="number" fullWidth value={newItem.yearCompleted || ''} onChange={(e) => setNewItem({ ...newItem, yearCompleted: e.target.value })} />
-                </Grid>
-              </Grid>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, bgcolor: 'background.subtle', borderRadius: 2 }}>
-                <Typography variant="body2" sx={{ fontWeight: 800 }}>Is this a certification?</Typography>
-                <Switch 
-                  checked={newItem.isCertification || false} 
-                  onChange={(e) => setNewItem({ ...newItem, isCertification: e.target.checked })} 
-                />
-              </Box>
-            </Stack>
-          </DialogContent>
-          <DialogActions sx={{ p: 3 }}>
-            <Button onClick={closeDialog} sx={{ fontWeight: 700 }}>Cancel</Button>
-            <Button onClick={() => handleAddItem('education')} variant="contained" disabled={isSaving} sx={{ borderRadius: 2, fontWeight: 800 }}>Add Entry</Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Certification Dialog */}
-        <Dialog open={dialogOpen === 'certification'} onClose={closeDialog} fullWidth maxWidth="sm">
-          <DialogTitle sx={{ fontWeight: 900 }}>Professional Certification</DialogTitle>
-          <DialogContent>
-            <Stack spacing={2} sx={{ mt: 1 }}>
-              <TextField label="Certification Title" fullWidth value={newItem.name || ''} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} />
-              <TextField label="Issuing Organization" fullWidth value={newItem.issuedBy || ''} onChange={(e) => setNewItem({ ...newItem, issuedBy: e.target.value })} />
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 6 }}>
-                   <TextField label="Issue Date" type="date" fullWidth slotProps={{ inputLabel: { shrink: true } }} value={newItem.issuedDate || ''} onChange={(e) => setNewItem({ ...newItem, issuedDate: e.target.value })} />
-                </Grid>
-                <Grid size={{ xs: 6 }}>
-                   <TextField label="Expiry Date (Optional)" type="date" fullWidth slotProps={{ inputLabel: { shrink: true } }} value={newItem.expiryDate || ''} onChange={(e) => setNewItem({ ...newItem, expiryDate: e.target.value })} />
-                </Grid>
-              </Grid>
-              <TextField label="Credential Verification URL" fullWidth value={newItem.certUrl || ''} onChange={(e) => setNewItem({ ...newItem, certUrl: e.target.value })} />
-            </Stack>
-          </DialogContent>
-          <DialogActions sx={{ p: 3 }}>
-            <Button onClick={closeDialog} sx={{ fontWeight: 700 }}>Cancel</Button>
-            <Button onClick={() => handleAddItem('certification')} variant="contained" disabled={isSaving} sx={{ borderRadius: 2, fontWeight: 800 }}>Save Certificate</Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Achievement Dialog */}
-        <Dialog open={dialogOpen === 'achievement'} onClose={closeDialog} fullWidth maxWidth="sm">
-          <DialogTitle sx={{ fontWeight: 900 }}>Add Recognition</DialogTitle>
-          <DialogContent>
-            <Stack spacing={2} sx={{ mt: 1 }}>
-              <TextField label="Title of Recognition" fullWidth value={newItem.title || ''} onChange={(e) => setNewItem({ ...newItem, title: e.target.value })} />
-              <TextField label="Year Received" type="number" fullWidth value={newItem.year || ''} onChange={(e) => setNewItem({ ...newItem, year: e.target.value })} />
-              <TextField label="Context / Description" multiline rows={2} fullWidth value={newItem.description || ''} onChange={(e) => setNewItem({ ...newItem, description: e.target.value })} />
-              <TextField label="Evidence Link (URL)" fullWidth value={newItem.achievementUrl || ''} onChange={(e) => setNewItem({ ...newItem, achievementUrl: e.target.value })} />
-            </Stack>
-          </DialogContent>
-          <DialogActions sx={{ p: 3 }}>
-            <Button onClick={closeDialog} sx={{ fontWeight: 700 }}>Cancel</Button>
-            <Button onClick={() => handleAddItem('achievement')} variant="contained" disabled={isSaving} sx={{ borderRadius: 2, fontWeight: 800 }}>Add Achievement</Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Profile Photo Crop Dialog */}
-        <Dialog
-          open={cropDialogOpen}
-          onClose={() => setCropDialogOpen(false)}
-          maxWidth="xs"
-          fullWidth
-          slotProps={{ paper: { sx: { borderRadius: 4, p: 1 } } }}
-        >
-          <DialogTitle sx={{ fontWeight: 800 }}>Crop Profile Photo</DialogTitle>
-          <DialogContent>
-            {cropImageSrc && (
-              <Box sx={{ position: 'relative', width: '100%', height: 300, borderRadius: 3, overflow: 'hidden', bgcolor: '#333' }}>
-                <Cropper
-                  image={cropImageSrc}
-                  crop={crop}
-                  zoom={zoom}
-                  aspect={1}
-                  onCropChange={setCrop}
-                  onZoomChange={setZoom}
-                  onCropComplete={(_, croppedPixels) => setCroppedAreaPixels(croppedPixels)}
-                />
-              </Box>
-            )}
-            <Box sx={{ mt: 3, px: 1 }}>
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, mb: 1, display: 'block' }}>
-                ZOOM
-              </Typography>
-              <Slider
-                value={zoom}
-                min={1}
-                max={3}
-                step={0.1}
-                onChange={(_, value) => setZoom(value as number)}
-                color="primary"
-              />
-            </Box>
-          </DialogContent>
-          <DialogActions sx={{ p: 2 }}>
-            <Button onClick={() => setCropDialogOpen(false)} color="inherit" sx={{ fontWeight: 700 }}>
-              Cancel
-            </Button>
-            <Button
-              onClick={async () => {
-                if (cropImageSrc && croppedAreaPixels) {
-                  try {
-                    setIsRefreshing(true);
-                    setCropDialogOpen(false);
-                    const croppedBlob = await getCroppedImg(cropImageSrc, croppedAreaPixels);
-                    const file = new File([croppedBlob], 'avatar.jpg', { type: 'image/jpeg' });
-                    const response = await developerService.uploadProfilePhoto(file);
-                    if (response.success) {
-                      setProfile((prev: any) => ({ ...prev, profilePhoto: response.data.profilePhoto }));
-                      alert('Profile photo updated successfully!');
-                    }
-                  } catch (err) {
-                    console.error(err);
-                    alert('Failed to upload profile photo.');
-                  } finally {
-                    setIsRefreshing(false);
-                  }
-                }
-              }}
-              variant="contained"
-              sx={{ fontWeight: 700, borderRadius: 2 }}
-            >
-              Crop & Save
-            </Button>
-          </DialogActions>
-        </Dialog>
-
+        <BuySpotlightDialog 
+          open={buySpotlightOpen} 
+          onClose={() => setBuySpotlightOpen(false)} 
+          onSuccess={() => { fetchSpotlightStatus(); setBuySpotlightOpen(false); }}
+          isVerified={profile.isVerified}
+        />
       </Container>
     </Box>
+  );
+}
+
+function SpotlightStatusCard({ status, onBuy }: { status: any, onBuy: () => void }) {
+  const isActive = !!status;
+  return (
+    <Paper sx={{ p: 3, borderRadius: 6, background: isActive ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#f3f4f6', color: isActive ? 'white' : 'text.primary', position: 'relative', overflow: 'hidden' }}>
+      <Stack spacing={2}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <SpeedIcon />
+          <Typography variant="h6" sx={{ fontWeight: 900 }}>{isActive ? 'Spotlight Active!' : 'Get Spotlight'}</Typography>
+        </Stack>
+        {isActive ? (
+          <Box>
+            <Typography variant="body2">Developer of the {status.type}</Typography>
+            <Typography variant="caption" sx={{ opacity: 0.8 }}>Expires: {new Date(status.expiresAt).toLocaleString()}</Typography>
+          </Box>
+        ) : (
+          <Box>
+            <Typography variant="body2" color="text.secondary">Get featured on the landing page!</Typography>
+            <Button variant="contained" fullWidth sx={{ mt: 2, bgcolor: 'white', color: 'primary.main', fontWeight: 800 }} onClick={onBuy}>Boost Profile</Button>
+          </Box>
+        )}
+      </Stack>
+    </Paper>
   );
 }

@@ -1,0 +1,11 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- The Two K's -->
+  <path d="M160 50H185V115L230 50H260L205 130L265 210H235L185 145V210H160V50Z" fill="#1A1A1A" />
+  <path d="M210 50H235V115L280 50H310L255 130L315 210H285L235 145V210H210V50Z" fill="#BADA55" style="mix-blend-mode: multiply; opacity: 0.9;" />
+  
+  <!-- KEDevs Text -->
+  <text x="200" y="260" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="64" fill="#1A1A1A">KEDevs</text>
+  
+  <!-- Let Us Connect Text -->
+  <text x="200" y="290" text-anchor="middle" font-family="sans-serif" font-weight="600" font-size="18" fill="#1A1A1A" letter-spacing="4">LET US CONNECT</text>
+</svg>

@@ -58,6 +58,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [anchorElStyle, setAnchorElStyle] = useState<null | HTMLElement>(null);
 
   const isDev = user?.role === 'DEVELOPER';
+  const isAdmin = user?.role === 'ADMIN';
+
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
@@ -87,36 +89,27 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         { label: 'Companies', href: '/companies', icon: <BusinessIcon /> },
         { label: 'My Jobs', href: '/jobs/my-posts', icon: <AssignmentIcon /> },
         { label: 'My Applications', href: '/jobs/my-applications', icon: <DescriptionIcon /> },
-        { label: 'Spotlight', href: '/admin/spotlight', icon: <StarIcon /> },
+        { label: 'Spotlight', href: '/spotlight', icon: <StarIcon /> },
+        isAdmin && { label: 'Spotlight Admin', href: '/admin/spotlight', icon: <SettingsIcon /> },
         { label: 'Notifications', href: '/notifications', icon: <NotificationsIcon /> },
-      ]
+      ].filter(Boolean) as any[]
     : [
         { label: 'Browse Developers', href: '/developers', icon: <PeopleIcon /> },
         { label: 'Companies', href: '/companies', icon: <BusinessIcon /> },
         { label: 'My Job Posts', href: '/jobs/my-posts', icon: <AssignmentIcon /> },
         { label: 'Received Applications', href: '/jobs/my-applications', icon: <DescriptionIcon /> },
-        { label: 'Spotlight', href: '/admin/spotlight', icon: <StarIcon /> },
+        { label: 'Spotlight', href: '/spotlight', icon: <StarIcon /> },
+        isAdmin && { label: 'Spotlight Admin', href: '/admin/spotlight', icon: <SettingsIcon /> },
         { label: 'Notifications', href: '/notifications', icon: <NotificationsIcon /> },
-      ];
+      ].filter(Boolean) as any[];
 
   const drawerContent = (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: 'background.paper' }}>
       {/* Brand Logo */}
-      <Box sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 1.5, pb: 2 }}>
-        <WorkIcon sx={{ fontSize: 28, color: 'primary.main' }} />
-        <Typography
-          variant="h6"
-          component={Link}
-          href={isDev ? '/jobs' : '/developers'}
-          sx={{
-            fontWeight: 900,
-            color: 'text.primary',
-            textDecoration: 'none',
-            letterSpacing: '-1px',
-          }}
-        >
-          KEDevs
-        </Typography>
+      <Box sx={{ p: 3, display: 'flex', alignItems: 'center', pb: 2 }}>
+        <Box component={Link} href="/" sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+          <Box component="img" src="/logo.svg" sx={{ height: 48, width: 'auto' }} />
+        </Box>
       </Box>
 
       {/* Sidebar Search */}
