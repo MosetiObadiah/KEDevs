@@ -36,7 +36,7 @@ public class Constants {
     public static final int DEFAULT_DEVELOPER_ANNUAL_FEE = 1200;
     public static final int DEFAULT_EMPLOYER_ANNUAL_FEE = 2400;
     public static final int DEFAULT_EMPLOYER_PRO_ANNUAL_FEE = 5000;
-    public static final int DEFAULT_VERIFIED_BADGE_DEVELOPER = 250;
+    public static final int DEFAULT_VERIFIED_BADGE_DEVELOPER = 200;
     public static final int DEFAULT_VERIFIED_BADGE_EMPLOYER = 500;
     public static final int DEFAULT_SPOTLIGHT_DAY_FEE = 50;
     public static final int DEFAULT_SPOTLIGHT_WEEK_FEE = 250;

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Dialog,
   DialogTitle,
@@ -31,9 +32,10 @@ interface BuySpotlightDialogProps {
   onClose: () => void;
   onSuccess: () => void;
   isVerified: boolean;
+  hasFeaturedProject: boolean;
 }
 
-export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerified }: BuySpotlightDialogProps) {
+export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerified, hasFeaturedProject }: BuySpotlightDialogProps) {
   const [type, setType] = useState<'DAY' | 'WEEK'>('DAY');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
@@ -87,17 +89,32 @@ export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerifie
     }
   };
 
-  if (!isVerified) {
+  if (!isVerified || !hasFeaturedProject) {
     return (
-      <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
-        <DialogTitle sx={{ fontWeight: 900 }}>Verification Required</DialogTitle>
+      <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs" slotProps={{ paper: { sx: { borderRadius: 4 } } }}>
+        <DialogTitle sx={{ fontWeight: 900 }}>Requirements Missing</DialogTitle>
         <DialogContent>
-          <Alert severity="warning" sx={{ borderRadius: 3 }}>
-            You must be a <strong>Verified Developer</strong> to buy a spotlight slot. Please complete your verification first.
-          </Alert>
+          <Stack spacing={2}>
+            {!isVerified && (
+              <Alert severity="warning" sx={{ borderRadius: 3 }}>
+                You must be a <strong>Verified Developer</strong> to buy a spotlight slot. Please complete your verification first.
+              </Alert>
+            )}
+            {!hasFeaturedProject && (
+              <Alert severity="warning" sx={{ borderRadius: 3 }}>
+                You must have at least one <strong>Featured Project</strong> (with a screenshot and live URL) to be showcased in the spotlight.
+              </Alert>
+            )}
+            <Typography variant="body2" color="text.secondary" sx={{ px: 1 }}>
+              These requirements ensure that featured developers present a professional and verified presence to the community.
+            </Typography>
+          </Stack>
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
           <Button onClick={onClose} sx={{ fontWeight: 700 }}>Close</Button>
+          <Button component={Link} href={!isVerified ? "/verify" : "/profile/me"} variant="contained" sx={{ borderRadius: 2, fontWeight: 700 }}>
+            {!isVerified ? "Get Verified" : "Add Project"}
+          </Button>
         </DialogActions>
       </Dialog>
     );

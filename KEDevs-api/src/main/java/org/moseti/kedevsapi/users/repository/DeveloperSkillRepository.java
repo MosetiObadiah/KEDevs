@@ -12,6 +12,7 @@ import java.util.UUID;
 public interface DeveloperSkillRepository extends JpaRepository<DeveloperSkill, UUID> {
 
     List<DeveloperSkill> findByDeveloperId(UUID developerId);
+    long countByDeveloperId(UUID developerId);
 
     Optional<DeveloperSkill> findByDeveloperIdAndSkillIgnoreCase(UUID developerId, String skill);
 

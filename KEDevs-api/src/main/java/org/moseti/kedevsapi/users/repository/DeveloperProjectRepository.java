@@ -11,6 +11,7 @@ import java.util.UUID;
 public interface DeveloperProjectRepository extends JpaRepository<DeveloperProject, UUID> {
 
     List<DeveloperProject> findByDeveloperId(UUID developerId);
+    long countByDeveloperId(UUID developerId);
 
     List<DeveloperProject> findByDeveloperIdAndIsFeatured(UUID developerId, boolean isFeatured);
 }

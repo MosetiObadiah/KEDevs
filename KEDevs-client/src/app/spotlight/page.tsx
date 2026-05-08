@@ -75,7 +75,7 @@ export default function SpotlightPage() {
             <Button 
               variant="contained" 
               component={Link} 
-              href="/profile/me"
+              href="/profile/me?buySpotlight=true"
               sx={{ mt: 4, borderRadius: 3, fontWeight: 800, px: 6, py: 1.5 }}
             >
               Get Spotlight
@@ -117,7 +117,7 @@ export default function SpotlightPage() {
           <Button 
             variant="outlined" 
             component={Link} 
-            href="/profile/me"
+            href="/profile/me?buySpotlight=true"
             sx={{ mt: 6, borderRadius: 3, fontWeight: 800, px: 6, py: 1.5 }}
           >
             Go to My Profile

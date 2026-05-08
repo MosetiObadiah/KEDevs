@@ -17,6 +17,8 @@ import org.moseti.kedevsapi.users.repository.DeveloperProfileRepository;
 import org.moseti.kedevsapi.users.repository.EmployerProfileRepository;
 import org.moseti.kedevsapi.users.repository.UserRepository;
 import org.moseti.kedevsapi.spotlight.service.SpotlightService;
+import org.moseti.kedevsapi.users.repository.VerificationRequestRepository;
+import org.moseti.kedevsapi.users.entity.VerificationRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -48,6 +50,7 @@ public class PaymentService {
     private final SpotlightService spotlightService;
     private final org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
     private final org.moseti.kedevsapi.auth.service.EmailService emailService;
+    private final VerificationRequestRepository verificationRequestRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
     // ====================== Helper ======================
@@ -360,34 +363,27 @@ public class PaymentService {
                 );
             }
             case VERIFIED_BADGE -> {
-                userRepository.findById(payment.getUserId()).ifPresent(user -> {
-                    if (user.getRole() == Role.DEVELOPER) {
-                        developerProfileRepository.findByUserId(payment.getUserId()).ifPresent(profile -> {
-                            profile.setVerified(true);
-                            developerProfileRepository.save(profile);
-                        });
-                    } else if (user.getRole() == Role.EMPLOYER) {
-                        employerProfileRepository.findByUserId(payment.getUserId()).ifPresent(profile -> {
-                            profile.setVerified(true);
-                            employerProfileRepository.save(profile);
-                        });
-                    }
+                verificationRequestRepository.findByUserId(payment.getUserId()).ifPresent(request -> {
+                    request.setStatus(VerificationStatus.PENDING_DOCS);
+                    request.setPaymentId(payment.getId());
+                    verificationRequestRepository.save(request);
                 });
+                
                 User user = userRepository.findById(payment.getUserId()).orElse(null);
                 if (user != null) {
                     notificationService.notify(
                             payment.getUserId(),
                             org.moseti.kedevsapi.shared.enums.NotificationCategory.PAYMENT,
-                            "Verified Badge Activated",
-                            "Your verified badge payment of KES " + payment.getAmount() + " has been confirmed.",
+                            "Payment Confirmed",
+                            "Your verification payment of KES " + payment.getAmount() + " has been confirmed. Please upload your documents to continue.",
                             "{\"receiptNo\":\"" + payment.getMpesaReceiptNo() + "\"}"
                     );
-                    emailService.sendPaymentConfirmationEmail(user.getEmail(), user.getFullName(), "Verified Badge", payment.getAmount(), payment.getMpesaReceiptNo());
+                    emailService.sendPaymentConfirmationEmail(user.getEmail(), user.getFullName(), "Verified Badge Review Fee", payment.getAmount(), payment.getMpesaReceiptNo());
                 }
                 messagingTemplate.convertAndSendToUser(
                     payment.getUserId().toString(),
                     "/queue/status",
-                    new WebSocketEvent<>("STATUS_UPDATE", Map.of("isVerified", true))
+                    new WebSocketEvent<>("STATUS_UPDATE", Map.of("verificationStatus", VerificationStatus.PENDING_DOCS))
                 );
             }
             case SPOTLIGHT_DAY, SPOTLIGHT_WEEK -> {
