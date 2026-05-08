@@ -223,9 +223,42 @@ export default function JobDetailPage() {
             <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
               Requirements
             </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ whiteSpace: 'pre-line', mb: 4 }}>
-              {job.requirements}
-            </Typography>
+            <Box sx={{ mb: 4, pl: 1 }}>
+              <Stack spacing={1.5}>
+                {job.experienceLevel && (
+                  <Typography variant="body1" color="text.secondary">
+                    • <strong>Experience Level:</strong> {job.experienceLevel?.replace('_', ' ')}
+                  </Typography>
+                )}
+                {job.minExperienceYears !== null && job.minExperienceYears !== undefined && (
+                  <Typography variant="body1" color="text.secondary">
+                    • <strong>Minimum Experience:</strong> {job.minExperienceYears} {job.minExperienceYears === 1 ? 'Year' : 'Years'}
+                  </Typography>
+                )}
+                {job.minQualification && (
+                  <Typography variant="body1" color="text.secondary">
+                    • <strong>Minimum Qualification:</strong> {
+                      job.minQualification === 'NONE' ? 'No Minimum Requirement' :
+                      job.minQualification === 'HIGH_SCHOOL' ? 'High School Diploma' :
+                      job.minQualification === 'CERTIFICATE' ? 'Professional Certificate' :
+                      job.minQualification === 'DIPLOMA' ? 'Diploma' :
+                      job.minQualification === 'ASSOCIATES' ? "Associate's Degree" :
+                      job.minQualification === 'BACHELORS' ? "Bachelor's Degree" :
+                      job.minQualification === 'MASTERS' ? "Master's Degree" :
+                      job.minQualification === 'PHD' ? 'PhD' :
+                      job.minQualification === 'SELF_TAUGHT' ? 'Self-Taught / Bootcamp' :
+                      job.minQualification === 'EQUIVALENT_EXPERIENCE' ? 'Equivalent Work Experience' :
+                      job.minQualification
+                    }
+                  </Typography>
+                )}
+                {job.requirements && (
+                  <Typography variant="body1" color="text.secondary" sx={{ whiteSpace: 'pre-line', mt: 1 }}>
+                    {job.requirements}
+                  </Typography>
+                )}
+              </Stack>
+            </Box>
 
             <Divider sx={{ my: 4 }} />
 
@@ -309,6 +342,20 @@ export default function JobDetailPage() {
                 </Stack>
               </Box>
 
+              {job.applicationDeadline && (
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontWeight: 700 }}>
+                    APPLICATION DEADLINE
+                  </Typography>
+                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                    <CalendarTodayIcon fontSize="small" color="error" />
+                    <Typography variant="body1" sx={{ fontWeight: 600, color: 'error.main' }}>
+                      {new Date(job.applicationDeadline).toLocaleDateString()}
+                    </Typography>
+                  </Stack>
+                </Box>
+              )}
+
               <Divider />
 
               <Box>
@@ -334,16 +381,28 @@ export default function JobDetailPage() {
                   Apply on External Site
                 </Button>
               ) : isLoggedIn ? (
-                user?.role === 'DEVELOPER' && (
+                isPoster ? (
                   <Button
-                    variant="contained"
+                    variant="outlined"
                     fullWidth
                     size="large"
-                    onClick={() => setApplyOpen(true)}
-                    sx={{ py: 1.5, borderRadius: 2, fontWeight: 700, boxShadow: 0 }}
+                    disabled
+                    sx={{ py: 1.5, borderRadius: 2, fontWeight: 700 }}
                   >
-                    Apply for this Role
+                    You Posted This Job
                   </Button>
+                ) : (
+                  user?.role === 'DEVELOPER' && (
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      size="large"
+                      onClick={() => setApplyOpen(true)}
+                      sx={{ py: 1.5, borderRadius: 2, fontWeight: 700, boxShadow: 0 }}
+                    >
+                      Apply for this Role
+                    </Button>
+                  )
                 )
               ) : (
                 <>

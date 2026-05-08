@@ -279,6 +279,7 @@ export default function JobsPage() {
                           </Box>
                           <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 600, mb: 3 }}>
                             {job.companyName} • {job.locationCity}, {job.locationCountry}
+                            {job.applicationDeadline && ` • Deadline: ${new Date(job.applicationDeadline).toLocaleDateString()}`}
                           </Typography>
                           <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
                             <Chip label={formatJobType(job.jobType)} size="small" variant="outlined" sx={{ fontWeight: 700, borderRadius: 1.5 }} />

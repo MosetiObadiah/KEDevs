@@ -24,6 +24,7 @@ export interface JobSummary {
   sourceUrl: string;
   tags: string[];
   createdAt: string;
+  applicationDeadline?: string | null;
 }
 
 export interface DeveloperSummary {
