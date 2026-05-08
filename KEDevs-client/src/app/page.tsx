@@ -62,7 +62,9 @@ export default function HomePage() {
                 profilePhoto: slot.profilePhoto,
                 currentLastRole: slot.currentLastRole,
                 skills: slot.featuredProjects.length > 0
-                  ? slot.featuredProjects[0].techStack.split(',').map(s => s.trim())
+                  ? (Array.isArray(slot.featuredProjects[0].techStack)
+                      ? slot.featuredProjects[0].techStack
+                      : (slot.featuredProjects[0].techStack || '').split(',').map((s: string) => s.trim()))
                   : [],
                 availabilityStatus: 'AVAILABLE_NOW',
                 isVerified: slot.isVerified,

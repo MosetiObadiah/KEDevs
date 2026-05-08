@@ -628,7 +628,7 @@ export default function MyProfile() {
                                 {project.description}
                               </Typography>
                               <Box sx={{ mb: 3, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                {project.techStack?.split(',').map((tech: string) => (
+                                {(Array.isArray(project.techStack) ? project.techStack : (project.techStack?.split(',') || [])).map((tech: string) => (
                                   <Chip key={tech} label={tech.trim()} size="small" sx={{ fontWeight: 700, bgcolor: 'background.subtle' }} />
                                 ))}
                               </Box>

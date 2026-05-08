@@ -236,13 +236,21 @@ public class SpotlightService {
         List<FeaturedProject> featuredProjects = developerProjectRepository
                 .findByDeveloperIdAndIsFeatured(developerId, true).stream()
                 .limit(3)
-                .map(p -> new FeaturedProject(
-                        p.getTitle(),
-                        p.getDescription(),
-                        p.getTechStack(),
-                        p.getProjectUrl(),
-                        p.getRepoUrl()
-                ))
+                .map(p -> {
+                    List<String> techStackList = p.getTechStack() != null && !p.getTechStack().isBlank()
+                            ? java.util.Arrays.stream(p.getTechStack().split(","))
+                                    .map(String::trim)
+                                    .filter(s -> !s.isEmpty())
+                                    .collect(java.util.stream.Collectors.toList())
+                            : java.util.Collections.emptyList();
+                    return new FeaturedProject(
+                            p.getTitle(),
+                            p.getDescription(),
+                            techStackList,
+                            p.getProjectUrl(),
+                            p.getRepoUrl()
+                    );
+                })
                 .toList();
 
         return new DeveloperSpotlightCard(

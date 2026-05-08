@@ -41,6 +41,8 @@ export default function DeveloperProfilePage() {
   const [message, setMessage] = useState('');
   const [isRequesting, setIsRequesting] = useState(false);
 
+  const fullName = dev ? (dev.fullName || `${dev.firstName || ''} ${dev.lastName || ''}`.trim() || dev.email || 'Developer') : '';
+
   useEffect(() => {
     const loadDeveloper = async () => {
       setIsLoading(true);
@@ -48,8 +50,10 @@ export default function DeveloperProfilePage() {
       try {
         const response = await developerService.getDeveloperProfile(profileId as string);
         if (response.success) {
-          setDev(response.data);
-          setMessage(`Hi ${response.data.fullName || 'there'}, I found your profile on KEDevs and would like to invite you to apply for an opportunity.`);
+          const data = response.data;
+          setDev(data);
+          const computedName = data.fullName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.email || 'Developer';
+          setMessage(`Hi ${computedName}, I found your profile on KEDevs and would like to invite you to apply for an opportunity.`);
         }
       } catch (err: any) {
         console.error(err);
@@ -122,11 +126,11 @@ export default function DeveloperProfilePage() {
                 fontWeight: 700,
               }}
             >
-              {dev.fullName?.charAt(0) || dev.email?.charAt(0)}
+              {fullName.charAt(0)}
             </Avatar>
             <Box sx={{ flexGrow: 1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <Typography variant="h3" sx={{ fontWeight: 800 }}>{dev.fullName}</Typography>
+                <Typography variant="h3" sx={{ fontWeight: 800 }}>{fullName}</Typography>
                 {dev.isVerified && <VerifiedIcon color="primary" sx={{ fontSize: '2rem' }} />}
               </Box>
               <Typography variant="h5" color="text.secondary" gutterBottom>{dev.currentRole || dev.role}</Typography>
@@ -198,31 +202,65 @@ export default function DeveloperProfilePage() {
             {(dev.projects || []).length > 0 ? (
               <Stack spacing={3}>
                 {(dev.projects || []).map((project: any, index: number) => (
-                  <Card key={index} variant="outlined" sx={{ borderRadius: 2, '&:hover': { borderColor: 'primary.main' } }}>
-                    <CardContent>
-                      <Typography variant="h6" sx={{ fontWeight: 700 }}>{project.title}</Typography>
-                      <Typography variant="body2" color="text.secondary" gutterBottom sx={{ mt: 1 }}>
-                        {project.description}
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 2 }}>
-                        {(project.techStack || []).map((tech: string) => (
-                          <Chip key={tech} label={tech} size="small" />
-                        ))}
-                      </Box>
-                      {project.url && (
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          startIcon={<LanguageIcon />}
-                          component="a"
-                          href={project.url}
-                          target="_blank"
-                          sx={{ borderRadius: 1.5, fontWeight: 700 }}
-                        >
-                          View Live Demo
-                        </Button>
+                  <Card key={index} variant="outlined" sx={{ borderRadius: 2, '&:hover': { borderColor: 'primary.main' }, overflow: 'hidden' }}>
+                    <Grid container>
+                      {project.screenshotUrl && (
+                        <Grid size={{ xs: 12, md: 4 }}>
+                          <Box
+                            sx={{
+                              width: '100%',
+                              height: '100%',
+                              minHeight: { xs: 180, md: '100%' },
+                              backgroundImage: `url(${project.screenshotUrl})`,
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'top center',
+                            }}
+                          />
+                        </Grid>
                       )}
-                    </CardContent>
+                      <Grid size={{ xs: 12, md: project.screenshotUrl ? 8 : 12 }}>
+                        <CardContent sx={{ p: 3 }}>
+                          <Typography variant="h6" sx={{ fontWeight: 700 }}>{project.title}</Typography>
+                          <Typography variant="body2" color="text.secondary" gutterBottom sx={{ mt: 1, mb: 2 }}>
+                            {project.description}
+                          </Typography>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 2 }}>
+                            {(project.techStack || []).map((tech: string) => (
+                              <Chip key={tech} label={tech} size="small" />
+                            ))}
+                          </Box>
+                          <Stack direction="row" spacing={1.5}>
+                            {(project.projectUrl || project.url) && (
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                startIcon={<LanguageIcon />}
+                                component="a"
+                                href={project.projectUrl || project.url}
+                                target="_blank"
+                                sx={{ borderRadius: 1.5, fontWeight: 700 }}
+                              >
+                                View Live Demo
+                              </Button>
+                            )}
+                            {project.repoUrl && (
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                color="secondary"
+                                startIcon={<GitHubIcon />}
+                                component="a"
+                                href={project.repoUrl}
+                                target="_blank"
+                                sx={{ borderRadius: 1.5, fontWeight: 700 }}
+                              >
+                                Code Repository
+                              </Button>
+                            )}
+                          </Stack>
+                        </CardContent>
+                      </Grid>
+                    </Grid>
                   </Card>
                 ))}
               </Stack>

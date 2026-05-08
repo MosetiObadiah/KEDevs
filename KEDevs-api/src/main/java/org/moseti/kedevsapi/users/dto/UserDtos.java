@@ -237,7 +237,7 @@ public class UserDtos {
             java.util.UUID id,
             String title,
             String description,
-            String techStack,
+            java.util.List<String> techStack,
             String projectUrl,
             String repoUrl,
             String screenshotUrl,

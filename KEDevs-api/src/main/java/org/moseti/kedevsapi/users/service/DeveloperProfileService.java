@@ -83,6 +83,21 @@ public class DeveloperProfileService {
         if (profile.getProfileVisibility() == ProfileVisibility.HIDDEN) {
             throw new ProfileNotFoundException("Profile not found");
         }
+        if (profile.getProfileVisibility() == ProfileVisibility.PRIVATE) {
+            org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || !auth.isAuthenticated() || auth.getPrincipal().equals("anonymousUser")) {
+                throw new org.springframework.security.access.AccessDeniedException("Profile is private");
+            }
+            Object principal = auth.getPrincipal();
+            if (principal instanceof UUID) {
+                UUID currentUserId = (UUID) principal;
+                if (!profile.getUserId().equals(currentUserId)) {
+                    throw new org.springframework.security.access.AccessDeniedException("Profile is private");
+                }
+            } else {
+                throw new org.springframework.security.access.AccessDeniedException("Profile is private");
+            }
+        }
         return toFullResponse(profile);
     }
 
@@ -578,7 +593,13 @@ public class DeveloperProfileService {
     }
 
     private UserDtos.DeveloperProjectResponse toProjectResponse(DeveloperProject p) {
-        return new UserDtos.DeveloperProjectResponse(p.getId(), p.getTitle(), p.getDescription(), p.getTechStack(), p.getProjectUrl(), p.getRepoUrl(), p.getScreenshotUrl(), p.isFeatured(), p.getCreatedAt());
+        java.util.List<String> techStackList = p.getTechStack() != null && !p.getTechStack().isBlank()
+                ? java.util.Arrays.stream(p.getTechStack().split(","))
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .collect(java.util.stream.Collectors.toList())
+                : java.util.Collections.emptyList();
+        return new UserDtos.DeveloperProjectResponse(p.getId(), p.getTitle(), p.getDescription(), techStackList, p.getProjectUrl(), p.getRepoUrl(), p.getScreenshotUrl(), p.isFeatured(), p.getCreatedAt());
     }
 
     private UserDtos.EndorsementResponse toEndorsementResponse(Endorsement e, UUID authorUserId) {

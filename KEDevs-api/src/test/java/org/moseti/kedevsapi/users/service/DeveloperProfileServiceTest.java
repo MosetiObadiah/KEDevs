@@ -141,8 +141,28 @@ class DeveloperProfileServiceTest {
         when(profileRepository.findById(profileId)).thenReturn(Optional.of(testProfile));
         stubSubRepoFinds(profileId);
 
-        UserDtos.DeveloperProfileResponse response = developerProfileService.getPublicProfile(profileId);
-        assertNotNull(response);
+        org.springframework.security.core.Authentication auth = mock(org.springframework.security.core.Authentication.class);
+        when(auth.isAuthenticated()).thenReturn(true);
+        when(auth.getPrincipal()).thenReturn(userId);
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
+
+        try {
+            UserDtos.DeveloperProfileResponse response = developerProfileService.getPublicProfile(profileId);
+            assertNotNull(response);
+        } finally {
+            org.springframework.security.core.context.SecurityContextHolder.clearContext();
+        }
+    }
+
+    @Test
+    void getPublicProfile_Private_Unauthenticated_ThrowsAccessDeniedException() {
+        testProfile.setProfileVisibility(ProfileVisibility.PRIVATE);
+        when(profileRepository.findById(profileId)).thenReturn(Optional.of(testProfile));
+
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+
+        assertThrows(org.springframework.security.access.AccessDeniedException.class,
+                () -> developerProfileService.getPublicProfile(profileId));
     }
 
     @Test
@@ -268,7 +288,7 @@ class DeveloperProfileServiceTest {
 
         when(educationRepository.save(any(DeveloperEducation.class))).thenReturn(education);
 
-        UserDtos.AddEducationRequest request = new UserDtos.AddEducationRequest("KU", "BSc CS", 2020, false);
+        UserDtos.AddEducationRequest request = new UserDtos.AddEducationRequest("KU", "BSc CS", "Computer Science", 2016, 2020, false);
         UserDtos.EducationResponse response = developerProfileService.addEducation(userId, request);
 
         assertNotNull(response);

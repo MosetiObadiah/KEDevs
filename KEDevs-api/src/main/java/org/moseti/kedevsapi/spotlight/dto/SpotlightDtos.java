@@ -14,7 +14,7 @@ public class SpotlightDtos {
     public record FeaturedProject(
             String title,
             String description,
-            String techStack,
+            java.util.List<String> techStack,
             String projectUrl,
             String repoUrl
     ) {}
