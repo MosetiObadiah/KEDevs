@@ -244,6 +244,21 @@ public class DeveloperController {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Certification deleted"));
     }
 
+    @Operation(summary = "Upload developer profile photo", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Profile photo uploaded successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid or missing image file"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    })
+    @PostMapping(value = "/profile/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.DeveloperProfileResponse>> uploadProfilePhoto(
+            Authentication authentication,
+            @RequestPart("image") MultipartFile image) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Profile photo uploaded", developerProfileService.uploadProfilePhoto(userId, image)));
+    }
+
     @Operation(summary = "Upload an image for a certification", description = "Requires DEVELOPER role.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Image uploaded successfully"),

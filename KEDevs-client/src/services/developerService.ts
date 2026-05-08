@@ -67,6 +67,12 @@ export const developerService = {
     });
   },
 
+  async uploadProfilePhoto(file: File): Promise<ApiResponse<any>> {
+    const formData = new FormData();
+    formData.append('image', file);
+    return apiClient.post<ApiResponse<any>>('/api/v1/developers/profile/photo', formData);
+  },
+
   async addOSS(data: any): Promise<ApiResponse<any>> {
     return apiClient.post<ApiResponse<any>>('/api/v1/developers/profile/oss', data);
   },

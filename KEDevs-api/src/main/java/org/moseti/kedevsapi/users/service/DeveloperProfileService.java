@@ -126,6 +126,16 @@ public class DeveloperProfileService {
         log.info("Profile visibility updated to {} for userId={}", visibility, userId);
     }
 
+    @Transactional
+    public UserDtos.DeveloperProfileResponse uploadProfilePhoto(UUID userId, MultipartFile image) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        String url = fileUploadService.uploadFile(image, "kedevs/profiles");
+        profile.setProfilePhoto(url);
+        profile = profileRepository.save(profile);
+        log.info("Profile photo updated for userId={}", userId);
+        return toFullResponse(profile);
+    }
+
     // ----------------------------------------------------------------
     // Skills
     // ----------------------------------------------------------------

@@ -372,7 +372,7 @@ export default function MyProfile() {
           <Box sx={{ mb: 6 }}>
             <Grid container spacing={4} sx={{ alignItems: 'center' }}>
               <Grid size={{ xs: 12, md: 8 }}>
-                <Box sx={{ display: 'flex', alignItems: { xs: 'center', md: 'flex-start' }, flexDirection: { xs: 'column', md: 'row' }, gap: 4, textAlign: { xs: 'center', md: 'left' } }}>
+                <Box sx={{ display: 'flex', alignItems: { xs: 'center', md: 'flex-start' }, flexDirection: { xs: 'column', md: 'row' }, gap: 4, textAlign: { xs: 'center', md: 'left' }, width: '100%' }}>
                   <Box sx={{ position: 'relative' }}>
                     <Avatar
                       src={profile.profilePhoto}
@@ -388,35 +388,136 @@ export default function MyProfile() {
                     >
                       {profile.firstName?.charAt(0)}
                     </Avatar>
+                    <IconButton
+                      component="label"
+                      sx={{
+                        position: 'absolute',
+                        bottom: 0,
+                        right: 0,
+                        bgcolor: 'primary.main',
+                        color: 'white',
+                        boxShadow: 3,
+                        '&:hover': { bgcolor: 'primary.dark' },
+                        width: 40,
+                        height: 40,
+                      }}
+                    >
+                      <input
+                        type="file"
+                        accept="image/*"
+                        hidden
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            try {
+                              setIsRefreshing(true);
+                              const response = await developerService.uploadProfilePhoto(file);
+                              if (response.success) {
+                                setProfile((prev: any) => ({ ...prev, profilePhoto: response.data.profilePhoto }));
+                                alert('Profile photo updated successfully!');
+                              }
+                            } catch (err) {
+                              console.error(err);
+                              alert('Failed to upload profile photo.');
+                            } finally {
+                              setIsRefreshing(false);
+                            }
+                          }
+                        }}
+                      />
+                      <PhotoCameraIcon fontSize="small" />
+                    </IconButton>
                     {profile.isVerified && (
-                      <Box sx={{ position: 'absolute', bottom: 10, right: 10, bgcolor: 'white', borderRadius: '50%', p: 0.5, boxShadow: 2 }}>
-                        <VerifiedIcon color="primary" sx={{ fontSize: 32 }} />
+                      <Box sx={{ position: 'absolute', top: 0, right: 0, bgcolor: 'white', borderRadius: '50%', p: 0.5, boxShadow: 2 }}>
+                        <VerifiedIcon color="primary" sx={{ fontSize: 24 }} />
                       </Box>
                     )}
                   </Box>
-                  <Box sx={{ pt: { md: 2 } }}>
-                    <Stack direction="row" spacing={1} sx={{ mb: 1.5, justifyContent: { xs: 'center', md: 'flex-start' } }}>
-                      <PillBadge variant="mint">DEVELOPER PROFILE</PillBadge>
-                      <PillBadge variant="neutral">{profile.yearsOfExperience?.replace(/_/g, ' ')}</PillBadge>
-                    </Stack>
-                    <Typography variant="h2" sx={{ fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.1, mb: 1 }}>
-                      {profile.firstName} {profile.lastName}
-                    </Typography>
-                    <Typography variant="h5" color="text.secondary" sx={{ fontWeight: 600, mb: 2, opacity: 0.8 }}>
-                      {profile.currentLastRole || 'Awaiting Role Definition'}
-                    </Typography>
-                    <Stack direction="row" spacing={3} sx={{ justifyContent: { xs: 'center', md: 'flex-start' } }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
-                        <LocationOnIcon fontSize="small" />
-                        <Typography sx={{ fontWeight: 700 }}>{profile.locationCity || 'Location'}, {profile.locationCountry || 'Kenya'}</Typography>
-                      </Box>
-                      {profile.publicEmail && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
-                          <EmailIcon fontSize="small" />
-                          <Typography sx={{ fontWeight: 700 }}>{profile.publicEmail}</Typography>
-                        </Box>
-                      )}
-                    </Stack>
+                  <Box sx={{ pt: { md: 2 }, flexGrow: 1, width: '100%' }}>
+                    {isEditing ? (
+                      <Stack spacing={2} sx={{ width: '100%' }}>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                          <TextField
+                            size="small"
+                            label="First Name"
+                            value={profile.firstName || ''}
+                            onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
+                            fullWidth
+                          />
+                          <TextField
+                            size="small"
+                            label="Last Name"
+                            value={profile.lastName || ''}
+                            onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
+                            fullWidth
+                          />
+                        </Stack>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                          <TextField
+                            size="small"
+                            label="Professional Title"
+                            value={profile.currentLastRole || ''}
+                            onChange={(e) => setProfile({ ...profile, currentLastRole: e.target.value })}
+                            fullWidth
+                          />
+                          <FormControl fullWidth size="small">
+                            <InputLabel id="years-of-experience-label">Years of Experience</InputLabel>
+                            <Select
+                              labelId="years-of-experience-label"
+                              value={profile.yearsOfExperience || 'ZERO_TO_ONE'}
+                              label="Years of Experience"
+                              onChange={(e) => setProfile({ ...profile, yearsOfExperience: e.target.value })}
+                            >
+                              <MenuItem value="ZERO_TO_ONE">0 to 1 Year</MenuItem>
+                              <MenuItem value="ONE_TO_THREE">1 to 3 Years</MenuItem>
+                              <MenuItem value="THREE_TO_FIVE">3 to 5 Years</MenuItem>
+                              <MenuItem value="FIVE_PLUS">5+ Years</MenuItem>
+                            </Select>
+                          </FormControl>
+                        </Stack>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                          <TextField
+                            size="small"
+                            label="City"
+                            value={profile.locationCity || ''}
+                            onChange={(e) => setProfile({ ...profile, locationCity: e.target.value })}
+                            fullWidth
+                          />
+                          <TextField
+                            size="small"
+                            label="Country"
+                            value={profile.locationCountry || ''}
+                            onChange={(e) => setProfile({ ...profile, locationCountry: e.target.value })}
+                            fullWidth
+                          />
+                        </Stack>
+                      </Stack>
+                    ) : (
+                      <>
+                        <Stack direction="row" spacing={1} sx={{ mb: 1.5, justifyContent: { xs: 'center', md: 'flex-start' } }}>
+                          <PillBadge variant="mint">DEVELOPER PROFILE</PillBadge>
+                          <PillBadge variant="neutral">{profile.yearsOfExperience?.replace(/_/g, ' ')}</PillBadge>
+                        </Stack>
+                        <Typography variant="h2" sx={{ fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.1, mb: 1 }}>
+                          {profile.firstName} {profile.lastName}
+                        </Typography>
+                        <Typography variant="h5" color="text.secondary" sx={{ fontWeight: 600, mb: 2, opacity: 0.8 }}>
+                          {profile.currentLastRole || 'Awaiting Role Definition'}
+                        </Typography>
+                        <Stack direction="row" spacing={3} sx={{ justifyContent: { xs: 'center', md: 'flex-start' } }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
+                            <LocationOnIcon fontSize="small" />
+                            <Typography sx={{ fontWeight: 700 }}>{profile.locationCity || 'Location'}, {profile.locationCountry || 'Kenya'}</Typography>
+                          </Box>
+                          {profile.publicEmail && (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
+                              <EmailIcon fontSize="small" />
+                              <Typography sx={{ fontWeight: 700 }}>{profile.publicEmail}</Typography>
+                            </Box>
+                          )}
+                        </Stack>
+                      </>
+                    )}
                   </Box>
                 </Box>
               </Grid>
