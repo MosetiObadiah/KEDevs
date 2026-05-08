@@ -48,8 +48,20 @@ public class VerificationService {
         Map<String, Boolean> completeness = checkProfileCompleteness(userId, user.getRole());
         boolean isEligible = completeness.values().stream().allMatch(b -> b);
 
+        VerificationStatus status = request != null ? request.getStatus() : VerificationStatus.NONE;
+        
+        // If developer is already verified in profile, override the request status
+        if (user.getRole() == Role.DEVELOPER) {
+            boolean isProfileVerified = developerProfileRepository.findByUserId(userId)
+                    .map(DeveloperProfile::isVerified)
+                    .orElse(false);
+            if (isProfileVerified) {
+                status = VerificationStatus.APPROVED;
+            }
+        }
+
         return new VerificationStatusResponse(
-                request != null ? request.getStatus() : VerificationStatus.NONE,
+                status,
                 completeness,
                 isEligible,
                 request != null ? request.getId() : null,
@@ -99,8 +111,16 @@ public class VerificationService {
         }
 
         VerificationRequest request = verificationRequestRepository.findByUserId(userId).orElse(null);
-        if (request != null && (request.getStatus() == VerificationStatus.UNDER_REVIEW || request.getStatus() == VerificationStatus.APPROVED)) {
-            throw new BadRequestException("Verification already in progress or approved");
+        if (request != null) {
+            if (request.getStatus() == VerificationStatus.APPROVED) {
+                throw new BadRequestException("Profile is already verified.");
+            }
+            if (request.getStatus() == VerificationStatus.UNDER_REVIEW) {
+                throw new BadRequestException("Verification is already under review.");
+            }
+            if (request.getStatus() == VerificationStatus.PENDING_DOCS) {
+                throw new BadRequestException("Payment already received. Please upload documents instead.");
+            }
         }
 
         PaymentDtos.PaymentInitiationResponse paymentResponse = paymentService.initiateVerifiedBadge(userId, phoneNumber);

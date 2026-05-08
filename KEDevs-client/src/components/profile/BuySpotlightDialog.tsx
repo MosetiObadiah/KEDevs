@@ -26,6 +26,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutlined';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { paymentService } from '@/services/paymentService';
 import { spotlightService } from '@/services/spotlightService';
+import { usePlatformSettings } from '@/hooks/usePlatformSettings';
 
 interface BuySpotlightDialogProps {
   open: boolean;
@@ -36,6 +37,7 @@ interface BuySpotlightDialogProps {
 }
 
 export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerified, hasFeaturedProject }: BuySpotlightDialogProps) {
+  const { getPrice } = usePlatformSettings();
   const [type, setType] = useState<'DAY' | 'WEEK'>('DAY');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
@@ -153,7 +155,7 @@ export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerifie
                     label={
                       <Box>
                         <Typography sx={{ fontWeight: 800 }}>Developer of the Day</Typography>
-                        <Typography variant="caption" color="text.secondary">KES 100 • Active for 24 hours</Typography>
+                        <Typography variant="caption" color="text.secondary">KES {getPrice('SPOTLIGHT_DAY_FEE', '50')} • Active for 24 hours</Typography>
                         {!availability?.daySlotAvailable && (
                           <Typography variant="caption" color="error.main" sx={{ display: 'block', fontWeight: 700, mt: 0.5 }}>
                             Currently Taken (Expires: {availability?.daySlotExpiresAt ? new Date(availability.daySlotExpiresAt).toLocaleString() : 'Soon'})
@@ -182,7 +184,7 @@ export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerifie
                     label={
                       <Box>
                         <Typography sx={{ fontWeight: 800 }}>Developer of the Week</Typography>
-                        <Typography variant="caption" color="text.secondary">KES 400 • Active for 7 days</Typography>
+                        <Typography variant="caption" color="text.secondary">KES {getPrice('SPOTLIGHT_WEEK_FEE', '250')} • Active for 7 days</Typography>
                         {!availability?.weekSlotAvailable && (
                           <Typography variant="caption" color="error.main" sx={{ display: 'block', fontWeight: 700, mt: 0.5 }}>
                             Currently Taken (Expires: {availability?.weekSlotExpiresAt ? new Date(availability.weekSlotExpiresAt).toLocaleString() : 'Soon'})

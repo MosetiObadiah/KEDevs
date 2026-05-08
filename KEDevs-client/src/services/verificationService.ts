@@ -37,10 +37,6 @@ export const verificationService = {
   },
 
   async submitDocuments(formData: FormData): Promise<ApiResponse<void>> {
-    return apiClient.post<ApiResponse<void>>('/api/v1/verification/submit-documents', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    return apiClient.post<ApiResponse<void>>('/api/v1/verification/submit-documents', formData);
   },
 };

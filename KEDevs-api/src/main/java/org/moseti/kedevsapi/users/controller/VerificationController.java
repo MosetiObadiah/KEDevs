@@ -29,7 +29,7 @@ public class VerificationController {
     }
 
     @PostMapping("/initiate")
-    @Operation(summary = "Initiate verification process by paying KES 200")
+    @Operation(summary = "Initiate verification process by paying KES 250")
     public ResponseEntity<ApiResponse<InitiateVerificationResponse>> initiate(@AuthenticationPrincipal UUID userId, 
                                                                               @RequestParam String phoneNumber) {
         return ResponseEntity.ok(ApiResponse.success("Verification initiated", verificationService.initiateVerification(userId, phoneNumber)));

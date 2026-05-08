@@ -37,6 +37,7 @@ import StarIcon from '@mui/icons-material/Star';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SearchIcon from '@mui/icons-material/Search';
 import LogoutIcon from '@mui/icons-material/Logout';
+import CreditCardIcon from '@mui/icons-material/CreditCard';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import PaletteIcon from '@mui/icons-material/Palette';
@@ -90,6 +91,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         { label: 'My Jobs', href: '/jobs/my-posts', icon: <AssignmentIcon /> },
         { label: 'My Applications', href: '/jobs/my-applications', icon: <DescriptionIcon /> },
         { label: 'Spotlight', href: '/spotlight', icon: <StarIcon /> },
+        { label: 'Payments', href: '/payments', icon: <CreditCardIcon /> },
         isAdmin && { label: 'Spotlight Admin', href: '/admin/spotlight', icon: <SettingsIcon /> },
         { label: 'Notifications', href: '/notifications', icon: <NotificationsIcon /> },
       ].filter(Boolean) as any[]
@@ -99,6 +101,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         { label: 'My Job Posts', href: '/jobs/my-posts', icon: <AssignmentIcon /> },
         { label: 'Received Applications', href: '/jobs/my-applications', icon: <DescriptionIcon /> },
         { label: 'Spotlight', href: '/spotlight', icon: <StarIcon /> },
+        { label: 'Payments', href: '/payments', icon: <CreditCardIcon /> },
         isAdmin && { label: 'Spotlight Admin', href: '/admin/spotlight', icon: <SettingsIcon /> },
         { label: 'Notifications', href: '/notifications', icon: <NotificationsIcon /> },
       ].filter(Boolean) as any[];

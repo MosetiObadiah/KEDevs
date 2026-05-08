@@ -25,6 +25,7 @@ import VerifiedIcon from '@mui/icons-material/Verified';
 import SpeedIcon from '@mui/icons-material/Speed';
 import HistoryIcon from '@mui/icons-material/History';
 import { useAuth } from '@/context/AuthContext';
+import { usePlatformSettings } from '@/hooks/usePlatformSettings';
 import Link from 'next/link';
 
 const paymentHistory = [
@@ -34,6 +35,7 @@ const paymentHistory = [
 
 export default function PaymentsPage() {
   const { user } = useAuth();
+  const { getPrice } = usePlatformSettings();
   const isDev = user?.role === 'DEVELOPER';
   const isEmp = user?.role === 'EMPLOYER';
 
@@ -53,9 +55,10 @@ export default function PaymentsPage() {
                   <VerifiedIcon color="primary" />
                   <Typography variant="h6" sx={{ fontWeight: 700 }}>Verification</Typography>
                 </Box>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Current Status: <Chip label={user?.isVerified ? 'Verified' : 'Unverified'} size="small" color={user?.isVerified ? 'success' : 'default'} sx={{ fontWeight: 700 }} />
-                </Typography>
+                <Box sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="body2" color="text.secondary">Current Status:</Typography>
+                  <Chip label={user?.isVerified ? 'Verified' : 'Unverified'} size="small" color={user?.isVerified ? 'success' : 'default'} sx={{ fontWeight: 700 }} />
+                </Box>
                 <Divider sx={{ my: 2 }} />
                 <Typography variant="caption" sx={{ display: 'block' }}>{isDev ? 'Lifetime verification for your profile.' : 'Authenticity verification for your company.'}</Typography>
               </CardContent>
@@ -68,9 +71,10 @@ export default function PaymentsPage() {
                     <SpeedIcon color="warning" />
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>Spotlight</Typography>
                   </Box>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                    Current Status: <Chip label={user?.spotlightStatus?.isActive ? 'Active' : 'Inactive'} size="small" color={user?.spotlightStatus?.isActive ? 'warning' : 'default'} sx={{ fontWeight: 700 }} />
-                  </Typography>
+                  <Box sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="body2" color="text.secondary">Current Status:</Typography>
+                    <Chip label={user?.spotlightStatus?.isActive ? 'Active' : 'Inactive'} size="small" color={user?.spotlightStatus?.isActive ? 'warning' : 'default'} sx={{ fontWeight: 700 }} />
+                  </Box>
                   {user?.spotlightStatus?.isActive && (
                     <>
                       <Typography variant="h4" sx={{ fontWeight: 800, mt: 1 }}>03:12:45</Typography>
@@ -86,9 +90,10 @@ export default function PaymentsPage() {
                     <SpeedIcon color="secondary" />
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>Hiring Assist</Typography>
                   </Box>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                    Current Status: <Chip label="Inactive" size="small" sx={{ fontWeight: 700 }} />
-                  </Typography>
+                  <Box sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="body2" color="text.secondary">Current Status:</Typography>
+                    <Chip label="Inactive" size="small" sx={{ fontWeight: 700 }} />
+                  </Box>
                   <Divider sx={{ my: 2 }} />
                   <Typography variant="caption" sx={{ display: 'block' }}>Get advanced filters and direct outreach for 24 hours.</Typography>
                 </CardContent>
@@ -107,7 +112,7 @@ export default function PaymentsPage() {
                   <Grid size={{ xs: 12, sm: 4 }}>
                     <Paper variant="outlined" sx={{ p: 3, textAlign: 'center', borderRadius: 2 }}>
                       <Typography variant="h6" gutterBottom>Dev of the Day</Typography>
-                      <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main', mb: 1 }}>KES 100</Typography>
+                      <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main', mb: 1 }}>KES {getPrice('SPOTLIGHT_DAY_FEE', '50')}</Typography>
                       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>24-hour spotlight boost</Typography>
                       <Button variant="contained" fullWidth sx={{ borderRadius: 2, fontWeight: 700 }}>Buy Now</Button>
                     </Paper>
@@ -115,7 +120,7 @@ export default function PaymentsPage() {
                   <Grid size={{ xs: 12, sm: 4 }}>
                     <Paper variant="outlined" sx={{ p: 3, textAlign: 'center', borderRadius: 2, border: '2px solid', borderColor: 'primary.main' }}>
                       <Typography variant="h6" gutterBottom>Dev of the Week</Typography>
-                      <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main', mb: 1 }}>KES 400</Typography>
+                      <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main', mb: 1 }}>KES {getPrice('SPOTLIGHT_WEEK_FEE', '250')}</Typography>
                       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>7-day spotlight boost</Typography>
                       <Button variant="contained" fullWidth sx={{ borderRadius: 2, fontWeight: 700 }}>Buy Now</Button>
                     </Paper>
@@ -123,8 +128,8 @@ export default function PaymentsPage() {
                   <Grid size={{ xs: 12, sm: 4 }}>
                     <Paper variant="outlined" sx={{ p: 3, textAlign: 'center', borderRadius: 2 }}>
                       <Typography variant="h6" gutterBottom>Get Verified</Typography>
-                      <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main', mb: 1 }}>KES 200</Typography>
-                      <Typography variant="body1" align="center">Please pay <strong>{user?.role === 'DEVELOPER' ? 'KES 200' : 'KES 400'}</strong> via M-Pesa to initiate the verification process.</Typography>
+                      <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main', mb: 1 }}>KES {getPrice('VERIFIED_BADGE_DEVELOPER', '250')}</Typography>
+                      <Typography variant="body1" align="center">Please pay <strong>KES {getPrice('VERIFIED_BADGE_DEVELOPER', '250')}</strong> via M-Pesa to initiate the verification process.</Typography>
                       <Button variant="contained" fullWidth sx={{ borderRadius: 2, fontWeight: 700 }} component={Link} href="/verify">Get Started</Button>
                     </Paper>
                   </Grid>
@@ -134,7 +139,7 @@ export default function PaymentsPage() {
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <Paper variant="outlined" sx={{ p: 3, textAlign: 'center', borderRadius: 2, border: '2px solid', borderColor: 'primary.main' }}>
                       <Typography variant="h6" gutterBottom>Hiring Assist</Typography>
-                      <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main', mb: 1 }}>KES 500</Typography>
+                      <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main', mb: 1 }}>KES {getPrice('SPOTLIGHT_DAY_FEE', '50')}</Typography>
                       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>24-hour full tool access</Typography>
                       <Button variant="contained" fullWidth sx={{ borderRadius: 2, fontWeight: 700 }} component={Link} href="/hiring-assist">Activate Now</Button>
                     </Paper>
@@ -142,7 +147,7 @@ export default function PaymentsPage() {
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <Paper variant="outlined" sx={{ p: 3, textAlign: 'center', borderRadius: 2 }}>
                       <Typography variant="h6" gutterBottom>Company Verification</Typography>
-                      <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main', mb: 1 }}>KES 400</Typography>
+                      <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main', mb: 1 }}>KES {getPrice('VERIFIED_BADGE_EMPLOYER', '500')}</Typography>
                       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Lifetime company badge</Typography>
                       <Button variant="contained" fullWidth sx={{ borderRadius: 2, fontWeight: 700 }} component={Link} href="/verify">Get Verified</Button>
                     </Paper>

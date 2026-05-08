@@ -28,9 +28,11 @@ import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import SendIcon from '@mui/icons-material/Send';
 import { developers } from '@/data/mockData';
+import { usePlatformSettings } from '@/hooks/usePlatformSettings';
 import Link from 'next/link';
 
 export default function HiringAssist() {
+  const { getPrice } = usePlatformSettings();
   const [isActive, setIsActive] = useState(false); // Mock session state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDev, setSelectedDev] = useState<any>(null);
@@ -77,7 +79,7 @@ export default function HiringAssist() {
           </Grid>
 
           <Box sx={{ bgcolor: 'rgba(0,0,0,0.02)', p: 4, borderRadius: 3 }}>
-            <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>KES 500</Typography>
+            <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>KES {getPrice('SPOTLIGHT_DAY_FEE', '50')}</Typography>
             <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 3 }}>for 24 hours of full access</Typography>
             <Button
               variant="contained"

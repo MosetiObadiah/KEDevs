@@ -14,7 +14,9 @@ import java.util.Set;
 @Service
 public class CloudinaryFileUploadService implements FileUploadService {
 
-    private static final Set<String> ALLOWED_IMAGE_TYPES = Set.of("image/png", "image/jpeg", "image/jpg", "image/webp");
+    private static final Set<String> ALLOWED_TYPES = Set.of(
+            "image/png", "image/jpeg", "image/jpg", "image/webp", "application/pdf"
+    );
     private final Cloudinary cloudinary;
 
     public CloudinaryFileUploadService(
@@ -39,17 +41,17 @@ public class CloudinaryFileUploadService implements FileUploadService {
     @Override
     public String uploadFile(MultipartFile file, String folder) {
         if (file == null || file.isEmpty()) {
-            throw new BadRequestException("Screenshot file is required");
+            throw new BadRequestException("File is required");
         }
         String contentType = file.getContentType();
-        if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType)) {
-            throw new BadRequestException("Unsupported screenshot file type");
+        if (contentType == null || !ALLOWED_TYPES.contains(contentType)) {
+            throw new BadRequestException("Unsupported file type. Allowed types: PNG, JPEG, WEBP, PDF");
         }
 
         try {
             Map<?, ?> uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
                     "folder", folder,
-                    "resource_type", "image",
+                    "resource_type", "auto",
                     "overwrite", true));
             Object secureUrl = uploadResult.get("secure_url");
             if (secureUrl == null) {
@@ -57,7 +59,7 @@ public class CloudinaryFileUploadService implements FileUploadService {
             }
             return secureUrl.toString();
         } catch (IOException e) {
-            throw new RuntimeException("Failed to upload screenshot", e);
+            throw new RuntimeException("Failed to upload file", e);
         }
     }
 }

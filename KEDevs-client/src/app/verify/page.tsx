@@ -26,12 +26,14 @@ import PhoneIphoneIcon from '@mui/icons-material/PhoneIphone';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutlined';
 import { useAuth } from '@/context/AuthContext';
 import { verificationService, VerificationStatus, VerificationStatusResponse } from '@/services/verificationService';
+import { usePlatformSettings } from '@/hooks/usePlatformSettings';
 import { toast } from 'react-hot-toast';
 
 const steps = ['Profile Check', 'Payment', 'Documents', 'Waiting'];
 
 export default function VerificationFlow() {
   const { user } = useAuth();
+  const { getPrice, loading: settingsLoading } = usePlatformSettings();
   const [activeStep, setActiveStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -41,6 +43,17 @@ export default function VerificationFlow() {
   const [idFile, setIdFile] = useState<File | null>(null);
   const [passportFile, setPassportFile] = useState<File | null>(null);
   const [certFiles, setCertFiles] = useState<File[]>([]);
+
+  const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'application/pdf'];
+
+  const validateFile = (file: File | null) => {
+    if (!file) return false;
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      toast.error(`Unsupported file type: ${file.name}. Please upload PNG, JPEG, WEBP or PDF.`);
+      return false;
+    }
+    return true;
+  };
 
   const idRef = useRef<HTMLInputElement>(null);
   const passportRef = useRef<HTMLInputElement>(null);
@@ -65,6 +78,35 @@ export default function VerificationFlow() {
     }
   };
 
+  // Polling for status when on payment step or documents step
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (activeStep === 1 || activeStep === 2) {
+      interval = setInterval(() => {
+        fetchStatus();
+      }, 5000); // Poll every 5 seconds
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [activeStep]);
+
+  // Handle automatic step transition when status changes
+  useEffect(() => {
+    if (verifyStatus) {
+      const status = verifyStatus.status;
+      if (status === VerificationStatus.NONE && activeStep !== 0) setActiveStep(0);
+      else if (status === VerificationStatus.PENDING_PAYMENT && activeStep === 0) setActiveStep(1);
+      else if (status === VerificationStatus.PENDING_DOCS && activeStep === 1) {
+        toast.success('Payment confirmed! Please upload your documents.');
+        setActiveStep(2);
+      }
+      else if ((status === VerificationStatus.UNDER_REVIEW || status === VerificationStatus.APPROVED || status === VerificationStatus.REJECTED) && activeStep < 3) setActiveStep(3);
+    }
+  }, [verifyStatus?.status]);
+
   useEffect(() => {
     fetchStatus();
   }, []);
@@ -79,7 +121,6 @@ export default function VerificationFlow() {
       const response = await verificationService.initiate(phoneNumber);
       if (response.success) {
         toast.success(response.data.customerMessage || 'Payment request sent!');
-        // Keep checking for status update (polling or websocket will handle it, but for now we wait for manual refresh or notify)
         fetchStatus();
       }
     } catch (err: any) {
@@ -114,15 +155,7 @@ export default function VerificationFlow() {
   };
 
   const handleNext = () => {
-    if (activeStep === 0) {
-      if (!verifyStatus?.isEligible) {
-        toast.error('Your profile is not complete enough. Please update your profile first.');
-        return;
-      }
-      setActiveStep(1);
-    } else if (activeStep === 1) {
-      handleInitiate();
-    } else if (activeStep === 2) {
+    if (activeStep === 2) {
       handleSubmitDocuments();
     } else {
       setActiveStep((prev) => prev + 1);
@@ -157,7 +190,7 @@ export default function VerificationFlow() {
             </Alert>
             <Typography variant="body1">
               You can re-initiate the verification process after addressing the issues.
-              Note: Re-application requires a new review fee of KES 200.
+              Note: Re-application requires a new review fee of KES {user?.role === 'DEVELOPER' ? getPrice('VERIFIED_BADGE_DEVELOPER', '250') : getPrice('VERIFIED_BADGE_EMPLOYER', '500')}.
             </Typography>
             <Button variant="contained" onClick={() => setActiveStep(0)} sx={{ borderRadius: 2, fontWeight: 700, px: 4 }}>
               Start Over
@@ -215,7 +248,7 @@ export default function VerificationFlow() {
                   <PhoneIphoneIcon sx={{ fontSize: 64, color: 'primary.main' }} />
                   <Typography variant="h6" sx={{ fontWeight: 700 }}>Step 2: M-Pesa Payment</Typography>
                   <Typography variant="body1">
-                    Please pay <strong>KES {user?.role === 'DEVELOPER' ? '250' : '400'}</strong> via M-Pesa to initiate the manual review process.
+                    Please pay <strong>KES {user?.role === 'DEVELOPER' ? getPrice('VERIFIED_BADGE_DEVELOPER', '250') : getPrice('VERIFIED_BADGE_EMPLOYER', '500')}</strong> via M-Pesa to initiate the manual review process.
                   </Typography>
                   <TextField
                     fullWidth
@@ -231,11 +264,23 @@ export default function VerificationFlow() {
                     variant="contained"
                     size="large"
                     onClick={handleInitiate}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || 
+                              verifyStatus?.status === VerificationStatus.PENDING_DOCS || 
+                              verifyStatus?.status === VerificationStatus.UNDER_REVIEW || 
+                              verifyStatus?.status === VerificationStatus.APPROVED}
                     sx={{ px: 6, py: 1.5, borderRadius: 2, fontWeight: 700 }}
                   >
-                    {isSubmitting ? <CircularProgress size={24} /> : 'Send Payment Request'}
+                    {isSubmitting ? <CircularProgress size={24} /> : 
+                     verifyStatus?.status === VerificationStatus.PENDING_DOCS ? 'Payment Confirmed' : 
+                     (verifyStatus?.status === VerificationStatus.UNDER_REVIEW || verifyStatus?.status === VerificationStatus.APPROVED) ? 'Already Pending' :
+                     'Send Payment Request'}
                   </Button>
+                  
+                  {verifyStatus?.status === VerificationStatus.PENDING_DOCS && (
+                    <Typography variant="body2" color="success.main" sx={{ fontWeight: 700, mt: 1 }}>
+                      We've received your payment. Click "Next" to upload documents.
+                    </Typography>
+                  )}
                 </Stack>
               )}
 
@@ -244,53 +289,107 @@ export default function VerificationFlow() {
                   <Typography variant="h6" sx={{ fontWeight: 700 }}>Step 3: Document Upload</Typography>
                   <Typography variant="body1">Please upload the following documents for identity verification.</Typography>
 
-                  <input type="file" hidden ref={idRef} onChange={(e) => setIdFile(e.target.files?.[0] || null)} accept="image/*,application/pdf" />
+                  <input
+                    type="file"
+                    hidden
+                    ref={idRef}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      if (validateFile(file)) setIdFile(file);
+                    }}
+                    accept="image/*,application/pdf"
+                  />
                   <Paper
                     variant="outlined"
+                    sx={{
+                      p: 3,
+                      borderRadius: 2,
+                      borderStyle: 'dashed',
+                      cursor: 'pointer',
+                      bgcolor: idFile ? 'rgba(16, 185, 129, 0.05)' : 'transparent',
+                      borderColor: idFile ? 'success.main' : 'divider',
+                      '&:hover': { borderColor: 'primary.main' }
+                    }}
                     onClick={() => idRef.current?.click()}
-                    sx={{ p: 3, textAlign: 'center', borderStyle: 'dashed', borderRadius: 2, cursor: 'pointer', bgcolor: idFile ? 'rgba(16, 185, 129, 0.05)' : 'transparent' }}
                   >
-                    <CloudUploadIcon sx={{ fontSize: 48, color: idFile ? 'success.main' : 'text.secondary', mb: 2 }} />
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                      {idFile ? idFile.name : `Click to upload National ID / Passport`}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">PDF, JPG or PNG (Max 5MB)</Typography>
+                    <Box sx={{ textAlign: 'center' }}>
+                      <CloudUploadIcon sx={{ fontSize: 40, color: idFile ? 'success.main' : 'text.secondary', mb: 1 }} />
+                      <Typography sx={{ fontWeight: 600 }}>
+                        {idFile ? idFile.name : 'Upload National ID / Passport Copy'}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">PNG, JPEG, WEBP or PDF (Max 5MB)</Typography>
+                    </Box>
                   </Paper>
 
-                  <input type="file" hidden ref={passportRef} onChange={(e) => setPassportFile(e.target.files?.[0] || null)} accept="image/*" />
+                  <input
+                    type="file"
+                    hidden
+                    ref={passportRef}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      if (validateFile(file)) {
+                        if (file?.type === 'application/pdf') {
+                          toast.error('Passport photo must be an image (PNG, JPEG, or WEBP)');
+                          return;
+                        }
+                        setPassportFile(file);
+                      }
+                    }}
+                    accept="image/*"
+                  />
                   <Paper
                     variant="outlined"
+                    sx={{
+                      p: 3,
+                      borderRadius: 2,
+                      borderStyle: 'dashed',
+                      cursor: 'pointer',
+                      bgcolor: passportFile ? 'rgba(16, 185, 129, 0.05)' : 'transparent',
+                      borderColor: passportFile ? 'success.main' : 'divider',
+                      '&:hover': { borderColor: 'primary.main' }
+                    }}
                     onClick={() => passportRef.current?.click()}
-                    sx={{ p: 3, textAlign: 'center', borderStyle: 'dashed', borderRadius: 2, cursor: 'pointer', bgcolor: passportFile ? 'rgba(16, 185, 129, 0.05)' : 'transparent' }}
                   >
-                    <CloudUploadIcon sx={{ fontSize: 48, color: passportFile ? 'success.main' : 'text.secondary', mb: 2 }} />
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                      {passportFile ? passportFile.name : `Click to upload Passport Photo`}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">JPG or PNG (Max 5MB)</Typography>
+                    <Box sx={{ textAlign: 'center' }}>
+                      <CloudUploadIcon sx={{ fontSize: 40, color: passportFile ? 'success.main' : 'text.secondary', mb: 1 }} />
+                      <Typography sx={{ fontWeight: 600 }}>
+                        {passportFile ? passportFile.name : 'Upload Passport Photo'}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">PNG, JPEG or WEBP (Images only)</Typography>
+                    </Box>
                   </Paper>
 
-                  <input type="file" hidden ref={certRef} multiple onChange={(e) => setCertFiles(Array.from(e.target.files || []))} accept="image/*,application/pdf" />
+                  <input
+                    type="file"
+                    hidden
+                    multiple
+                    ref={certRef}
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files || []);
+                      const validFiles = files.filter(validateFile);
+                      setCertFiles(prev => [...prev, ...validFiles]);
+                    }}
+                    accept="image/*,application/pdf"
+                  />
                   <Paper
                     variant="outlined"
+                    sx={{
+                      p: 3,
+                      borderRadius: 2,
+                      borderStyle: 'dashed',
+                      cursor: 'pointer',
+                      borderColor: 'divider',
+                      '&:hover': { borderColor: 'primary.main' }
+                    }}
                     onClick={() => certRef.current?.click()}
-                    sx={{ p: 3, textAlign: 'center', borderStyle: 'dashed', borderRadius: 2, cursor: 'pointer', bgcolor: certFiles.length > 0 ? 'rgba(16, 185, 129, 0.05)' : 'transparent' }}
                   >
-                    <CloudUploadIcon sx={{ fontSize: 48, color: certFiles.length > 0 ? 'success.main' : 'text.secondary', mb: 2 }} />
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                    <Typography sx={{ fontWeight: 600, textAlign: 'center' }}>
                       {certFiles.length > 0 ? `${certFiles.length} certificates selected` : `Click to upload Certificates (Optional)`}
                     </Typography>
+                    <Typography variant="caption" color="text.secondary" display="block" textAlign="center">
+                      PNG, JPEG, WEBP or PDF
+                    </Typography>
                   </Paper>
-
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    onClick={handleSubmitDocuments}
-                    disabled={isSubmitting || !idFile || !passportFile}
-                    sx={{ py: 2, borderRadius: 2, fontWeight: 800, mt: 2 }}
-                  >
-                    {isSubmitting ? <CircularProgress size={24} /> : 'Submit for Review'}
-                  </Button>
                 </Stack>
               )}
 
@@ -337,7 +436,7 @@ export default function VerificationFlow() {
               <Button
                 disabled={activeStep === 0 || activeStep === 3}
                 onClick={handleBack}
-                sx={{ fontWeight: 700 }}
+                sx={{ borderRadius: 2, fontWeight: 700 }}
               >
                 Back
               </Button>
