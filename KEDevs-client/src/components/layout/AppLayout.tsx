@@ -105,7 +105,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <Typography
           variant="h6"
           component={Link}
-          href="/"
+          href={isDev ? '/jobs' : '/developers'}
           sx={{
             fontWeight: 900,
             color: 'text.primary',
