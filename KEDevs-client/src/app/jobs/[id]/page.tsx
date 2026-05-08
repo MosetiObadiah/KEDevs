@@ -41,6 +41,7 @@ import WarningIcon from '@mui/icons-material/Warning';
 import { useAuth } from '@/context/AuthContext';
 import { jobService } from '@/services/jobService';
 import { forumService } from '@/services/forumService';
+import ApplyDialog from '@/components/jobs/ApplyDialog';
 
 export default function JobDetailPage() {
   const { id } = useParams();
@@ -48,6 +49,7 @@ export default function JobDetailPage() {
   const { isLoggedIn, user } = useAuth();
   const [job, setJob] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [applyOpen, setApplyOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [comment, setComment] = useState('');
@@ -97,16 +99,6 @@ export default function JobDetailPage() {
     setAnchorEl(null);
   };
 
-  const handleApply = async () => {
-    try {
-      const response = await jobService.applyToJob(id as string, { coverLetter: '' });
-      if (response.success) {
-        alert('Application submitted successfully!');
-      }
-    } catch (err: any) {
-      alert(err.message || 'Failed to submit application.');
-    }
-  };
 
   const handleFlagJob = async () => {
     if (!id) return;
@@ -329,13 +321,25 @@ export default function JobDetailPage() {
 
               <Divider />
 
-              {isLoggedIn ? (
+              {job.isPeerSourced ? (
+                <Button
+                  variant="contained"
+                  fullWidth
+                  size="large"
+                  component="a"
+                  href={job.sourceUrl}
+                  target="_blank"
+                  sx={{ py: 1.5, borderRadius: 2, fontWeight: 700, boxShadow: 0 }}
+                >
+                  Apply on External Site
+                </Button>
+              ) : isLoggedIn ? (
                 user?.role === 'DEVELOPER' && (
                   <Button
                     variant="contained"
                     fullWidth
                     size="large"
-                    onClick={handleApply}
+                    onClick={() => setApplyOpen(true)}
                     sx={{ py: 1.5, borderRadius: 2, fontWeight: 700, boxShadow: 0 }}
                   >
                     Apply for this Role
@@ -362,6 +366,16 @@ export default function JobDetailPage() {
           </Paper>
         </Grid>
       </Grid>
+
+      <ApplyDialog
+        open={applyOpen}
+        onClose={() => setApplyOpen(false)}
+        job={job}
+        onSuccess={() => {
+          alert('Application submitted successfully!');
+          router.push('/jobs/my-applications');
+        }}
+      />
     </Container>
   );
 }
