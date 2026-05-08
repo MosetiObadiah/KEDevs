@@ -8,9 +8,7 @@ import "@fontsource/inter/700.css";
 import "@fontsource/inter/800.css";
 import { ThemeProvider as NextThemeProvider } from 'next-themes';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
-import { Box } from "@mui/material";
+import AppLayout from "@/components/layout/AppLayout";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeStyleProvider } from "@/context/ThemeStyleContext";
 import { RouteGuard } from "@/components/auth/RouteGuard";
@@ -35,11 +33,9 @@ export default function RootLayout({
               <GoogleAuthProvider>
                 <AuthProvider>
                   <RouteGuard>
-                    <Navbar />
-                    <Box component="main" sx={{ flexGrow: 1 }}>
+                    <AppLayout>
                       {children}
-                    </Box>
-                    <Footer />
+                    </AppLayout>
                   </RouteGuard>
                 </AuthProvider>
               </GoogleAuthProvider>
