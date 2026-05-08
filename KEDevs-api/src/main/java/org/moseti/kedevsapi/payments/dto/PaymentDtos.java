@@ -121,4 +121,10 @@ public class PaymentDtos {
             @JsonProperty("access_token") String accessToken,
             @JsonProperty("expires_in") String expiresIn
     ) {}
+
+    public record SpotlightSlotConfirmResponse(
+            java.util.UUID slotId,
+            org.moseti.kedevsapi.shared.enums.SpotlightType type,
+            java.time.LocalDateTime expiresAt
+    ) {}
 }

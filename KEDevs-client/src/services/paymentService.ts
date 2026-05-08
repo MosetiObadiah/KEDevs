@@ -36,4 +36,8 @@ export const paymentService = {
   async getHistory(): Promise<ApiResponse<any>> {
     return apiClient.get<ApiResponse<any>>('/api/v1/payments/history');
   },
+
+  async confirmSpotlight(): Promise<ApiResponse<any>> {
+    return apiClient.post<ApiResponse<any>>('/api/v1/payments/confirm-spotlight', {});
+  },
 };

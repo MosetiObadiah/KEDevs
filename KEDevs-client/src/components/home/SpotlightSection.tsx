@@ -14,7 +14,8 @@ import {
   Stack,
   alpha,
   Divider,
-  Tooltip
+  Tooltip,
+  Skeleton
 } from '@mui/material';
 import Link from 'next/link';
 import VerifiedIcon from '@mui/icons-material/Verified';
@@ -29,38 +30,67 @@ interface SpotlightSectionProps {
   loading: boolean;
 }
 
-export default function SpotlightSection({ dayDev, weekDev, loading }: SpotlightSectionProps) {
-  if (loading) return null; // Or show skeletons
-
-  if (!dayDev && !weekDev) return null;
-
+function EmptySpotlightCard({ type }: { type: string }) {
   return (
-    <Box sx={{ py: { xs: 8, md: 12 }, bgcolor: 'background.paper' }}>
-      <Container maxWidth="xl">
-        <Box sx={{ mb: 6, textAlign: 'center' }}>
-          <PillBadge variant="mint">TALENT SPOTLIGHT</PillBadge>
-          <Typography variant="h2" sx={{ mt: 2, fontWeight: 900 }}>
-            Featured <Box component="span" sx={{ color: 'primary.main' }}>Talent</Box>
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-            Exceptional Kenyan developers currently in the spotlight.
+    <Card 
+      sx={{ 
+        height: '100%', 
+        minHeight: 400,
+        borderRadius: 6, 
+        overflow: 'hidden', 
+        border: '2px dashed', 
+        borderColor: 'divider',
+        bgcolor: alpha('#000', 0.02),
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textAlign: 'center',
+        p: 4,
+        position: 'relative',
+        '&:hover': {
+          borderColor: 'primary.main',
+          bgcolor: alpha('#10b981', 0.02)
+        }
+      }}
+    >
+      <Box sx={{ position: 'absolute', top: 20, right: 20 }}>
+        <PillBadge variant="sage">{type}</PillBadge>
+      </Box>
+
+      <Stack spacing={3} sx={{ alignItems: 'center' }}>
+        <Box 
+          sx={{ 
+            width: 80, 
+            height: 80, 
+            borderRadius: '50%', 
+            bgcolor: 'background.paper', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            boxShadow: 1
+          }}
+        >
+          <SpeedIcon sx={{ fontSize: 40, color: 'text.disabled' }} />
+        </Box>
+        
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 900, mb: 1 }}>Slot Available</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 280, mx: 'auto' }}>
+            This spotlight spot is currently vacant. Verified developers can claim it to boost their visibility.
           </Typography>
         </Box>
 
-        <Grid container spacing={4} justifyContent="center">
-          {dayDev && (
-            <Grid size={{ xs: 12, lg: 6 }}>
-              <SpotlightBigCard dev={dayDev} type="Developer of the Day" />
-            </Grid>
-          )}
-          {weekDev && (
-            <Grid size={{ xs: 12, lg: 6 }}>
-              <SpotlightBigCard dev={weekDev} type="Developer of the Week" />
-            </Grid>
-          )}
-        </Grid>
-      </Container>
-    </Box>
+        <Button 
+          variant="outlined" 
+          component={Link}
+          href="/profile/me?buySpotlight=true"
+          sx={{ borderRadius: 2, fontWeight: 700, px: 4 }}
+        >
+          Claim This Spot
+        </Button>
+      </Stack>
+    </Card>
   );
 }
 
@@ -181,5 +211,46 @@ function SpotlightBigCard({ dev, type }: { dev: any, type: string }) {
         </Grid>
       </Grid>
     </Card>
+  );
+}
+
+export default function SpotlightSection({ dayDev, weekDev, loading }: SpotlightSectionProps) {
+  // Always show the section structure
+
+  return (
+    <Box sx={{ py: { xs: 8, md: 12 }, bgcolor: 'background.paper' }}>
+      <Container maxWidth="xl">
+        <Box sx={{ mb: 6, textAlign: 'center' }}>
+          <PillBadge variant="mint">TALENT SPOTLIGHT</PillBadge>
+          <Typography variant="h2" sx={{ mt: 2, fontWeight: 900 }}>
+            Featured <Box component="span" sx={{ color: 'primary.main' }}>Talent</Box>
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+            Exceptional Kenyan developers currently in the spotlight.
+          </Typography>
+        </Box>
+
+        <Grid container spacing={4} sx={{ justifyContent: 'center' }}>
+          <Grid size={{ xs: 12, lg: 6 }}>
+            {loading ? (
+              <Skeleton variant="rectangular" height={400} sx={{ borderRadius: 6 }} />
+            ) : dayDev ? (
+              <SpotlightBigCard dev={dayDev} type="Developer of the Day" />
+            ) : (
+              <EmptySpotlightCard type="Developer of the Day" />
+            )}
+          </Grid>
+          <Grid size={{ xs: 12, lg: 6 }}>
+            {loading ? (
+              <Skeleton variant="rectangular" height={400} sx={{ borderRadius: 6 }} />
+            ) : weekDev ? (
+              <SpotlightBigCard dev={weekDev} type="Developer of the Week" />
+            ) : (
+              <EmptySpotlightCard type="Developer of the Week" />
+            )}
+          </Grid>
+        </Grid>
+      </Container>
+    </Box>
   );
 }

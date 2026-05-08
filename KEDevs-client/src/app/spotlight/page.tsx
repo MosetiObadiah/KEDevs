@@ -63,25 +63,6 @@ export default function SpotlightPage() {
 
         <SpotlightSection dayDev={dayDev} weekDev={weekDev} loading={false} />
 
-        {(!dayDev && !weekDev) && (
-          <Box sx={{ py: 10, textAlign: 'center' }}>
-            <SpeedIcon sx={{ fontSize: 80, color: 'divider', mb: 2 }} />
-            <Typography variant="h5" sx={{ fontWeight: 800, color: 'text.secondary' }}>
-              No developers currently in the spotlight.
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-              Are you a developer? Boost your profile and be the first to appear here!
-            </Typography>
-            <Button 
-              variant="contained" 
-              component={Link} 
-              href="/profile/me?buySpotlight=true"
-              sx={{ mt: 4, borderRadius: 3, fontWeight: 800, px: 6, py: 1.5 }}
-            >
-              Get Spotlight
-            </Button>
-          </Box>
-        )}
 
         <Box sx={{ mt: 12, p: 6, borderRadius: 8, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
           <Typography variant="h3" sx={{ fontWeight: 900, mb: 2 }}>How to get Featured?</Typography>

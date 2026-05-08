@@ -34,4 +34,10 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     java.util.List<Object[]> getRevenueByType();
 
     long countByStatus(PaymentStatus status);
+
+    Optional<Payment> findFirstByUserIdAndTypeInAndStatusOrderByCreatedAtDesc(
+            UUID userId,
+            java.util.List<PaymentType> types,
+            PaymentStatus status
+    );
 }

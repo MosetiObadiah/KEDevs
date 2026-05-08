@@ -44,6 +44,29 @@ export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerifie
   const [availability, setAvailability] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<'SELECT' | 'PAYING' | 'SUCCESS'>('SELECT');
+  const [fetchingAvailability, setFetchingAvailability] = useState(false);
+
+  // Poll for payment confirmation every 5 seconds while on PAYING step
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (step === 'PAYING' && open) {
+      interval = setInterval(async () => {
+        try {
+          // Try to confirm the pending payment — backend will activate the slot if payment went through
+          const response = await paymentService.confirmSpotlight();
+          if (response.success) {
+            setStep('SUCCESS');
+            onSuccess();
+          }
+        } catch (err) {
+          // Not confirmed yet — keep polling silently
+        }
+      }, 5000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [step, open, onSuccess]);
 
   useEffect(() => {
     if (open) {
@@ -54,6 +77,7 @@ export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerifie
   }, [open]);
 
   const fetchAvailability = async () => {
+    setFetchingAvailability(true);
     try {
       const response = await spotlightService.getAvailability();
       if (response.success) {
@@ -61,6 +85,8 @@ export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerifie
       }
     } catch (err) {
       console.error('Failed to fetch availability', err);
+    } finally {
+      setFetchingAvailability(false);
     }
   };
 
@@ -228,9 +254,21 @@ export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerifie
             <Button 
               variant="outlined" 
               sx={{ mt: 4, borderRadius: 2 }} 
-              onClick={() => { setStep('SUCCESS'); onSuccess(); }}
+              onClick={async () => { 
+                try {
+                  const response = await paymentService.confirmSpotlight();
+                  if (response.success) {
+                    setStep('SUCCESS');
+                    onSuccess();
+                  } else {
+                    setError('Payment not yet confirmed. Please wait a moment or try again.');
+                  }
+                } catch (err: any) {
+                  setError(err.message || 'Payment not yet confirmed. Please wait a moment.');
+                }
+              }}
             >
-              I have paid
+              I Have Paid — Confirm Now
             </Button>
           </Box>
         )}
@@ -252,11 +290,18 @@ export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerifie
             <Button onClick={onClose} sx={{ fontWeight: 700 }}>Cancel</Button>
             <Button 
               variant="contained" 
-              disabled={loading || (type === 'DAY' && !availability?.daySlotAvailable) || (type === 'WEEK' && !availability?.weekSlotAvailable)} 
+              disabled={
+                loading || 
+                fetchingAvailability ||
+                !availability ||
+                !phoneNumber.match(/^(254|0)(7|1)\d{8}$/) ||
+                (type === 'DAY' && !availability?.daySlotAvailable) || 
+                (type === 'WEEK' && !availability?.weekSlotAvailable)
+              } 
               onClick={handleInitiate}
               sx={{ borderRadius: 2, fontWeight: 800, px: 4 }}
             >
-              {loading ? <CircularProgress size={24} /> : 'Buy Slot'}
+              {loading || fetchingAvailability ? <CircularProgress size={24} color="inherit" /> : 'Buy Slot'}
             </Button>
           </>
         ) : (

@@ -153,4 +153,18 @@ public class PaymentController {
         List<PlatformSettingResponse> settings = paymentService.getPlatformSettings();
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Platform settings fetched", settings));
     }
+    @Operation(summary = "Manually confirm a pending spotlight payment",
+               description = "Finds the most recent pending spotlight payment for the current user and activates the slot. Use this if the M-Pesa callback did not arrive (e.g., in local development). Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Spotlight slot activated"),
+        @ApiResponse(responseCode = "400", description = "No pending spotlight payment found"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+    })
+    @PostMapping("/confirm-spotlight")
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<SpotlightSlotConfirmResponse>> confirmSpotlight() {
+        SpotlightSlotConfirmResponse response = paymentService.confirmSpotlight(getCurrentUserId());
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Spotlight activated", response));
+    }
 }

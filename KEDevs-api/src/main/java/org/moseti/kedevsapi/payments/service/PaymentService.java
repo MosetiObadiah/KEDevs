@@ -19,6 +19,7 @@ import org.moseti.kedevsapi.users.repository.UserRepository;
 import org.moseti.kedevsapi.spotlight.service.SpotlightService;
 import org.moseti.kedevsapi.users.repository.VerificationRequestRepository;
 import org.moseti.kedevsapi.users.entity.VerificationRequest;
+import org.moseti.kedevsapi.spotlight.entity.SpotlightSlot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -463,5 +464,43 @@ public class PaymentService {
         return platformSettingRepository.findAll().stream()
                 .map(s -> new PlatformSettingResponse(s.getSettingKey(), s.getSettingValue(), s.getDescription()))
                 .toList();
+    }
+
+    /**
+     * Manually confirm a pending spotlight payment for the current user.
+     * Useful in development when the Daraja callback URL isn't publicly reachable.
+     * In production, the STK push callback handles this automatically.
+     */
+    @Transactional
+    public SpotlightSlotConfirmResponse confirmSpotlight(UUID userId) {
+        // Find the most recent pending spotlight payment for this user
+        Payment payment = paymentRepository.findFirstByUserIdAndTypeInAndStatusOrderByCreatedAtDesc(
+                userId,
+                List.of(PaymentType.SPOTLIGHT_DAY, PaymentType.SPOTLIGHT_WEEK),
+                PaymentStatus.PENDING
+        ).orElseThrow(() -> new BadRequestException(
+                "No pending spotlight payment found. Please initiate a new payment."));
+
+        // Mark it as completed
+        payment.setStatus(PaymentStatus.COMPLETED);
+        payment.setPaidAt(LocalDateTime.now());
+        payment.setMpesaReceiptNo("MANUAL-" + System.currentTimeMillis());
+        paymentRepository.save(payment);
+
+        // Activate the slot
+        SpotlightType type = payment.getType() == PaymentType.SPOTLIGHT_DAY
+                ? SpotlightType.DAY : SpotlightType.WEEK;
+        SpotlightSlot slot = spotlightService.activateSpotlight(userId, payment.getId(), type);
+
+        // Notify user
+        notificationService.notify(
+                userId,
+                org.moseti.kedevsapi.shared.enums.NotificationCategory.SPOTLIGHT,
+                "Spotlight Activated!",
+                "Your " + type.name() + " spotlight is now live.",
+                null
+        );
+
+        return new SpotlightSlotConfirmResponse(slot.getId(), type, slot.getEndDate());
     }
 }
