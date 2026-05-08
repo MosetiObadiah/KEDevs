@@ -72,38 +72,53 @@ export default function JobsPage() {
     return () => clearTimeout(timer);
   }, [searchTerm, workType]);
 
-  const handleUpvote = (id: string, e: React.MouseEvent) => {
+  const handleVote = async (id: string, vote: 'UP' | 'DOWN', e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isLoggedIn) return; // TODO: Show login prompt
+    if (!isLoggedIn) return;
 
-    const newUpvoted = new Set(upvotedJobs);
-    if (newUpvoted.has(id)) {
-      newUpvoted.delete(id);
+    const wasUpvoted = upvotedJobs.has(id);
+    const wasDownvoted = downvotedJobs.has(id);
+    const prevUpvoted = new Set(upvotedJobs);
+    const prevDownvoted = new Set(downvotedJobs);
+
+    if (vote === 'UP') {
+      if (wasUpvoted) {
+        prevUpvoted.delete(id);
+      } else {
+        prevUpvoted.add(id);
+        prevDownvoted.delete(id);
+      }
     } else {
-      newUpvoted.add(id);
-      const newDownvoted = new Set(downvotedJobs);
-      newDownvoted.delete(id);
-      setDownvotedJobs(newDownvoted);
+      if (wasDownvoted) {
+        prevDownvoted.delete(id);
+      } else {
+        prevDownvoted.add(id);
+        prevUpvoted.delete(id);
+      }
     }
-    setUpvotedJobs(newUpvoted);
+
+    setUpvotedJobs(prevUpvoted);
+    setDownvotedJobs(prevDownvoted);
+
+    try {
+      await jobService.voteJob(id, vote);
+    } catch (err: any) {
+      setUpvotedJobs(upvotedJobs);
+      setDownvotedJobs(downvotedJobs);
+      console.error(err);
+    }
   };
 
-  const handleDownvote = (id: string, e: React.MouseEvent) => {
+  const handleFlagJob = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isLoggedIn) return; // TODO: Show login prompt
-
-    const newDownvoted = new Set(downvotedJobs);
-    if (newDownvoted.has(id)) {
-      newDownvoted.delete(id);
-    } else {
-      newDownvoted.add(id);
-      const newUpvoted = new Set(upvotedJobs);
-      newUpvoted.delete(id);
-      setUpvotedJobs(newUpvoted);
+    if (!isLoggedIn) return;
+    try {
+      await jobService.flagJob(id, 'Suspicious or spam job listing');
+    } catch (err: any) {
+      console.error(err);
     }
-    setDownvotedJobs(newDownvoted);
   };
 
   const formatJobType = (type: string) => {
@@ -181,7 +196,7 @@ export default function JobsPage() {
                 >
                   <MenuItem value="All">All Types</MenuItem>
                   <MenuItem value="REMOTE">Remote</MenuItem>
-                  <MenuItem value="ON_SITE">On-site</MenuItem>
+                  <MenuItem value="ONSITE">On-site</MenuItem>
                   <MenuItem value="HYBRID">Hybrid</MenuItem>
                 </TextField>
 
@@ -278,7 +293,7 @@ export default function JobsPage() {
                           <Stack direction="row" spacing={1}>
                             <Tooltip title={isLoggedIn ? "Upvote" : "Login to upvote"}>
                               <IconButton 
-                                onClick={(e) => handleUpvote(job.id, e)}
+                                onClick={(e) => handleVote(job.id, 'UP', e)}
                                 color={upvotedJobs.has(job.id) ? 'primary' : 'default'}
                                 disabled={!isLoggedIn}
                                 sx={{ bgcolor: upvotedJobs.has(job.id) ? 'primary.light' : 'background.subtle' }}
@@ -288,7 +303,7 @@ export default function JobsPage() {
                             </Tooltip>
                             <Tooltip title={isLoggedIn ? "Downvote" : "Login to downvote"}>
                               <IconButton 
-                                onClick={(e) => handleDownvote(job.id, e)}
+                                onClick={(e) => handleVote(job.id, 'DOWN', e)}
                                 color={downvotedJobs.has(job.id) ? 'error' : 'default'}
                                 disabled={!isLoggedIn}
                                 sx={{ bgcolor: downvotedJobs.has(job.id) ? 'error.light' : 'background.subtle' }}

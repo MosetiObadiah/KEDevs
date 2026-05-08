@@ -3,6 +3,7 @@ package org.moseti.kedevsapi.jobs.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.moseti.kedevsapi.jobs.converter.JobVisibilityConverter;
 import org.moseti.kedevsapi.shared.entity.BaseEntity;
 import org.moseti.kedevsapi.shared.enums.ExperienceLevel;
 import org.moseti.kedevsapi.shared.enums.JobStatus;
@@ -77,7 +78,8 @@ public class JobPost extends BaseEntity {
     @Column(name = "is_peer_sourced")
     private boolean isPeerSourced = false;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = JobVisibilityConverter.class)
+    @Column(name = "visibility")
     private JobVisibility visibility;
 
     @Enumerated(EnumType.STRING)

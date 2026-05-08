@@ -1,7 +1,7 @@
 // src/app/notifications/page.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   Container,
@@ -17,21 +17,22 @@ import {
   Avatar,
   IconButton,
   Button,
-  Chip,
   Stack,
   Divider,
+  CircularProgress,
+  Alert,
+  Chip,
 } from '@mui/material';
-import { myNotifications } from '@/data/mockData';
 import WorkIcon from '@mui/icons-material/Work';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import PaymentIcon from '@mui/icons-material/Payment';
 import MessageIcon from '@mui/icons-material/Message';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import DeleteIcon from '@mui/icons-material/Delete';
 import CircleIcon from '@mui/icons-material/Circle';
 import GroupIcon from '@mui/icons-material/Group';
 import SpeedIcon from '@mui/icons-material/Speed';
+import { notificationService } from '@/services/notificationService';
 
 const getIcon = (type: string) => {
   switch (type) {
@@ -58,17 +59,42 @@ const getColor = (type: string) => {
   }
 };
 
-// Mock more notifications
-const extendedNotifications = [
-  ...myNotifications,
-  { id: 'n3', type: 'ContactRequest', title: 'New Contact Request', message: 'Steve Rogers wants to connect regarding a project.', date: '2024-05-06', isRead: false },
-  { id: 'n4', type: 'SpotlightExpiry', title: 'Spotlight Expired', message: 'Your spotlight boost has ended. Boost again to stay on top!', date: '2024-05-07', isRead: false },
-  { id: 'n5', type: 'Verification', title: 'Verification Update', message: 'Your profile verification is under review.', date: '2024-05-07', isRead: true },
-];
-
 export default function NotificationsPage() {
   const [tab, setTab] = useState(0);
-  const [notifications, setNotifications] = useState(extendedNotifications);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadNotifications = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await notificationService.getNotifications();
+      if (response.success) {
+        setNotifications(response.data.content || response.data || []);
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError('Unable to load notifications.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadNotifications();
+  }, []);
+
+  const markAllRead = async () => {
+    try {
+      const response = await notificationService.markAllRead();
+      if (response.success) {
+        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      }
+    } catch (err: any) {
+      console.error(err);
+    }
+  };
 
   const filteredNotifications = notifications.filter(n => {
     if (tab === 0) return true;
@@ -77,10 +103,6 @@ export default function NotificationsPage() {
     if (tab === 3) return n.type === 'Payment' || n.type === 'Verification' || n.type === 'SpotlightExpiry';
     return true;
   });
-
-  const markAllRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-  };
 
   return (
     <Container maxWidth="md" sx={{ py: 6 }}>
@@ -104,81 +126,90 @@ export default function NotificationsPage() {
           <Tab label="System" sx={{ fontWeight: 700 }} />
         </Tabs>
 
-        <List sx={{ p: 0 }}>
-          {filteredNotifications.length > 0 ? (
-            filteredNotifications.map((n, index) => (
-              <React.Fragment key={n.id}>
-                <ListItem 
-                  sx={{ 
-                    py: 3, 
-                    px: 3, 
-                    bgcolor: n.isRead ? 'transparent' : 'rgba(0,0,0,0.02)',
-                    transition: 'background-color 0.2s',
-                    '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' }
-                  }}
-                  secondaryAction={
-                    <IconButton size="small">
-                      <MoreVertIcon />
-                    </IconButton>
-                  }
-                >
-                  <ListItemAvatar>
-                    <Avatar sx={{ bgcolor: getColor(n.type), color: 'white' }}>
-                      {getIcon(n.type)}
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: n.isRead ? 500 : 700 }}>
-                          {n.title}
-                        </Typography>
-                        {!n.isRead && <CircleIcon sx={{ fontSize: 10, color: 'primary.main' }} />}
-                      </Box>
+        {isLoading ? (
+          <Box sx={{ py: 8, display: 'flex', justifyContent: 'center' }}>
+            <CircularProgress />
+          </Box>
+        ) : error ? (
+          <Box sx={{ py: 8, px: 4 }}>
+            <Alert severity="error">{error}</Alert>
+          </Box>
+        ) : (
+          <List sx={{ p: 0 }}>
+            {filteredNotifications.length > 0 ? (
+              filteredNotifications.map((n, index) => (
+                <React.Fragment key={n.id}>
+                  <ListItem 
+                    sx={{ 
+                      py: 3, 
+                      px: 3, 
+                      bgcolor: n.isRead ? 'transparent' : 'rgba(0,0,0,0.02)',
+                      transition: 'background-color 0.2s',
+                      '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' }
+                    }}
+                    secondaryAction={
+                      <IconButton size="small">
+                        <MoreVertIcon />
+                      </IconButton>
                     }
-                    secondary={
-                      <Box component="div">
-                      <Stack spacing={1}>
-                        <Typography variant="body2" color="text.secondary">{n.message}</Typography>
-                        <Typography variant="caption" color="text.disabled">{new Date(n.date).toLocaleDateString()}</Typography>
-                        <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
-                          {n.type === 'ApplicationUpdate' && (
-                            <Button variant="contained" size="small" sx={{ borderRadius: 1.5, fontWeight: 700 }}>View Job</Button>
-                          )}
-                          {n.type === 'ContactRequest' && (
-                            <>
-                              <Button variant="contained" size="small" sx={{ borderRadius: 1.5, fontWeight: 700 }}>Accept</Button>
-                              <Button variant="outlined" size="small" sx={{ borderRadius: 1.5, fontWeight: 700 }}>Decline</Button>
-                            </>
-                          )}
-                          {n.type === 'SpotlightExpiry' && (
-                            <Button variant="contained" color="warning" size="small" sx={{ borderRadius: 1.5, fontWeight: 700 }} component={Link} href="/payments">
-                              Buy Spotlight Again
-                            </Button>
-                          )}
-                          {n.type === 'Verification' && (
-                            <Button variant="outlined" size="small" sx={{ borderRadius: 1.5, fontWeight: 700 }} component={Link} href="/verify">
-                              View Status
-                            </Button>
-                          )}
+                  >
+                    <ListItemAvatar>
+                      <Avatar sx={{ bgcolor: getColor(n.type), color: 'white' }}>
+                        {getIcon(n.type)}
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: n.isRead ? 500 : 700 }}>
+                            {n.title}
+                          </Typography>
+                          {!n.isRead && <CircleIcon sx={{ fontSize: 10, color: 'primary.main' }} />}
                         </Box>
-                      </Stack>
-                      </Box>
-                    }
-                  />
-                </ListItem>
-                {index < filteredNotifications.length - 1 && <Divider />}
-              </React.Fragment>
-            ))
-          ) : (
-            <Box sx={{ p: 10, textAlign: 'center' }}>
-              <Typography color="text.secondary">No notifications found.</Typography>
-            </Box>
-          )}
-        </List>
+                      }
+                      secondary={
+                        <Box component="div">
+                        <Stack spacing={1}>
+                          <Typography variant="body2" color="text.secondary">{n.message}</Typography>
+                          <Typography variant="caption" color="text.disabled">{new Date(n.date).toLocaleDateString()}</Typography>
+                          <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                            {n.type === 'ApplicationUpdate' && (
+                              <Button variant="contained" size="small" sx={{ borderRadius: 1.5, fontWeight: 700 }}>View Job</Button>
+                            )}
+                            {n.type === 'ContactRequest' && (
+                              <>
+                                <Button variant="contained" size="small" sx={{ borderRadius: 1.5, fontWeight: 700 }}>Accept</Button>
+                                <Button variant="outlined" size="small" sx={{ borderRadius: 1.5, fontWeight: 700 }}>Decline</Button>
+                              </>
+                            )}
+                            {n.type === 'SpotlightExpiry' && (
+                              <Button variant="contained" color="warning" size="small" sx={{ borderRadius: 1.5, fontWeight: 700 }} component={Link} href="/payments">
+                                Buy Spotlight Again
+                              </Button>
+                            )}
+                            {n.type === 'Verification' && (
+                              <Button variant="outlined" size="small" sx={{ borderRadius: 1.5, fontWeight: 700 }} component={Link} href="/verify">
+                                View Status
+                              </Button>
+                            )}
+                          </Box>
+                        </Stack>
+                        </Box>
+                      }
+                    />
+                  </ListItem>
+                  {index < filteredNotifications.length - 1 && <Divider />}
+                </React.Fragment>
+              ))
+            ) : (
+              <Box sx={{ p: 10, textAlign: 'center' }}>
+                <Typography color="text.secondary">No notifications found.</Typography>
+              </Box>
+            )}
+          </List>
+        )}
       </Paper>
 
-      {/* Preferences Panel Placeholder */}
       <Paper sx={{ mt: 4, p: 3, borderRadius: 3 }}>
         <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Preferences</Typography>
         <Stack spacing={1}>

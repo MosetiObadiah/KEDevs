@@ -40,7 +40,7 @@ export default function HomePage() {
     const fetchLandingData = async () => {
       try {
         // Fetch Jobs (spotlight jobs ordered by upvotes + recency)
-        const jobsResponse = await jobService.getExternalJobs(0, 4);
+        const jobsResponse = await jobService.getPublicJobs(0, 4);
         if (jobsResponse.success) {
           setFeaturedJobs(jobsResponse.data.content);
         }

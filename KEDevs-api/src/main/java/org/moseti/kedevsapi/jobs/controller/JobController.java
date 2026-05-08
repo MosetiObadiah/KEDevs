@@ -62,15 +62,15 @@ public class JobController {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Job feed fetched", response));
     }
 
-    @Operation(summary = "List external jobs for landing page", security = {})
+    @Operation(summary = "List public jobs for landing page", security = {})
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "External jobs fetched successfully")
+        @ApiResponse(responseCode = "200", description = "Public jobs fetched successfully")
     })
-    @GetMapping("/external")
-    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<JobSummaryResponse>>> getExternalJobs(
+    @GetMapping("/public")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<JobSummaryResponse>>> getPublicJobs(
             @PageableDefault(size = 10) Pageable pageable) {
-        Page<JobSummaryResponse> response = jobService.getExternalJobs(pageable);
-        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("External jobs fetched", response));
+        Page<JobSummaryResponse> response = jobService.getPublicJobs(pageable);
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Public jobs fetched", response));
     }
 
     @Operation(summary = "List own job posts", description = "Requires authenticated user.")

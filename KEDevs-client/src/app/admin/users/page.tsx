@@ -1,7 +1,7 @@
 // src/app/admin/users/page.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
@@ -23,26 +23,94 @@ import {
   Drawer,
   Stack,
   Divider,
-  Tooltip
+  Tooltip,
+  CircularProgress,
+  Alert,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import WarningIcon from '@mui/icons-material/Warning';
-import { developers } from '@/data/mockData';
+import { adminService } from '@/services/adminService';
 
 export default function UserManagement() {
   const [tab, setTab] = useState(0);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [search, setSearch] = useState('');
+  const [users, setUsers] = useState<any[]>([]);
+  const [pendingEmployers, setPendingEmployers] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredUsers = developers.filter(u =>
-    u.name.toLowerCase().includes(search.toLowerCase()) ||
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const [usersResponse, pendingResponse] = await Promise.all([
+        adminService.getUsers({ page: 0, size: 50 }),
+        adminService.getPendingEmployers(0, 50),
+      ]);
+
+      if (usersResponse.success) {
+        setUsers(usersResponse.data.content || []);
+      }
+      if (pendingResponse.success) {
+        setPendingEmployers(pendingResponse.data.content || []);
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError('Failed to load users.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const filteredUsers = users.filter((u) =>
+    u.fullName?.toLowerCase().includes(search.toLowerCase()) ||
     u.email?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const pendingEmployers = developers.filter(u => u.role === 'EMPLOYER' && !u.isApproved);
+  const handleApproveEmployer = async (profileId: string) => {
+    try {
+      await adminService.approveEmployer(profileId, { approved: true });
+      setPendingEmployers((prev) => prev.filter((item) => item.id !== profileId));
+      fetchUsers();
+    } catch (err: any) {
+      console.error(err);
+    }
+  };
+
+  const handleRejectEmployer = async (profileId: string) => {
+    try {
+      await adminService.approveEmployer(profileId, { approved: false, reason: 'Profile does not meet criteria' });
+      setPendingEmployers((prev) => prev.filter((item) => item.id !== profileId));
+    } catch (err: any) {
+      console.error(err);
+    }
+  };
+
+  const handleUserAction = async (userId: string, action: string) => {
+    try {
+      await adminService.performUserAction(userId, action, 'Action taken via admin dashboard');
+      fetchUsers();
+    } catch (err: any) {
+      console.error(err);
+    }
+  };
+
+  const handleGrantBadge = async (userId: string) => {
+    try {
+      await adminService.grantBadge(userId, true);
+      fetchUsers();
+    } catch (err: any) {
+      console.error(err);
+    }
+  };
 
   return (
     <Box>
@@ -66,69 +134,76 @@ export default function UserManagement() {
             sx={{ mb: 3 }}
           />
 
-          <TableContainer>
-            <Table>
-              <TableHead sx={{ bgcolor: 'grey.50' }}>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 700 }}>USER</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>TYPE</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>STATUS</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>VERIFIED</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }} align="right">ACTIONS</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {(tab === 0 ? filteredUsers : pendingEmployers).map((user) => (
-                  <TableRow key={user.id} hover onClick={() => setSelectedUser(user)} sx={{ cursor: 'pointer' }}>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.main' }}>{user.name.charAt(0)}</Avatar>
-                        <Box>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{user.name}</Typography>
-                          <Typography variant="caption" color="text.secondary">{user.email}</Typography>
-                        </Box>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Chip label={user.role} size="small" variant="outlined" sx={{ fontWeight: 600 }} />
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={user.role === 'EMPLOYER' ? (user.isApproved ? 'Approved' : 'Pending') : 'Active'}
-                        size="small"
-                        color={user.role === 'EMPLOYER' ? (user.isApproved ? 'success' : 'warning') : 'success'}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {user.isVerified ? <CheckCircleIcon color="primary" fontSize="small" /> : <CancelIcon color="disabled" fontSize="small" />}
-                    </TableCell>
-                    <TableCell align="right">
-                      {tab === 1 ? (
-                        <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
-                          <Button size="small" variant="contained" color="success">Approve</Button>
-                          <Button size="small" variant="outlined" color="error">Reject</Button>
-                        </Stack>
-                      ) : (
-                        <IconButton><MoreVertIcon /></IconButton>
-                      )}
-                    </TableCell>
+          {isLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+              <CircularProgress />
+            </Box>
+          ) : error ? (
+            <Alert severity="error">{error}</Alert>
+          ) : (
+            <TableContainer>
+              <Table>
+                <TableHead sx={{ bgcolor: 'grey.50' }}>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 700 }}>USER</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>TYPE</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>STATUS</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>VERIFIED</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }} align="right">ACTIONS</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                </TableHead>
+                <TableBody>
+                  {(tab === 0 ? filteredUsers : pendingEmployers).map((user) => (
+                    <TableRow key={user.id} hover onClick={() => setSelectedUser(user)} sx={{ cursor: 'pointer' }}>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.main' }}>{user.fullName?.charAt(0) || user.email?.charAt(0)}</Avatar>
+                          <Box>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{user.fullName || user.email}</Typography>
+                            <Typography variant="caption" color="text.secondary">{user.email}</Typography>
+                          </Box>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Chip label={user.role} size="small" variant="outlined" sx={{ fontWeight: 600 }} />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={user.role === 'EMPLOYER' ? (user.isApproved ? 'Approved' : 'Pending') : 'Active'}
+                          size="small"
+                          color={user.role === 'EMPLOYER' ? (user.isApproved ? 'success' : 'warning') : 'success'}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {user.isVerified ? <CheckCircleIcon color="primary" fontSize="small" /> : <CancelIcon color="disabled" fontSize="small" />}
+                      </TableCell>
+                      <TableCell align="right">
+                        {tab === 1 ? (
+                          <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
+                            <Button size="small" variant="contained" color="success" onClick={(e) => { e.stopPropagation(); handleApproveEmployer(user.id); }}>Approve</Button>
+                            <Button size="small" variant="outlined" color="error" onClick={(e) => { e.stopPropagation(); handleRejectEmployer(user.id); }}>Reject</Button>
+                          </Stack>
+                        ) : (
+                          <IconButton onClick={(e) => e.stopPropagation()}><MoreVertIcon /></IconButton>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
         </Box>
       </Paper>
 
-      {/* User Detail Drawer */}
       <Drawer anchor="right" open={!!selectedUser} onClose={() => setSelectedUser(null)}>
         <Box sx={{ width: 400, p: 4 }}>
           <Typography variant="h5" sx={{ fontWeight: 800, mb: 4 }}>User Details</Typography>
           {selectedUser && (
             <Stack spacing={4}>
               <Box sx={{ textAlign: 'center' }}>
-                <Avatar sx={{ width: 100, height: 100, mx: 'auto', mb: 2, bgcolor: 'primary.main', fontSize: '2rem' }}>{selectedUser.name.charAt(0)}</Avatar>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>{selectedUser.name}</Typography>
+                <Avatar sx={{ width: 100, height: 100, mx: 'auto', mb: 2, bgcolor: 'primary.main', fontSize: '2rem' }}>{selectedUser.fullName?.charAt(0) || selectedUser.email?.charAt(0)}</Avatar>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>{selectedUser.fullName || selectedUser.email}</Typography>
                 <Typography variant="body2" color="text.secondary">{selectedUser.role}</Typography>
               </Box>
 
@@ -139,7 +214,7 @@ export default function UserManagement() {
                 <Typography variant="body2"><strong>ID:</strong> {selectedUser.id}</Typography>
                 <Typography variant="body2"><strong>Type:</strong> {selectedUser.role}</Typography>
                 <Typography variant="body2"><strong>Email:</strong> {selectedUser.email}</Typography>
-                <Typography variant="body2"><strong>Joined:</strong> Jan 12, 2024</Typography>
+                <Typography variant="body2"><strong>Joined:</strong> {new Date(selectedUser.createdAt || selectedUser.joinedAt || Date.now()).toLocaleDateString()}</Typography>
               </Box>
 
               <Divider />
@@ -147,9 +222,15 @@ export default function UserManagement() {
               <Box>
                 <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>Admin Actions</Typography>
                 <Stack spacing={1.5}>
-                  <Button variant="outlined" startIcon={<WarningIcon />} color="warning" fullWidth sx={{ borderRadius: 2 }}>Warn User</Button>
-                  <Button variant="outlined" startIcon={<CancelIcon />} color="error" fullWidth sx={{ borderRadius: 2 }}>Suspend Account</Button>
-                  <Button variant="outlined" startIcon={<CheckCircleIcon />} color="primary" fullWidth sx={{ borderRadius: 2 }}>Grant Verified Badge</Button>
+                  <Button variant="outlined" startIcon={<WarningIcon />} color="warning" fullWidth sx={{ borderRadius: 2 }} onClick={() => handleUserAction(selectedUser.id, 'WARN')}>
+                    Warn User
+                  </Button>
+                  <Button variant="outlined" startIcon={<CancelIcon />} color="error" fullWidth sx={{ borderRadius: 2 }} onClick={() => handleUserAction(selectedUser.id, 'BAN')}>
+                    Suspend Account
+                  </Button>
+                  <Button variant="outlined" startIcon={<CheckCircleIcon />} color="primary" fullWidth sx={{ borderRadius: 2 }} onClick={() => handleGrantBadge(selectedUser.id)}>
+                    Grant Verified Badge
+                  </Button>
                 </Stack>
               </Box>
             </Stack>

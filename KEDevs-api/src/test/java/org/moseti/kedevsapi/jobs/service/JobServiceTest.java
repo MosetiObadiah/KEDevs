@@ -72,7 +72,7 @@ class JobServiceTest {
         jobPost.setId(jobId);
         jobPost.setPostedById(userId);
         jobPost.setStatus(JobStatus.OPEN);
-        jobPost.setVisibility(JobVisibility.EXTERNAL);
+        jobPost.setVisibility(JobVisibility.PUBLIC);
         jobPost.setPeerSourced(false);
 
         lenient().when(jobApplicationRepository.findByJobId(any(), any())).thenReturn(Page.empty());
@@ -83,7 +83,7 @@ class JobServiceTest {
     void createJobPost_success_developer() {
         CreateJobPostRequest request = new CreateJobPostRequest("Title", "Sum", "Desc", "Comp", "City", "Country",
                 JobType.FULL_TIME, WorkType.REMOTE, ExperienceLevel.MID, "BSc", 3,
-                BigDecimal.valueOf(100), BigDecimal.valueOf(200), "KES", null, null, false, JobVisibility.EXTERNAL, List.of("Java"));
+                BigDecimal.valueOf(100), BigDecimal.valueOf(200), "KES", null, null, false, JobVisibility.PUBLIC, List.of("Java"));
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(developer));
         when(jobPostRepository.save(any(JobPost.class))).thenAnswer(i -> {
@@ -104,7 +104,7 @@ class JobServiceTest {
     void createJobPost_success_employer() {
         CreateJobPostRequest request = new CreateJobPostRequest("Title", "Sum", "Desc", "Overridden", "City", "Country",
                 JobType.FULL_TIME, WorkType.REMOTE, ExperienceLevel.MID, "BSc", 3,
-                BigDecimal.valueOf(100), BigDecimal.valueOf(200), "KES", null, null, false, JobVisibility.EXTERNAL, null);
+                BigDecimal.valueOf(100), BigDecimal.valueOf(200), "KES", null, null, false, JobVisibility.PUBLIC, null);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(employer));
         when(employerProfileService.getProfileByUserId(userId)).thenReturn(
@@ -126,7 +126,7 @@ class JobServiceTest {
     void createJobPost_peerSourced_requiresSourceUrl() {
         CreateJobPostRequest request = new CreateJobPostRequest("Title", "Sum", "Desc", "Comp", "City", "Country",
                 JobType.FULL_TIME, WorkType.REMOTE, ExperienceLevel.MID, "BSc", 3,
-                null, null, "KES", null, null, true, JobVisibility.EXTERNAL, null);
+                null, null, "KES", null, null, true, JobVisibility.PUBLIC, null);
 
         assertThatThrownBy(() -> jobService.createJobPost(userId, request))
                 .isInstanceOf(BadRequestException.class);
@@ -154,15 +154,15 @@ class JobServiceTest {
                 .isInstanceOf(JobNotFoundException.class);
     }
 
-    // 6. getExternalJobs_onlyReturnsExternalOpen
+    // 6. getPublicJobs_onlyReturnsPublicOpen
     @Test
-    void getExternalJobs_onlyReturnsExternalOpen() {
+    void getPublicJobs_onlyReturnsPublicOpen() {
         Pageable pageable = PageRequest.of(0, 10);
         when(jobPostRepository.findByVisibilityAndStatusOrderByUpvoteCountDescCreatedAtDesc(
-                JobVisibility.EXTERNAL, JobStatus.OPEN, pageable))
+                JobVisibility.PUBLIC, JobStatus.OPEN, pageable))
                 .thenReturn(new PageImpl<>(List.of(jobPost)));
 
-        Page<JobSummaryResponse> response = jobService.getExternalJobs(pageable);
+        Page<JobSummaryResponse> response = jobService.getPublicJobs(pageable);
         assertThat(response.getContent()).hasSize(1);
     }
 

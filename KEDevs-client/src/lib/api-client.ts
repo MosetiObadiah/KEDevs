@@ -41,22 +41,25 @@ export interface PaginatedResponse<T> {
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    throw new Error(errorData?.message || `HTTP error! status: ${response.status}`);
   }
   return response.json();
 }
 
 export const apiClient = {
-  getHeaders(options: RequestInit): HeadersInit {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
+  getHeaders(options: RequestInit = {}, body?: any): HeadersInit {
+    const headers: Record<string, string> = {};
 
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('token');
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
+    }
+
+    const contentType = options.headers && (options.headers as any)['Content-Type'];
+    if (!contentType && !(body instanceof FormData)) {
+      headers['Content-Type'] = 'application/json';
     }
 
     return {
@@ -78,8 +81,8 @@ export const apiClient = {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       method: 'POST',
-      headers: this.getHeaders(options),
-      body: JSON.stringify(body),
+      headers: this.getHeaders(options, body),
+      body: body instanceof FormData ? body : JSON.stringify(body),
     });
     return handleResponse<T>(response);
   },
@@ -88,8 +91,8 @@ export const apiClient = {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       method: 'PUT',
-      headers: this.getHeaders(options),
-      body: JSON.stringify(body),
+      headers: this.getHeaders(options, body),
+      body: body instanceof FormData ? body : JSON.stringify(body),
     });
     return handleResponse<T>(response);
   },
@@ -98,8 +101,8 @@ export const apiClient = {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       method: 'PATCH',
-      headers: this.getHeaders(options),
-      body: JSON.stringify(body),
+      headers: this.getHeaders(options, body),
+      body: body instanceof FormData ? body : JSON.stringify(body),
     });
     return handleResponse<T>(response);
   },

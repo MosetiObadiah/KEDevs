@@ -71,11 +71,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Redirect based on role and status
     if (role === 'ADMIN') {
-      router.push('/admin/dashboard');
+      router.push('/admin');
     } else if (role === 'DEVELOPER') {
       if (onboarded) {
-        // Developers go to the developers directory by default
-        router.push('/developers');
+        router.push('/jobs');
       } else {
         router.push('/onboarding/developer');
       }
@@ -84,7 +83,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (requiresApproval) {
           router.push('/pending-approval');
         } else {
-          // Employers go to the developers directory by default to find talent
           router.push('/developers');
         }
       } else {

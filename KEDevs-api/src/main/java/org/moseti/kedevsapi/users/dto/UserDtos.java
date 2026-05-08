@@ -42,7 +42,7 @@ public class UserDtos {
             @Size(max = 300, message = "Bio cannot exceed 300 characters") @Schema(description = "Short biography", example = "Updated bio.") String bio,
             @Schema(description = "Current or last job title", example = "Lead Developer") String currentLastRole,
             @Schema(description = "Years of professional experience", example = "TEN_PLUS") YearsOfExperience yearsOfExperience,
-            @Schema(description = "Total number of completed projects", example = "15") int numberOfProjects,
+            @Schema(description = "Total number of completed projects", example = "15") Integer numberOfProjects,
             @Schema(description = "Preferred work arrangement", example = "HYBRID") WorkType preferredWorkType,
             @Schema(description = "City of residence", example = "Mombasa") String locationCity,
             @Schema(description = "Country of residence", example = "Kenya") String locationCountry,

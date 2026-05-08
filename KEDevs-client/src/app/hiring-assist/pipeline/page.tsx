@@ -1,7 +1,6 @@
-// src/app/hiring-assist/pipeline/page.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Container,
   Typography,
@@ -20,23 +19,58 @@ import {
   Button,
   Stack,
   IconButton,
-  Tooltip
+  Tooltip,
+  CircularProgress,
 } from '@mui/material';
 import Link from 'next/link';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SendIcon from '@mui/icons-material/Send';
 import EmailIcon from '@mui/icons-material/Email';
-import { developers } from '@/data/mockData';
-
-const mockBookmarks = developers.filter(d => d.role === 'DEVELOPER').slice(0, 2);
-const mockRequests = [
-  { id: 'r1', devName: 'Jane Doe', jobTitle: 'Senior Frontend Engineer', status: 'Accepted', date: '2024-05-02', email: 'jane.doe@example.com' },
-  { id: 'r2', devName: 'John Smith', jobTitle: 'Senior Frontend Engineer', status: 'Pending', date: '2024-05-04' },
-  { id: 'r3', devName: 'Alice W.', jobTitle: 'Product Designer', status: 'Declined', date: '2024-05-05' },
-];
+import { employerService } from '@/services/employerService';
 
 export default function HiringPipeline() {
   const [tab, setTab] = useState(0);
+  const [bookmarks, setBookmarks] = useState<any[]>([]);
+  const [requests, setRequests] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const [bookmarksRes, requestsRes] = await Promise.all([
+        employerService.getBookmarks(),
+        employerService.getContactRequests(),
+      ]);
+      if (bookmarksRes.success) setBookmarks(bookmarksRes.data.content || bookmarksRes.data || []);
+      if (requestsRes.success) setRequests(requestsRes.data.content || requestsRes.data || []);
+    } catch (err: any) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleRemoveBookmark = async (developerId: string) => {
+    try {
+      await employerService.removeBookmark(developerId);
+      setBookmarks((prev) => prev.filter((item) => item.developerId !== developerId && item.id !== developerId));
+    } catch (err: any) {
+      console.error(err);
+    }
+  };
+
+  const handleRespondRequest = async (requestId: string, status: string) => {
+    try {
+      await employerService.respondContactRequest(requestId, { status });
+      loadData();
+    } catch (err: any) {
+      console.error(err);
+    }
+  };
 
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
@@ -53,8 +87,12 @@ export default function HiringPipeline() {
           <Tab label="Contact Requests" sx={{ fontWeight: 700 }} />
         </Tabs>
 
-        <Box sx={{ p: 0 }}>
-          {tab === 0 && (
+        <Box sx={{ p: 3 }}>
+          {isLoading ? (
+            <Box sx={{ py: 10, display: 'flex', justifyContent: 'center' }}>
+              <CircularProgress />
+            </Box>
+          ) : tab === 0 ? (
             <TableContainer>
               <Table>
                 <TableHead sx={{ bgcolor: '#fcfcfc' }}>
@@ -65,36 +103,33 @@ export default function HiringPipeline() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {mockBookmarks.map((dev) => (
-                    <TableRow key={dev.id} hover>
+                  {bookmarks.length > 0 ? bookmarks.map((bookmark) => (
+                    <TableRow key={bookmark.id || bookmark.developerId} hover>
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.main' }}>{dev.name.charAt(0)}</Avatar>
-                          <Typography variant="subtitle2" component={Link} href={`/developers/${dev.id}`} sx={{ textDecoration: 'none', color: 'inherit', fontWeight: 700 }}>
-                            {dev.name}
+                          <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.main' }}>{bookmark.developerName?.charAt(0) || bookmark.fullName?.charAt(0) || 'D'}</Avatar>
+                          <Typography variant="subtitle2" component={Link} href={`/developers/${bookmark.developerId || bookmark.id}`} sx={{ textDecoration: 'none', color: 'inherit', fontWeight: 700 }}>
+                            {bookmark.developerName || bookmark.fullName || 'Developer'}
                           </Typography>
                         </Box>
                       </TableCell>
-                      <TableCell>{dev.role}</TableCell>
+                      <TableCell>{bookmark.role || bookmark.currentRole || 'Developer'}</TableCell>
                       <TableCell align="right">
                         <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
-                          <Button variant="contained" size="small" startIcon={<SendIcon />} sx={{ borderRadius: 1.5 }}>Request</Button>
+                          <Button variant="contained" size="small" startIcon={<SendIcon />} component={Link} href={`/developers/${bookmark.developerId || bookmark.id}`} sx={{ borderRadius: 1.5 }}>Request</Button>
                           <Tooltip title="Remove Bookmark">
-                            <IconButton color="error"><DeleteIcon /></IconButton>
+                            <IconButton color="error" onClick={() => handleRemoveBookmark(bookmark.developerId || bookmark.id)}><DeleteIcon /></IconButton>
                           </Tooltip>
                         </Stack>
                       </TableCell>
                     </TableRow>
-                  ))}
-                  {mockBookmarks.length === 0 && (
+                  )) : (
                     <TableRow><TableCell colSpan={3} align="center" sx={{ py: 6 }}>No bookmarks yet.</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>
             </TableContainer>
-          )}
-
-          {tab === 1 && (
+          ) : (
             <TableContainer>
               <Table>
                 <TableHead sx={{ bgcolor: '#fcfcfc' }}>
@@ -106,16 +141,16 @@ export default function HiringPipeline() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {mockRequests.map((req) => (
+                  {requests.length > 0 ? requests.map((req) => (
                     <TableRow key={req.id} hover>
                       <TableCell>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{req.devName}</Typography>
-                        <Typography variant="caption" color="text.secondary">{req.date}</Typography>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{req.developerName || req.fullName || 'Developer'}</Typography>
+                        <Typography variant="caption" color="text.secondary">{new Date(req.createdAt || req.date || '').toLocaleDateString()}</Typography>
                       </TableCell>
-                      <TableCell>{req.jobTitle}</TableCell>
+                      <TableCell>{req.jobTitle || req.position || 'Job Request'}</TableCell>
                       <TableCell>
                         <Chip
-                          label={req.status}
+                          label={req.status || 'Pending'}
                           size="small"
                           color={req.status === 'Accepted' ? 'success' : req.status === 'Declined' ? 'error' : 'warning'}
                           sx={{ fontWeight: 700 }}
@@ -123,15 +158,24 @@ export default function HiringPipeline() {
                       </TableCell>
                       <TableCell align="right">
                         {req.status === 'Accepted' ? (
-                          <Button variant="outlined" size="small" startIcon={<EmailIcon />} component="a" href={`mailto:${req.email}`}>
+                          <Button variant="outlined" size="small" startIcon={<EmailIcon />} component="a" href={`mailto:${req.email || ''}`}>
                             Email Developer
                           </Button>
                         ) : (
-                          <Typography variant="caption" color="text.disabled">Revealed on acceptance</Typography>
+                          <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
+                            <Button variant="contained" size="small" onClick={() => handleRespondRequest(req.id, 'Accepted')}>
+                              Accept
+                            </Button>
+                            <Button variant="outlined" size="small" onClick={() => handleRespondRequest(req.id, 'Declined')}>
+                              Decline
+                            </Button>
+                          </Stack>
                         )}
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )) : (
+                    <TableRow><TableCell colSpan={4} align="center" sx={{ py: 6 }}>No contact requests yet.</TableCell></TableRow>
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>

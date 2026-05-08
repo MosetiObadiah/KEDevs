@@ -105,9 +105,9 @@ public class JobService {
         return toJobPostResponse(job, currentUserId);
     }
 
-    public Page<JobSummaryResponse> getExternalJobs(Pageable pageable) {
+    public Page<JobSummaryResponse> getPublicJobs(Pageable pageable) {
         return jobPostRepository.findByVisibilityAndStatusOrderByUpvoteCountDescCreatedAtDesc(
-                JobVisibility.EXTERNAL, JobStatus.OPEN, pageable)
+                JobVisibility.PUBLIC, JobStatus.OPEN, pageable)
                 .map(this::toJobSummaryResponse);
     }
 

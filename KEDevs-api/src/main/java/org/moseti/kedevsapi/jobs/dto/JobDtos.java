@@ -32,7 +32,7 @@ public class JobDtos {
             @Schema(description = "Deadline for applications", example = "2026-12-31") LocalDate applicationDeadline,
             @Schema(description = "URL to external job post (if any)", example = "https://acme.com/jobs/123") String sourceUrl,
             @Schema(description = "Was this job sourced by a community member?", example = "false") boolean isPeerSourced,
-            @NotNull @Schema(description = "Who can see this job", example = "INTERNAL") JobVisibility visibility,
+            @NotNull @Schema(description = "Who can see this job", example = "PUBLIC") JobVisibility visibility,
             @Schema(description = "List of skills/tags", example = "[\"java\", \"spring-boot\"]") List<String> tags
     ) {}
 
@@ -66,7 +66,7 @@ public class JobDtos {
             @Schema(description = "Filter by work arrangement", example = "REMOTE") WorkType workType,
             @Schema(description = "Filter by experience level", example = "SENIOR") ExperienceLevel experienceLevel,
             @Schema(description = "Filter by job status", example = "OPEN") JobStatus status,
-            @Schema(description = "Filter by visibility", example = "INTERNAL") JobVisibility visibility
+            @Schema(description = "Filter by visibility", example = "PUBLIC") JobVisibility visibility
     ) {}
 
     public record VoteRequest(

@@ -83,7 +83,7 @@ class DeveloperProfileServiceTest {
                 "Jane", "Dev", null, null, "Backend Dev",
                 null, 0, AvailabilityStatus.AVAILABLE, null,
                 "Nairobi", "Kenya", ProfileVisibility.PUBLIC,
-                null, null, null, null, null);
+                null, null, null, null, null, null);
 
         UserDtos.DeveloperProfileResponse response = developerProfileService.createProfile(userId, request);
 
@@ -98,7 +98,7 @@ class DeveloperProfileServiceTest {
 
         UserDtos.CreateDeveloperProfileRequest request = new UserDtos.CreateDeveloperProfileRequest(
                 "Jane", "Dev", null, null, null, null, 0,
-                null, null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null, null);
 
         assertThrows(ProfileAlreadyExistsException.class,
                 () -> developerProfileService.createProfile(userId, request));

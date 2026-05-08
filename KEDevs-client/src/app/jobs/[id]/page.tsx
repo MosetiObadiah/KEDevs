@@ -17,6 +17,13 @@ import {
   Paper,
   Alert,
   Skeleton,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  IconButton,
+  Tooltip,
+  TextField,
 } from '@mui/material';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -31,9 +38,9 @@ import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import SendIcon from '@mui/icons-material/Send';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import WarningIcon from '@mui/icons-material/Warning';
-import { Menu, MenuItem, ListItemIcon, ListItemText, IconButton, Tooltip, TextField } from '@mui/material';
 import { useAuth } from '@/context/AuthContext';
 import { jobService } from '@/services/jobService';
+import { forumService } from '@/services/forumService';
 
 export default function JobDetailPage() {
   const { id } = useParams();
@@ -42,8 +49,9 @@ export default function JobDetailPage() {
   const [job, setJob] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+  const [comments, setComments] = useState<any[]>([]);
   const [comment, setComment] = useState('');
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   useEffect(() => {
@@ -64,7 +72,20 @@ export default function JobDetailPage() {
       }
     };
 
+    const fetchComments = async () => {
+      if (!id) return;
+      try {
+        const response = await forumService.getJobComments(id as string);
+        if (response.success) {
+          setComments(response.data || []);
+        }
+      } catch (err: any) {
+        console.error(err);
+      }
+    };
+
     fetchJob();
+    fetchComments();
   }, [id]);
 
   const isPoster = user?.id === job?.postedById;
@@ -84,6 +105,32 @@ export default function JobDetailPage() {
       }
     } catch (err: any) {
       alert(err.message || 'Failed to submit application.');
+    }
+  };
+
+  const handleFlagJob = async () => {
+    if (!id) return;
+    try {
+      await jobService.flagJob(id as string, 'Suspicious job listing');
+      alert('Job flagged for review.');
+    } catch (err: any) {
+      alert(err.message || 'Failed to flag job.');
+    }
+  };
+
+  const handlePostComment = async () => {
+    if (!comment.trim() || !id) return;
+    setCommentSubmitting(true);
+    try {
+      const response = await forumService.postJobComment(id as string, comment.trim());
+      if (response.success) {
+        setComments((prev) => [{ ...response.data, content: comment.trim(), author: { fullName: 'You' }, createdAt: new Date().toISOString() }, ...prev]);
+        setComment('');
+      }
+    } catch (err: any) {
+      alert(err.message || 'Failed to post comment.');
+    } finally {
+      setCommentSubmitting(false);
     }
   };
 
@@ -162,7 +209,7 @@ export default function JobDetailPage() {
                         </MenuItem>
                       ]
                     ) : (
-                      <MenuItem onClick={handleCloseMenu}>
+                      <MenuItem onClick={() => { handleFlagJob(); handleCloseMenu(); }}>
                         <ListItemIcon><FlagIcon fontSize="small" /></ListItemIcon>
                         <ListItemText>Flag for Review</ListItemText>
                       </MenuItem>
@@ -222,8 +269,8 @@ export default function JobDetailPage() {
                         size="small" 
                         variant="contained" 
                         endIcon={<SendIcon />}
-                        disabled={!comment.trim()}
-                        onClick={() => { setComment(''); alert('Comment posted!'); }}
+                        disabled={!comment.trim() || commentSubmitting}
+                        onClick={handlePostComment}
                         sx={{ borderRadius: 1.5, boxShadow: 0 }}
                       >
                         Post

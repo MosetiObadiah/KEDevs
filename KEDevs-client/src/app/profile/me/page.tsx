@@ -1,7 +1,7 @@
 // src/app/profile/me/page.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Container,
   Box,
@@ -13,12 +13,13 @@ import {
   TextField,
   Chip,
   Switch,
-  FormControlLabel,
   Divider,
   Stack,
   Card,
   CardContent,
   Tooltip,
+  CircularProgress,
+  Alert,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
@@ -28,18 +29,21 @@ import LanguageIcon from '@mui/icons-material/Language';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import SpeedIcon from '@mui/icons-material/Speed';
 import AddIcon from '@mui/icons-material/Add';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { PillBadge } from '@/components/shared/PillBadge';
+import { developerService } from '@/services/developerService';
 
 export default function MyProfile() {
   const { user } = useAuth();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [profile, setProfile] = useState<any>({
     name: user?.fullName || '',
-    role: '', // Job title
+    role: '',
     city: 'Nairobi',
     bio: '',
     skills: [] as string[],
@@ -58,9 +62,43 @@ export default function MyProfile() {
     spotlightStatus: user?.spotlightStatus || { isActive: false }
   });
 
-  const handleToggleEdit = () => {
+  useEffect(() => {
+    const loadProfile = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await developerService.getMyProfile();
+        if (response.success) {
+          setProfile({
+            ...profile,
+            ...response.data,
+            name: response.data.fullName || profile.name,
+            email: response.data.email || profile.email,
+          });
+        }
+      } catch (err: any) {
+        console.error(err);
+        setError('Unable to load profile.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, []);
+
+  const handleToggleEdit = async () => {
     if (isEditing) {
-      alert('Profile updated successfully!');
+      setIsSaving(true);
+      try {
+        await developerService.updateProfile(profile);
+        alert('Profile updated successfully!');
+      } catch (err: any) {
+        console.error(err);
+        alert('Failed to update profile.');
+      } finally {
+        setIsSaving(false);
+      }
     }
     setIsEditing(!isEditing);
   };
