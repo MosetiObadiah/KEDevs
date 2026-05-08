@@ -42,6 +42,7 @@ import { useAuth } from '@/context/AuthContext';
 import { jobService } from '@/services/jobService';
 import { forumService } from '@/services/forumService';
 import ApplyDialog from '@/components/jobs/ApplyDialog';
+import Forum from '@/components/forum/Forum';
 
 export default function JobDetailPage() {
   const { id } = useParams();
@@ -52,8 +53,6 @@ export default function JobDetailPage() {
   const [applyOpen, setApplyOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [comments, setComments] = useState<any[]>([]);
-  const [comment, setComment] = useState('');
-  const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   useEffect(() => {
@@ -79,7 +78,6 @@ export default function JobDetailPage() {
       try {
         const response = await forumService.getJobComments(id as string);
         if (response.success) {
-          // API returns a paginated Page object — extract .content array
           const raw = response.data;
           setComments(Array.isArray(raw) ? raw : raw?.content || []);
         }
@@ -101,7 +99,6 @@ export default function JobDetailPage() {
     setAnchorEl(null);
   };
 
-
   const handleFlagJob = async () => {
     if (!id) return;
     try {
@@ -109,29 +106,6 @@ export default function JobDetailPage() {
       alert('Job flagged for review.');
     } catch (err: any) {
       alert(err.message || 'Failed to flag job.');
-    }
-  };
-
-  const handlePostComment = async () => {
-    if (!comment.trim() || !id) return;
-    setCommentSubmitting(true);
-    try {
-      const response = await forumService.postJobComment(id as string, comment.trim());
-      if (response.success) {
-        setComments((prev: any[]) => [{ ...response.data, createdAt: new Date().toISOString() }, ...prev]);
-        setComment('');
-      }
-    } catch (err: any) {
-      alert(err.message || 'Failed to post comment.');
-    } finally {
-      setCommentSubmitting(false);
-    }
-  };
-
-  const handleCommentKeyDown = (e: React.KeyboardEvent) => {
-    // Shift+Enter adds a new line; plain Enter does nothing (submit via button only)
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
     }
   };
 
@@ -281,49 +255,25 @@ export default function JobDetailPage() {
             <Divider sx={{ my: 4 }} />
 
             {/* Forum Section */}
-            <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
-              Forum Discussion
-            </Typography>
-            
-            {!isLoggedIn ? (
-              <>
-                <Alert severity="info" sx={{ mt: 2, borderRadius: 2 }}>
-                  Sign in to join the discussion and see what other developers are saying about this role.
-                </Alert>
-              </>
-            ) : (
-              <Box sx={{ mt: 3 }}>
-                <Stack spacing={2} sx={{ mb: 4 }}>
-                  <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: '#fcfcfc' }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'primary.main' }}>{user?.fullName} (You)</Typography>
-                    <TextField
-                      fullWidth
-                      multiline
-                      rows={2}
-                      placeholder="Ask a question or share an insight... (Shift+Enter for new line)"
-                      value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                      onKeyDown={handleCommentKeyDown}
-                      variant="standard"
-                      sx={{ mt: 1 }}
-                      slotProps={{ input: { disableUnderline: true } }}
-                    />
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
-                      <Button 
-                        size="small" 
-                        variant="contained" 
-                        endIcon={<SendIcon />}
-                        disabled={!comment.trim() || commentSubmitting}
-                        onClick={handlePostComment}
-                        sx={{ borderRadius: 1.5, boxShadow: 0 }}
-                      >
-                        Post
-                      </Button>
-                    </Box>
-                  </Paper>
-                </Stack>
-              </Box>
-            )}
+            <Forum 
+              jobId={id as string} 
+              initialComments={comments} 
+              onRefresh={() => {
+                const fetchComments = async () => {
+                  if (!id) return;
+                  try {
+                    const response = await forumService.getJobComments(id as string);
+                    if (response.success) {
+                      const raw = response.data;
+                      setComments(Array.isArray(raw) ? raw : raw?.content || []);
+                    }
+                  } catch (err: any) {
+                    console.error(err);
+                  }
+                };
+                fetchComments();
+              }}
+            />
           </Paper>
         </Grid>
 
@@ -478,4 +428,3 @@ export default function JobDetailPage() {
     </Container>
   );
 }
-

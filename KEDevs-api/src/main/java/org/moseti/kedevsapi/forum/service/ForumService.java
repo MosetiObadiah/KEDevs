@@ -256,6 +256,13 @@ public class ForumService {
             replyCount = commentRepository.countByParentCommentIdAndIsHiddenFalse(comment.getId());
         }
 
+        List<CommentResponse> replies = List.of();
+        if (includeRepliesCount && comment.getParentCommentId() == null) {
+            replies = commentRepository.findByParentCommentIdAndIsHiddenFalse(comment.getId(), org.springframework.data.domain.Pageable.unpaged())
+                    .map(c -> toCommentResponse(c, currentUserId, false))
+                    .getContent();
+        }
+
         return new CommentResponse(
                 comment.getId(),
                 comment.getJobId(),
@@ -270,7 +277,7 @@ public class ForumService {
                 comment.getUpdatedAt(),
                 replyCount,
                 currentUserVote,
-                List.of()
+                replies
         );
     }
 }

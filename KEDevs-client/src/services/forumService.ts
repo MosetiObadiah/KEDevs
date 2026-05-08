@@ -1,4 +1,4 @@
-import { apiClient, ApiResponse, PaginatedResponse } from '@/lib/api-client';
+import { apiClient, ApiResponse } from '@/lib/api-client';
 
 export const forumService = {
   async getJobComments(jobId: string): Promise<ApiResponse<any>> {
@@ -13,8 +13,8 @@ export const forumService = {
     return apiClient.post<ApiResponse<any>>(`/api/v1/forum/jobs/${jobId}/replies`, { parentCommentId: commentId, content });
   },
 
-  async voteComment(commentId: string): Promise<ApiResponse<any>> {
-    return apiClient.post<ApiResponse<any>>(`/api/v1/forum/comments/${commentId}/vote`, {});
+  async voteComment(commentId: string, voteType: 'UPVOTE' | 'DOWNVOTE'): Promise<ApiResponse<any>> {
+    return apiClient.post<ApiResponse<any>>(`/api/v1/forum/comments/${commentId}/vote`, { voteType });
   },
 
   async flagComment(commentId: string, reason: string): Promise<ApiResponse<any>> {
