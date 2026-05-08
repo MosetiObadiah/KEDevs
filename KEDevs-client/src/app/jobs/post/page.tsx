@@ -22,6 +22,7 @@ import {
   CardContent,
   Chip,
   Divider,
+  Autocomplete,
 } from '@mui/material';
 import { useAuth } from '@/context/AuthContext';
 import { jobService } from '@/services/jobService';
@@ -246,22 +247,32 @@ export default function CreateJobPostPage() {
             error={!!errors.description}
             helperText={errors.description || "Add responsibilities, technology stack, and what makes this role special"}
           />
-          <TextField
-            fullWidth
-            label="Company Name"
-            value={state.companyName}
-            onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'companyName', value: e.target.value })}
-            disabled={isEmployer}
-            error={!!errors.companyName}
-            helperText={errors.companyName}
-          />
-          <TextField
-            fullWidth
-            label="Tags (comma separated)"
-            value={state.tags.join(', ')}
-            onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'tags', value: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
-            error={!!errors.tags}
-            helperText={errors.tags || "Create tags like frontend, backend, remote, react"}
+          {!isDeveloper && (
+            <TextField
+              fullWidth
+              label="Company Name"
+              value={state.companyName}
+              onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'companyName', value: e.target.value })}
+              disabled={isEmployer}
+              error={!!errors.companyName}
+              helperText={errors.companyName}
+            />
+          )}
+          <Autocomplete
+            multiple
+            freeSolo
+            options={['react', 'node', 'javascript', 'python', 'java', 'spring-boot', 'aws', 'docker', 'kubernetes', 'typescript', 'nextjs', 'flutter', 'go', 'rust']}
+            value={state.tags}
+            onChange={(event, newValue) => dispatch({ type: 'UPDATE_FIELD', field: 'tags', value: newValue })}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Job Tags"
+                placeholder="Type and press Enter to add tags..."
+                error={!!errors.tags}
+                helperText={errors.tags || "Add tags like frontend, backend, remote, react"}
+              />
+            )}
           />
         </Stack>
       ),
