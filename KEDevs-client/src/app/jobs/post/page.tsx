@@ -435,13 +435,15 @@ export default function CreateJobPostPage() {
               <MenuItem key={option} value={option}>{option === 'PUBLIC' ? 'Public' : 'Private'}</MenuItem>
             ))}
           </TextField>
-          <TextField
-            fullWidth
-            label="External Source URL (optional)"
-            value={state.sourceUrl}
-            onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'sourceUrl', value: e.target.value })}
-            helperText="If this is a peer-sourced job, add the original posting URL"
-          />
+          {state.isPeerSourced && (
+            <TextField
+              fullWidth
+              label="External Source URL (optional)"
+              value={state.sourceUrl}
+              onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'sourceUrl', value: e.target.value })}
+              helperText="If this is a peer-sourced job, add the original posting URL"
+            />
+          )}
         </Stack>
       ),
     },
