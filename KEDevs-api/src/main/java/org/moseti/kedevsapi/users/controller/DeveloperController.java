@@ -244,6 +244,23 @@ public class DeveloperController {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Certification deleted"));
     }
 
+    @Operation(summary = "Upload an image for a certification", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Image uploaded successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid or missing image file"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "404", description = "Certification not found")
+    })
+    @PostMapping(value = "/profile/certifications/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.CertificationResponse>> uploadCertificationImage(
+            Authentication authentication,
+            @Parameter(description = "ID of the certification entry") @PathVariable UUID id,
+            @RequestPart("image") MultipartFile image) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Image uploaded", developerProfileService.uploadCertificationImage(userId, id, image)));
+    }
+
     @Operation(summary = "Add OSS contribution", description = "Requires DEVELOPER role.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "OSS contribution added successfully"),
@@ -309,13 +326,14 @@ public class DeveloperController {
         @ApiResponse(responseCode = "200", description = "Project added successfully"),
         @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
     })
-    @PostMapping("/profile/projects")
+    @PostMapping(value = "/profile/projects", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('DEVELOPER')")
     public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.DeveloperProjectResponse>> addProject(
             Authentication authentication,
-            @Valid @RequestBody UserDtos.AddProjectRequest request) {
+            @RequestPart("project") @Valid UserDtos.AddProjectRequest request,
+            @RequestPart(value = "screenshot", required = false) MultipartFile screenshot) {
         UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Project added", developerProfileService.addProject(userId, request)));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Project added", developerProfileService.addProject(userId, request, screenshot)));
     }
 
     @Operation(summary = "Update a project", description = "Requires DEVELOPER role.")
@@ -324,14 +342,15 @@ public class DeveloperController {
         @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
         @ApiResponse(responseCode = "404", description = "Project entry not found")
     })
-    @PutMapping("/profile/projects/{id}")
+    @PutMapping(value = "/profile/projects/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('DEVELOPER')")
     public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.DeveloperProjectResponse>> updateProject(
             Authentication authentication,
             @Parameter(description = "ID of the project entry") @PathVariable UUID id,
-            @Valid @RequestBody UserDtos.AddProjectRequest request) {
+            @RequestPart("project") @Valid UserDtos.AddProjectRequest request,
+            @RequestPart(value = "screenshot", required = false) MultipartFile screenshot) {
         UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Project updated", developerProfileService.updateProject(userId, id, request)));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Project updated", developerProfileService.updateProject(userId, id, request, screenshot)));
     }
 
     @Operation(summary = "Delete a project", description = "Requires DEVELOPER role.")

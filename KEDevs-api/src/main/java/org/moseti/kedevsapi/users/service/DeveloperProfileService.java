@@ -160,8 +160,10 @@ public class DeveloperProfileService {
         education.setDeveloperId(profile.getId());
         education.setInstitution(request.institution());
         education.setQualification(request.qualification());
-        education.setYearCompleted(request.yearCompleted());
-        education.setCertification(request.isCertification());
+        education.setFieldOfStudy(request.fieldOfStudy());
+        education.setStartYear(request.startYear() != null ? request.startYear() : 0);
+        education.setYearCompleted(request.yearCompleted() != null ? request.yearCompleted() : 0);
+        education.setCertification(request.isCertification() != null ? request.isCertification() : false);
         education = educationRepository.save(education);
         return toEducationResponse(education);
     }
@@ -188,7 +190,8 @@ public class DeveloperProfileService {
         cert.setDeveloperId(profile.getId());
         cert.setName(request.name());
         cert.setIssuedBy(request.issuedBy());
-        cert.setYearIssued(request.yearIssued());
+        cert.setIssuedDate(request.issuedDate());
+        cert.setExpiryDate(request.expiryDate());
         cert.setCertUrl(request.certUrl());
         cert = certificationRepository.save(cert);
         return toCertificationResponse(cert);
@@ -205,6 +208,21 @@ public class DeveloperProfileService {
         certificationRepository.delete(cert);
     }
 
+    @Transactional
+    public UserDtos.CertificationResponse uploadCertificationImage(UUID userId, UUID certId, MultipartFile image) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        DeveloperCertification cert = certificationRepository.findById(certId)
+                .orElseThrow(() -> new ResourceNotFoundException("Certification not found"));
+        if (!cert.getDeveloperId().equals(profile.getId())) {
+            throw new BadRequestException("Certification does not belong to this profile");
+        }
+
+        String url = fileUploadService.uploadFile(image, "kedevs/certifications");
+        cert.setCertImageUrl(url);
+        cert = certificationRepository.save(cert);
+        return toCertificationResponse(cert);
+    }
+
     // ----------------------------------------------------------------
     // OSS Contributions
     // ----------------------------------------------------------------
@@ -215,6 +233,7 @@ public class DeveloperProfileService {
         DeveloperOssContribution oss = new DeveloperOssContribution();
         oss.setDeveloperId(profile.getId());
         oss.setProjectName(request.projectName());
+        oss.setRole(request.role());
         oss.setContributionUrl(request.contributionUrl());
         oss.setDescription(request.description());
         oss = ossRepository.save(oss);
@@ -243,7 +262,8 @@ public class DeveloperProfileService {
         achievement.setDeveloperId(profile.getId());
         achievement.setTitle(request.title());
         achievement.setDescription(request.description());
-        achievement.setYear(request.year());
+        achievement.setAchievementUrl(request.achievementUrl());
+        achievement.setYear(request.year() != null ? request.year() : 0);
         achievement = achievementRepository.save(achievement);
         return toAchievementResponse(achievement);
     }
@@ -264,7 +284,7 @@ public class DeveloperProfileService {
     // ----------------------------------------------------------------
 
     @Transactional
-    public UserDtos.DeveloperProjectResponse addProject(UUID userId, UserDtos.AddProjectRequest request) {
+    public UserDtos.DeveloperProjectResponse addProject(UUID userId, UserDtos.AddProjectRequest request, MultipartFile screenshot) {
         DeveloperProfile profile = getProfileEntityByUserId(userId);
         DeveloperProject project = new DeveloperProject();
         project.setDeveloperId(profile.getId());
@@ -273,8 +293,14 @@ public class DeveloperProfileService {
         project.setTechStack(request.techStack());
         project.setProjectUrl(request.projectUrl());
         project.setRepoUrl(request.repoUrl());
-        project.setScreenshotUrl(null);
-        project.setFeatured(request.isFeatured());
+        project.setFeatured(request.isFeatured() != null ? request.isFeatured() : false);
+
+        if (screenshot != null && !screenshot.isEmpty()) {
+            String screenshotUrl = fileUploadService.uploadFile(screenshot, "kedevs/projects");
+            project.setScreenshotUrl(screenshotUrl);
+        } else {
+            project.setScreenshotUrl(null);
+        }
 
         if (project.isFeatured()) {
             validateFeaturedProjectRequirements(project);
@@ -286,19 +312,25 @@ public class DeveloperProfileService {
     }
 
     @Transactional
-    public UserDtos.DeveloperProjectResponse updateProject(UUID userId, UUID projectId, UserDtos.AddProjectRequest request) {
+    public UserDtos.DeveloperProjectResponse updateProject(UUID userId, UUID projectId, UserDtos.AddProjectRequest request, MultipartFile screenshot) {
         DeveloperProfile profile = getProfileEntityByUserId(userId);
         DeveloperProject project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
         if (!project.getDeveloperId().equals(profile.getId())) {
             throw new BadRequestException("Project does not belong to this profile");
         }
+
         project.setTitle(request.title());
         project.setDescription(request.description());
         project.setTechStack(request.techStack());
         project.setProjectUrl(request.projectUrl());
         project.setRepoUrl(request.repoUrl());
-        project.setFeatured(request.isFeatured());
+        project.setFeatured(request.isFeatured() != null ? request.isFeatured() : false);
+
+        if (screenshot != null && !screenshot.isEmpty()) {
+            String screenshotUrl = fileUploadService.uploadFile(screenshot, "kedevs/projects");
+            project.setScreenshotUrl(screenshotUrl);
+        }
 
         if (project.isFeatured()) {
             validateFeaturedProjectRequirements(project);
@@ -530,19 +562,19 @@ public class DeveloperProfileService {
     }
 
     private UserDtos.EducationResponse toEducationResponse(DeveloperEducation e) {
-        return new UserDtos.EducationResponse(e.getId(), e.getInstitution(), e.getQualification(), e.getYearCompleted(), e.isCertification());
+        return new UserDtos.EducationResponse(e.getId(), e.getInstitution(), e.getQualification(), e.getFieldOfStudy(), e.getStartYear(), e.getYearCompleted(), e.isCertification());
     }
 
     private UserDtos.CertificationResponse toCertificationResponse(DeveloperCertification c) {
-        return new UserDtos.CertificationResponse(c.getId(), c.getName(), c.getIssuedBy(), c.getYearIssued(), c.getCertUrl());
+        return new UserDtos.CertificationResponse(c.getId(), c.getName(), c.getIssuedBy(), c.getIssuedDate(), c.getExpiryDate(), c.getCertUrl(), c.getCertImageUrl());
     }
 
     private UserDtos.OssContributionResponse toOssResponse(DeveloperOssContribution o) {
-        return new UserDtos.OssContributionResponse(o.getId(), o.getProjectName(), o.getContributionUrl(), o.getDescription());
+        return new UserDtos.OssContributionResponse(o.getId(), o.getProjectName(), o.getRole(), o.getContributionUrl(), o.getDescription());
     }
 
     private UserDtos.AchievementResponse toAchievementResponse(DeveloperAchievement a) {
-        return new UserDtos.AchievementResponse(a.getId(), a.getTitle(), a.getDescription(), a.getYear());
+        return new UserDtos.AchievementResponse(a.getId(), a.getTitle(), a.getDescription(), a.getAchievementUrl(), a.getYear());
     }
 
     private UserDtos.DeveloperProjectResponse toProjectResponse(DeveloperProject p) {

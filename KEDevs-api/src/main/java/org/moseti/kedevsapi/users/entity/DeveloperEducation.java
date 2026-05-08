@@ -26,6 +26,12 @@ public class DeveloperEducation extends BaseEntity {
     @Column(nullable = false)
     private String qualification;
 
+    @Column(name = "field_of_study")
+    private String fieldOfStudy;
+
+    @Column(name = "start_year")
+    private int startYear;
+
     @Column(nullable = false)
     private int yearCompleted;
 

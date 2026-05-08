@@ -64,19 +64,23 @@ public class UserDtos {
     public record AddEducationRequest(
             @NotBlank(message = "Institution is required") @Schema(description = "School or University name", example = "University of Nairobi") String institution,
             @NotBlank(message = "Qualification is required") @Schema(description = "Degree or certificate obtained", example = "BSc Computer Science") String qualification,
-            @Schema(description = "Graduation year", example = "2020") int yearCompleted,
-            @Schema(description = "Is this a certification rather than a degree?", example = "false") boolean isCertification
+            @Schema(description = "Field of study", example = "Information Technology") String fieldOfStudy,
+            @Schema(description = "Start year", example = "2016") Integer startYear,
+            @Schema(description = "Graduation year", example = "2020") Integer yearCompleted,
+            @Schema(description = "Is this a certification rather than a degree?", example = "false") Boolean isCertification
     ) {}
 
     public record AddCertificationRequest(
             @NotBlank(message = "Certification name is required") @Schema(description = "Certification name", example = "AWS Certified Solutions Architect") String name,
             @NotBlank(message = "Issuing body is required") @Schema(description = "Organization that issued it", example = "Amazon Web Services") String issuedBy,
-            @Schema(description = "Year of issuance", example = "2023") int yearIssued,
+            @Schema(description = "Date of issuance", example = "2023-01-01") java.time.LocalDate issuedDate,
+            @Schema(description = "Expiry date", example = "2026-01-01") java.time.LocalDate expiryDate,
             @Schema(description = "Link to the certificate", example = "https://aws.amazon.com/verify/123") String certUrl
     ) {}
 
     public record AddOssContributionRequest(
             @NotBlank(message = "Project name is required") @Schema(description = "Open source project name", example = "Spring Framework") String projectName,
+            @Schema(description = "Role in the project", example = "Contributor") String role,
             @Schema(description = "URL to the contribution (PR/Issue)", example = "https://github.com/spring-projects/spring-framework/pull/123") String contributionUrl,
             @Schema(description = "Brief description of the work", example = "Fixed a bug in WebClient.") String description
     ) {}
@@ -84,7 +88,8 @@ public class UserDtos {
     public record AddAchievementRequest(
             @NotBlank(message = "Title is required") @Schema(description = "Achievement title", example = "Hackathon Winner") String title,
             @Schema(description = "Details about the achievement", example = "Won first place at the KeDevs Hackathon 2024.") String description,
-            @Schema(description = "Year received", example = "2024") int year
+            @Schema(description = "URL to the achievement/publication", example = "https://example.com/award") String achievementUrl,
+            @Schema(description = "Year received", example = "2024") Integer year
     ) {}
 
     public record AddProjectRequest(
@@ -93,7 +98,7 @@ public class UserDtos {
             @Schema(description = "Comma-separated list of technologies used", example = "Java, Spring Boot, PostgreSQL") String techStack,
             @Schema(description = "Live project URL", example = "https://shop.example.com") String projectUrl,
             @Schema(description = "GitHub repository URL", example = "https://github.com/janedoe/shop-api") String repoUrl,
-            @Schema(description = "Showcase this project on the main profile?", example = "true") boolean isFeatured
+            @Schema(description = "Showcase this project on the main profile?", example = "true") Boolean isFeatured
     ) {}
 
     public record CreateEndorsementRequest(
@@ -268,6 +273,8 @@ public class UserDtos {
             java.util.UUID id,
             String institution,
             String qualification,
+            String fieldOfStudy,
+            int startYear,
             int yearCompleted,
             boolean isCertification
     ) {}
@@ -276,13 +283,16 @@ public class UserDtos {
             java.util.UUID id,
             String name,
             String issuedBy,
-            int yearIssued,
-            String certUrl
+            java.time.LocalDate issuedDate,
+            java.time.LocalDate expiryDate,
+            String certUrl,
+            String certImageUrl
     ) {}
 
     public record OssContributionResponse(
             java.util.UUID id,
             String projectName,
+            String role,
             String contributionUrl,
             String description
     ) {}
@@ -291,6 +301,7 @@ public class UserDtos {
             java.util.UUID id,
             String title,
             String description,
+            String achievementUrl,
             int year
     ) {}
 }

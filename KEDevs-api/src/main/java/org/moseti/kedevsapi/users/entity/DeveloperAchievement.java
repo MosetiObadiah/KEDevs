@@ -23,6 +23,8 @@ public class DeveloperAchievement extends BaseEntity {
     @Column(nullable = false)
     private String title;
 
+    private String achievementUrl;
+
     @Column(columnDefinition = "TEXT")
     private String description;
 

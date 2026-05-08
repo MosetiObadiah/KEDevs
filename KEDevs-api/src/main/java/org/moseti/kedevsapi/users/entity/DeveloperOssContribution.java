@@ -23,6 +23,8 @@ public class DeveloperOssContribution extends BaseEntity {
     @Column(nullable = false)
     private String projectName;
 
+    private String role;
+
     private String contributionUrl;
 
     @Column(columnDefinition = "TEXT")

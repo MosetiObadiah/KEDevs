@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.moseti.kedevsapi.shared.entity.BaseEntity;
 
+import java.time.LocalDate;
+
 import java.util.UUID;
 
 @Getter
@@ -27,7 +29,12 @@ public class DeveloperCertification extends BaseEntity {
     private String issuedBy;
 
     @Column(nullable = false)
-    private int yearIssued;
+    private LocalDate issuedDate;
+
+    private LocalDate expiryDate;
 
     private String certUrl;
+
+    @Column(name = "cert_image_url")
+    private String certImageUrl;
 }

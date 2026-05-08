@@ -37,12 +37,22 @@ export const developerService = {
     return apiClient.delete<ApiResponse<void>>(`/api/v1/developers/profile/skills/${skill}`);
   },
 
-  async addProject(data: any): Promise<ApiResponse<any>> {
-    return apiClient.post<ApiResponse<any>>('/api/v1/developers/profile/projects', data);
+  async addProject(data: any, screenshot?: File): Promise<ApiResponse<any>> {
+    const formData = new FormData();
+    formData.append('project', new Blob([JSON.stringify(data)], { type: 'application/json' }));
+    if (screenshot) {
+      formData.append('screenshot', screenshot);
+    }
+    return apiClient.post<ApiResponse<any>>('/api/v1/developers/profile/projects', formData);
   },
 
-  async updateProject(projectId: string, data: any): Promise<ApiResponse<any>> {
-    return apiClient.put<ApiResponse<any>>(`/api/v1/developers/profile/projects/${projectId}`, data);
+  async updateProject(projectId: string, data: any, screenshot?: File): Promise<ApiResponse<any>> {
+    const formData = new FormData();
+    formData.append('project', new Blob([JSON.stringify(data)], { type: 'application/json' }));
+    if (screenshot) {
+      formData.append('screenshot', screenshot);
+    }
+    return apiClient.put<ApiResponse<any>>(`/api/v1/developers/profile/projects/${projectId}`, formData);
   },
 
   async deleteProject(projectId: string): Promise<ApiResponse<void>> {
@@ -88,6 +98,11 @@ export const developerService = {
   async deleteCertification(id: string): Promise<ApiResponse<void>> {
     return apiClient.delete<ApiResponse<void>>(`/api/v1/developers/profile/certifications/${id}`);
   },
+  async uploadCertificationImage(id: string, file: File): Promise<ApiResponse<any>> {
+    const formData = new FormData();
+    formData.append('image', file);
+    return apiClient.post<ApiResponse<any>>(`/api/v1/developers/profile/certifications/${id}/image`, formData);
+  },
 
   async addAchievement(data: any): Promise<ApiResponse<any>> {
     return apiClient.post<ApiResponse<any>>('/api/v1/developers/profile/achievements', data);
@@ -105,16 +120,16 @@ export const developerService = {
     return apiClient.post<ApiResponse<PaginatedResponse<DeveloperSummary>>>('/api/v1/developers/filter', data);
   },
 
-  async updateVisibility(data: any): Promise<ApiResponse<any>> {
-    return apiClient.patch<ApiResponse<any>>('/api/v1/developers/profile/visibility', data);
+  async updateVisibility(data: { profileVisibility: string }): Promise<ApiResponse<any>> {
+    return apiClient.patch<ApiResponse<any>>(`/api/v1/developers/profile/visibility?visibility=${data.profileVisibility}`, {});
   },
 
   async toggleFeaturedProject(projectId: string, featured: boolean): Promise<ApiResponse<any>> {
     return apiClient.patch<ApiResponse<any>>(`/api/v1/developers/profile/projects/${projectId}/featured`, { featured });
   },
 
-  async updateAvailability(data: any): Promise<ApiResponse<any>> {
-    return apiClient.patch<ApiResponse<any>>('/api/v1/developers/profile/availability', data);
+  async updateAvailability(data: { availabilityStatus: string }): Promise<ApiResponse<any>> {
+    return apiClient.patch<ApiResponse<any>>(`/api/v1/developers/profile/availability?status=${data.availabilityStatus}`, {});
   }
 };
 
