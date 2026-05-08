@@ -2,24 +2,27 @@
 'use client';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { getTheme } from '@/lib/theme/theme';
+import { useThemeStyle } from '@/context/ThemeStyleContext';
 import { useTheme as useNextTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
-import { getTheme } from '@/lib/theme/theme';
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const { theme: mode, systemTheme } = useNextTheme();
+  const { style } = useThemeStyle();
+  const { theme: mode } = useNextTheme();
   const [mounted, setMounted] = useState(false);
-  
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
-    return null;
-  }
+  // Use 'dark' as default if not mounted or undefined to avoid mismatch
+  const currentMode = (mode === 'dark' || mode === 'light') ? mode : 'dark';
+  const muiTheme = getTheme(currentMode, style);
 
-  const currentMode = mode === 'system' ? systemTheme : mode;
-  const muiTheme = getTheme(currentMode === 'dark' ? 'dark' : 'light');
+  if (!mounted) {
+    return <div style={{ visibility: 'hidden' }}>{children}</div>;
+  }
 
   return (
     <MuiThemeProvider theme={muiTheme}>

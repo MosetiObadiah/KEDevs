@@ -12,6 +12,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Box } from "@mui/material";
 import { AuthProvider } from "@/context/AuthContext";
+import { ThemeStyleProvider } from "@/context/ThemeStyleContext";
 import { RouteGuard } from "@/components/auth/RouteGuard";
 import { GoogleAuthProvider } from "@/components/providers/GoogleAuthProvider";
 
@@ -28,20 +29,22 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <NextThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <ThemeProvider>
-            <GoogleAuthProvider>
-              <AuthProvider>
-                <RouteGuard>
-                  <Navbar />
-                  <Box component="main" sx={{ flexGrow: 1 }}>
-                    {children}
-                  </Box>
-                  <Footer />
-                </RouteGuard>
-              </AuthProvider>
-            </GoogleAuthProvider>
-          </ThemeProvider>
+        <NextThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+          <ThemeStyleProvider>
+            <ThemeProvider>
+              <GoogleAuthProvider>
+                <AuthProvider>
+                  <RouteGuard>
+                    <Navbar />
+                    <Box component="main" sx={{ flexGrow: 1 }}>
+                      {children}
+                    </Box>
+                    <Footer />
+                  </RouteGuard>
+                </AuthProvider>
+              </GoogleAuthProvider>
+            </ThemeProvider>
+          </ThemeStyleProvider>
         </NextThemeProvider>
       </body>
     </html>

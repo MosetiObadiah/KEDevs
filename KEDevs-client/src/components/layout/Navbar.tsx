@@ -27,15 +27,19 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useTheme as useNextTheme } from 'next-themes';
 import { useTheme } from '@mui/material/styles';
+import { useThemeStyle } from '@/context/ThemeStyleContext';
+import PaletteIcon from '@mui/icons-material/Palette';
 
 const Navbar = () => {
   const { isLoggedIn, user, logout } = useAuth();
   const router = useRouter();
   const { theme: mode, setTheme } = useNextTheme();
   const muiTheme = useTheme();
-  
+
+  const { style, setStyle } = useThemeStyle();
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
+  const [anchorElStyle, setAnchorElStyle] = useState<null | HTMLElement>(null);
 
   const isDev = user?.role === 'DEVELOPER';
   const isEmp = user?.role === 'EMPLOYER';
@@ -52,8 +56,10 @@ const Navbar = () => {
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => setAnchorElNav(event.currentTarget);
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => setAnchorElUser(event.currentTarget);
+  const handleOpenStyleMenu = (event: React.MouseEvent<HTMLElement>) => setAnchorElStyle(event.currentTarget);
   const handleCloseNavMenu = () => setAnchorElNav(null);
   const handleCloseUserMenu = () => setAnchorElUser(null);
+  const handleCloseStyleMenu = () => setAnchorElStyle(null);
 
   const handleNavigate = (path: string) => {
     router.push(path);
@@ -62,7 +68,7 @@ const Navbar = () => {
   };
 
   return (
-    <AppBar position="sticky" elevation={0} sx={{ 
+    <AppBar position="sticky" elevation={0} sx={{
       bgcolor: 'background.paper',
       borderBottom: '1px solid',
       borderColor: 'divider',
@@ -132,9 +138,9 @@ const Navbar = () => {
               <Button
                 key={item.label}
                 onClick={() => handleNavigate(item.href)}
-                sx={{ 
-                  color: 'text.secondary', 
-                  fontWeight: 700, 
+                sx={{
+                  color: 'text.secondary',
+                  fontWeight: 700,
                   px: 2,
                   '&:hover': { color: 'primary.main', bgcolor: 'background.subtle' }
                 }}
@@ -145,6 +151,28 @@ const Navbar = () => {
           </Box>
 
           <Box sx={{ flexGrow: 0, display: 'flex', alignItems: 'center', gap: { xs: 1, md: 2 } }}>
+            {/* Theme Style Dropdown */}
+            <Tooltip title="Switch Style">
+              <IconButton onClick={handleOpenStyleMenu} sx={{ color: 'text.secondary' }}>
+                <PaletteIcon />
+              </IconButton>
+            </Tooltip>
+            <Menu
+              anchorEl={anchorElStyle}
+              open={Boolean(anchorElStyle)}
+              onClose={handleCloseStyleMenu}
+              sx={{ mt: '45px', '& .MuiPaper-root': { borderRadius: 3, boxShadow: muiTheme.shadows[3] } }}
+              anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            >
+              <MenuItem onClick={() => { setStyle('catppuccin'); handleCloseStyleMenu(); }} selected={style === 'catppuccin'}>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>Catppuccin Frappé</Typography>
+              </MenuItem>
+              <MenuItem onClick={() => { setStyle('material'); handleCloseStyleMenu(); }} selected={style === 'material'}>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>Material Default</Typography>
+              </MenuItem>
+            </Menu>
+
             {/* Theme Toggle */}
             <Tooltip title={mode === 'dark' ? 'Light Mode' : 'Dark Mode'}>
               <IconButton onClick={() => setTheme(mode === 'dark' ? 'light' : 'dark')} sx={{ color: 'text.secondary' }}>
@@ -155,13 +183,13 @@ const Navbar = () => {
             {!isLoggedIn ? (
               <>
                 <Button color="inherit" component={Link} href="/login" sx={{ fontWeight: 700 }}>Login</Button>
-                <Button 
-                  variant="contained" 
+                <Button
+                  variant="contained"
                   color="primary"
-                  component={Link} 
+                  component={Link}
                   href="/register"
-                  sx={{ 
-                    borderRadius: 2.5, 
+                  sx={{
+                    borderRadius: 2.5,
                     fontWeight: 800,
                     px: 3
                   }}
@@ -178,9 +206,9 @@ const Navbar = () => {
                     </Badge>
                   </IconButton>
                 </Tooltip>
-                
+
                 {isEmp && (
-                   <Tooltip title="Hiring Pipeline">
+                  <Tooltip title="Hiring Pipeline">
                     <IconButton onClick={() => router.push('/hiring-assist/pipeline')} sx={{ bgcolor: 'background.subtle' }}>
                       <GroupIcon />
                     </IconButton>
@@ -189,7 +217,7 @@ const Navbar = () => {
 
                 <Tooltip title="Open Profile">
                   <IconButton onClick={handleOpenUserMenu} sx={{ p: 0.5, border: '2px solid', borderColor: 'primary.main' }}>
-                    <Avatar alt={user?.name} sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.875rem' }}>{user?.name?.charAt(0)}</Avatar>
+                    <Avatar alt={user?.fullName} sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.875rem' }}>{user?.fullName?.charAt(0)}</Avatar>
                   </IconButton>
                 </Tooltip>
                 <Menu
@@ -202,7 +230,7 @@ const Navbar = () => {
                   onClose={handleCloseUserMenu}
                 >
                   <Box sx={{ px: 2, py: 1.5, minWidth: 200 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>{user?.name}</Typography>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>{user?.fullName}</Typography>
                     <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>{user?.role} ACCOUNT</Typography>
                   </Box>
                   <Divider />

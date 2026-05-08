@@ -48,19 +48,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const handleAuthSuccess = (data: any) => {
     const { accessToken, refreshToken, userId, email, fullName, role, emailVerified, requiresApproval, onboarded } = data;
-    
+
     const userData: User = {
       id: userId,
       email,
       fullName,
       role,
       isEmailVerified: emailVerified,
-      isApproved: !requiresApproval
+      isApproved: !requiresApproval,
+      isVerified: false,
+      spotlightStatus: { isActive: false }
     };
 
     setUser(userData);
     setIsOnboarded(onboarded);
-    
+
     localStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('token', accessToken);
     if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
@@ -114,7 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
     }
   };
-  
+
   const logout = () => {
     const refreshToken = localStorage.getItem('refreshToken');
     if (refreshToken) {
@@ -144,13 +146,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsOnboarded(false);
     localStorage.removeItem('isOnboarded');
   };
-  
+
   return (
-    <AuthContext.Provider value={{ 
-      user, 
+    <AuthContext.Provider value={{
+      user,
       isLoggedIn: !!user,
       isOnboarded,
-      login, 
+      login,
       googleLogin,
       logout,
       completeOnboarding,

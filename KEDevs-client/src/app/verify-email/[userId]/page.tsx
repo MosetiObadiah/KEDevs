@@ -26,25 +26,26 @@ export default function VerifyEmailPage() {
 
   const handleVerify = async () => {
     if (!userId || code.length !== 6) return;
-    
+
     setError(null);
     setLoading(true);
     try {
       const response = await authService.verifyEmail(userId as string, code);
       if (response.success) {
         const { accessToken, refreshToken, userId, email, fullName, role, emailVerified, requiresApproval } = response.data;
-        
+
         const userData = {
           id: userId,
           email,
           fullName,
           role,
-          isEmailVerified: emailVerified,
-          isApproved: !requiresApproval
+          isEmailVerified: true,
+          isApproved: !requiresApproval,
+          isVerified: false
         };
 
         setAuthData(userData, accessToken, refreshToken);
-        
+
         if (role === 'DEVELOPER') router.push('/onboarding/developer');
         else if (role === 'EMPLOYER') router.push('/onboarding/employer');
         else if (role === 'ADMIN') router.push('/admin/dashboard');
@@ -68,24 +69,24 @@ export default function VerifyEmailPage() {
 
         <Stack spacing={3}>
           {error && <Alert severity="error">{error}</Alert>}
-          
-          <TextField 
-            fullWidth 
-            label="Verification Code" 
+
+          <TextField
+            fullWidth
+            label="Verification Code"
             placeholder="000000"
             value={code}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
             slotProps={{
-              htmlInput: { 
-                style: { textAlign: 'center', letterSpacing: '0.5rem', fontSize: '1.5rem' } 
+              htmlInput: {
+                style: { textAlign: 'center', letterSpacing: '0.5rem', fontSize: '1.5rem' }
               }
             }}
           />
 
-          <Button 
-            variant="contained" 
-            fullWidth 
-            size="large" 
+          <Button
+            variant="contained"
+            fullWidth
+            size="large"
             sx={{ py: 1.5 }}
             onClick={handleVerify}
             disabled={loading || code.length !== 6}

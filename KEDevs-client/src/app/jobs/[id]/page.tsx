@@ -112,7 +112,7 @@ export default function JobDetailPage() {
     return (
       <Container sx={{ py: 10, textAlign: 'center' }}>
         <Typography variant="h4">{error || 'Job not found'}</Typography>
-        <Button component={Link} href="/feed" sx={{ mt: 2 }}>Back to Feed</Button>
+        <Button component={Link} href="/developers" sx={{ mt: 2 }}>Back to Directory</Button>
       </Container>
     );
   }

@@ -19,8 +19,8 @@ export default function TermsOfServicePage() {
           <Stack spacing={4}>
             <section>
               <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>1. Agreement to Terms</Typography>
-              <Typography variant="body1" color="text.secondary" paragraph>
-                By accessing or using our Services, you agree to be bound by these Terms. If you disagree with any part of the terms, 
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+                By accessing or using our Services, you agree to be bound by these Terms. If you disagree with any part of the terms,
                 then you may not access the Services.
               </Typography>
             </section>
@@ -29,8 +29,8 @@ export default function TermsOfServicePage() {
 
             <section>
               <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>2. User Accounts</Typography>
-              <Typography variant="body1" color="text.secondary" paragraph>
-                When you create an account with us, you must provide us information that is accurate, complete, and current at all times. 
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+                When you create an account with us, you must provide us information that is accurate, complete, and current at all times.
                 Failure to do so constitutes a breach of the Terms, which may result in immediate termination of your account on our Service.
               </Typography>
             </section>
@@ -39,8 +39,8 @@ export default function TermsOfServicePage() {
 
             <section>
               <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>3. Content</Typography>
-              <Typography variant="body1" color="text.secondary" paragraph>
-                Our Service allows you to post, link, store, share and otherwise make available certain information, text, graphics, videos, or other material. 
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+                Our Service allows you to post, link, store, share and otherwise make available certain information, text, graphics, videos, or other material.
                 You are responsible for the Content that you post to the Service, including its legality, reliability, and appropriateness.
               </Typography>
             </section>
@@ -49,9 +49,9 @@ export default function TermsOfServicePage() {
 
             <section>
               <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>4. Limitation of Liability</Typography>
-              <Typography variant="body1" color="text.secondary" paragraph>
-                In no event shall KEDevs-Connect, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, 
-                incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, 
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+                In no event shall KEDevs-Connect, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect,
+                incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill,
                 or other intangible losses, resulting from your access to or use of or inability to access or use the Service.
               </Typography>
             </section>
@@ -60,8 +60,8 @@ export default function TermsOfServicePage() {
 
             <section>
               <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>5. Governing Law</Typography>
-              <Typography variant="body1" color="text.secondary" paragraph>
-                These Terms shall be governed and construed in accordance with the laws of Kenya, 
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+                These Terms shall be governed and construed in accordance with the laws of Kenya,
                 without regard to its conflict of law provisions.
               </Typography>
             </section>

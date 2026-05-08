@@ -34,8 +34,8 @@ const paymentHistory = [
 
 export default function PaymentsPage() {
   const { user } = useAuth();
-  const isDev = user?.userType === 'DEVELOPER';
-  const isEmp = user?.userType === 'EMPLOYER';
+  const isDev = user?.role === 'DEVELOPER';
+  const isEmp = user?.role === 'EMPLOYER';
 
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
@@ -69,9 +69,9 @@ export default function PaymentsPage() {
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>Spotlight</Typography>
                   </Box>
                   <Typography variant="body2" color="text.secondary" gutterBottom>
-                    Current Status: <Chip label={user?.spotlightStatus.isActive ? 'Active' : 'Inactive'} size="small" color={user?.spotlightStatus.isActive ? 'warning' : 'default'} sx={{ fontWeight: 700 }} />
+                    Current Status: <Chip label={user?.spotlightStatus?.isActive ? 'Active' : 'Inactive'} size="small" color={user?.spotlightStatus?.isActive ? 'warning' : 'default'} sx={{ fontWeight: 700 }} />
                   </Typography>
-                  {user?.spotlightStatus.isActive && (
+                  {user?.spotlightStatus?.isActive && (
                     <>
                       <Typography variant="h4" sx={{ fontWeight: 800, mt: 1 }}>03:12:45</Typography>
                       <Typography variant="caption" color="text.secondary">Remaining time in spotlight</Typography>
@@ -124,7 +124,7 @@ export default function PaymentsPage() {
                     <Paper variant="outlined" sx={{ p: 3, textAlign: 'center', borderRadius: 2 }}>
                       <Typography variant="h6" gutterBottom>Get Verified</Typography>
                       <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main', mb: 1 }}>KES 200</Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Permanent verified badge</Typography>
+                      <Typography variant="body1" align="center">Please pay <strong>{user?.role === 'DEVELOPER' ? 'KES 200' : 'KES 400'}</strong> via M-Pesa to initiate the verification process.</Typography>
                       <Button variant="contained" fullWidth sx={{ borderRadius: 2, fontWeight: 700 }} component={Link} href="/verify">Get Started</Button>
                     </Paper>
                   </Grid>

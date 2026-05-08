@@ -58,7 +58,7 @@ export const Hero = ({ randomJob, randomDev }: HeroProps) => {
               and{' '}
               <Box component="span" sx={{ color: 'primary.main' }}>opportunity</Box>
             </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 560, mb: 5, fontSize: '1.25rem' }}>
+            <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 560, mb: 5 }}>
               Browse jobs from top companies, showcase your skills to employers, and connect with
               Kenya's best developers. No account needed to explore.
             </Typography>
@@ -69,7 +69,6 @@ export const Hero = ({ randomJob, randomDev }: HeroProps) => {
                 size="large" 
                 component={Link} 
                 href="/jobs"
-                sx={{ px: 4, py: 2, fontSize: '1rem' }}
               >
                 Browse Jobs →
               </Button>
@@ -79,7 +78,6 @@ export const Hero = ({ randomJob, randomDev }: HeroProps) => {
                 size="large" 
                 component={Link} 
                 href="/register"
-                sx={{ px: 4, py: 2, fontSize: '1rem' }}
               >
                 Join as Developer
               </Button>
@@ -93,7 +91,7 @@ export const Hero = ({ randomJob, randomDev }: HeroProps) => {
                 { n: '800+', label: 'Jobs Posted' },
               ].map((s) => (
                 <Box key={s.label}>
-                  <Typography variant="h4" sx={{ fontWeight: 800 }}>{s.n}</Typography>
+                  <Typography variant="h4">{s.n}</Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>{s.label}</Typography>
                 </Box>
               ))}

@@ -2,16 +2,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  Container, 
-  Typography, 
-  Box, 
-  Paper, 
-  Button, 
-  Stack, 
-  Grid, 
-  TextField, 
-  Chip, 
+import {
+  Container,
+  Typography,
+  Box,
+  Paper,
+  Button,
+  Stack,
+  Grid,
+  TextField,
+  Chip,
   Divider,
   Checkbox,
   FormControlLabel,
@@ -48,7 +48,7 @@ export default function HiringAssist() {
           <Typography variant="h5" color="text.secondary" sx={{ mb: 4 }}>
             Speed up your recruitment with advanced tools.
           </Typography>
-          
+
           <Grid container spacing={3} sx={{ mb: 6, textAlign: 'left' }}>
             <Grid size={{ xs: 12, md: 6 }}>
               <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
@@ -79,10 +79,10 @@ export default function HiringAssist() {
           <Box sx={{ bgcolor: 'rgba(0,0,0,0.02)', p: 4, borderRadius: 3 }}>
             <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>KES 500</Typography>
             <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 3 }}>for 24 hours of full access</Typography>
-            <Button 
-              variant="contained" 
-              size="large" 
-              fullWidth 
+            <Button
+              variant="contained"
+              size="large"
+              fullWidth
               onClick={handleActivate}
               sx={{ py: 2, borderRadius: 2, fontWeight: 700, fontSize: '1.1rem' }}
             >
@@ -141,7 +141,7 @@ export default function HiringAssist() {
         {/* Results */}
         <Grid size={{ xs: 12, md: 9 }}>
           <Stack spacing={2}>
-            {developers.filter(d => d.userType === 'DEVELOPER').map((dev) => (
+            {developers.filter(d => d.role === 'DEVELOPER').map((dev) => (
               <Paper key={dev.id} sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'transparent', '&:hover': { borderColor: 'primary.main', boxShadow: 3 } }}>
                 <Grid container spacing={3} sx={{ alignItems: 'center' }}>
                   <Grid size={{ xs: 12, sm: 2 }} sx={{ textAlign: 'center' }}>
@@ -166,9 +166,9 @@ export default function HiringAssist() {
                       <Tooltip title="Bookmark">
                         <IconButton><BookmarkBorderIcon /></IconButton>
                       </Tooltip>
-                      <Button 
-                        variant="contained" 
-                        startIcon={<SendIcon />} 
+                      <Button
+                        variant="contained"
+                        startIcon={<SendIcon />}
                         size="small"
                         onClick={() => { setSelectedDev(dev); setIsModalOpen(true); }}
                         sx={{ borderRadius: 1.5, fontWeight: 700 }}
@@ -186,15 +186,15 @@ export default function HiringAssist() {
 
       {/* Outreach Modal */}
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <Box sx={{ 
+        <Box sx={{
           position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-          width: 500, bgcolor: 'background.paper', borderRadius: 4, boxShadow: 24, p: 4 
+          width: 500, bgcolor: 'background.paper', borderRadius: 4, boxShadow: 24, p: 4
         }}>
           <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Send Job Request</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
             Inviting <strong>{selectedDev?.name}</strong> to apply for a position.
           </Typography>
-          
+
           <Stack spacing={3}>
             <TextField fullWidth select label="Select Job" defaultValue="1">
               <MenuItem value="1">Senior Full Stack Engineer</MenuItem>

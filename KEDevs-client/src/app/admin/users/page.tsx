@@ -2,23 +2,23 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Paper, 
-  Tabs, 
-  Tab, 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
-  Avatar, 
-  Chip, 
-  IconButton, 
-  Button, 
-  TextField, 
+import {
+  Box,
+  Typography,
+  Paper,
+  Tabs,
+  Tab,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Avatar,
+  Chip,
+  IconButton,
+  Button,
+  TextField,
   InputAdornment,
   Drawer,
   Stack,
@@ -37,12 +37,12 @@ export default function UserManagement() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [search, setSearch] = useState('');
 
-  const filteredUsers = developers.filter(u => 
-    u.name.toLowerCase().includes(search.toLowerCase()) || 
+  const filteredUsers = developers.filter(u =>
+    u.name.toLowerCase().includes(search.toLowerCase()) ||
     u.email?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const pendingEmployers = developers.filter(u => u.userType === 'EMPLOYER' && !u.isApproved);
+  const pendingEmployers = developers.filter(u => u.role === 'EMPLOYER' && !u.isApproved);
 
   return (
     <Box>
@@ -55,10 +55,10 @@ export default function UserManagement() {
         </Tabs>
 
         <Box sx={{ p: 3 }}>
-          <TextField 
-            fullWidth 
-            placeholder="Search by name or email..." 
-            variant="outlined" 
+          <TextField
+            fullWidth
+            placeholder="Search by name or email..."
+            variant="outlined"
             size="small"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -90,13 +90,13 @@ export default function UserManagement() {
                       </Box>
                     </TableCell>
                     <TableCell>
-                      <Chip label={user.userType} size="small" variant="outlined" sx={{ fontWeight: 600 }} />
+                      <Chip label={user.role} size="small" variant="outlined" sx={{ fontWeight: 600 }} />
                     </TableCell>
                     <TableCell>
-                      <Chip 
-                        label={user.userType === 'EMPLOYER' ? (user.isApproved ? 'Approved' : 'Pending') : 'Active'} 
-                        size="small" 
-                        color={user.userType === 'EMPLOYER' ? (user.isApproved ? 'success' : 'warning') : 'success'} 
+                      <Chip
+                        label={user.role === 'EMPLOYER' ? (user.isApproved ? 'Approved' : 'Pending') : 'Active'}
+                        size="small"
+                        color={user.role === 'EMPLOYER' ? (user.isApproved ? 'success' : 'warning') : 'success'}
                       />
                     </TableCell>
                     <TableCell>
@@ -137,7 +137,7 @@ export default function UserManagement() {
               <Box>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>Account Info</Typography>
                 <Typography variant="body2"><strong>ID:</strong> {selectedUser.id}</Typography>
-                <Typography variant="body2"><strong>Type:</strong> {selectedUser.userType}</Typography>
+                <Typography variant="body2"><strong>Type:</strong> {selectedUser.role}</Typography>
                 <Typography variant="body2"><strong>Email:</strong> {selectedUser.email}</Typography>
                 <Typography variant="body2"><strong>Joined:</strong> Jan 12, 2024</Typography>
               </Box>

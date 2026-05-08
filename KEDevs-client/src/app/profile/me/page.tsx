@@ -37,16 +37,16 @@ export default function MyProfile() {
   const { user } = useAuth();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState(user || {
-    name: '',
-    role: '',
-    city: '',
+  const [profile, setProfile] = useState<any>({
+    name: user?.fullName || '',
+    role: '', // Job title
+    city: 'Nairobi',
     bio: '',
-    skills: [],
+    skills: [] as string[],
     experience: '',
     availability: 'Available',
     visibility: 'Public',
-    email: '',
+    email: user?.email || '',
     phone: '',
     github: '',
     linkedin: '',
@@ -54,8 +54,8 @@ export default function MyProfile() {
     languages: [],
     education: [],
     projects: [],
-    isVerified: false,
-    spotlightStatus: { isActive: false }
+    isVerified: user?.isVerified || false,
+    spotlightStatus: user?.spotlightStatus || { isActive: false }
   });
 
   const handleToggleEdit = () => {
@@ -74,12 +74,12 @@ export default function MyProfile() {
       <Container maxWidth="xl">
         <Box sx={{ mb: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Avatar 
-              sx={{ 
-                width: 120, 
-                height: 120, 
-                bgcolor: 'primary.main', 
-                fontSize: '3rem', 
+            <Avatar
+              sx={{
+                width: 120,
+                height: 120,
+                bgcolor: 'primary.main',
+                fontSize: '3rem',
                 fontWeight: 900,
                 boxShadow: (theme) => `0 0 0 4px ${theme.palette.background.paper}, 0 0 0 8px ${theme.palette.primary.main}40`
               }}
@@ -92,8 +92,8 @@ export default function MyProfile() {
               <Typography variant="h5" color="text.secondary" sx={{ fontWeight: 600 }}>{profile.role} • {profile.city}</Typography>
             </Box>
           </Box>
-          <Button 
-            variant={isEditing ? "contained" : "outlined"} 
+          <Button
+            variant={isEditing ? "contained" : "outlined"}
             startIcon={isEditing ? <SaveIcon /> : <EditIcon />}
             onClick={handleToggleEdit}
             sx={{ borderRadius: 2.5, fontWeight: 800, px: 4, py: 1.5 }}
@@ -125,16 +125,16 @@ export default function MyProfile() {
                 </Box>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
                   {profile.skills.map((skill: string) => (
-                    <Chip 
-                      key={skill} 
-                      label={skill} 
-                      sx={{ 
-                        fontWeight: 700, 
-                        px: 1, 
-                        py: 2, 
+                    <Chip
+                      key={skill}
+                      label={skill}
+                      sx={{
+                        fontWeight: 700,
+                        px: 1,
+                        py: 2,
                         borderRadius: 2,
                         bgcolor: 'background.subtle'
-                      }} 
+                      }}
                     />
                   ))}
                 </Box>

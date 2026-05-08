@@ -78,8 +78,8 @@ export default function MyApplications() {
           <Typography variant="h6" color="text.secondary" gutterBottom>
             You haven't applied to any jobs yet.
           </Typography>
-          <Button variant="contained" component={Link} href="/feed" sx={{ mt: 2 }}>
-            Browse Jobs
+          <Button variant="contained" component={Link} href="/developers" sx={{ mt: 2 }}>
+            Browse Developers
           </Button>
         </Box>
       )}

@@ -105,12 +105,12 @@ export default function VerificationFlow() {
                 <Stack spacing={3} sx={{ alignItems: 'center' }}>
                   <PhoneIphoneIcon sx={{ fontSize: 64, color: 'primary.main' }} />
                   <Typography variant="h6" sx={{ fontWeight: 700 }}>Step 2: M-Pesa Payment</Typography>
-                  <Typography variant="body1" align="center">Please pay <strong>{user?.userType === 'DEVELOPER' ? 'KES 200' : 'KES 400'}</strong> via M-Pesa to initiate the verification process.</Typography>
-                  <TextField 
-                    fullWidth 
-                    label="M-Pesa Phone Number" 
-                    defaultValue="254700000000" 
-                    variant="outlined" 
+                  <Typography variant="body1" align="center">Please pay <strong>{user?.role === 'DEVELOPER' ? 'KES 200' : 'KES 400'}</strong> via M-Pesa to initiate the verification process.</Typography>
+                  <TextField
+                    fullWidth
+                    label="M-Pesa Phone Number"
+                    defaultValue="254700000000"
+                    variant="outlined"
                     helperText="A STK push will be sent to this number"
                   />
                   <Button variant="contained" size="large" sx={{ px: 6, py: 1.5, borderRadius: 2, fontWeight: 700 }}>
@@ -123,16 +123,16 @@ export default function VerificationFlow() {
                 <Stack spacing={3}>
                   <Typography variant="h6" sx={{ fontWeight: 700 }}>Step 3: Document Upload</Typography>
                   <Typography variant="body1">Please upload the following documents for identity verification.</Typography>
-                  
+
                   <Paper variant="outlined" sx={{ p: 3, textAlign: 'center', borderStyle: 'dashed', borderRadius: 2, cursor: 'pointer', '&:hover': { bgcolor: 'rgba(0,0,0,0.01)' } }}>
                     <CloudUploadIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
-                    <Typography variant="subtitle1">Click or drag {user?.userType === 'DEVELOPER' ? 'National ID / Passport' : 'Certificate of Incorporation'}</Typography>
+                    <Typography variant="subtitle1">Click or drag {user?.role === 'DEVELOPER' ? 'National ID / Passport' : 'Certificate of Incorporation'}</Typography>
                     <Typography variant="caption" color="text.secondary">PDF, JPG or PNG (Max 5MB)</Typography>
                   </Paper>
 
                   <Paper variant="outlined" sx={{ p: 3, textAlign: 'center', borderStyle: 'dashed', borderRadius: 2, cursor: 'pointer', '&:hover': { bgcolor: 'rgba(0,0,0,0.01)' } }}>
                     <CloudUploadIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
-                    <Typography variant="subtitle1">Click or drag {user?.userType === 'DEVELOPER' ? 'Degree / Certifications' : 'KRA Pin / Tax Compliance'}</Typography>
+                    <Typography variant="subtitle1">Click or drag {user?.role === 'DEVELOPER' ? 'Degree / Certifications' : 'KRA Pin / Tax Compliance'}</Typography>
                     <Typography variant="caption" color="text.secondary">PDF, JPG or PNG (Max 5MB)</Typography>
                   </Paper>
                 </Stack>
@@ -145,7 +145,7 @@ export default function VerificationFlow() {
                     {status === 'REVIEW' ? 'Under Review' : 'Verification Successful!'}
                   </Typography>
                   <Typography variant="body1">
-                    {status === 'REVIEW' 
+                    {status === 'REVIEW'
                       ? 'Your documents have been submitted successfully. Our team will review them and get back to you within 3-5 business days.'
                       : 'Congratulations! Your profile is now verified. You can now boost your visibility with Spotlight.'}
                   </Typography>
@@ -157,10 +157,10 @@ export default function VerificationFlow() {
                       </Box>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Typography variant="body2">Current Status:</Typography>
-                        <Chip 
-                          label={status === 'REVIEW' ? 'Under Review' : 'Approved'} 
-                          size="small" 
-                          color={status === 'REVIEW' ? 'warning' : 'success'} 
+                        <Chip
+                          label={status === 'REVIEW' ? 'Under Review' : 'Approved'}
+                          size="small"
+                          color={status === 'REVIEW' ? 'warning' : 'success'}
                         />
                       </Box>
                     </Stack>
@@ -190,9 +190,9 @@ export default function VerificationFlow() {
                 disabled={activeStep === 3}
                 sx={{ px: 4, py: 1.5, borderRadius: 2, fontWeight: 700, boxShadow: 0 }}
               >
-                {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 
-                 activeStep === 2 ? 'Submit Documents' : 
-                 activeStep === 3 ? 'Done' : 'Continue'}
+                {isSubmitting ? <CircularProgress size={24} color="inherit" /> :
+                  activeStep === 2 ? 'Submit Documents' :
+                    activeStep === 3 ? 'Done' : 'Continue'}
               </Button>
             </Box>
           </>

@@ -69,6 +69,12 @@ export interface User {
   role: 'DEVELOPER' | 'EMPLOYER' | 'ADMIN';
   isEmailVerified: boolean;
   isApproved: boolean;
+  isVerified: boolean;
+  spotlightStatus?: {
+    isActive: boolean;
+    expiresAt?: string;
+    type?: "Day" | "Week";
+  };
 }
 
 export interface AuthResponse {

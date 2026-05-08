@@ -56,7 +56,7 @@ export default function DeveloperOnboarding() {
     role: '',
     city: 'Nairobi',
     bio: '',
-    skills: [],
+    skills: [] as string[],
     availability: 'Available',
     yearsOfExperience: 'ZERO_TO_ONE',
     summary: '',
@@ -66,7 +66,7 @@ export default function DeveloperOnboarding() {
     if (!isLoggedIn) {
       router.push('/login');
     } else if (isOnboarded) {
-      router.push('/feed');
+      router.push('/developers');
     }
   }, [isLoggedIn, isOnboarded, router]);
 
@@ -96,7 +96,7 @@ export default function DeveloperOnboarding() {
         const response = await developerService.createProfile(payload);
         if (response.success) {
           completeOnboarding();
-          router.push('/feed');
+          router.push('/developers');
         }
       } catch (err: any) {
         setError(err.message || 'Failed to create profile. Please try again.');
@@ -122,7 +122,7 @@ export default function DeveloperOnboarding() {
   return (
     <Container maxWidth="md" sx={{ py: 8 }}>
       <Paper sx={{ p: { xs: 3, md: 6 }, borderRadius: 4, boxShadow: '0 10px 40px rgba(0,0,0,0.05)' }}>
-        <Typography variant="h4" component="h1" align="center" gutterBottom sx={{ fontWeight: 800 }}>
+        <Typography variant="h4" component="h1" align="center" gutterBottom>
           Complete Your <Box component="span" sx={{ color: 'primary.main' }}>Profile</Box>
         </Typography>
         <Typography variant="body1" align="center" color="text.secondary" sx={{ mb: 6 }}>

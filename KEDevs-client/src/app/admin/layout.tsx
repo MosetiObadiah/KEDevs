@@ -154,7 +154,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
             <Button 
               component={Link} 
-              href="/feed" 
+              href="/" 
               variant="outlined" 
               size="small"
               sx={{ fontWeight: 800, borderRadius: 2 }}

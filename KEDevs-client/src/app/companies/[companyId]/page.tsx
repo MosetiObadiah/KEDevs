@@ -134,7 +134,7 @@ export default function CompanyProfilePage() {
             </Typography>
             <Stack spacing={2}>
               <Typography variant="body2" color="text.secondary">Visit the job feed to see all active positions from this company.</Typography>
-              <Button variant="outlined" component={Link} href="/feed" sx={{ borderRadius: 2, fontWeight: 700 }}>Browse Jobs</Button>
+              <Button variant="outlined" component={Link} href="/jobs" sx={{ borderRadius: 2, fontWeight: 700 }}>Browse Jobs</Button>
             </Stack>
           </Paper>
         </Grid>

@@ -2,21 +2,21 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  Container, 
-  Typography, 
-  Box, 
-  Paper, 
-  Tabs, 
-  Tab, 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
-  Avatar, 
-  Chip, 
+import {
+  Container,
+  Typography,
+  Box,
+  Paper,
+  Tabs,
+  Tab,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Avatar,
+  Chip,
   Button,
   Stack,
   IconButton,
@@ -28,7 +28,7 @@ import SendIcon from '@mui/icons-material/Send';
 import EmailIcon from '@mui/icons-material/Email';
 import { developers } from '@/data/mockData';
 
-const mockBookmarks = developers.filter(d => d.userType === 'DEVELOPER').slice(0, 2);
+const mockBookmarks = developers.filter(d => d.role === 'DEVELOPER').slice(0, 2);
 const mockRequests = [
   { id: 'r1', devName: 'Jane Doe', jobTitle: 'Senior Frontend Engineer', status: 'Accepted', date: '2024-05-02', email: 'jane.doe@example.com' },
   { id: 'r2', devName: 'John Smith', jobTitle: 'Senior Frontend Engineer', status: 'Pending', date: '2024-05-04' },
@@ -114,9 +114,9 @@ export default function HiringPipeline() {
                       </TableCell>
                       <TableCell>{req.jobTitle}</TableCell>
                       <TableCell>
-                        <Chip 
-                          label={req.status} 
-                          size="small" 
+                        <Chip
+                          label={req.status}
+                          size="small"
                           color={req.status === 'Accepted' ? 'success' : req.status === 'Declined' ? 'error' : 'warning'}
                           sx={{ fontWeight: 700 }}
                         />

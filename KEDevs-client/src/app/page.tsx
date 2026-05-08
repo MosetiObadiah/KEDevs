@@ -52,7 +52,7 @@ export default function HomePage() {
 
         if (spotlightResponse.success) {
           const { daySlot, weekSlot } = spotlightResponse.data;
-          
+
           [daySlot, weekSlot].forEach(slot => {
             if (slot) {
               devs.push({
@@ -61,8 +61,8 @@ export default function HomePage() {
                 lastName: slot.developerName.split(' ')[1] || '',
                 profilePhoto: slot.profilePhoto,
                 currentLastRole: slot.currentLastRole,
-                skills: slot.featuredProjects.length > 0 
-                  ? slot.featuredProjects[0].techStack.split(',').map(s => s.trim()) 
+                skills: slot.featuredProjects.length > 0
+                  ? slot.featuredProjects[0].techStack.split(',').map(s => s.trim())
                   : [],
                 availabilityStatus: 'AVAILABLE_NOW',
                 isVerified: slot.isVerified,
@@ -81,7 +81,7 @@ export default function HomePage() {
             devs = [...devs, ...publicDevs].slice(0, 3);
           }
         }
-        
+
         setSpotlightDevs(devs);
         setIsLoadingDevs(false);
       } catch (err) {
@@ -141,9 +141,9 @@ export default function HomePage() {
                 The most upvoted and newest jobs currently available for developers.
               </Typography>
             </Box>
-            <Button 
-              component={Link} 
-              href="/jobs" 
+            <Button
+              component={Link}
+              href="/jobs"
               endIcon={<ArrowForwardIcon />}
               sx={{ fontWeight: 700, mb: 1 }}
             >
@@ -172,10 +172,10 @@ export default function HomePage() {
             ) : (
               featuredJobs.map((job) => (
                 <Grid size={{ xs: 12, md: 4 }} key={job.id}>
-                  <Card 
-                    sx={{ 
-                      height: '100%', 
-                      display: 'flex', 
+                  <Card
+                    sx={{
+                      height: '100%',
+                      display: 'flex',
                       flexDirection: 'column',
                       p: 1
                     }}
@@ -185,14 +185,14 @@ export default function HomePage() {
                         <Chip label={formatJobType(job.jobType)} size="small" variant="outlined" sx={{ fontWeight: 700, borderRadius: 1.5 }} />
                         {job.status === 'OPEN' && <VerifiedIcon color="primary" fontSize="small" />}
                       </Stack>
-                      <Typography 
-                        variant="h4" 
-                        component={Link} 
+                      <Typography
+                        variant="h4"
+                        component={Link}
                         href={`/jobs/${job.id}`}
-                        sx={{ 
-                          fontWeight: 800, 
-                          color: 'text.primary', 
-                          textDecoration: 'none', 
+                        sx={{
+                          fontWeight: 800,
+                          color: 'text.primary',
+                          textDecoration: 'none',
                           display: 'block',
                           mb: 1,
                           '&:hover': { color: 'primary.main' }
@@ -214,8 +214,8 @@ export default function HomePage() {
                       <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'primary.main' }}>
                         {job.workType}
                       </Typography>
-                      <Button 
-                        component={Link} 
+                      <Button
+                        component={Link}
                         href={`/jobs/${job.id}`}
                         sx={{ fontWeight: 700 }}
                       >
@@ -241,7 +241,7 @@ export default function HomePage() {
           <Box sx={{ mb: 6, textAlign: 'center' }}>
             <PillBadge variant="mint">TALENT SPOTLIGHT</PillBadge>
             <Typography variant="h2" sx={{ mt: 2 }}>
-              Top Kenyan <Box component="span" sx={{ color: 'primary.main' }}>Developers</Box>
+              Top <Box component="span" sx={{ color: 'primary.main' }}>Developers</Box>
             </Typography>
           </Box>
 
@@ -264,14 +264,14 @@ export default function HomePage() {
               spotlightDevs.map((dev) => (
                 <Grid size={{ xs: 12, md: 4 }} key={dev.id}>
                   <Card sx={{ textAlign: 'center', p: 4, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                    <Avatar 
+                    <Avatar
                       src={dev.profilePhoto}
-                      sx={{ 
-                        width: 100, 
-                        height: 100, 
-                        mx: 'auto', 
-                        mb: 3, 
-                        bgcolor: 'primary.light', 
+                      sx={{
+                        width: 100,
+                        height: 100,
+                        mx: 'auto',
+                        mb: 3,
+                        bgcolor: 'primary.light',
                         color: 'primary.main',
                         fontSize: '2rem',
                         fontWeight: 800
@@ -286,10 +286,10 @@ export default function HomePage() {
                         <Chip key={skill} label={skill} size="small" variant="outlined" />
                       ))}
                     </Box>
-                    <Button 
-                      variant="outlined" 
-                      fullWidth 
-                      component={Link} 
+                    <Button
+                      variant="outlined"
+                      fullWidth
+                      component={Link}
                       href={`/developers/${dev.id}`}
                       sx={{ borderRadius: 2, fontWeight: 700, mt: 'auto' }}
                     >
@@ -300,12 +300,12 @@ export default function HomePage() {
               ))
             )}
           </Grid>
-          
+
           <Box sx={{ mt: 8, textAlign: 'center' }}>
-            <Button 
-              variant="contained" 
-              size="large" 
-              component={Link} 
+            <Button
+              variant="contained"
+              size="large"
+              component={Link}
               href="/developers"
               sx={{ px: 6, py: 2, fontWeight: 800, borderRadius: 3 }}
             >
@@ -317,18 +317,18 @@ export default function HomePage() {
 
 
       {/* CTA Section */}
-      <Box sx={{ bgcolor: 'background.inverse', color: 'white', py: { xs: 10, md: 14 } }}>
+      <Box sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', py: { xs: 10, md: 14 } }}>
         <Container maxWidth="md" sx={{ textAlign: 'center' }}>
-          <Typography variant="h2" sx={{ mb: 3 }}>
+          <Typography variant="h2" sx={{ mb: 3, fontWeight: 900 }}>
             Ready to grow your team?
           </Typography>
-          <Typography variant="body1" sx={{ mb: 5, fontSize: '1.25rem', opacity: 0.8 }}>
+          <Typography variant="body1" sx={{ mb: 5, fontSize: '1.25rem', opacity: 0.9 }}>
             Join hundreds of companies hiring top Kenyan developers every day.
           </Typography>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ justifyContent: 'center' }}>
-            <Button 
-              variant="contained" 
-              color="primary" 
+            <Button
+              variant="contained"
+              color="primary"
               size="large"
               component={Link}
               href="/register"

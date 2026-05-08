@@ -12,16 +12,16 @@ export interface Job {
   upvoteCount: number;
   postedDate: string;
   isVerified: boolean;
-  description:string;
+  description: string;
   requirements: string[];
   postedById: string;
 }
 
 export interface Developer {
   id: string;
-  userType: 'DEVELOPER' | 'EMPLOYER' | 'ADMIN';
+  role: 'DEVELOPER' | 'EMPLOYER' | 'ADMIN';
   name: string;
-  role: string;
+  currentTitle: string;
   city: string;
   skills: string[];
   availability: "Available" | "Busy" | "Open to Offers";
@@ -145,9 +145,9 @@ export const jobs: Job[] = [
 export const developers: Developer[] = [
   {
     id: "d1",
-    userType: "DEVELOPER",
+    role: "DEVELOPER",
     name: "Jane Doe",
-    role: "Senior Frontend Engineer",
+    currentTitle: "Senior Frontend Engineer",
     city: "Nairobi",
     skills: ["React", "Next.js", "Tailwind", "MUI"],
     availability: "Available",
@@ -177,9 +177,9 @@ export const developers: Developer[] = [
   },
   {
     id: "d2",
-    userType: "DEVELOPER",
+    role: "DEVELOPER",
     name: "John Smith",
-    role: "DevOps Engineer",
+    currentTitle: "DevOps Engineer",
     city: "Lagos",
     skills: ["Kubernetes", "AWS", "Terraform", "CI/CD"],
     availability: "Open to Offers",
@@ -199,14 +199,14 @@ export const developers: Developer[] = [
   },
   {
     id: "d3",
-    userType: "EMPLOYER",
+    role: "EMPLOYER",
     name: "Mark Employer",
-    role: "Founder at TechFlow",
+    currentTitle: "Founder at TechFlow",
     city: "Nairobi",
     skills: [],
     availability: "Available",
     isVerified: false,
-    isApproved: false, // For testing pending-approval
+    isApproved: false,
     endorsementCount: 0,
     bio: "Looking for top talent to join our mission.",
     experience: "10 years",
@@ -222,9 +222,9 @@ export const developers: Developer[] = [
   },
   {
     id: "d4",
-    userType: "ADMIN",
+    role: "ADMIN",
     name: "Admin User",
-    role: "Platform Administrator",
+    currentTitle: "Platform Administrator",
     city: "Nairobi",
     skills: [],
     availability: "Available",
@@ -245,9 +245,9 @@ export const developers: Developer[] = [
   },
   {
     id: "d5",
-    userType: "EMPLOYER",
+    role: "EMPLOYER",
     name: "Jane Smith (Pending)",
-    role: "HR at FutureTech",
+    currentTitle: "HR at FutureTech",
     city: "Kisumu",
     skills: [],
     availability: "Available",

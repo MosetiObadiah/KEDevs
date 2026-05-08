@@ -1,3 +1,4 @@
+@import "tailwindcss";
 /* src/app/globals.css */
 :root {
   --background: #f9fafb;
@@ -38,3 +39,4 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
 }
+
