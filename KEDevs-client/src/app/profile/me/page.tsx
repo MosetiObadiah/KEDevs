@@ -38,7 +38,9 @@ import {
   Fade,
   Zoom,
   alpha,
+  Slider,
 } from '@mui/material';
+import Cropper from 'react-easy-crop';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import GitHubIcon from '@mui/icons-material/GitHub';
@@ -75,6 +77,51 @@ const COMMON_SKILLS = [
   'MySQL', 'Redis', 'Elasticsearch', 'Terraform', 'Jenkins', 'Git', 'GitHub Actions',
   'Figma', 'Adobe XD', 'Unity', 'Unreal Engine', 'TensorFlow', 'PyTorch'
 ];
+
+const getCroppedImg = (imageSrc: string, pixelCrop: any): Promise<Blob> => {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.src = imageSrc;
+    image.crossOrigin = 'anonymous';
+    image.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      if (!ctx) {
+        reject(new Error('No 2d context'));
+        return;
+      }
+
+      canvas.width = 250;
+      canvas.height = 250;
+
+      ctx.drawImage(
+        image,
+        pixelCrop.x,
+        pixelCrop.y,
+        pixelCrop.width,
+        pixelCrop.height,
+        0,
+        0,
+        250,
+        250
+      );
+
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error('Canvas is empty'));
+          }
+        },
+        'image/jpeg',
+        0.85
+      );
+    };
+    image.onerror = (err) => reject(err);
+  });
+};
 
 export default function MyProfile() {
   const { user } = useAuth();
@@ -119,6 +166,12 @@ export default function MyProfile() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
 
   useEffect(() => {
     loadProfile(true);
@@ -406,22 +459,17 @@ export default function MyProfile() {
                         type="file"
                         accept="image/*"
                         hidden
-                        onChange={async (e) => {
+                        onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
-                            try {
-                              setIsRefreshing(true);
-                              const response = await developerService.uploadProfilePhoto(file);
-                              if (response.success) {
-                                setProfile((prev: any) => ({ ...prev, profilePhoto: response.data.profilePhoto }));
-                                alert('Profile photo updated successfully!');
-                              }
-                            } catch (err) {
-                              console.error(err);
-                              alert('Failed to upload profile photo.');
-                            } finally {
-                              setIsRefreshing(false);
-                            }
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              setCropImageSrc(reader.result as string);
+                              setCrop({ x: 0, y: 0 });
+                              setZoom(1);
+                              setCropDialogOpen(true);
+                            };
+                            reader.readAsDataURL(file);
                           }
                         }}
                       />
@@ -471,7 +519,8 @@ export default function MyProfile() {
                               <MenuItem value="ZERO_TO_ONE">0 to 1 Year</MenuItem>
                               <MenuItem value="ONE_TO_THREE">1 to 3 Years</MenuItem>
                               <MenuItem value="THREE_TO_FIVE">3 to 5 Years</MenuItem>
-                              <MenuItem value="FIVE_PLUS">5+ Years</MenuItem>
+                              <MenuItem value="FIVE_TO_TEN">5 to 10 Years</MenuItem>
+                              <MenuItem value="TEN_PLUS">10+ Years</MenuItem>
                             </Select>
                           </FormControl>
                         </Stack>
@@ -1175,6 +1224,76 @@ export default function MyProfile() {
           <DialogActions sx={{ p: 3 }}>
             <Button onClick={closeDialog} sx={{ fontWeight: 700 }}>Cancel</Button>
             <Button onClick={() => handleAddItem('achievement')} variant="contained" disabled={isSaving} sx={{ borderRadius: 2, fontWeight: 800 }}>Add Achievement</Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Profile Photo Crop Dialog */}
+        <Dialog
+          open={cropDialogOpen}
+          onClose={() => setCropDialogOpen(false)}
+          maxWidth="xs"
+          fullWidth
+          slotProps={{ paper: { sx: { borderRadius: 4, p: 1 } } }}
+        >
+          <DialogTitle sx={{ fontWeight: 800 }}>Crop Profile Photo</DialogTitle>
+          <DialogContent>
+            {cropImageSrc && (
+              <Box sx={{ position: 'relative', width: '100%', height: 300, borderRadius: 3, overflow: 'hidden', bgcolor: '#333' }}>
+                <Cropper
+                  image={cropImageSrc}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={(_, croppedPixels) => setCroppedAreaPixels(croppedPixels)}
+                />
+              </Box>
+            )}
+            <Box sx={{ mt: 3, px: 1 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, mb: 1, display: 'block' }}>
+                ZOOM
+              </Typography>
+              <Slider
+                value={zoom}
+                min={1}
+                max={3}
+                step={0.1}
+                onChange={(_, value) => setZoom(value as number)}
+                color="primary"
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ p: 2 }}>
+            <Button onClick={() => setCropDialogOpen(false)} color="inherit" sx={{ fontWeight: 700 }}>
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                if (cropImageSrc && croppedAreaPixels) {
+                  try {
+                    setIsRefreshing(true);
+                    setCropDialogOpen(false);
+                    const croppedBlob = await getCroppedImg(cropImageSrc, croppedAreaPixels);
+                    const file = new File([croppedBlob], 'avatar.jpg', { type: 'image/jpeg' });
+                    const response = await developerService.uploadProfilePhoto(file);
+                    if (response.success) {
+                      setProfile((prev: any) => ({ ...prev, profilePhoto: response.data.profilePhoto }));
+                      alert('Profile photo updated successfully!');
+                    }
+                  } catch (err) {
+                    console.error(err);
+                    alert('Failed to upload profile photo.');
+                  } finally {
+                    setIsRefreshing(false);
+                  }
+                }
+              }}
+              variant="contained"
+              sx={{ fontWeight: 700, borderRadius: 2 }}
+            >
+              Crop & Save
+            </Button>
           </DialogActions>
         </Dialog>
 
