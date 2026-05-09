@@ -1,105 +1,74 @@
-// src/components/layout/Footer.tsx
 'use client';
 import React from 'react';
-import { Box, Container, Typography, Link, Grid, Stack, Divider, Button, useTheme } from '@mui/material';
-import WorkIcon from '@mui/icons-material/Work';
+import Link from 'next/link';
+import { Logo } from './Logo';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 const Footer = () => {
-  const theme = useTheme();
-  
   return (
-    <Box 
-      component="footer" 
-      sx={{ 
-        bgcolor: 'background.inverse', 
-        color: theme.palette.mode === 'dark' ? 'text.primary' : 'background.paper', 
-        pt: 10, 
-        pb: 6,
-        mt: 'auto'
-      }}
-    >
-      <Container maxWidth="xl">
-        <Grid container spacing={8}>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Typography
-              variant="h5"
-              sx={{
-                fontWeight: 900,
-                letterSpacing: '-1.5px',
-                color: 'primary.main',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                mb: 3
-              }}
-            >
-              <WorkIcon sx={{ fontSize: 32 }} /> KEDevs
-            </Typography>
-            <Typography variant="body1" sx={{ opacity: 0.8, maxWidth: 320, mb: 4, lineHeight: 1.8 }}>
+    <footer className="bg-card border-t border-border pt-16 pb-8">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+          <div className="space-y-4">
+            <Logo />
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
               Connecting Kenya's elite tech talent with the world's most innovative companies. Built for developers, by developers.
-            </Typography>
-          </Grid>
+            </p>
+          </div>
           
-          <Grid size={{ xs: 6, md: 2 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 3 }}>Platform</Typography>
-            <Stack spacing={2}>
-              {['Browse Jobs', 'Developer Directory', 'Company Board', 'Success Stories'].map(link => (
-                <Link key={link} href="#" sx={{ color: 'inherit', opacity: 0.7, textDecoration: 'none', '&:hover': { opacity: 1, color: 'primary.main' } }}>
-                  {link}
-                </Link>
+          <div>
+            <h3 className="text-sm font-semibold mb-4">Platform</h3>
+            <ul className="space-y-2">
+              {['Browse Jobs', 'Developer Directory', 'Company Board', 'Success Stories'].map(item => (
+                <li key={item}>
+                  <Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                    {item}
+                  </Link>
+                </li>
               ))}
-            </Stack>
-          </Grid>
+            </ul>
+          </div>
 
-          <Grid size={{ xs: 6, md: 2 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 3 }}>Resources</Typography>
-            <Stack spacing={2}>
-              {['Pricing', 'Verification Guide', 'Career Advice', 'Community Forum'].map(link => (
-                <Link key={link} href="#" sx={{ color: 'inherit', opacity: 0.7, textDecoration: 'none', '&:hover': { opacity: 1, color: 'primary.main' } }}>
-                  {link}
-                </Link>
+          <div>
+            <h3 className="text-sm font-semibold mb-4">Resources</h3>
+            <ul className="space-y-2">
+              {['Pricing', 'Verification Guide', 'Career Advice', 'Community Forum'].map(item => (
+                <li key={item}>
+                  <Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                    {item}
+                  </Link>
+                </li>
               ))}
-            </Stack>
-          </Grid>
+            </ul>
+          </div>
 
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 3 }}>Stay Connected</Typography>
-            <Typography variant="body2" sx={{ opacity: 0.7, mb: 3 }}>
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold">Stay Connected</h3>
+            <p className="text-sm text-muted-foreground">
               Subscribe to our newsletter for the latest jobs and tech news from Kenya.
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Box sx={{ 
-                flexGrow: 1, 
-                bgcolor: theme.palette.mode === 'dark' ? 'background.paper' : 'rgba(255,255,255,0.1)', 
-                borderRadius: 2, 
-                px: 2, 
-                py: 1.5, 
-                border: '1px solid',
-                borderColor: 'divider'
-              }}>
-                <Typography variant="body2" sx={{ opacity: 0.6 }}>Email Address</Typography>
-              </Box>
-              <Button variant="contained" color="primary" sx={{ fontWeight: 800, borderRadius: 2 }}>Join</Button>
-            </Box>
-          </Grid>
-        </Grid>
+            </p>
+            <div className="flex gap-2">
+              <Input placeholder="Email Address" className="bg-muted/50 border-transparent focus-visible:bg-background" />
+              <Button size="sm">Join</Button>
+            </div>
+          </div>
+        </div>
         
-        <Divider sx={{ my: 6, borderColor: 'divider', opacity: 0.3 }} />
-        
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
-          <Typography variant="body2" sx={{ opacity: 0.6 }}>
+        <div className="mt-16 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} KEDevs Connect. All rights reserved. Made in Nairobi.
-          </Typography>
-          <Stack direction="row" spacing={4}>
-            {['Privacy Policy', 'Terms of Service', 'Cookie Policy'].map(link => (
-              <Link key={link} href="#" sx={{ color: 'inherit', opacity: 0.5, textDecoration: 'none', fontSize: '0.875rem', '&:hover': { opacity: 1 } }}>
-                {link}
+          </p>
+          <div className="flex gap-6">
+            {['Privacy Policy', 'Terms of Service', 'Cookie Policy'].map(item => (
+              <Link key={item} href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                {item}
               </Link>
             ))}
-          </Stack>
-        </Box>
-      </Container>
-    </Box>
+          </div>
+        </div>
+      </div>
+    </footer>
   );
 };
 

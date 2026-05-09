@@ -1,31 +1,40 @@
 'use client';
+
 import React, { useEffect, useState } from 'react';
-import {
-  Container,
-  Typography,
-  Box,
-  Paper,
-  List,
-  ListItem,
-  ListItemText,
-  Divider,
-  Button,
-  IconButton,
-  Avatar,
-  CircularProgress,
-  Chip,
-  Tooltip,
-} from '@mui/material';
-import {
-  Notifications as NotificationsIcon,
-  DoneAll as DoneAllIcon,
-  Delete as DeleteIcon,
-  Settings as SettingsIcon,
-  FilterList as FilterListIcon,
-} from '@mui/icons-material';
+import { useRouter } from 'next/navigation';
+import { 
+  Bell, 
+  CheckCheck, 
+  Trash2, 
+  Settings, 
+  MoreVertical, 
+  Clock, 
+  Briefcase, 
+  Wallet, 
+  ShieldCheck, 
+  Sparkles, 
+  Circle,
+  Loader2,
+  Inbox,
+  ArrowRight,
+  ChevronRight
+} from 'lucide-react';
 import { notificationService } from '@/services/notificationService';
 import { formatDistanceToNow } from 'date-fns';
-import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Notification {
   id: string;
@@ -36,7 +45,16 @@ interface Notification {
   createdAt: string;
 }
 
-const NotificationsPage = () => {
+const categoryConfig: Record<string, { color: string, icon: any }> = {
+  'JOB': { color: 'bg-blue-100 text-blue-600', icon: Briefcase },
+  'PAYMENT': { color: 'bg-emerald-100 text-emerald-600', icon: Wallet },
+  'ADMIN': { color: 'bg-red-100 text-red-600', icon: ShieldCheck },
+  'ENDORSEMENT': { color: 'bg-purple-100 text-purple-600', icon: Sparkles },
+  'SPOTLIGHT': { color: 'bg-amber-100 text-amber-600', icon: Bell },
+  'default': { color: 'bg-slate-100 text-slate-600', icon: Bell },
+};
+
+export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -64,7 +82,7 @@ const NotificationsPage = () => {
         setHasMore(!response.data.last);
       }
     } catch (error) {
-      console.error('Failed to fetch notifications', error);
+      toast.error('Failed to sync notifications');
     } finally {
       setLoading(false);
     }
@@ -77,7 +95,7 @@ const NotificationsPage = () => {
         prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
       );
     } catch (error) {
-      console.error('Failed to mark notification as read', error);
+      toast.error('Failed to update status');
     }
   };
 
@@ -85,182 +103,114 @@ const NotificationsPage = () => {
     try {
       await notificationService.markAllRead();
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      toast.success('All marked as read');
     } catch (error) {
-      console.error('Failed to mark all as read', error);
-    }
-  };
-
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'JOB': return 'primary';
-      case 'PAYMENT': return 'success';
-      case 'ADMIN': return 'error';
-      case 'ENDORSEMENT': return 'secondary';
-      case 'SPOTLIGHT': return 'warning';
-      default: return 'default';
+      toast.error('Operation failed');
     }
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: 6 }}>
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 900, mb: 1 }}>
-            Notifications
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 600 }}>
-            Stay updated with your activities and opportunities
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Tooltip title="Notification Settings">
-            <IconButton onClick={() => router.push('/settings/notifications')}>
-              <SettingsIcon />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      </Box>
-
-      <Paper
-        elevation={0}
-        sx={{
-          borderRadius: 4,
-          border: '1px solid',
-          borderColor: 'divider',
-          overflow: 'hidden',
-        }}
-      >
-        <Box sx={{ px: 3, py: 2, bgcolor: 'background.subtle', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
-            Recent Activity
-          </Typography>
-          <Button
-            size="small"
-            startIcon={<DoneAllIcon />}
-            onClick={handleMarkAllRead}
-            disabled={notifications.every(n => n.isRead)}
-            sx={{ fontWeight: 700, textTransform: 'none' }}
-          >
-            Mark all as read
-          </Button>
-        </Box>
-        <Divider />
-
-        {loading && notifications.length === 0 ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}>
-            <CircularProgress />
-          </Box>
-        ) : notifications.length === 0 ? (
-          <Box sx={{ p: 8, textAlign: 'center' }}>
-            <Box
-              sx={{
-                width: 80,
-                height: 80,
-                borderRadius: '50%',
-                bgcolor: 'background.subtle',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 16px',
-              }}
-            >
-              <NotificationsIcon sx={{ fontSize: 40, color: 'text.disabled' }} />
-            </Box>
-            <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>
-              All caught up!
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
-              You don't have any notifications at the moment.
-            </Typography>
-          </Box>
-        ) : (
-          <List sx={{ p: 0 }}>
-            {notifications.map((n, index) => (
-              <React.Fragment key={n.id}>
-                <ListItem
-                  sx={{
-                    px: 3,
-                    py: 2.5,
-                    bgcolor: n.isRead ? 'transparent' : 'action.hover',
-                    transition: 'background-color 0.2s',
-                    '&:hover': { bgcolor: 'action.selected' },
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => handleMarkAsRead(n.id)}
-                >
-                  <Box sx={{ mr: 2.5 }}>
-                    <Avatar
-                      sx={{
-                        bgcolor: n.isRead ? 'background.subtle' : 'primary.main',
-                        color: n.isRead ? 'text.secondary' : 'primary.contrastText',
-                        width: 48,
-                        height: 48,
-                      }}
-                    >
-                      <NotificationsIcon />
-                    </Avatar>
-                  </Box>
-                  <ListItemText
-                    primary={
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5 }}>
-                        <Typography variant="body1" sx={{ fontWeight: n.isRead ? 700 : 900 }}>
-                          {n.title}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                          {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
-                        </Typography>
-                      </Box>
-                    }
-                    secondary={
-                      <Box>
-                        <Typography
-                          variant="body2"
-                          color="text.primary"
-                          sx={{ mb: 1.5, opacity: 0.8, lineHeight: 1.6, fontWeight: 500 }}
-                        >
-                          {n.message}
-                        </Typography>
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                          <Chip
-                            label={n.category}
-                            size="small"
-                            color={getCategoryColor(n.category) as any}
-                            variant="outlined"
-                            sx={{ fontWeight: 700, fontSize: '0.65rem' }}
-                          />
-                          {!n.isRead && (
-                            <Chip
-                              label="NEW"
-                              size="small"
-                              color="primary"
-                              sx={{ fontWeight: 900, fontSize: '0.65rem' }}
-                            />
-                          )}
-                        </Box>
-                      </Box>
-                    }
-                  />
-                </ListItem>
-                {index < notifications.length - 1 && <Divider />}
-              </React.Fragment>
-            ))}
-          </List>
-        )}
-
-        {hasMore && (
-          <Box sx={{ p: 2, textAlign: 'center', borderTop: '1px solid', borderColor: 'divider' }}>
-            <Button
-              onClick={() => fetchNotifications(true)}
-              disabled={loading}
-              sx={{ fontWeight: 800 }}
-            >
-              {loading ? <CircularProgress size={20} /> : 'Load More'}
+    <div className="container mx-auto px-4 py-20 max-w-3xl animate-in fade-in duration-700">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+         <div className="space-y-4">
+            <Badge variant="outline" className="rounded-lg font-black tracking-widest text-[10px] uppercase bg-primary/5 text-primary border-primary/10 px-3 py-1">
+               ACTIVITY FEED
+            </Badge>
+            <div className="space-y-1">
+               <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">Notifications</h1>
+               <p className="text-slate-500 font-semibold italic">Your platform heartbeat and security updates</p>
+            </div>
+         </div>
+         
+         <div className="flex items-center gap-3">
+            <Button variant="ghost" className="h-12 w-12 rounded-2xl bg-slate-50" onClick={() => router.push('/settings/notifications')}>
+               <Settings className="h-5 w-5" />
             </Button>
-          </Box>
-        )}
-      </Paper>
-    </Container>
-  );
-};
+            <Button variant="outline" className="h-12 rounded-2xl px-6 font-black gap-2 border-slate-100" onClick={handleMarkAllRead} disabled={notifications.every(n => n.isRead)}>
+               <CheckCheck className="h-4 w-4" /> Mark All Read
+            </Button>
+         </div>
+      </div>
 
-export default NotificationsPage;
+      <Card className="rounded-[3rem] border-none shadow-2xl shadow-slate-200/40 overflow-hidden bg-white">
+         <CardContent className="p-0">
+            {loading && notifications.length === 0 ? (
+               <div className="py-24 flex flex-col items-center gap-4">
+                  <Loader2 className="h-10 w-10 text-primary animate-spin" />
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Accessing records...</p>
+               </div>
+            ) : notifications.length === 0 ? (
+               <div className="py-24 text-center space-y-6">
+                  <div className="h-20 w-20 bg-slate-50 rounded-[2.5rem] flex items-center justify-center text-slate-200 mx-auto border-2 border-dashed border-slate-100">
+                     <Inbox className="h-10 w-10" />
+                  </div>
+                  <div className="space-y-1">
+                     <h3 className="text-2xl font-black text-slate-900">All Caught Up</h3>
+                     <p className="text-slate-500 font-medium">You don't have any new activity alerts right now.</p>
+                  </div>
+               </div>
+            ) : (
+               <div className="divide-y divide-slate-50">
+                  {notifications.map((n) => {
+                     const config = categoryConfig[n.category] || categoryConfig.default;
+                     const Icon = config.icon;
+                     
+                     return (
+                        <div 
+                           key={n.id} 
+                           className={cn(
+                              "p-8 flex items-start gap-6 transition-all cursor-pointer group",
+                              n.isRead ? "bg-white opacity-60" : "bg-primary/[0.02] border-l-4 border-l-primary"
+                           )}
+                           onClick={() => handleMarkAsRead(n.id)}
+                        >
+                           <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm", config.color)}>
+                              <Icon className="h-5 w-5" />
+                           </div>
+                           
+                           <div className="flex-1 min-w-0 space-y-2">
+                              <div className="flex items-center justify-between gap-4">
+                                 <div className="flex items-center gap-3">
+                                    <h3 className={cn("text-lg tracking-tight", n.isRead ? "font-bold text-slate-600" : "font-black text-slate-900")}>
+                                       {n.title}
+                                    </h3>
+                                    {!n.isRead && (
+                                       <Badge className="bg-primary text-white font-black text-[8px] uppercase tracking-widest px-1.5 py-0.5 rounded-md">NEW</Badge>
+                                    )}
+                                 </div>
+                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 whitespace-nowrap">
+                                    <Clock className="h-3 w-3" /> {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
+                                 </span>
+                              </div>
+                              
+                              <p className="text-slate-500 font-medium leading-relaxed">
+                                 {n.message}
+                              </p>
+                              
+                              <div className="flex items-center gap-3 pt-2">
+                                 <Badge variant="outline" className="rounded-lg font-black text-[9px] uppercase tracking-widest bg-slate-50 border-slate-100 text-slate-400 px-2 py-0.5">
+                                    {n.category}
+                                 </Badge>
+                                 <Button variant="ghost" className="h-6 px-2 rounded-lg text-[9px] font-black uppercase tracking-widest text-primary gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    Take Action <ChevronRight className="h-3 w-3" />
+                                 </Button>
+                              </div>
+                           </div>
+                        </div>
+                     );
+                  })}
+               </div>
+            )}
+            
+            {hasMore && (
+               <div className="p-8 bg-slate-50/50 flex justify-center border-t border-slate-50">
+                  <Button variant="ghost" className="rounded-xl font-black text-[10px] uppercase tracking-widest gap-2" onClick={() => fetchNotifications(true)} disabled={loading}>
+                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreVertical className="h-4 w-4" />} Load Older History
+                  </Button>
+               </div>
+            )}
+         </CardContent>
+      </Card>
+    </div>
+  );
+}

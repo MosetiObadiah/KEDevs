@@ -1,205 +1,169 @@
-// src/app/admin/layout.tsx
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  Box, 
-  Drawer, 
-  List, 
-  ListItem, 
-  ListItemButton, 
-  ListItemIcon, 
-  ListItemText, 
-  Typography, 
-  IconButton, 
-  Toolbar, 
-  AppBar, 
-  Avatar, 
-  Divider,
-  Tooltip,
-  Button
-} from '@mui/material';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import PeopleIcon from '@mui/icons-material/People';
-import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
-import FlagIcon from '@mui/icons-material/Flag';
-import StarIcon from '@mui/icons-material/Star';
-import SettingsIcon from '@mui/icons-material/Settings';
-import AssessmentIcon from '@mui/icons-material/Assessment';
-import HistoryIcon from '@mui/icons-material/History';
-import MenuIcon from '@mui/icons-material/Menu';
-import WorkIcon from '@mui/icons-material/Work';
-import LogoutIcon from '@mui/icons-material/Logout';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { 
+  LayoutDashboard, 
+  Users, 
+  ShieldCheck, 
+  Flag, 
+  Sparkles, 
+  BarChart3, 
+  History, 
+  Settings, 
+  Menu, 
+  LogOut, 
+  ExternalLink,
+  Search,
+  Bell,
+  PanelLeftClose,
+  PanelLeftOpen
+} from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { PillBadge } from '@/components/shared/PillBadge';
+import { cn } from '@/lib/utils';
 
-const drawerWidth = 280;
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const menuItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' },
-  { text: 'User Management', icon: <PeopleIcon />, path: '/admin/users' },
-  { text: 'Verification Queue', icon: <VerifiedUserIcon />, path: '/admin/verification' },
-  { text: 'Flagged Content', icon: <FlagIcon />, path: '/admin/flags' },
-  { text: 'Spotlight Management', icon: <StarIcon />, path: '/admin/spotlight' },
-  { text: 'Platform Reports', icon: <AssessmentIcon />, path: '/admin/reports' },
-  { text: 'Audit Log', icon: <HistoryIcon />, path: '/admin/audit' },
-  { text: 'Platform Settings', icon: <SettingsIcon />, path: '/admin/settings' },
+  { text: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
+  { text: 'User Management', icon: Users, path: '/admin/users' },
+  { text: 'Verification Queue', icon: ShieldCheck, path: '/admin/verification' },
+  { text: 'Flagged Content', icon: Flag, path: '/admin/flags' },
+  { text: 'Spotlight', icon: Sparkles, path: '/admin/spotlight' },
+  { text: 'Platform Reports', icon: BarChart3, path: '/admin/reports' },
+  { text: 'Audit Log', icon: History, path: '/admin/audit' },
+  { text: 'Settings', icon: Settings, path: '/admin/settings' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const [collapsed, setCollapsed] = useState(false);
 
-  const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full bg-slate-950 text-slate-300">
+      <div className="p-6 flex items-center justify-between">
+         <div className={cn("flex items-center gap-3 transition-all", collapsed && "opacity-0 invisible w-0")}>
+            <div className="h-8 w-8 bg-primary rounded-xl flex items-center justify-center text-white font-black">K</div>
+            <span className="font-black text-xl tracking-tight text-white uppercase">Admin</span>
+         </div>
+         <button onClick={() => setCollapsed(!collapsed)} className="p-2 hover:bg-slate-900 rounded-xl transition-colors">
+            {collapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
+         </button>
+      </div>
 
-  const drawer = (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.inverse', color: 'white' }}>
-      <Toolbar sx={{ px: 3, py: 4 }}>
-        <Typography variant="h5" sx={{ fontWeight: 900, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1, letterSpacing: '-1px' }}>
-          <WorkIcon sx={{ fontSize: 28 }} /> KEDevs <PillBadge variant="mint">ADMIN</PillBadge>
-        </Typography>
-      </Toolbar>
-      
-      <List sx={{ px: 2, flexGrow: 1 }}>
-        {menuItems.map((item) => (
-          <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
-            <ListItemButton 
-              component={Link} 
+      <nav className="flex-1 px-4 space-y-1 py-4">
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = pathname === item.path;
+          return (
+            <Link 
+              key={item.text} 
               href={item.path}
-              selected={pathname === item.path}
-              sx={{ 
-                borderRadius: 2,
-                py: 1.25,
-                color: 'rgba(255,255,255,0.6)',
-                '&.Mui-selected': { 
-                  bgcolor: 'rgba(255,255,255,0.1)', 
-                  color: 'primary.main',
-                  '& .MuiListItemIcon-root': { color: 'primary.main' }
-                },
-                '&:hover': {
-                  bgcolor: 'rgba(255,255,255,0.05)',
-                  color: 'white',
-                  '& .MuiListItemIcon-root': { color: 'white' }
-                }
-              }}
+              className={cn(
+                "flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-300 group",
+                isActive 
+                  ? "bg-primary text-white shadow-lg shadow-primary/20" 
+                  : "hover:bg-slate-900 hover:text-white"
+              )}
             >
-              <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>{item.icon}</ListItemIcon>
-              <ListItemText 
-                primary={
-                  <Typography sx={{ fontWeight: pathname === item.path ? 800 : 600, fontSize: '0.875rem' }}>
-                    {item.text}
-                  </Typography>
-                } 
-              />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
-      
-      <Box sx={{ p: 3 }}>
-        <ListItemButton 
-          onClick={logout} 
-          sx={{ 
-            borderRadius: 2, 
-            color: 'error.light', 
-            bgcolor: 'rgba(211, 47, 47, 0.1)',
-            '&:hover': { bgcolor: 'rgba(211, 47, 47, 0.2)' }
-          }}
-        >
-          <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}><LogoutIcon /></ListItemIcon>
-          <ListItemText 
-            primary={
-              <Typography sx={{ fontWeight: 800, fontSize: '0.875rem' }}>
-                Logout
-              </Typography>
-            } 
-          />
-        </ListItemButton>
-      </Box>
-    </Box>
+              <Icon className={cn("h-5 w-5 shrink-0", isActive ? "text-white" : "text-slate-500 group-hover:text-primary")} />
+              {!collapsed && <span className="font-bold text-sm">{item.text}</span>}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="p-6 mt-auto">
+         <Button 
+            variant="ghost" 
+            className="w-full justify-start gap-4 px-4 h-12 rounded-2xl text-red-400 hover:text-red-300 hover:bg-red-500/10 font-black"
+            onClick={logout}
+         >
+            <LogOut className="h-5 w-5" />
+            {!collapsed && <span>Sign Out</span>}
+         </Button>
+      </div>
+    </div>
   );
 
   return (
-    <Box sx={{ display: 'flex', bgcolor: 'background.subtle', minHeight: '100vh' }}>
-      <AppBar
-        position="fixed"
-        elevation={0}
-        sx={{
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
-          bgcolor: 'background.paper',
-          borderBottom: '1px solid',
-          borderColor: 'divider',
-          color: 'text.primary',
-          zIndex: (theme) => theme.zIndex.drawer + 1
-        }}
-      >
-        <Toolbar sx={{ justifyContent: 'space-between', height: 80 }}>
-          <IconButton
-            color="inherit"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: 'none' } }}
-          >
-            <MenuIcon />
-          </IconButton>
-          
-          <Typography variant="h4" sx={{ fontWeight: 800 }}>
-            {menuItems.find(item => item.path === pathname)?.text || 'Admin Panel'}
-          </Typography>
+    <div className="min-h-screen bg-slate-50/50 flex">
+      {/* Desktop Sidebar */}
+      <aside className={cn(
+        "hidden md:block transition-all duration-500 sticky top-0 h-screen z-50",
+        collapsed ? "w-24" : "w-[280px]"
+      )}>
+        <SidebarContent />
+      </aside>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <Button 
-              component={Link} 
-              href="/" 
-              variant="outlined" 
-              size="small"
-              sx={{ fontWeight: 800, borderRadius: 2 }}
-            >
-              Public Site
+      {/* Mobile Sidebar */}
+      <div className="md:hidden fixed top-4 left-4 z-50">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl border-slate-200 bg-white/80 backdrop-blur shadow-sm">
+              <Menu className="h-5 w-5" />
             </Button>
-            <Avatar sx={{ bgcolor: 'primary.main', fontWeight: 800 }}>{user?.fullName?.charAt(0)}</Avatar>
-          </Box>
-        </Toolbar>
-      </AppBar>
-      
-      <Box
-        component="nav"
-        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-      >
-        <Drawer
-          variant="temporary"
-          open={mobileOpen}
-          onClose={handleDrawerToggle}
-          ModalProps={{ keepMounted: true }}
-          sx={{
-            display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth, border: 'none' },
-          }}
-        >
-          {drawer}
-        </Drawer>
-        <Drawer
-          variant="permanent"
-          sx={{
-            display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth, border: 'none' },
-          }}
-          open
-        >
-          {drawer}
-        </Drawer>
-      </Box>
-      
-      <Box
-        component="main"
-        sx={{ flexGrow: 1, p: 4, width: { sm: `calc(100% - ${drawerWidth}px)` }, mt: 10 }}
-      >
-        {children}
-      </Box>
-    </Box>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-80 border-none">
+            <SidebarContent />
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+         {/* Top Header */}
+         <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-40 px-8 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+               <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+                  {menuItems.find(item => item.path === pathname)?.text || 'Platform Control'}
+               </h1>
+            </div>
+
+            <div className="flex items-center gap-6">
+               <div className="hidden lg:flex items-center gap-2 px-4 h-10 bg-slate-100 rounded-xl text-slate-500 border border-transparent focus-within:border-primary/20 focus-within:bg-white transition-all">
+                  <Search className="h-4 w-4" />
+                  <input type="text" placeholder="Global search..." className="bg-transparent border-none outline-none text-xs font-bold w-48" />
+               </div>
+
+               <div className="flex items-center gap-4">
+                  <Button variant="ghost" size="icon" className="rounded-xl relative">
+                     <Bell className="h-5 w-5" />
+                     <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full border-2 border-white" />
+                  </Button>
+                  
+                  <Separator orientation="vertical" className="h-6 bg-slate-200" />
+                  
+                  <Button variant="outline" className="rounded-xl font-black gap-2 h-10 border-slate-200" asChild>
+                     <Link href="/">
+                        <ExternalLink className="h-4 w-4" />
+                        Live Site
+                     </Link>
+                  </Button>
+
+                  <Avatar className="h-10 w-10 rounded-xl border-2 border-primary/10">
+                     <AvatarImage src={user?.avatarUrl} />
+                     <AvatarFallback className="bg-slate-900 text-white font-black text-xs uppercase">
+                        {user?.fullName?.charAt(0)}
+                     </AvatarFallback>
+                  </Avatar>
+               </div>
+            </div>
+         </header>
+
+         <main className="p-8 animate-in fade-in duration-500">
+            {children}
+         </main>
+      </div>
+    </div>
   );
 }

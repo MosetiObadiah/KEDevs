@@ -1,40 +1,42 @@
-// src/app/payments/page.tsx
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import {
-  Container,
-  Typography,
-  Box,
-  Grid,
-  Paper,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Chip,
-  Stack,
-  Card,
-  CardContent,
-  Divider,
-  CircularProgress,
-  Alert,
-} from '@mui/material';
-import VerifiedIcon from '@mui/icons-material/Verified';
-import SpeedIcon from '@mui/icons-material/Speed';
-import HistoryIcon from '@mui/icons-material/History';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutlined';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutlined';
+import Link from 'next/link';
+import { 
+  BadgeCheck, 
+  Zap, 
+  History, 
+  Clock, 
+  CheckCircle2, 
+  XCircle, 
+  Wallet, 
+  CreditCard, 
+  ArrowRight,
+  ShieldCheck,
+  Star,
+  Loader2,
+  Receipt,
+  AlertCircle
+} from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { usePlatformSettings } from '@/hooks/usePlatformSettings';
 import { paymentService } from '@/services/paymentService';
 import { spotlightService } from '@/services/spotlightService';
-import Link from 'next/link';
-import { toast } from 'react-hot-toast';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Separator } from '@/components/ui/separator';
 
 export default function PaymentsPage() {
   const { user } = useAuth();
@@ -75,19 +77,15 @@ export default function PaymentsPage() {
     try {
       const res = await paymentService.confirmSpotlight();
       if (res.success) {
-        toast.success('Spotlight activated! You are now featured.');
+        toast.success('Spotlight activated!');
         const slRes = await spotlightService.getMyStatus();
         if (slRes.success) setSpotlightStatus(slRes.data);
       }
     } catch (err: any) {
-      toast.error(err.message || 'No pending spotlight payment found.');
+      toast.error('No pending spotlight payment found.');
     } finally {
       setConfirming(false);
     }
-  };
-
-  const formatPaymentType = (type: string) => {
-    return type?.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) || type;
   };
 
   const formatDate = (dateStr: string) => {
@@ -101,216 +99,197 @@ export default function PaymentsPage() {
     if (diff <= 0) return 'Expired';
     const h = Math.floor(diff / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
-    if (h >= 24) return `${Math.floor(h / 24)}d ${h % 24}h left`;
-    return `${h}h ${m}m left`;
-  };
-
-  const statusColor = (status: string) => {
-    if (status === 'COMPLETED') return 'success';
-    if (status === 'PENDING') return 'warning';
-    if (status === 'FAILED') return 'error';
-    return 'default';
+    if (h >= 24) return `${Math.floor(h / 24)}d ${h % 24}h remaining`;
+    return `${h}h ${m}m remaining`;
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 6 }}>
-      <Typography variant="h3" sx={{ fontWeight: 800, mb: 1 }}>
-        Payments &{' '}
-        <Box component="span" sx={{ color: 'primary.main' }}>Billing</Box>
-      </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 5 }}>
-        Track your payment history and manage your active services.
-      </Typography>
+    <div className="container mx-auto px-4 py-20 animate-in fade-in duration-700">
+      <div className="mb-12 space-y-4">
+         <Badge variant="outline" className="rounded-lg font-black tracking-widest text-[10px] uppercase bg-primary/5 text-primary border-primary/10 px-3 py-1">
+            FINANCIAL LEDGER
+         </Badge>
+         <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">Payments & Billing</h1>
+         <p className="text-slate-500 font-semibold italic">Monitor your ecosystem transactions and active service subscriptions</p>
+      </div>
 
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
-          <CircularProgress />
-        </Box>
+         <div className="py-20 flex flex-col items-center gap-4">
+            <Loader2 className="h-10 w-10 text-primary animate-spin" />
+            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Synchronizing ledger...</p>
+         </div>
       ) : (
-        <Grid container spacing={4}>
-          {/* Left: Status cards */}
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Stack spacing={3}>
-              {/* Verification Status */}
-              <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-                <CardContent sx={{ p: 3 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                    <VerifiedIcon color="primary" />
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>Verification</Typography>
-                  </Box>
-                  <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography variant="body2" color="text.secondary">Status:</Typography>
-                    <Chip
-                      label={user?.isVerified ? 'Verified' : 'Unverified'}
-                      size="small"
-                      color={user?.isVerified ? 'success' : 'default'}
-                      sx={{ fontWeight: 700 }}
-                    />
-                  </Box>
-                  <Divider sx={{ my: 2 }} />
-                  {!user?.isVerified && (
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      fullWidth
-                      component={Link}
-                      href="/verify"
-                      sx={{ borderRadius: 2, fontWeight: 700 }}
-                    >
-                      Get Verified
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Spotlight Status (Developers only) */}
-              {isDev && (
-                <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-                  <CardContent sx={{ p: 3 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                      <SpeedIcon color="warning" />
-                      <Typography variant="h6" sx={{ fontWeight: 700 }}>Spotlight</Typography>
-                    </Box>
-                    <Box sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="body2" color="text.secondary">Status:</Typography>
-                      <Chip
-                        label={spotlightStatus?.active ? 'Active' : 'Inactive'}
-                        size="small"
-                        color={spotlightStatus?.active ? 'warning' : 'default'}
-                        sx={{ fontWeight: 700 }}
-                      />
-                    </Box>
-                    {spotlightStatus?.active && spotlightStatus?.endDate && (
-                      <Box sx={{ mt: 2, p: 2, borderRadius: 2, bgcolor: 'warning.50', border: '1px solid', borderColor: 'warning.light' }}>
-                        <Typography variant="caption" color="text.secondary">Time Remaining</Typography>
-                        <Typography variant="h5" sx={{ fontWeight: 900, color: 'warning.dark' }}>
-                          {formatTimeLeft(spotlightStatus.endDate)}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          Expires {formatDate(spotlightStatus.endDate)}
-                        </Typography>
-                      </Box>
-                    )}
-                    <Divider sx={{ my: 2 }} />
-                    {!spotlightStatus?.active && (
-                      <>
-                        <Button
-                          variant="contained"
-                          size="small"
-                          fullWidth
-                          component={Link}
-                          href="/profile/me?buySpotlight=true"
-                          sx={{ borderRadius: 2, fontWeight: 700, mb: 1 }}
-                        >
-                          Buy Spotlight Slot
+         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+            {/* Status Sidebar */}
+            <div className="lg:col-span-4 space-y-8">
+               {/* Verification Status */}
+               <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-slate-200/40 overflow-hidden bg-white">
+                  <CardContent className="p-8 space-y-6">
+                     <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                           <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                              <BadgeCheck className="h-5 w-5" />
+                           </div>
+                           <h3 className="font-black text-slate-900 tracking-tight">Verification</h3>
+                        </div>
+                        <Badge className={cn(
+                           "rounded-lg font-black text-[9px] uppercase tracking-widest border-none",
+                           user?.isVerified ? "bg-emerald-500" : "bg-slate-200 text-slate-400"
+                        )}>
+                           {user?.isVerified ? 'AUTHENTICATED' : 'UNVERIFIED'}
+                        </Badge>
+                     </div>
+                     <Separator className="bg-slate-50" />
+                     {!user?.isVerified && (
+                        <Button asChild variant="outline" className="w-full h-12 rounded-xl font-black border-slate-100 hover:bg-slate-50 text-[10px] uppercase tracking-widest">
+                           <Link href="/verify">Begin Verification Protocol</Link>
                         </Button>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          fullWidth
-                          onClick={handleConfirmSpotlight}
-                          disabled={confirming}
-                          sx={{ borderRadius: 2, fontWeight: 700 }}
-                        >
-                          {confirming ? <CircularProgress size={18} /> : 'Confirm Pending Payment'}
-                        </Button>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1, textAlign: 'center' }}>
-                          Already paid? Click above to activate your slot.
-                        </Typography>
-                      </>
-                    )}
+                     )}
                   </CardContent>
-                </Card>
-              )}
+               </Card>
 
-              {/* Membership */}
-              {subscriptions && (
-                <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-                  <CardContent sx={{ p: 3 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Membership</Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="body2" color="text.secondary">Annual:</Typography>
-                      <Chip
-                        label={subscriptions.annualMembershipActive ? 'Active' : 'Inactive'}
-                        size="small"
-                        color={subscriptions.annualMembershipActive ? 'success' : 'default'}
-                        sx={{ fontWeight: 700 }}
-                      />
-                    </Box>
-                    {subscriptions.membershipExpiresAt && (
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                        Expires {formatDate(subscriptions.membershipExpiresAt)}
-                      </Typography>
-                    )}
+               {/* Spotlight Status */}
+               {isDev && (
+                  <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-slate-200/40 overflow-hidden bg-white">
+                     <CardContent className="p-8 space-y-6">
+                        <div className="flex items-center justify-between">
+                           <div className="flex items-center gap-3">
+                              <div className="h-10 w-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center">
+                                 <Star className="h-5 w-5" />
+                              </div>
+                              <h3 className="font-black text-slate-900 tracking-tight">Spotlight</h3>
+                           </div>
+                           <Badge className={cn(
+                              "rounded-lg font-black text-[9px] uppercase tracking-widest border-none",
+                              spotlightStatus?.active ? "bg-amber-400" : "bg-slate-200 text-slate-400"
+                           )}>
+                              {spotlightStatus?.active ? 'LIVE_NOW' : 'INACTIVE'}
+                           </Badge>
+                        </div>
+
+                        {spotlightStatus?.active && spotlightStatus?.endDate && (
+                           <div className="p-6 rounded-2xl bg-amber-50 border border-amber-100 space-y-2">
+                              <p className="text-[9px] font-black uppercase tracking-widest text-amber-600 opacity-60">Temporal Remaining</p>
+                              <p className="text-2xl font-black text-amber-700 tracking-tight">{formatTimeLeft(spotlightStatus.endDate)}</p>
+                           </div>
+                        )}
+
+                        <Separator className="bg-slate-50" />
+                        
+                        {!spotlightStatus?.active && (
+                           <div className="space-y-4">
+                              <Button asChild className="w-full h-14 rounded-2xl font-black bg-slate-900 shadow-xl shadow-slate-900/10">
+                                 <Link href="/profile/me?buySpotlight=true">Purchase Visibility Slot</Link>
+                              </Button>
+                              <Button 
+                                 variant="ghost" 
+                                 className="w-full h-12 rounded-xl font-black text-[10px] uppercase tracking-widest text-primary gap-2"
+                                 onClick={handleConfirmSpotlight}
+                                 disabled={confirming}
+                              >
+                                 {confirming ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+                                 Sync Pending Payment
+                              </Button>
+                           </div>
+                        )}
+                     </CardContent>
+                  </Card>
+               )}
+
+               {/* Membership Subscription */}
+               {subscriptions && (
+                  <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-slate-200/40 overflow-hidden bg-white">
+                     <CardContent className="p-8 space-y-6">
+                        <div className="flex items-center gap-3">
+                           <div className="h-10 w-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                              <ShieldCheck className="h-5 w-5" />
+                           </div>
+                           <h3 className="font-black text-slate-900 tracking-tight">Annual Membership</h3>
+                        </div>
+                        <div className="flex items-center justify-between">
+                           <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Status</span>
+                           <Badge className={cn(
+                              "rounded-lg font-black text-[9px] uppercase tracking-widest border-none",
+                              subscriptions.annualMembershipActive ? "bg-indigo-500" : "bg-slate-200 text-slate-400"
+                           )}>
+                              {subscriptions.annualMembershipActive ? 'AUTHORIZED' : 'LOCKED'}
+                           </Badge>
+                        </div>
+                        {subscriptions.membershipExpiresAt && (
+                           <p className="text-[10px] font-bold text-slate-400 italic">Term expires {formatDate(subscriptions.membershipExpiresAt)}</p>
+                        )}
+                     </CardContent>
+                  </Card>
+               )}
+            </div>
+
+            {/* History Table */}
+            <div className="lg:col-span-8">
+               <Card className="rounded-[3rem] border-none shadow-2xl shadow-slate-200/40 overflow-hidden bg-white">
+                  <CardHeader className="p-10 pb-6 border-b border-slate-50 flex flex-row items-center justify-between">
+                     <div className="space-y-1">
+                        <CardTitle className="text-2xl font-black">Transaction Ledger</CardTitle>
+                        <CardDescription className="text-[10px] font-black uppercase tracking-widest text-slate-400">Archived financial activity</CardDescription>
+                     </div>
+                     <History className="h-6 w-6 text-slate-200" />
+                  </CardHeader>
+                  <CardContent className="p-0">
+                     {paymentHistory.length === 0 ? (
+                        <div className="py-24 text-center space-y-6">
+                           <Receipt className="h-16 w-16 text-slate-100 mx-auto" />
+                           <p className="font-black text-slate-400 uppercase tracking-widest text-xs">No transactions detected in current cycle</p>
+                        </div>
+                     ) : (
+                        <Table>
+                           <TableHeader className="bg-slate-50/50">
+                              <TableRow className="border-slate-100">
+                                 <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-10">Timestamp</TableHead>
+                                 <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-10">Service Node</TableHead>
+                                 <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-10">Amount (KES)</TableHead>
+                                 <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-10 text-right">Protocol Status</TableHead>
+                              </TableRow>
+                           </TableHeader>
+                           <TableBody>
+                              {paymentHistory.map((row) => (
+                                 <TableRow key={row.id} className="border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                    <TableCell className="py-6 px-10">
+                                       <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
+                                          <Clock className="h-3.5 w-3.5 text-slate-300" /> {formatDate(row.paidAt || row.createdAt)}
+                                       </div>
+                                    </TableCell>
+                                    <TableCell className="py-6 px-10">
+                                       <span className="font-black text-slate-900 text-sm tracking-tight">
+                                          {row.type?.replace(/_/g, ' ').toUpperCase() || 'PLATFORM_SERVICE'}
+                                       </span>
+                                    </TableCell>
+                                    <TableCell className="py-6 px-10">
+                                       <span className="font-black text-primary text-sm">
+                                          {Number(row.amount || 0).toLocaleString()}
+                                       </span>
+                                    </TableCell>
+                                    <TableCell className="py-6 px-10 text-right">
+                                       <Badge className={cn(
+                                          "rounded-lg font-black text-[9px] uppercase tracking-widest border-none px-2 py-0.5",
+                                          row.status === 'COMPLETED' ? "bg-emerald-500" : row.status === 'PENDING' ? "bg-amber-500" : "bg-red-500"
+                                       )}>
+                                          {row.status}
+                                       </Badge>
+                                    </TableCell>
+                                 </TableRow>
+                              ))}
+                           </TableBody>
+                        </Table>
+                     )}
+                     
+                     <div className="p-10 bg-slate-50 border-t border-slate-100 flex items-center gap-3">
+                        <AlertCircle className="h-4 w-4 text-slate-400" />
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">All transactions are processed via secure encrypted channels</p>
+                     </div>
                   </CardContent>
-                </Card>
-              )}
-            </Stack>
-          </Grid>
-
-          {/* Right: History */}
-          <Grid size={{ xs: 12, md: 8 }}>
-            <Paper sx={{ p: 4, borderRadius: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-                <HistoryIcon color="action" />
-                <Typography variant="h5" sx={{ fontWeight: 700 }}>Payment History</Typography>
-              </Box>
-
-              {paymentHistory.length === 0 ? (
-                <Box sx={{ py: 6, textAlign: 'center' }}>
-                  <HistoryIcon sx={{ fontSize: 60, color: 'divider', mb: 2 }} />
-                  <Typography color="text.secondary">No payments yet.</Typography>
-                </Box>
-              ) : (
-                <TableContainer>
-                  <Table>
-                    <TableHead sx={{ bgcolor: 'background.subtle' }}>
-                      <TableRow>
-                        <TableCell sx={{ fontWeight: 700 }}>DATE</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>SERVICE</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>AMOUNT</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>RECEIPT</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>STATUS</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {paymentHistory.map((row: any) => (
-                        <TableRow key={row.id} hover>
-                          <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                            {formatDate(row.paidAt || row.createdAt)}
-                          </TableCell>
-                          <TableCell sx={{ fontWeight: 600 }}>{formatPaymentType(row.type)}</TableCell>
-                          <TableCell sx={{ fontWeight: 700, color: 'primary.main' }}>
-                            KES {Number(row.amount || 0).toLocaleString()}
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="caption" sx={{ fontFamily: 'monospace', bgcolor: 'background.subtle', px: 1, py: 0.5, borderRadius: 1 }}>
-                              {row.mpesaReceiptNo || '—'}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Chip
-                              icon={
-                                row.status === 'COMPLETED' ? <CheckCircleOutlineIcon fontSize="small" /> :
-                                row.status === 'PENDING' ? <AccessTimeIcon fontSize="small" /> :
-                                <ErrorOutlineIcon fontSize="small" />
-                              }
-                              label={row.status}
-                              size="small"
-                              color={statusColor(row.status) as any}
-                              sx={{ fontWeight: 700 }}
-                            />
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
-            </Paper>
-          </Grid>
-        </Grid>
+               </Card>
+            </div>
+         </div>
       )}
-    </Container>
+    </div>
   );
 }

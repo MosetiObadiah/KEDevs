@@ -1,30 +1,26 @@
-// src/app/page.tsx
 'use client';
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import {
-  Box,
-  Container,
-  Typography,
-  Button,
-  Grid,
-  Card,
-  CardContent,
-  Chip,
-  Stack,
-  Divider,
-  Avatar,
-  Skeleton,
-  alpha,
-} from '@mui/material';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import VerifiedIcon from '@mui/icons-material/Verified';
+import { 
+  ArrowRight, 
+  CheckCircle2, 
+  Briefcase, 
+  Building2, 
+  Users,
+  MapPin,
+  Clock,
+  Sparkles
+} from 'lucide-react';
 import { Hero } from '@/components/home/Hero';
-import { PillBadge } from '@/components/shared/PillBadge';
+import SpotlightSection from '@/components/home/SpotlightSection';
 import { jobService } from '@/services/jobService';
 import { developerService } from '@/services/developerService';
 import { JobSummary, DeveloperSummary } from '@/lib/types';
-import SpotlightSection from '@/components/home/SpotlightSection';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function HomePage() {
   const [featuredJobs, setFeaturedJobs] = useState<JobSummary[]>([]);
@@ -41,7 +37,7 @@ export default function HomePage() {
     const fetchLandingData = async () => {
       try {
         // Fetch Jobs
-        const jobsResponse = await jobService.getPublicJobs(0, 4);
+        const jobsResponse = await jobService.getPublicJobs(0, 3);
         if (jobsResponse.success) {
           setFeaturedJobs(jobsResponse.data.content);
         }
@@ -65,9 +61,7 @@ export default function HomePage() {
                 profilePhoto: slot.profilePhoto,
                 currentLastRole: slot.currentLastRole,
                 skills: slot.featuredProjects && slot.featuredProjects.length > 0
-                  ? (Array.isArray(slot.featuredProjects[0].techStack)
-                      ? slot.featuredProjects[0].techStack
-                      : (slot.featuredProjects[0].techStack || '').split(',').map((s: string) => s.trim()))
+                  ? (slot.featuredProjects[0].techStack || [])
                   : [],
                 availabilityStatus: 'AVAILABLE_NOW',
                 isVerified: slot.isVerified,
@@ -97,7 +91,6 @@ export default function HomePage() {
     fetchLandingData();
   }, []);
 
-  // Set random job and developer for hero display
   useEffect(() => {
     if (featuredJobs.length > 0) {
       const randomJobIdx = Math.floor(Math.random() * featuredJobs.length);
@@ -117,140 +110,171 @@ export default function HomePage() {
   };
 
   return (
-    <Box>
+    <div className="flex flex-col">
       <Hero randomJob={randomJob} randomDev={randomDev} />
 
       {/* Featured Jobs Section */}
-      <Box sx={{ bgcolor: 'background.subtle', py: { xs: 10, md: 14 } }}>
-        <Container maxWidth="xl">
-          <Box sx={{ mb: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-            <Box>
-              <PillBadge variant="sage">OPPORTUNITIES</PillBadge>
-              <Typography variant="h2" sx={{ mt: 2, fontWeight: 900 }}>
-                Spotlight <Box component="span" sx={{ color: 'primary.main' }}>Jobs</Box>
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1, maxWidth: 520 }}>
-                The most upvoted and newest jobs currently available for developers.
-              </Typography>
-            </Box>
-            <Button
-              component={Link}
-              href="/jobs"
-              endIcon={<ArrowForwardIcon />}
-              sx={{ fontWeight: 700, mb: 1 }}
-            >
-              View Jobs Board
+      <section className="bg-muted/30 py-20 md:py-32">
+        <div className="container mx-auto px-6">
+          <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-12">
+            <div className="space-y-4">
+              <Badge variant="secondary" className="bg-primary/10 text-primary border-none font-bold uppercase tracking-widest text-[10px]">Opportunities</Badge>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+                Spotlight <span className="text-primary">Jobs</span>
+              </h2>
+              <p className="text-muted-foreground max-w-lg">
+                The most upvoted and newest jobs currently available for developers in Kenya.
+              </p>
+            </div>
+            <Button variant="ghost" className="font-bold group" asChild>
+              <Link href="/jobs">
+                View Jobs Board <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
             </Button>
-          </Box>
+          </div>
 
-          <Grid container spacing={4}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {isLoadingJobs ? (
               [1, 2, 3].map((i) => (
-                <Grid size={{ xs: 12, md: 4 }} key={i}>
-                  <Card sx={{ p: 1, height: '100%' }}>
-                    <CardContent sx={{ p: 3 }}>
-                      <Skeleton variant="rectangular" width={60} height={24} sx={{ mb: 2, borderRadius: 1 }} />
-                      <Skeleton variant="text" height={40} sx={{ mb: 1 }} />
-                      <Skeleton variant="text" width="60%" sx={{ mb: 3 }} />
-                    </CardContent>
-                  </Card>
-                </Grid>
+                <Card key={i} className="border-border/50">
+                  <CardHeader>
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                    <Skeleton className="h-8 w-3/4 mt-4" />
+                    <Skeleton className="h-4 w-1/2 mt-2" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex gap-2">
+                      <Skeleton className="h-6 w-16" />
+                      <Skeleton className="h-6 w-16" />
+                    </div>
+                  </CardContent>
+                </Card>
               ))
             ) : (
               featuredJobs.map((job) => (
-                <Grid size={{ xs: 12, md: 4 }} key={job.id}>
-                  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 1 }}>
-                    <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                      <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                        <Chip label={formatJobType(job.jobType)} size="small" variant="outlined" sx={{ fontWeight: 700, borderRadius: 1.5 }} />
-                        {job.status === 'OPEN' && <VerifiedIcon color="primary" fontSize="small" />}
-                      </Stack>
-                      <Typography variant="h4" component={Link} href={`/jobs/${job.id}`} sx={{ fontWeight: 800, color: 'text.primary', textDecoration: 'none', display: 'block', mb: 1, '&:hover': { color: 'primary.main' } }}>
-                        {job.title}
-                      </Typography>
-                      <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 600, mb: 3 }}>
-                        {job.companyName} • {job.locationCity}
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {job.tags.slice(0, 3).map(tag => (
-                          <Chip key={tag} label={tag} size="small" sx={{ borderRadius: 1 }} />
-                        ))}
-                      </Box>
-                    </CardContent>
-                    <Divider />
-                    <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'primary.main' }}>{job.workType}</Typography>
-                      <Button component={Link} href={`/jobs/${job.id}`} sx={{ fontWeight: 700 }}>Apply →</Button>
-                    </Box>
-                  </Card>
-                </Grid>
+                <Card key={job.id} className="border-border/50 hover:shadow-lg hover:shadow-primary/5 transition-all group">
+                  <CardHeader className="pb-4">
+                    <div className="flex justify-between items-start mb-4">
+                      <Badge variant="outline" className="font-bold border-muted-foreground/20 text-muted-foreground uppercase text-[10px]">
+                        {formatJobType(job.jobType)}
+                      </Badge>
+                      {job.status === 'OPEN' && <CheckCircle2 className="h-5 w-5 text-primary" />}
+                    </div>
+                    <Link href={`/jobs/${job.id}`} className="group-hover:text-primary transition-colors">
+                      <h3 className="text-xl font-bold leading-tight mb-1">{job.title}</h3>
+                    </Link>
+                    <p className="text-sm font-semibold text-muted-foreground">
+                      {job.companyName} • {job.locationCity}
+                    </p>
+                  </CardHeader>
+                  <CardContent className="pb-6">
+                    <div className="flex flex-wrap gap-1.5">
+                      {job.tags.slice(0, 3).map(tag => (
+                        <Badge key={tag} variant="secondary" className="text-[10px] py-0 px-2 font-medium">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                  <CardFooter className="pt-4 border-t border-border/50 flex justify-between items-center bg-muted/10">
+                    <span className="text-xs font-bold text-primary uppercase tracking-wider">{job.workType}</span>
+                    <Button variant="link" className="p-0 h-auto font-bold text-foreground group/btn" asChild>
+                      <Link href={`/jobs/${job.id}`}>
+                        Apply <ArrowRight className="ml-1 h-3.5 w-3.5 group-hover/btn:translate-x-1 transition-transform" />
+                      </Link>
+                    </Button>
+                  </CardFooter>
+                </Card>
               ))
             )}
-          </Grid>
-        </Container>
-      </Box>
+          </div>
+        </div>
+      </section>
 
       {/* Spotlight Section */}
       <SpotlightSection dayDev={dayDev} weekDev={weekDev} loading={isLoadingDevs} />
 
       {/* Developer Directory Preview Section */}
-      <Box sx={{ bgcolor: 'background.paper', py: { xs: 10, md: 14 } }}>
-        <Container maxWidth="xl">
-          <Box sx={{ mb: 6, textAlign: 'center' }}>
-            <PillBadge variant="mint">TALENT DIRECTORY</PillBadge>
-            <Typography variant="h2" sx={{ mt: 2, fontWeight: 900 }}>
-              Top <Box component="span" sx={{ color: 'primary.main' }}>Developers</Box>
-            </Typography>
-          </Box>
+      <section className="py-20 md:py-32 bg-background">
+        <div className="container mx-auto px-6">
+          <div className="flex flex-col items-center text-center mb-16 space-y-4">
+            <Badge variant="secondary" className="bg-primary/10 text-primary border-none font-bold uppercase tracking-widest text-[10px]">Talent Directory</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+              Top <span className="text-primary">Developers</span>
+            </h2>
+            <p className="text-muted-foreground max-w-lg">
+              Connect with Kenya's most skilled engineers and designers.
+            </p>
+          </div>
 
-          <Grid container spacing={4}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {isLoadingDevs ? (
               [1, 2, 3].map((i) => (
-                <Grid size={{ xs: 12, md: 4 }} key={i}>
-                  <Card sx={{ textAlign: 'center', p: 4 }}>
-                    <Skeleton variant="circular" width={100} height={100} sx={{ mx: 'auto', mb: 3 }} />
-                    <Skeleton variant="text" width="60%" sx={{ mx: 'auto', mb: 1 }} />
-                    <Skeleton variant="text" width="40%" sx={{ mx: 'auto', mb: 3 }} />
-                  </Card>
-                </Grid>
+                <Card key={i} className="text-center p-8 border-border/50">
+                  <Skeleton className="h-24 w-24 rounded-full mx-auto mb-6" />
+                  <Skeleton className="h-8 w-3/4 mx-auto mb-2" />
+                  <Skeleton className="h-4 w-1/2 mx-auto mb-6" />
+                  <div className="flex justify-center gap-2">
+                    <Skeleton className="h-6 w-16" />
+                    <Skeleton className="h-6 w-16" />
+                  </div>
+                </Card>
               ))
             ) : (
               spotlightDevs.map((dev) => (
-                <Grid size={{ xs: 12, md: 4 }} key={dev.id}>
-                  <Card sx={{ textAlign: 'center', p: 4, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                    <Avatar src={dev.profilePhoto} sx={{ width: 100, height: 100, mx: 'auto', mb: 3, bgcolor: 'primary.light', color: 'primary.main', fontSize: '2rem', fontWeight: 800 }}>
-                      {!dev.profilePhoto && dev.firstName.charAt(0)}
-                    </Avatar>
-                    <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>{dev.firstName} {dev.lastName}</Typography>
-                    <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 600, mb: 3 }}>{dev.currentLastRole}</Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 0.5, mb: 4, flexGrow: 1 }}>
-                      {dev.skills.slice(0, 4).map(skill => (
-                        <Chip key={skill} label={skill} size="small" variant="outlined" />
-                      ))}
-                    </Box>
-                    <Button variant="outlined" fullWidth component={Link} href={`/developers/${dev.id}`} sx={{ borderRadius: 2, fontWeight: 700, mt: 'auto' }}>View Full Profile</Button>
-                  </Card>
-                </Grid>
+                <Card key={dev.id} className="text-center p-8 border-border/50 hover:shadow-xl hover:shadow-primary/5 transition-all">
+                  <Avatar className="h-24 w-24 mx-auto mb-6 border-4 border-muted shadow-sm">
+                    <AvatarImage src={dev.profilePhoto} />
+                    <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-black">
+                      {dev.firstName.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <h3 className="text-xl font-bold mb-1">{dev.firstName} {dev.lastName}</h3>
+                  <p className="text-sm font-semibold text-muted-foreground mb-6">{dev.currentLastRole}</p>
+                  <div className="flex flex-wrap justify-center gap-1.5 mb-8">
+                    {dev.skills.slice(0, 4).map(skill => (
+                      <Badge key={skill} variant="secondary" className="text-[10px] py-0 px-2 font-medium">
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                  <Button variant="outline" className="w-full font-bold group" asChild>
+                    <Link href={`/developers/${dev.id}`}>
+                      View Full Profile <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                  </Button>
+                </Card>
               ))
             )}
-          </Grid>
+          </div>
 
-          <Box sx={{ mt: 8, textAlign: 'center' }}>
-            <Button variant="contained" size="large" component={Link} href="/developers" sx={{ px: 6, py: 2, fontWeight: 800, borderRadius: 3 }}>
-              Browse Developer Directory
+          <div className="mt-16 text-center">
+            <Button size="lg" className="h-14 px-10 font-black rounded-2xl shadow-xl shadow-primary/20" asChild>
+              <Link href="/developers">Browse Developer Directory</Link>
             </Button>
-          </Box>
-        </Container>
-      </Box>
+          </div>
+        </div>
+      </section>
 
       {/* CTA Section */}
-      <Box sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', py: { xs: 10, md: 14 } }}>
-        <Container maxWidth="md" sx={{ textAlign: 'center' }}>
-          <Typography variant="h2" sx={{ mb: 3, fontWeight: 900 }}>Ready to grow your team?</Typography>
-          <Typography variant="body1" sx={{ mb: 5, fontSize: '1.25rem', opacity: 0.9 }}>Join hundreds of companies hiring top Kenyan developers every day.</Typography>
-          <Button variant="contained" color="primary" size="large" component={Link} href="/register" sx={{ px: 6, py: 2, fontWeight: 800, borderRadius: 2, bgcolor: 'white', color: 'primary.main', '&:hover': { bgcolor: alpha('#fff', 0.9) } }}>Post a Job for Free</Button>
-        </Container>
-      </Box>
-    </Box>
+      <section className="bg-primary py-20 md:py-32 relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none opacity-10">
+          <div className="absolute top-0 right-0 translate-x-1/3 -translate-y-1/3 w-96 h-96 border-[40px] border-white rounded-full" />
+          <div className="absolute bottom-0 left-0 -translate-x-1/3 translate-y-1/3 w-64 h-64 border-[30px] border-white rounded-full" />
+        </div>
+        <div className="container mx-auto px-6 text-center relative z-10 max-w-3xl">
+          <h2 className="text-3xl md:text-5xl font-black text-primary-foreground mb-6 tracking-tight">Ready to grow your team?</h2>
+          <p className="text-primary-foreground/80 text-lg md:text-xl mb-12 leading-relaxed font-medium">
+            Join hundreds of companies hiring top Kenyan developers every day. Post your first job for free.
+          </p>
+          <Button size="lg" variant="secondary" className="h-16 px-12 text-lg font-black rounded-2xl shadow-2xl shadow-black/20 group" asChild>
+            <Link href="/register">
+              Post a Job for Free <Sparkles className="ml-3 h-5 w-5 group-hover:scale-110 transition-transform" />
+            </Link>
+          </Button>
+        </div>
+      </section>
+    </div>
   );
 }
+

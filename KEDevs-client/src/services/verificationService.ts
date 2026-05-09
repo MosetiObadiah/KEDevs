@@ -1,5 +1,4 @@
-import { ApiResponse } from '@/lib/types';
-import { apiClient } from '@/lib/api-client';
+import { apiClient, ApiResponse } from '@/lib/api-client';
 
 export enum VerificationStatus {
   NONE = 'NONE',
@@ -32,7 +31,8 @@ export const verificationService = {
 
   async initiate(phoneNumber: string): Promise<ApiResponse<InitiateVerificationResponse>> {
     return apiClient.post<ApiResponse<InitiateVerificationResponse>>(
-      `/api/v1/verification/initiate?phoneNumber=${phoneNumber}`
+      `/api/v1/verification/initiate?phoneNumber=${phoneNumber}`,
+      {}
     );
   },
 

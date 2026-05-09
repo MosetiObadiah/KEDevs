@@ -1,81 +1,73 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
-import {
-  Container,
-  Box,
-  Typography,
-  Paper,
-  Grid,
-  Avatar,
-  Button,
-  TextField,
-  Chip,
-  Switch,
-  Divider,
-  Stack,
-  Card,
-  CardContent,
-  Tooltip,
-  CircularProgress,
-  Alert,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormControlLabel,
-  Link,
-  Autocomplete,
-  Fade,
-  Zoom,
-  alpha,
-  Slider,
-} from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import Cropper from 'react-easy-crop';
-import EditIcon from '@mui/icons-material/Edit';
-import SaveIcon from '@mui/icons-material/Save';
-import GitHubIcon from '@mui/icons-material/GitHub';
-import LinkedInIcon from '@mui/icons-material/LinkedIn';
-import LanguageIcon from '@mui/icons-material/Language';
-import VerifiedIcon from '@mui/icons-material/Verified';
-import SpeedIcon from '@mui/icons-material/Speed';
-import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete';
-import SchoolIcon from '@mui/icons-material/School';
-import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
-import CodeIcon from '@mui/icons-material/Code';
-import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
-import StarIcon from '@mui/icons-material/Star';
-import StarBorderIcon from '@mui/icons-material/StarBorder';
-import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import EmailIcon from '@mui/icons-material/Email';
-import PhoneIcon from '@mui/icons-material/Phone';
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import BusinessIcon from '@mui/icons-material/Business';
-import PeopleIcon from '@mui/icons-material/People';
-import XIcon from '@mui/icons-material/X';
-import TwitterIcon from '@mui/icons-material/Twitter';
+import { 
+  Edit2, 
+  Save, 
+  Globe, 
+  CheckCircle2, 
+  Zap, 
+  Plus, 
+  Trash2, 
+  GraduationCap, 
+  Award, 
+  Code2, 
+  Trophy, 
+  Star, 
+  Camera, 
+  Upload, 
+  MapPin, 
+  Mail, 
+  Phone, 
+  ExternalLink, 
+  Eye, 
+  Building2, 
+  Users2, 
+  Loader2,
+  X,
+  ShieldCheck,
+  Briefcase
+} from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { PillBadge } from '@/components/shared/PillBadge';
-import { KENYA_COUNTIES, INDUSTRIES } from '@/lib/constants';
 import { developerService } from '@/services/developerService';
 import { employerService } from '@/services/employerService';
 import { spotlightService } from '@/services/spotlightService';
+import { KENYA_COUNTIES, INDUSTRIES } from '@/lib/constants';
 import BuySpotlightDialog from '@/components/profile/BuySpotlightDialog';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle,
+  DialogTrigger 
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 const COMMON_SKILLS = [
   'React', 'Java', 'Docker', 'Node.js', 'Python', 'TypeScript', 'Spring Boot', 'AWS', 
@@ -177,6 +169,7 @@ export default function MyProfile() {
     companyBio: '',
     logoUrl: '',
     twitterUrl: '',
+    profilePhoto: ''
   });
 
   const [spotlightStatus, setSpotlightStatus] = useState<any>(null);
@@ -187,7 +180,6 @@ export default function MyProfile() {
   const [newItem, setNewItem] = useState<any>({});
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -278,10 +270,11 @@ export default function MyProfile() {
       if (response.success) {
         setIsEditing(false);
         setProfile({ ...profile, ...response.data });
+        toast.success('Profile updated successfully');
       }
     } catch (err: any) {
       console.error(err);
-      alert(err.message || 'Failed to update basic info.');
+      toast.error(err.message || 'Failed to update profile.');
     } finally {
       setIsSaving(false);
     }
@@ -291,8 +284,10 @@ export default function MyProfile() {
     try {
       await developerService.updateAvailability({ availabilityStatus: status });
       setProfile({ ...profile, availabilityStatus: status });
+      toast.success(`Availability set to ${status.replace(/_/g, ' ')}`);
     } catch (err) {
       console.error(err);
+      toast.error('Failed to update availability');
     }
   };
 
@@ -300,8 +295,10 @@ export default function MyProfile() {
     try {
       await developerService.updateVisibility({ profileVisibility: visibility });
       setProfile({ ...profile, profileVisibility: visibility });
+      toast.success(`Visibility set to ${visibility}`);
     } catch (err) {
       console.error(err);
+      toast.error('Failed to update visibility');
     }
   };
 
@@ -360,12 +357,12 @@ export default function MyProfile() {
         case 'project':
           if (newItem.isFeatured) {
             if (!selectedFile) {
-              alert('A project screenshot is required to feature this project.');
+              toast.error('A project screenshot is required to feature this project.');
               setIsSaving(false);
               return;
             }
             if (!newItem.projectUrl) {
-              alert('A Live URL is required to feature this project.');
+              toast.error('A Live URL is required to feature this project.');
               setIsSaving(false);
               return;
             }
@@ -378,9 +375,10 @@ export default function MyProfile() {
       }
       loadProfile(false);
       closeDialog();
+      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} added successfully`);
     } catch (err: any) {
       console.error(err);
-      alert(err.message || 'Failed to add item.');
+      toast.error(err.message || 'Failed to add item.');
     } finally {
       setIsSaving(false);
     }
@@ -414,8 +412,10 @@ export default function MyProfile() {
           break;
       }
       loadProfile(false);
+      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} removed`);
     } catch (err) {
       console.error('Failed to remove item', err);
+      toast.error('Failed to remove item');
     } finally {
       setIsRefreshing(false);
     }
@@ -453,9 +453,10 @@ export default function MyProfile() {
         await developerService.uploadCertificationImage(id, file);
       }
       loadProfile(false);
+      toast.success('File uploaded successfully');
     } catch (err) {
       console.error(err);
-      alert('Failed to upload file.');
+      toast.error('Failed to upload file.');
     } finally {
       setIsSaving(false);
     }
@@ -463,980 +464,1068 @@ export default function MyProfile() {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', bgcolor: 'background.subtle' }}>
-        <Stack spacing={3} sx={{ alignItems: 'center' }}>
-          <CircularProgress size={60} thickness={4} />
-          <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 700 }}>Curating your professional story...</Typography>
-        </Stack>
-      </Box>
+      <div className="flex flex-col items-center justify-center min-h-[80vh] space-y-4">
+        <Loader2 className="h-12 w-12 text-primary animate-spin" />
+        <p className="text-xl font-bold text-muted-foreground animate-pulse">Curating your professional story...</p>
+      </div>
     );
   }
 
-  if (user?.role === 'EMPLOYER') {
-    return (
-      <Box sx={{ 
-        bgcolor: 'background.subtle', 
-        minHeight: '100vh', 
-        py: { xs: 4, md: 8 },
-        backgroundImage: 'radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.05) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.05) 0%, transparent 50%)'
-      }}>
-        <Container maxWidth="xl">
-          {isRefreshing && (
-            <Box sx={{ position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 2000 }}>
-              <Paper sx={{ px: 3, py: 1, borderRadius: 10, display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'primary.main', color: 'white', boxShadow: 6 }}>
-                <CircularProgress size={16} color="inherit" />
-                <Typography variant="body2" sx={{ fontWeight: 800 }}>Updating profile...</Typography>
-              </Paper>
-            </Box>
-          )}
+  const isEmployer = user?.role === 'EMPLOYER';
 
-          <Fade in timeout={800}>
-            <Box sx={{ mb: 6 }}>
-              {!isEditing && (!profile.companyName || !profile.industry || !profile.locationHQ || !profile.companyBio) && (
-                <Alert severity="warning" sx={{ mb: 3, borderRadius: 3, fontWeight: 600 }} action={<Button color="inherit" size="small" sx={{ fontWeight: 800 }} onClick={() => setIsEditing(true)}>Complete Profile</Button>}>
-                  Your company profile is incomplete. Click <strong>Complete Profile</strong> to add your company name, bio, and more.
-                </Alert>
-              )}
-              <Grid container spacing={4} sx={{ alignItems: 'center' }}>
-                <Grid size={{ xs: 12, md: 8 }}>
-                  <Box sx={{ display: 'flex', alignItems: { xs: 'center', md: 'flex-start' }, flexDirection: { xs: 'column', md: 'row' }, gap: 4, textAlign: { xs: 'center', md: 'left' } }}>
-                    <Box sx={{ position: 'relative' }}>
-                      <Avatar
-                        src={profile.logoUrl}
-                        sx={{
-                          width: { xs: 120, md: 160 },
-                          height: { xs: 120, md: 160 },
-                          bgcolor: 'background.paper',
-                          border: '6px solid white',
-                          boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-                          borderRadius: 4
-                        }}
-                      >
-                        <BusinessIcon sx={{ fontSize: '4rem', color: 'divider' }} />
-                      </Avatar>
-                      {profile.isVerified && (
-                        <Box sx={{ position: 'absolute', top: -10, right: -10, bgcolor: 'white', borderRadius: '50%', p: 0.5, boxShadow: 2, zIndex: 2 }}>
-                          <VerifiedIcon color="primary" sx={{ fontSize: 32 }} />
-                        </Box>
+  return (
+    <div className="min-h-screen bg-slate-50/50 pb-20">
+      {/* Background Decorative Elements */}
+      <div className="absolute top-0 left-0 w-full h-[400px] bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
+      <div className="absolute top-40 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+      
+      <div className="container mx-auto px-4 pt-12 relative z-10">
+        {/* Profile Header Card */}
+        <Card className="border-none shadow-2xl shadow-primary/5 overflow-hidden rounded-[2rem] mb-12">
+          <div className="h-32 bg-gradient-to-r from-primary to-primary-foreground/20" />
+          <CardContent className="pt-0 -mt-16 pb-8">
+            <div className="flex flex-col md:flex-row gap-8 items-start">
+              <div className="relative group">
+                <Avatar className="w-40 h-40 border-[8px] border-white shadow-xl rounded-[2.5rem] bg-white">
+                  <AvatarImage src={isEmployer ? profile.logoUrl : profile.profilePhoto} className="object-cover" />
+                  <AvatarFallback className="text-5xl font-black bg-primary text-white">
+                    {isEmployer ? (profile.companyName?.charAt(0) || <Building2 />) : (profile.firstName?.charAt(0) || <Users2 />)}
+                  </AvatarFallback>
+                </Avatar>
+                
+                <Label htmlFor="photo-upload" className="absolute bottom-2 right-2 h-10 w-10 bg-primary text-white rounded-2xl flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 transition-transform z-20 border-4 border-white">
+                   <Camera className="h-5 w-5" />
+                   <input 
+                      id="photo-upload" 
+                      type="file" 
+                      className="hidden" 
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = () => {
+                            setCropImageSrc(reader.result as string);
+                            setCrop({ x: 0, y: 0 });
+                            setZoom(1);
+                            setCropDialogOpen(true);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                   />
+                </Label>
+                
+                {profile.isVerified && (
+                  <div className="absolute top-2 right-2 h-8 w-8 bg-white text-primary rounded-full flex items-center justify-center shadow-md z-20 border-2 border-primary/10">
+                    <ShieldCheck className="h-5 w-5 fill-primary/10" />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex-1 pt-12 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                  <div>
+                    <div className="flex items-center gap-3 flex-wrap mb-2">
+                       <Badge variant="outline" className="rounded-lg font-black tracking-wider text-[10px] uppercase bg-primary/5 text-primary border-primary/20">
+                          {user?.role} PROFILE
+                       </Badge>
+                       {profile.isVerified && (
+                         <Badge className="bg-emerald-500 hover:bg-emerald-600 rounded-lg font-black tracking-wider text-[10px] uppercase">
+                           VERIFIED
+                         </Badge>
+                       )}
+                       {isEmployer && profile.isApproved && (
+                         <Badge className="bg-blue-500 hover:bg-blue-600 rounded-lg font-black tracking-wider text-[10px] uppercase">
+                           APPROVED EMPLOYER
+                         </Badge>
+                       )}
+                    </div>
+                    
+                    <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900">
+                       {isEmployer ? (profile.companyName || 'My Company') : `${profile.firstName} ${profile.lastName}`}
+                    </h1>
+                    
+                    <p className="text-lg md:text-xl font-semibold text-slate-500 mt-1 flex items-center gap-2">
+                       {isEmployer ? (profile.industry || 'Industry not set') : (profile.currentLastRole || 'Awaiting Role Definition')}
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button 
+                      size="lg" 
+                      className={cn(
+                        "rounded-2xl font-black px-8 h-14 shadow-xl transition-all",
+                        isEditing ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20" : "shadow-primary/20"
                       )}
-                      <IconButton
-                        component="label"
-                        sx={{
-                          position: 'absolute',
-                          bottom: -10,
-                          right: -10,
-                          bgcolor: 'white',
-                          boxShadow: 3,
-                          '&:hover': { bgcolor: 'background.paper' },
-                          width: 44,
-                          height: 44,
-                          zIndex: 2
-                        }}
-                      >
-                        <input
-                          type="file"
-                          accept="image/*"
-                          hidden
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              const reader = new FileReader();
-                              reader.onload = () => {
-                                setCropImageSrc(reader.result as string);
-                                setCrop({ x: 0, y: 0 });
-                                setZoom(1);
-                                setCropDialogOpen(true);
-                              };
-                              reader.readAsDataURL(file);
-                            }
-                          }}
-                        />
-                        <PhotoCameraIcon fontSize="small" />
-                      </IconButton>
-                    </Box>
-                    <Box sx={{ pt: { md: 2 }, flexGrow: 1 }}>
-                      {isEditing ? (
-                         <Stack spacing={2} sx={{ width: '100%' }}>
-                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                              <TextField size="small" label="Company Name" value={profile.companyName || ''} onChange={(e) => setProfile({ ...profile, companyName: e.target.value })} fullWidth />
-                              <TextField 
-                                size="small" 
-                                select 
-                                label="Industry" 
-                                value={profile.industry || ''} 
-                                onChange={(e) => setProfile({ ...profile, industry: e.target.value })} 
-                                fullWidth
-                              >
-                                {INDUSTRIES.map((option) => (
-                                  <MenuItem key={option} value={option}>
-                                    {option}
-                                  </MenuItem>
-                                ))}
-                              </TextField>
-                            </Stack>
-                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                              <TextField 
-                                size="small" 
-                                select
-                                label="Headquarters County" 
-                                value={profile.locationHQ ? profile.locationHQ.split(',')[0] : ''} 
-                                onChange={(e) => setProfile({ ...profile, locationHQ: e.target.value ? `${e.target.value}, Kenya` : '' })} 
-                                fullWidth
-                              >
-                                <MenuItem value="" disabled>Select county...</MenuItem>
-                                {KENYA_COUNTIES.map((county) => (
-                                  <MenuItem key={county} value={county}>
-                                    {county}
-                                  </MenuItem>
-                                ))}
-                              </TextField>
-                              <FormControl fullWidth size="small">
-                                <InputLabel>Company Size</InputLabel>
-                                <Select
-                                  value={profile.companySize || 'TEN_TO_FIFTY'}
-                                  label="Company Size"
-                                  onChange={(e) => setProfile({ ...profile, companySize: e.target.value })}
-                                >
-                                  <MenuItem value="ONE_TO_TEN">1-10 employees</MenuItem>
-                                  <MenuItem value="TEN_TO_FIFTY">11-50 employees</MenuItem>
-                                  <MenuItem value="FIFTY_TO_TWO_HUNDRED">51-200 employees</MenuItem>
-                                  <MenuItem value="TWO_HUNDRED_PLUS">200+ employees</MenuItem>
-                                </Select>
-                              </FormControl>
-                            </Stack>
-                         </Stack>
-                      ) : (
-                        <>
-                          <Stack direction="row" spacing={1} sx={{ mb: 1.5, flexWrap: 'wrap', justifyContent: { xs: 'center', md: 'flex-start' } }}>
-                            {profile.isApproved && <PillBadge variant="mint">APPROVED EMPLOYER</PillBadge>}
-                            {profile.isVerified && <PillBadge variant="mint">VERIFIED</PillBadge>}
-                            {profile.industry && <PillBadge variant="neutral">{profile.industry}</PillBadge>}
-                          </Stack>
-                          <Typography variant="h2" sx={{ fontWeight: 900, letterSpacing: '-0.02em', mb: 1, color: profile.companyName ? 'text.primary' : 'text.disabled', fontStyle: profile.companyName ? 'normal' : 'italic' }}>
-                            {profile.companyName || 'Company name not set'}
-                          </Typography>
-                          <Stack direction="row" spacing={3} sx={{ flexWrap: 'wrap', justifyContent: { xs: 'center', md: 'flex-start' }, color: 'text.secondary' }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <LocationOnIcon fontSize="small" />
-                              <Typography sx={{ fontWeight: 700, color: profile.locationHQ ? 'text.secondary' : 'text.disabled' }}>
-                                {profile.locationHQ || '— Not set'}
-                              </Typography>
-                            </Box>
-                            {profile.companySize && (
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <PeopleIcon fontSize="small" />
-                                <Typography sx={{ fontWeight: 700 }}>{profile.companySize.replace(/_/g, ' ')} Employees</Typography>
-                              </Box>
-                            )}
-                          </Stack>
-                        </>
-                      )}
-                    </Box>
-                  </Box>
-                </Grid>
-                <Grid size={{ xs: 12, md: 4 }}>
-                  <Stack direction="row" spacing={2} sx={{ justifyContent: { xs: 'center', md: 'flex-end' } }}>
-                    <Button
-                      variant={isEditing ? "contained" : "outlined"}
-                      startIcon={isEditing ? <SaveIcon /> : <EditIcon />}
                       onClick={() => isEditing ? handleUpdateBasicInfo() : setIsEditing(true)}
                       disabled={isSaving}
-                      sx={{ borderRadius: 3, fontWeight: 800, px: 4, py: 1.5 }}
                     >
-                      {isSaving ? 'Saving...' : (isEditing ? 'Save Changes' : 'Manage Profile')}
+                      {isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : (isEditing ? <Save className="mr-2 h-5 w-5" /> : <Edit2 className="mr-2 h-5 w-5" />)}
+                      {isEditing ? 'Save Changes' : 'Manage Profile'}
                     </Button>
-                  </Stack>
-                </Grid>
-              </Grid>
-            </Box>
-          </Fade>
+                    {isEditing && (
+                      <Button 
+                        size="lg" 
+                        variant="ghost" 
+                        className="rounded-2xl font-black h-14"
+                        onClick={() => setIsEditing(false)}
+                      >
+                        Cancel
+                      </Button>
+                    )}
+                  </div>
+                </div>
 
-          <Grid container spacing={4}>
-            <Grid size={{ xs: 12, lg: 8 }}>
-              <Stack spacing={4}>
-                <Paper sx={{ p: 5, borderRadius: 6, position: 'relative', overflow: 'hidden' }}>
-                  <Box sx={{ position: 'absolute', top: 0, left: 0, width: 6, height: '100%', bgcolor: 'primary.main' }} />
-                  <Typography variant="h4" sx={{ fontWeight: 900, mb: 3 }}>Company Mission & Bio</Typography>
+                <div className="flex flex-wrap gap-x-8 gap-y-4 pt-2">
+                  <div className="flex items-center gap-2 text-slate-600 font-bold text-sm">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    {isEmployer ? (profile.locationHQ || 'Location not set') : `${profile.locationCity || 'City'}, ${profile.locationCountry || 'Kenya'}`}
+                  </div>
+                  {isEmployer ? (
+                    <div className="flex items-center gap-2 text-slate-600 font-bold text-sm">
+                      <Users2 className="h-4 w-4 text-primary" />
+                      {profile.companySize?.replace(/_/g, ' ') || 'Size not set'} Employees
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2 text-slate-600 font-bold text-sm">
+                        <Briefcase className="h-4 w-4 text-primary" />
+                        {profile.yearsOfExperience?.replace(/_/g, ' ')} Experience
+                      </div>
+                      <div className="flex items-center gap-2 text-slate-600 font-bold text-sm">
+                        <Zap className="h-4 w-4 text-primary" />
+                        {profile.preferredWorkType || 'REMOTE'}
+                      </div>
+                    </>
+                  )}
+                  {isEmployer ? (
+                    profile.companyWebsite && (
+                      <Link href={profile.companyWebsite} target="_blank" className="flex items-center gap-2 text-primary font-black text-sm hover:underline">
+                        <Globe className="h-4 w-4" />
+                        {profile.companyWebsite.replace(/^https?:\/\//, '')}
+                      </Link>
+                    )
+                  ) : (
+                    profile.githubUrl && (
+                      <Link href={profile.githubUrl} target="_blank" className="flex items-center gap-2 text-slate-900 font-black text-sm hover:underline">
+                        <ExternalLink className="h-4 w-4" />
+                        {profile.githubUrl.replace(/^https?:\/\/(www\.)?github\.com\//, '')}
+                      </Link>
+                    )
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {isEmployer ? (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-8 space-y-8">
+              <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
+                <CardHeader className="border-b border-slate-50 pb-6">
+                  <CardTitle className="text-2xl font-black flex items-center gap-2">
+                    <div className="h-8 w-2 bg-primary rounded-full" />
+                    Company Bio & Mission
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
                   {isEditing ? (
-                    <TextField 
-                      fullWidth 
-                      multiline 
-                      rows={6} 
+                    <Textarea 
+                      className="min-h-[200px] rounded-2xl border-slate-200 font-medium text-lg focus-visible:ring-primary/20"
                       value={profile.companyBio || ''} 
                       onChange={(e) => setProfile({...profile, companyBio: e.target.value})}
                       placeholder="Describe your company culture, mission, and what you're looking for in developers..."
                     />
                   ) : (
-                    profile.companyBio ? (
-                      <Typography variant="body1" sx={{ fontSize: '1.15rem', lineHeight: 1.8, color: 'text.secondary', whiteSpace: 'pre-wrap' }}>
-                        {profile.companyBio}
-                      </Typography>
-                    ) : (
-                      <Box sx={{ py: 2, textAlign: 'center' }}>
-                        <Typography variant="body1" sx={{ color: 'text.disabled', fontStyle: 'italic', mb: 1 }}>
-                          No company bio yet.
-                        </Typography>
-                        <Button size="small" variant="outlined" onClick={() => setIsEditing(true)} sx={{ borderRadius: 2, fontWeight: 700 }}>Add Bio</Button>
-                      </Box>
-                    )
+                    <p className="text-lg leading-relaxed text-slate-600 font-medium whitespace-pre-wrap">
+                      {profile.companyBio || "Add a bio to tell developers about your company..."}
+                    </p>
                   )}
-                </Paper>
+                </CardContent>
+              </Card>
 
-                <Paper sx={{ p: 5, borderRadius: 6 }}>
-                  <Typography variant="h4" sx={{ fontWeight: 900, mb: 4 }}>Contact Details</Typography>
-                  <Grid container spacing={3}>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                      <Box sx={{ p: 3, borderRadius: 4, bgcolor: 'background.subtle', border: '1px solid', borderColor: 'divider' }}>
-                        <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 800, mb: 1, textTransform: 'uppercase' }}>Point of Contact</Typography>
-                        {isEditing ? (
-                          <TextField size="small" fullWidth value={profile.contactPersonName || ''} onChange={(e) => setProfile({...profile, contactPersonName: e.target.value})} />
-                        ) : (
-                          <Typography variant="h6" sx={{ fontWeight: 700 }}>{profile.contactPersonName || 'HR Manager'}</Typography>
-                        )}
-                      </Box>
-                    </Grid>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                      <Box sx={{ p: 3, borderRadius: 4, bgcolor: 'background.subtle', border: '1px solid', borderColor: 'divider' }}>
-                        <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 800, mb: 1, textTransform: 'uppercase' }}>Contact Email</Typography>
-                        {isEditing ? (
-                          <TextField size="small" fullWidth value={profile.contactEmail || ''} onChange={(e) => setProfile({...profile, contactEmail: e.target.value})} />
-                        ) : (
-                          <Typography variant="h6" sx={{ fontWeight: 700, color: profile.contactEmail ? 'text.primary' : 'text.disabled', fontStyle: profile.contactEmail ? 'normal' : 'italic' }}>
-                            {profile.contactEmail || (user?.email ? `${user.email} (account email)` : 'Not set')}
-                          </Typography>
-                        )}
-                      </Box>
-                    </Grid>
-                  </Grid>
-                </Paper>
-              </Stack>
-            </Grid>
-
-            <Grid size={{ xs: 12, lg: 4 }}>
-              <Stack spacing={4}>
-                <Paper sx={{ p: 4, borderRadius: 6 }}>
-                  <Typography variant="h5" sx={{ fontWeight: 900, mb: 3 }}>Online Presence</Typography>
-                  <Stack spacing={2}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-                      <LanguageIcon color="primary" />
-                      <Box sx={{ flexGrow: 1 }}>
-                        <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>WEBSITE</Typography>
-                        {isEditing ? (
-                          <TextField size="small" fullWidth value={profile.companyWebsite || ''} onChange={(e) => setProfile({...profile, companyWebsite: e.target.value})} />
-                        ) : (
-                          <Link href={profile.companyWebsite} target="_blank" sx={{ display: 'block', fontWeight: 700, color: 'text.primary', textDecoration: 'none' }}>
-                            {profile.companyWebsite?.replace(/^https?:\/\//, '') || 'Not set'}
-                          </Link>
-                        )}
-                      </Box>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-                      <LinkedInIcon sx={{ color: '#0077b5' }} />
-                      <Box sx={{ flexGrow: 1 }}>
-                        <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>LINKEDIN</Typography>
-                        {isEditing ? (
-                          <TextField size="small" fullWidth value={profile.linkedinUrl || ''} onChange={(e) => setProfile({...profile, linkedinUrl: e.target.value})} />
-                        ) : (
-                          <Link href={profile.linkedinUrl} target="_blank" sx={{ display: 'block', fontWeight: 700, color: 'text.primary', textDecoration: 'none' }}>
-                            {profile.linkedinUrl ? 'Company Profile' : 'Not set'}
-                          </Link>
-                        )}
-                      </Box>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-                      <XIcon sx={{ color: 'text.primary' }} />
-                      <Box sx={{ flexGrow: 1 }}>
-                        <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>TWITTER / X</Typography>
-                        {isEditing ? (
-                          <TextField size="small" fullWidth value={profile.twitterUrl || ''} onChange={(e) => setProfile({...profile, twitterUrl: e.target.value})} />
-                        ) : (
-                          <Link href={profile.twitterUrl} target="_blank" sx={{ display: 'block', fontWeight: 700, color: 'text.primary', textDecoration: 'none' }}>
-                            {profile.twitterUrl ? 'Follow Us' : 'Not set'}
-                          </Link>
-                        )}
-                      </Box>
-                    </Box>
-                  </Stack>
-                </Paper>
-                
-              </Stack>
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
-    );
-  }
-
-  return (
-    <Box sx={{ 
-      bgcolor: 'background.subtle', 
-      minHeight: '100vh', 
-      py: { xs: 4, md: 8 },
-      backgroundImage: 'radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.05) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.05) 0%, transparent 50%)'
-    }}>
-      <Container maxWidth="xl">
-        {isRefreshing && (
-          <Box sx={{ position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 2000 }}>
-            <Paper sx={{ px: 3, py: 1, borderRadius: 10, display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'primary.main', color: 'white', boxShadow: 6 }}>
-              <CircularProgress size={16} color="inherit" />
-              <Typography variant="body2" sx={{ fontWeight: 800 }}>Updating profile...</Typography>
-            </Paper>
-          </Box>
-        )}
-
-        <Fade in timeout={800}>
-          <Box sx={{ mb: 6 }}>
-            <Grid container spacing={4} sx={{ alignItems: 'center' }}>
-              <Grid size={{ xs: 12, md: 8 }}>
-                <Box sx={{ display: 'flex', alignItems: { xs: 'center', md: 'flex-start' }, flexDirection: { xs: 'column', md: 'row' }, gap: 4, textAlign: { xs: 'center', md: 'left' }, width: '100%' }}>
-                  <Box sx={{ position: 'relative' }}>
-                    <Avatar
-                      src={profile.profilePhoto}
-                      sx={{
-                        width: { xs: 120, md: 160 },
-                        height: { xs: 120, md: 160 },
-                        bgcolor: 'primary.main',
-                        fontSize: '4rem',
-                        fontWeight: 900,
-                        border: '6px solid white',
-                        boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
-                      }}
-                    >
-                      {profile.firstName?.charAt(0)}
-                    </Avatar>
-                    <IconButton
-                      component="label"
-                      sx={{
-                        position: 'absolute',
-                        bottom: 0,
-                        right: 0,
-                        bgcolor: 'primary.main',
-                        color: 'white',
-                        boxShadow: 3,
-                        '&:hover': { bgcolor: 'primary.dark' },
-                        width: 40,
-                        height: 40,
-                      }}
-                    >
-                      <input
-                        type="file"
-                        accept="image/*"
-                        hidden
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const reader = new FileReader();
-                            reader.onload = () => {
-                              setCropImageSrc(reader.result as string);
-                              setCrop({ x: 0, y: 0 });
-                              setZoom(1);
-                              setCropDialogOpen(true);
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        }}
-                      />
-                      <PhotoCameraIcon fontSize="small" />
-                    </IconButton>
-                    {profile.isVerified && (
-                      <Box sx={{ position: 'absolute', top: 0, right: 0, bgcolor: 'white', borderRadius: '50%', p: 0.5, boxShadow: 2 }}>
-                        <VerifiedIcon color="primary" sx={{ fontSize: 24 }} />
-                      </Box>
-                    )}
-                  </Box>
-                  <Box sx={{ pt: { md: 2 }, flexGrow: 1, width: '100%' }}>
-                    {isEditing ? (
-                      user?.role === 'EMPLOYER' ? (
-                        <Stack spacing={2} sx={{ width: '100%' }}>
-                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <TextField size="small" label="Company Name" value={profile.companyName || ''} onChange={(e) => setProfile({ ...profile, companyName: e.target.value })} fullWidth />
-                            <TextField size="small" label="Industry" value={profile.industry || ''} onChange={(e) => setProfile({ ...profile, industry: e.target.value })} fullWidth />
-                          </Stack>
-                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <TextField size="small" label="Contact Person Name" value={profile.contactPersonName || ''} onChange={(e) => setProfile({ ...profile, contactPersonName: e.target.value })} fullWidth />
-                            <TextField size="small" label="Website URL" value={profile.companyWebsite || ''} onChange={(e) => setProfile({ ...profile, companyWebsite: e.target.value })} fullWidth />
-                          </Stack>
-                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <TextField size="small" label="Headquarters Location" value={profile.locationHQ || ''} onChange={(e) => setProfile({ ...profile, locationHQ: e.target.value })} fullWidth />
-                            <FormControl fullWidth size="small">
-                              <InputLabel id="company-size-label">Company Size</InputLabel>
-                              <Select
-                                labelId="company-size-label"
-                                value={profile.companySize || 'TEN_TO_FIFTY'}
-                                label="Company Size"
-                                onChange={(e) => setProfile({ ...profile, companySize: e.target.value })}
-                              >
-                                <MenuItem value="ONE_TO_TEN">1-10 employees</MenuItem>
-                                <MenuItem value="TEN_TO_FIFTY">11-50 employees</MenuItem>
-                                <MenuItem value="FIFTY_TO_TWO_HUNDRED">51-200 employees</MenuItem>
-                                <MenuItem value="TWO_HUNDRED_PLUS">200+ employees</MenuItem>
-                              </Select>
-                            </FormControl>
-                          </Stack>
-                          <TextField size="small" label="Company Bio" value={profile.companyBio || ''} onChange={(e) => setProfile({ ...profile, companyBio: e.target.value })} fullWidth multiline rows={3} />
-                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <TextField size="small" label="LinkedIn URL" value={profile.linkedinUrl || ''} onChange={(e) => setProfile({ ...profile, linkedinUrl: e.target.value })} fullWidth />
-                            <TextField size="small" label="Twitter/X URL" value={profile.twitterUrl || ''} onChange={(e) => setProfile({ ...profile, twitterUrl: e.target.value })} fullWidth />
-                          </Stack>
-                          <TextField size="small" label="Contact Email" value={profile.contactEmail || ''} onChange={(e) => setProfile({ ...profile, contactEmail: e.target.value })} fullWidth />
-                        </Stack>
-                      ) : (
-                        <Stack spacing={2} sx={{ width: '100%' }}>
-                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <TextField size="small" label="First Name" value={profile.firstName || ''} onChange={(e) => setProfile({ ...profile, firstName: e.target.value })} fullWidth />
-                            <TextField size="small" label="Last Name" value={profile.lastName || ''} onChange={(e) => setProfile({ ...profile, lastName: e.target.value })} fullWidth />
-                          </Stack>
-                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <TextField size="small" label="Professional Title" value={profile.currentLastRole || ''} onChange={(e) => setProfile({ ...profile, currentLastRole: e.target.value })} fullWidth />
-                            <FormControl fullWidth size="small">
-                              <InputLabel id="years-of-experience-label">Years of Experience</InputLabel>
-                              <Select
-                                labelId="years-of-experience-label"
-                                value={profile.yearsOfExperience || 'ZERO_TO_ONE'}
-                                label="Years of Experience"
-                                onChange={(e) => setProfile({ ...profile, yearsOfExperience: e.target.value })}
-                              >
-                                <MenuItem value="ZERO_TO_ONE">0 to 1 Year</MenuItem>
-                                <MenuItem value="ONE_TO_THREE">1 to 3 Years</MenuItem>
-                                <MenuItem value="THREE_TO_FIVE">3 to 5 Years</MenuItem>
-                                <MenuItem value="FIVE_TO_TEN">5 to 10 Years</MenuItem>
-                                <MenuItem value="TEN_PLUS">10+ Years</MenuItem>
-                              </Select>
-                            </FormControl>
-                          </Stack>
-                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <FormControl fullWidth size="small">
-                              <InputLabel id="preferred-work-type-label">Preferred Work Type</InputLabel>
-                              <Select
-                                labelId="preferred-work-type-label"
-                                value={profile.preferredWorkType || 'REMOTE'}
-                                label="Preferred Work Type"
-                                onChange={(e) => setProfile({ ...profile, preferredWorkType: e.target.value })}
-                              >
-                                <MenuItem value="REMOTE">Remote</MenuItem>
-                                <MenuItem value="ONSITE">On-site</MenuItem>
-                                <MenuItem value="HYBRID">Hybrid</MenuItem>
-                                <MenuItem value="CONTRACT">Contract</MenuItem>
-                                <MenuItem value="FULLTIME">Full-time</MenuItem>
-                              </Select>
-                            </FormControl>
-                            <TextField 
-                              size="small" 
-                              label="GitHub Profile URL" 
-                              placeholder="https://github.com/yourusername"
-                              value={profile.githubUrl || ''} 
-                              onChange={(e) => setProfile({ ...profile, githubUrl: e.target.value })} 
-                              fullWidth 
-                              helperText="Required for verification"
-                            />
-                          </Stack>
-                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <TextField size="small" label="City" value={profile.locationCity || ''} onChange={(e) => setProfile({ ...profile, locationCity: e.target.value })} fullWidth />
-                            <TextField size="small" label="Country" value={profile.locationCountry || ''} onChange={(e) => setProfile({ ...profile, locationCountry: e.target.value })} fullWidth />
-                          </Stack>
-                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <TextField size="small" label="LinkedIn URL" value={profile.linkedinUrl || ''} onChange={(e) => setProfile({ ...profile, linkedinUrl: e.target.value })} fullWidth />
-                            <TextField size="small" label="Portfolio URL" value={profile.portfolioUrl || ''} onChange={(e) => setProfile({ ...profile, portfolioUrl: e.target.value })} fullWidth />
-                          </Stack>
-                          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                            <TextField size="small" label="Public Email" value={profile.publicEmail || ''} onChange={(e) => setProfile({ ...profile, publicEmail: e.target.value })} fullWidth />
-                            <TextField size="small" label="Public Phone" value={profile.publicPhone || ''} onChange={(e) => setProfile({ ...profile, publicPhone: e.target.value })} fullWidth />
-                          </Stack>
-                        </Stack>
-                      )
-                    ) : (
-                      user?.role === 'EMPLOYER' ? (
-                        <>
-                          <Stack direction="row" spacing={1} sx={{ mb: 1.5, justifyContent: { xs: 'center', md: 'flex-start' } }}>
-                            <PillBadge variant="mint">EMPLOYER PROFILE</PillBadge>
-                            <PillBadge variant="neutral">Size: {profile.companySize?.replace(/_/g, ' ')}</PillBadge>
-                          </Stack>
-                          <Typography variant="h2" sx={{ fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.1, mb: 1 }}>
-                            {profile.companyName || 'My Company'}
-                          </Typography>
-                          <Typography variant="h5" color="text.secondary" sx={{ fontWeight: 600, mb: 2, opacity: 0.8 }}>
-                            {profile.industry || 'Tech / Software'}
-                          </Typography>
-                          <Stack direction="row" spacing={3} sx={{ justifyContent: { xs: 'center', md: 'flex-start' } }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
-                              <LocationOnIcon fontSize="small" />
-                              <Typography sx={{ fontWeight: 700 }}>{profile.locationHQ || 'Location'}</Typography>
-                            </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
-                              <EmailIcon fontSize="small" />
-                              <Typography sx={{ fontWeight: 700 }}>Contact: {profile.contactPersonName || 'HR'}</Typography>
-                            </Box>
-                          </Stack>
-                        </>
-                      ) : (
-                        <>
-                          <Stack direction="row" spacing={1} sx={{ mb: 1.5, justifyContent: { xs: 'center', md: 'flex-start' }, flexWrap: 'wrap', gap: 1 }}>
-                             <PillBadge variant="mint">DEVELOPER PROFILE</PillBadge>
-                             <PillBadge variant="neutral">Exp: {profile.yearsOfExperience?.replace(/_/g, ' ')}</PillBadge>
-                             <PillBadge variant="sage">Work: {profile.preferredWorkType?.replace(/_/g, ' ') || 'REMOTE'}</PillBadge>
-                           </Stack>
-                          <Typography variant="h2" sx={{ fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.1, mb: 1 }}>
-                            {profile.firstName} {profile.lastName}
-                          </Typography>
-                          <Typography variant="h5" color="text.secondary" sx={{ fontWeight: 600, mb: 2, opacity: 0.8 }}>
-                            {profile.currentLastRole || 'Awaiting Role Definition'}
-                          </Typography>
-                          <Stack direction="row" spacing={3} sx={{ justifyContent: { xs: 'center', md: 'flex-start' }, flexWrap: 'wrap', gap: 2 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
-                              <LocationOnIcon fontSize="small" />
-                              <Typography sx={{ fontWeight: 700 }}>{profile.locationCity || 'Location'}, {profile.locationCountry || 'Kenya'}</Typography>
-                            </Box>
-                             {profile.publicEmail && (
-                               <Tooltip title="Public Email">
-                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
-                                   <EmailIcon fontSize="small" />
-                                   <Typography sx={{ fontWeight: 700 }}>{profile.publicEmail}</Typography>
-                                 </Box>
-                               </Tooltip>
-                             )}
-                             {profile.publicPhone && (
-                               <Tooltip title="Public Phone">
-                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
-                                   <PhoneIcon fontSize="small" />
-                                   <Typography sx={{ fontWeight: 700 }}>{profile.publicPhone}</Typography>
-                                 </Box>
-                               </Tooltip>
-                             )}
-                             {profile.githubUrl && (
-                               <Tooltip title="GitHub Repository">
-                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}>
-                                   <GitHubIcon fontSize="small" />
-                                   <Link href={profile.githubUrl} target="_blank" sx={{ fontWeight: 700, color: 'primary.main', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>
-                                     {profile.githubUrl.replace(/^https?:\/\/(www\.)?github\.com\//, '')}
-                                   </Link>
-                                 </Box>
-                               </Tooltip>
-                             )}
-                           </Stack>
-                           <Stack direction="row" spacing={2} sx={{ mt: 2, justifyContent: { xs: 'center', md: 'flex-start' } }}>
-                             {profile.linkedinUrl && (
-                               <IconButton component={Link} href={profile.linkedinUrl} target="_blank" size="small" sx={{ bgcolor: 'background.paper', boxShadow: 1, '&:hover': { color: 'primary.main', transform: 'translateY(-2px)' }, transition: 'all 0.2s' }}>
-                                 <LinkedInIcon fontSize="small" />
-                               </IconButton>
-                             )}
-                             {profile.portfolioUrl && (
-                               <IconButton component={Link} href={profile.portfolioUrl} target="_blank" size="small" sx={{ bgcolor: 'background.paper', boxShadow: 1, '&:hover': { color: 'primary.main', transform: 'translateY(-2px)' }, transition: 'all 0.2s' }}>
-                                 <LanguageIcon fontSize="small" />
-                               </IconButton>
-                             )}
-                           </Stack>
-                        </>
-                      )
-                    )}
-                  </Box>
-                </Box>
-              </Grid>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <Stack direction="row" spacing={2} sx={{ justifyContent: { xs: 'center', md: 'flex-end' } }}>
-                  <Button
-                    variant={isEditing ? "contained" : "outlined"}
-                    startIcon={isEditing ? <SaveIcon /> : <EditIcon />}
-                    onClick={() => isEditing ? handleUpdateBasicInfo() : setIsEditing(true)}
-                    disabled={isSaving}
-                    sx={{ borderRadius: 3, fontWeight: 800, px: 4, py: 1.8 }}
-                  >
-                    {isSaving ? 'Saving...' : (isEditing ? 'Save' : 'Edit Identity')}
-                  </Button>
-                </Stack>
-              </Grid>
-            </Grid>
-          </Box>
-        </Fade>
-
-        <Grid container spacing={4}>
-          <Grid size={{ xs: 12, lg: 8 }}>
-            <Stack spacing={4}>
-              {user?.role === 'DEVELOPER' && (
-                <Box sx={{ display: { xs: 'block', lg: 'none' } }}>
-                   <SpotlightStatusCard status={spotlightStatus} onBuy={() => setBuySpotlightOpen(true)} />
-                </Box>
-              )}
-              
-              <Paper sx={{ p: 5, borderRadius: 6, position: 'relative', overflow: 'hidden' }}>
-                <Box sx={{ position: 'absolute', top: 0, left: 0, width: 6, height: '100%', bgcolor: 'primary.main' }} />
-                <Typography variant="h4" sx={{ fontWeight: 900, mb: 3 }}>About Me</Typography>
-                {isEditing ? (
-                  <TextField fullWidth multiline rows={5} value={profile.bio} onChange={(e) => setProfile({...profile, bio: e.target.value})} />
-                ) : (
-                  <Typography variant="body1" sx={{ fontSize: '1.15rem', lineHeight: 1.8, color: 'text.secondary' }}>
-                    {profile.bio || "Craft your story..."}
-                  </Typography>
-                )}
-              </Paper>
-
-              <Paper sx={{ p: 5, borderRadius: 6 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
-                  <Typography variant="h4" sx={{ fontWeight: 900 }}>Skills</Typography>
-                  <Button startIcon={<AddIcon />} variant="contained" onClick={() => openAddDialog('skill')}>Add Skill</Button>
-                </Box>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
-                  {profile.skills.map((skill: string) => (
-                    <Chip key={skill} label={skill} onDelete={() => handleRemoveItem('skill', skill)} sx={{ fontWeight: 800, px: 2, py: 2.5, borderRadius: 3 }} />
-                  ))}
-                </Box>
-                {profile.languages.length > 0 && (
-                  <Box sx={{ mt: 4 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 900, mb: 2 }}>Languages</Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                      {profile.languages.map((lang: string) => (
-                        <Chip key={lang} label={lang} onDelete={() => handleRemoveItem('language', lang)} variant="outlined" sx={{ fontWeight: 700, borderRadius: 2 }} />
-                      ))}
-                    </Box>
-                  </Box>
-                )}
-                <Button startIcon={<AddIcon />} size="small" variant="text" sx={{ mt: 2, fontWeight: 700 }} onClick={() => openAddDialog('language')}>Add Language</Button>
-              </Paper>
-
-              <Paper sx={{ p: 5, borderRadius: 6 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
-                  <Typography variant="h4" sx={{ fontWeight: 900 }}>Projects</Typography>
-                  <Button startIcon={<AddIcon />} variant="outlined" onClick={() => openAddDialog('project')}>New Project</Button>
-                </Box>
-                <Stack spacing={4}>
-                  {profile.projects.map((project: any) => (
-                    <Card key={project.id} sx={{ borderRadius: 4, overflow: 'hidden', border: '1px solid', borderColor: 'divider' }}>
-                      <Grid container>
-                        <Grid size={{ xs: 12, md: 5 }}>
-                          <Box sx={{ height: 250, bgcolor: 'background.subtle', position: 'relative' }}>
-                            {project.screenshotUrl ? (
-                              <Box component="img" src={project.screenshotUrl} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
+                <CardHeader className="border-b border-slate-50 pb-6">
+                  <CardTitle className="text-2xl font-black flex items-center gap-2">
+                    <div className="h-8 w-2 bg-primary rounded-full" />
+                    Point of Contact
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100 flex items-start gap-4">
+                         <div className="h-12 w-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-primary">
+                            <Users2 className="h-6 w-6" />
+                         </div>
+                         <div className="space-y-1">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Contact Person</Label>
+                            {isEditing ? (
+                              <Input 
+                                className="h-10 rounded-xl border-slate-200 font-bold"
+                                value={profile.contactPersonName || ''} 
+                                onChange={(e) => setProfile({...profile, contactPersonName: e.target.value})} 
+                              />
                             ) : (
-                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', opacity: 0.1 }}><CodeIcon sx={{ fontSize: 80 }} /></Box>
+                              <p className="text-lg font-black text-slate-900">{profile.contactPersonName || 'HR Manager'}</p>
                             )}
-                          </Box>
-                        </Grid>
-                        <Grid size={{ xs: 12, md: 7 }}>
-                          <CardContent sx={{ p: 4 }}>
-                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                               <Box>
-                                 <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1 }}>
-                                    <Typography variant="h5" sx={{ fontWeight: 900 }}>{project.title}</Typography>
-                                    {project.isFeatured && <PillBadge variant="mint">FEATURED</PillBadge>}
-                                 </Stack>
-                                 <Typography variant="body2" color="text.secondary">{project.description}</Typography>
-                               </Box>
-                               <Stack direction="row">
-                                 <Tooltip title={project.isFeatured ? "Unfeature project" : "Feature this project (requires screenshot + live URL)"}>
-                                   <IconButton 
-                                     color={project.isFeatured ? "primary" : "default"} 
-                                     onClick={() => handleToggleFeatured(project.id, project.isFeatured)}
-                                   >
-                                     {project.isFeatured ? <StarIcon /> : <StarBorderIcon />}
-                                   </IconButton>
-                                 </Tooltip>
-                                 <IconButton color="error" onClick={() => handleRemoveItem('project', project.id)}><DeleteIcon /></IconButton>
-                               </Stack>
-                             </Box>
-                             
-                             <Stack direction="row" spacing={1} sx={{ mt: 3, flexWrap: 'wrap', gap: 1 }}>
-                               {project.projectUrl && <Button size="small" variant="contained" href={project.projectUrl} target="_blank" sx={{ borderRadius: 2 }}>Live Demo</Button>}
-                               {project.repoUrl && <Button size="small" variant="outlined" href={project.repoUrl} target="_blank" sx={{ borderRadius: 2 }}>Source Code</Button>}
-                               <Button size="small" variant="outlined" startIcon={<CloudUploadIcon />} component="label" sx={{ borderRadius: 2 }}>
-                                 {project.screenshotUrl ? 'Update Screenshot' : 'Upload Screenshot'}
-                                 <input type="file" hidden accept="image/*" onChange={(e) => handleFileUpload('project', project.id, e)} />
-                               </Button>
-                             </Stack>
-                          </CardContent>
-                        </Grid>
-                      </Grid>
-                    </Card>
-                  ))}
-                </Stack>
-              </Paper>
+                         </div>
+                      </div>
 
-              <Paper sx={{ p: 5, borderRadius: 6 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 4 }}>
-                  <Typography variant="h4" sx={{ fontWeight: 900 }}>Education</Typography>
-                  <Button startIcon={<AddIcon />} variant="outlined" onClick={() => openAddDialog('education')}>Add Education</Button>
-                </Box>
-                <Stack spacing={3}>
-                  {profile.education.map((edu: any) => (
-                    <Box key={edu.id} sx={{ display: 'flex', gap: 3, p: 3, borderRadius: 4, bgcolor: 'background.subtle' }}>
-                      <Box sx={{ p: 1.5, borderRadius: 3, bgcolor: 'primary.main', color: 'white', height: 'fit-content' }}>
-                        <SchoolIcon />
-                      </Box>
-                      <Box sx={{ flexGrow: 1 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Typography variant="h6" sx={{ fontWeight: 900 }}>{edu.institution}</Typography>
-                          <IconButton size="small" color="error" onClick={() => handleRemoveItem('education', edu.id)}><DeleteIcon fontSize="small" /></IconButton>
-                        </Box>
-                        <Typography variant="subtitle2" color="primary" sx={{ fontWeight: 700 }}>{edu.qualification} in {edu.fieldOfStudy}</Typography>
-                        <Typography variant="caption" color="text.secondary">Completed in {edu.yearCompleted}</Typography>
-                      </Box>
-                    </Box>
-                  ))}
-                </Stack>
-              </Paper>
+                      <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100 flex items-start gap-4">
+                         <div className="h-12 w-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-primary">
+                            <Mail className="h-6 w-6" />
+                         </div>
+                         <div className="space-y-1">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Contact Email</Label>
+                            {isEditing ? (
+                              <Input 
+                                className="h-10 rounded-xl border-slate-200 font-bold"
+                                value={profile.contactEmail || ''} 
+                                onChange={(e) => setProfile({...profile, contactEmail: e.target.value})} 
+                              />
+                            ) : (
+                              <p className="text-lg font-black text-slate-900 truncate">{profile.contactEmail || (user?.email ? `${user.email} (account)` : 'Not set')}</p>
+                            )}
+                         </div>
+                      </div>
+                   </div>
+                </CardContent>
+              </Card>
+            </div>
 
-              <Grid container spacing={4}>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Paper sx={{ p: 4, borderRadius: 6, height: '100%' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-                      <Typography variant="h5" sx={{ fontWeight: 900 }}>OSS Work</Typography>
-                      <IconButton color="primary" onClick={() => openAddDialog('oss')}><AddIcon /></IconButton>
-                    </Box>
-                    <Stack spacing={2}>
-                      {profile.ossContributions.map((oss: any) => (
-                        <Box key={oss.id} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-                          <Typography variant="body1" sx={{ fontWeight: 800 }}>{oss.projectName}</Typography>
-                          <Typography variant="caption" color="text.secondary">{oss.role}</Typography>
-                          <Typography variant="body2" sx={{ mt: 1 }}>{oss.description}</Typography>
-                          {oss.contributionUrl && <Link href={oss.contributionUrl} target="_blank" sx={{ display: 'block', mt: 1, fontWeight: 700 }}>View Contribution</Link>}
-                          <IconButton size="small" color="error" onClick={() => handleRemoveItem('oss', oss.id)} sx={{ mt: 1 }}><DeleteIcon fontSize="small" /></IconButton>
-                        </Box>
-                      ))}
-                    </Stack>
-                  </Paper>
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Paper sx={{ p: 4, borderRadius: 6, height: '100%' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-                      <Typography variant="h5" sx={{ fontWeight: 900 }}>Achievements</Typography>
-                      <IconButton color="primary" onClick={() => openAddDialog('achievement')}><AddIcon /></IconButton>
-                    </Box>
-                    <Stack spacing={2}>
-                      {profile.achievements.map((ach: any) => (
-                        <Box key={ach.id} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
-                          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                            <EmojiEventsIcon color="warning" fontSize="small" />
-                            <Typography variant="body1" sx={{ fontWeight: 800 }}>{ach.title}</Typography>
-                          </Box>
-                          <Typography variant="caption" color="text.secondary">{ach.year}</Typography>
-                          <Typography variant="body2" sx={{ mt: 1 }}>{ach.description}</Typography>
-                          <IconButton size="small" color="error" onClick={() => handleRemoveItem('achievement', ach.id)} sx={{ mt: 1 }}><DeleteIcon fontSize="small" /></IconButton>
-                        </Box>
-                      ))}
-                    </Stack>
-                  </Paper>
-                </Grid>
-              </Grid>
-            </Stack>
-          </Grid>
+            <div className="lg:col-span-4 space-y-8">
+               <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
+                <CardHeader className="border-b border-slate-50 pb-6">
+                  <CardTitle className="text-xl font-black">Company Details</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-6">
+                   {isEditing ? (
+                     <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label className="font-bold text-xs">Industry</Label>
+                          <Select 
+                            value={profile.industry || ''} 
+                            onValueChange={(v) => setProfile({ ...profile, industry: v })}
+                          >
+                            <SelectTrigger className="rounded-xl border-slate-200 h-12 font-bold">
+                              <SelectValue placeholder="Select industry" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl border-slate-200">
+                              {INDUSTRIES.map(i => <SelectItem key={i} value={i}>{i}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="font-bold text-xs">Company Size</Label>
+                          <Select 
+                            value={profile.companySize || ''} 
+                            onValueChange={(v) => setProfile({ ...profile, companySize: v })}
+                          >
+                            <SelectTrigger className="rounded-xl border-slate-200 h-12 font-bold">
+                              <SelectValue placeholder="Select size" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl border-slate-200">
+                              <SelectItem value="ONE_TO_TEN">1-10 Employees</SelectItem>
+                              <SelectItem value="TEN_TO_FIFTY">11-50 Employees</SelectItem>
+                              <SelectItem value="FIFTY_TO_TWO_HUNDRED">51-200 Employees</SelectItem>
+                              <SelectItem value="TWO_HUNDRED_PLUS">200+ Employees</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="font-bold text-xs">Headquarters</Label>
+                          <Select 
+                            value={profile.locationHQ?.split(',')[0] || ''} 
+                            onValueChange={(v) => setProfile({ ...profile, locationHQ: `${v}, Kenya` })}
+                          >
+                            <SelectTrigger className="rounded-xl border-slate-200 h-12 font-bold">
+                              <SelectValue placeholder="Select county" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl border-slate-200">
+                              {KENYA_COUNTIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                     </div>
+                   ) : (
+                     <div className="space-y-4">
+                        <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                           <span className="text-slate-400 font-bold text-xs uppercase">Industry</span>
+                           <span className="text-slate-900 font-black">{profile.industry || '—'}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                           <span className="text-slate-400 font-bold text-xs uppercase">Size</span>
+                           <span className="text-slate-900 font-black">{profile.companySize?.replace(/_/g, ' ') || '—'}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1 border-b border-slate-50">
+                           <span className="text-slate-400 font-bold text-xs uppercase">HQ</span>
+                           <span className="text-slate-900 font-black">{profile.locationHQ || '—'}</span>
+                        </div>
+                     </div>
+                   )}
+                </CardContent>
+              </Card>
 
-          <Grid size={{ xs: 12, lg: 4 }}>
-            <Stack spacing={4}>
-              {user?.role === 'DEVELOPER' && (
-                <SpotlightStatusCard status={spotlightStatus} onBuy={() => setBuySpotlightOpen(true)} />
-              )}
-              
-              <Paper sx={{ p: 4, borderRadius: 6, bgcolor: 'primary.main', color: 'white' }}>
-                 <Typography variant="h6" sx={{ fontWeight: 900, mb: 3 }}>PREFERENCES</Typography>
-                 <Stack spacing={3}>
-                    <Box>
-                      <Typography variant="caption" sx={{ fontWeight: 800, display: 'block', mb: 1 }}>AVAILABILITY</Typography>
-                      <Select fullWidth size="small" value={profile.availabilityStatus} onChange={(e) => handleToggleAvailability(e.target.value as string)} sx={{ color: 'white', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.3)' } }}>
-                        <MenuItem value="AVAILABLE">Available</MenuItem>
-                        <MenuItem value="OPEN_TO_OFFERS">Open to Offers</MenuItem>
-                        <MenuItem value="NOT_AVAILABLE">Not Available</MenuItem>
-                      </Select>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" sx={{ fontWeight: 800, display: 'block', mb: 1 }}>VISIBILITY</Typography>
-                      <Select fullWidth size="small" value={profile.profileVisibility} onChange={(e) => handleToggleVisibility(e.target.value as string)} sx={{ color: 'white', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.3)' } }}>
-                        <MenuItem value="PUBLIC">Public</MenuItem>
-                        <MenuItem value="PRIVATE">Private</MenuItem>
-                        <MenuItem value="HIDDEN">Hidden</MenuItem>
-                      </Select>
-                    </Box>
-                 </Stack>
-              </Paper>
+              <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
+                <CardHeader className="border-b border-slate-50 pb-6">
+                  <CardTitle className="text-xl font-black">Online Presence</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-4">
+                   <div className="flex flex-col gap-3">
+                      {isEditing ? (
+                        <>
+                          <div className="space-y-1">
+                             <Label className="text-[10px] font-black uppercase text-slate-400">Website</Label>
+                             <Input className="h-10 rounded-xl" value={profile.companyWebsite || ''} onChange={(e) => setProfile({...profile, companyWebsite: e.target.value})} />
+                          </div>
+                          <div className="space-y-1">
+                             <Label className="text-[10px] font-black uppercase text-slate-400">LinkedIn</Label>
+                             <Input className="h-10 rounded-xl" value={profile.linkedinUrl || ''} onChange={(e) => setProfile({...profile, linkedinUrl: e.target.value})} />
+                          </div>
+                          <div className="space-y-1">
+                             <Label className="text-[10px] font-black uppercase text-slate-400">Twitter / X</Label>
+                             <Input className="h-10 rounded-xl" value={profile.twitterUrl || ''} onChange={(e) => setProfile({...profile, twitterUrl: e.target.value})} />
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <Button variant="outline" className="h-14 rounded-2xl border-slate-100 bg-slate-50/50 justify-start px-6 group" asChild>
+                             <Link href={profile.companyWebsite || '#'} target="_blank" className={cn(!profile.companyWebsite && "opacity-50 pointer-events-none")}>
+                                <div className="h-8 w-8 rounded-xl bg-white shadow-sm flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
+                                   <Globe className="h-4 w-4 text-primary" />
+                                </div>
+                                <span className="font-black text-slate-900">Official Website</span>
+                                <ExternalLink className="ml-auto h-4 w-4 text-slate-300" />
+                             </Link>
+                          </Button>
+                          <Button variant="outline" className="h-14 rounded-2xl border-slate-100 bg-slate-50/50 justify-start px-6 group" asChild>
+                             <Link href={profile.linkedinUrl || '#'} target="_blank" className={cn(!profile.linkedinUrl && "opacity-50 pointer-events-none")}>
+                                <div className="h-8 w-8 rounded-xl bg-white shadow-sm flex items-center justify-center mr-4 group-hover:scale-110 transition-transform text-[#0077b5]">
+                                   <ExternalLink className="h-4 w-4" />
+                                </div>
+                                <span className="font-black text-slate-900">LinkedIn Profile</span>
+                                <ExternalLink className="ml-auto h-4 w-4 text-slate-300" />
+                             </Link>
+                          </Button>
+                          <Button variant="outline" className="h-14 rounded-2xl border-slate-100 bg-slate-50/50 justify-start px-6 group" asChild>
+                             <Link href={profile.twitterUrl || '#'} target="_blank" className={cn(!profile.twitterUrl && "opacity-50 pointer-events-none")}>
+                                <div className="h-8 w-8 rounded-xl bg-white shadow-sm flex items-center justify-center mr-4 group-hover:scale-110 transition-transform text-slate-900">
+                                   <X className="h-4 w-4" />
+                                </div>
+                                <span className="font-black text-slate-900">X</span>
+                                <ExternalLink className="ml-auto h-4 w-4 text-slate-300" />
+                             </Link>
+                          </Button>
+                        </>
+                      )}
+                   </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        ) : (
+          /* DEVELOPER PROFILE VIEW */
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-8">
+               <Tabs defaultValue="overview" className="space-y-8">
+                  <TabsList className="bg-white p-2 h-16 rounded-[1.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 flex gap-2 overflow-x-auto overflow-y-hidden no-scrollbar">
+                     <TabsTrigger value="overview" className="rounded-xl px-8 font-black text-slate-500 data-[state=active]:bg-primary data-[state=active]:text-white transition-all h-12">
+                        <Users2 className="h-4 w-4 mr-2" /> Overview
+                     </TabsTrigger>
+                     <TabsTrigger value="projects" className="rounded-xl px-8 font-black text-slate-500 data-[state=active]:bg-primary data-[state=active]:text-white transition-all h-12">
+                        <Code2 className="h-4 w-4 mr-2" /> Projects
+                     </TabsTrigger>
+                     <TabsTrigger value="experience" className="rounded-xl px-8 font-black text-slate-500 data-[state=active]:bg-primary data-[state=active]:text-white transition-all h-12">
+                        <GraduationCap className="h-4 w-4 mr-2" /> Experience
+                     </TabsTrigger>
+                     <TabsTrigger value="oss" className="rounded-xl px-8 font-black text-slate-500 data-[state=active]:bg-primary data-[state=active]:text-white transition-all h-12">
+                        <Globe className="h-4 w-4 mr-2" /> OSS & Achievements
+                     </TabsTrigger>
+                  </TabsList>
 
-              <Paper sx={{ p: 4, borderRadius: 6 }}>
-                 <Typography variant="h6" sx={{ fontWeight: 900, mb: 3 }}>Certifications</Typography>
-                 <Stack spacing={2}>
-                    {profile.certifications.map((c: any) => (
-                      <Box key={c.id} sx={{ display: 'flex', gap: 2 }}>
-                        <WorkspacePremiumIcon color="secondary" />
-                        <Box>
-                          <Typography variant="body2" sx={{ fontWeight: 800 }}>{c.name}</Typography>
-                          <Typography variant="caption" color="text.secondary">{c.issuedBy}</Typography>
-                        </Box>
-                      </Box>
-                    ))}
-                 </Stack>
-              </Paper>
-            </Stack>
-          </Grid>
-        </Grid>
+                  <TabsContent value="overview" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                     {/* Bio Card */}
+                     <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
+                        <CardHeader className="border-b border-slate-50 pb-6">
+                           <CardTitle className="text-2xl font-black flex items-center gap-2">
+                              <div className="h-8 w-2 bg-primary rounded-full" />
+                              Professional Story
+                           </CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-6">
+                           {isEditing ? (
+                              <Textarea 
+                                 className="min-h-[200px] rounded-2xl border-slate-200 font-medium text-lg focus-visible:ring-primary/20"
+                                 value={profile.bio || ''} 
+                                 onChange={(e) => setProfile({...profile, bio: e.target.value})}
+                                 placeholder="Tell your story, your stack, and what you're passionate about..."
+                              />
+                           ) : (
+                              <p className="text-lg leading-relaxed text-slate-600 font-medium whitespace-pre-wrap">
+                                 {profile.bio || "Add a bio to tell employers who you are..."}
+                              </p>
+                           )}
+                        </CardContent>
+                     </Card>
 
-        <BuySpotlightDialog 
-          open={buySpotlightOpen} 
-          onClose={() => setBuySpotlightOpen(false)} 
-          onSuccess={() => { fetchSpotlightStatus(); setBuySpotlightOpen(false); }}
-          isVerified={profile.isVerified}
-          hasFeaturedProject={profile.projects?.some((p: any) => p.isFeatured) || false}
-        />
+                     {/* Skills Card */}
+                     <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
+                        <CardHeader className="border-b border-slate-50 pb-6 flex flex-row items-center justify-between">
+                           <CardTitle className="text-2xl font-black flex items-center gap-2">
+                              <div className="h-8 w-2 bg-primary rounded-full" />
+                              Technical Arsenal
+                           </CardTitle>
+                           <Button size="sm" className="rounded-xl font-bold h-10 px-4" onClick={() => openAddDialog('skill')}>
+                              <Plus className="h-4 w-4 mr-2" /> Add Skill
+                           </Button>
+                        </CardHeader>
+                        <CardContent className="pt-6">
+                           <div className="flex flex-wrap gap-3">
+                              {profile.skills.map((skill: string) => (
+                                 <Badge key={skill} className="h-10 px-4 rounded-xl bg-slate-50 border border-slate-100 text-slate-900 font-bold text-sm hover:bg-slate-100 transition-colors flex items-center gap-2">
+                                    {skill}
+                                    <button onClick={() => handleRemoveItem('skill', skill)} className="hover:text-red-500 transition-colors">
+                                       <X className="h-3.5 w-3.5" />
+                                    </button>
+                                 </Badge>
+                              ))}
+                              {profile.skills.length === 0 && (
+                                 <p className="text-slate-400 font-medium italic">No skills added yet.</p>
+                              )}
+                           </div>
 
-        {/* Add Item Dialog */}
-        <Dialog open={!!dialogOpen} onClose={closeDialog} fullWidth maxWidth="sm" slotProps={{ paper: { sx: { borderRadius: 4 } } }}>
-          <DialogTitle sx={{ fontWeight: 900 }}>
-            Add {dialogOpen?.charAt(0).toUpperCase()}{dialogOpen?.slice(1)}
-          </DialogTitle>
-          <DialogContent>
-            <Stack spacing={3} sx={{ mt: 1 }}>
-              {dialogOpen === 'skill' && (
-                <Autocomplete
-                  options={COMMON_SKILLS}
-                  freeSolo
-                  value={newItem.skill || ''}
-                  onChange={(_, val) => setNewItem({ ...newItem, skill: val })}
-                  onInputChange={(_, val) => setNewItem({ ...newItem, skill: val })}
-                  renderInput={(params) => <TextField {...params} label="Skill Name" placeholder="e.g. Java" fullWidth />}
+                           {profile.languages.length > 0 && (
+                             <div className="mt-10">
+                                <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Spoken Languages</h4>
+                                <div className="flex flex-wrap gap-2">
+                                   {profile.languages.map((lang: string) => (
+                                      <Badge key={lang} variant="outline" className="h-8 px-4 rounded-lg font-black text-[10px] uppercase border-slate-200">
+                                         {lang}
+                                         <button onClick={() => handleRemoveItem('language', lang)} className="ml-2 hover:text-red-500">
+                                            <X className="h-3 w-3" />
+                                         </button>
+                                      </Badge>
+                                   ))}
+                                </div>
+                             </div>
+                           )}
+                           <Button variant="ghost" size="sm" className="mt-4 font-black text-[10px] uppercase text-primary" onClick={() => openAddDialog('language')}>
+                              <Plus className="h-3.5 w-3.5 mr-1" /> Add Language
+                           </Button>
+                        </CardContent>
+                     </Card>
+                  </TabsContent>
+
+                  <TabsContent value="projects" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                     <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-2xl font-black flex items-center gap-2">
+                           <div className="h-8 w-2 bg-primary rounded-full" />
+                           Portfolio Projects
+                        </h2>
+                        <Button className="rounded-2xl font-black h-12 shadow-xl shadow-primary/10 px-6" onClick={() => openAddDialog('project')}>
+                           <Plus className="h-5 w-5 mr-2" /> New Project
+                        </Button>
+                     </div>
+
+                     <div className="grid grid-cols-1 gap-8">
+                        {profile.projects.map((project: any) => (
+                           <Card key={project.id} className="rounded-[2.5rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden group">
+                              <div className="grid grid-cols-1 md:grid-cols-12">
+                                 <div className="md:col-span-5 relative overflow-hidden bg-slate-100">
+                                    {project.screenshotUrl ? (
+                                       <img src={project.screenshotUrl} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt={project.title} />
+                                    ) : (
+                                       <div className="h-64 flex items-center justify-center text-slate-300">
+                                          <Code2 className="h-20 w-20" />
+                                       </div>
+                                    )}
+                                    <div className="absolute top-4 left-4 flex flex-col gap-2">
+                                       {project.isFeatured && (
+                                          <Badge className="bg-emerald-500 rounded-lg font-black uppercase text-[10px] px-3 py-1 shadow-lg">Featured</Badge>
+                                       )}
+                                    </div>
+                                    <Label className="absolute bottom-4 left-4 h-10 w-10 bg-white/90 backdrop-blur rounded-xl flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 transition-transform opacity-0 group-hover:opacity-100">
+                                       <Upload className="h-4 w-4" />
+                                       <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload('project', project.id, e)} />
+                                    </Label>
+                                 </div>
+                                 <div className="md:col-span-7 p-8 space-y-6">
+                                    <div className="flex justify-between items-start">
+                                       <div className="space-y-1">
+                                          <h3 className="text-2xl font-black text-slate-900">{project.title}</h3>
+                                          <p className="text-slate-500 font-medium text-sm line-clamp-3">{project.description}</p>
+                                       </div>
+                                       <div className="flex gap-1">
+                                          <Button 
+                                             size="icon" 
+                                             variant="ghost" 
+                                             className={cn("rounded-xl h-10 w-10", project.isFeatured ? "text-yellow-500" : "text-slate-300")}
+                                             onClick={() => handleToggleFeatured(project.id, project.isFeatured)}
+                                          >
+                                             {project.isFeatured ? <Star className="h-5 w-5 fill-current" /> : <Star className="h-5 w-5" />}
+                                          </Button>
+                                          <Button size="icon" variant="ghost" className="rounded-xl h-10 w-10 text-red-400 hover:text-red-500 hover:bg-red-50" onClick={() => handleRemoveItem('project', project.id)}>
+                                             <Trash2 className="h-5 w-5" />
+                                          </Button>
+                                       </div>
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-2">
+                                       {project.techStack?.split(',').map((tech: string) => (
+                                          <Badge key={tech} variant="outline" className="rounded-lg text-[10px] font-bold uppercase border-slate-100 bg-slate-50/50">{tech.trim()}</Badge>
+                                       ))}
+                                    </div>
+
+                                    <div className="flex gap-3 pt-2">
+                                       {project.projectUrl && (
+                                          <Button size="sm" className="rounded-xl font-black h-10 px-5" asChild>
+                                             <Link href={project.projectUrl} target="_blank">Live Demo <ExternalLink className="ml-2 h-3.5 w-3.5" /></Link>
+                                          </Button>
+                                       )}
+                                       {project.repoUrl && (
+                                          <Button variant="outline" className="rounded-xl font-black h-10 border-slate-100 flex-1" asChild>
+                                             <Link href={project.repoUrl} target="_blank"><ExternalLink className="mr-2 h-4 w-4" /> Source</Link>
+                                          </Button>
+                                       )}
+                                    </div>
+                                 </div>
+                              </div>
+                           </Card>
+                        ))}
+                        {profile.projects.length === 0 && (
+                           <div className="py-20 text-center border-4 border-dashed border-slate-100 rounded-[3rem]">
+                              <Code2 className="h-16 w-16 text-slate-200 mx-auto mb-4" />
+                              <h3 className="text-xl font-black text-slate-400">Showcase your work</h3>
+                              <p className="text-slate-400 font-medium">Add projects to your profile to impress employers.</p>
+                           </div>
+                        )}
+                     </div>
+                  </TabsContent>
+
+                  <TabsContent value="experience" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                     <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
+                        <CardHeader className="border-b border-slate-50 pb-6 flex flex-row items-center justify-between">
+                           <CardTitle className="text-2xl font-black flex items-center gap-2">
+                              <div className="h-8 w-2 bg-primary rounded-full" />
+                              Education
+                           </CardTitle>
+                           <Button size="sm" variant="outline" className="rounded-xl font-bold h-10 px-4 border-slate-200" onClick={() => openAddDialog('education')}>
+                              <Plus className="h-4 w-4 mr-2" /> Add Education
+                           </Button>
+                        </CardHeader>
+                        <CardContent className="pt-6">
+                           <div className="space-y-6">
+                              {profile.education.map((edu: any) => (
+                                 <div key={edu.id} className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 flex gap-6 items-start">
+                                    <div className="h-14 w-14 rounded-2xl bg-white shadow-sm flex items-center justify-center text-primary shrink-0">
+                                       <GraduationCap className="h-7 w-7" />
+                                    </div>
+                                    <div className="flex-1 space-y-1">
+                                       <div className="flex justify-between">
+                                          <h4 className="text-xl font-black text-slate-900">{edu.institution}</h4>
+                                          <Button size="icon" variant="ghost" className="h-8 w-8 text-red-400" onClick={() => handleRemoveItem('education', edu.id)}>
+                                             <Trash2 className="h-4 w-4" />
+                                          </Button>
+                                       </div>
+                                       <p className="text-primary font-black text-sm">{edu.qualification} • {edu.fieldOfStudy}</p>
+                                       <p className="text-slate-400 font-bold text-xs uppercase tracking-wider">{edu.startYear} — {edu.yearCompleted}</p>
+                                    </div>
+                                 </div>
+                              ))}
+                              {profile.education.length === 0 && (
+                                 <p className="py-8 text-center text-slate-400 font-bold italic">No education history added yet.</p>
+                              )}
+                           </div>
+                        </CardContent>
+                     </Card>
+
+                     <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
+                        <CardHeader className="border-b border-slate-50 pb-6 flex flex-row items-center justify-between">
+                           <CardTitle className="text-2xl font-black flex items-center gap-2">
+                              <div className="h-8 w-2 bg-primary rounded-full" />
+                              Certifications
+                           </CardTitle>
+                           <Button size="sm" variant="outline" className="rounded-xl font-bold h-10 px-4 border-slate-200" onClick={() => openAddDialog('certification')}>
+                              <Plus className="h-4 w-4 mr-2" /> Add Certificate
+                           </Button>
+                        </CardHeader>
+                        <CardContent className="pt-6">
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {profile.certifications.map((c: any) => (
+                                 <div key={c.id} className="p-5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-4">
+                                    <div className="h-12 w-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
+                                       <Award className="h-6 w-6" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                       <h4 className="font-black text-slate-900 truncate">{c.name}</h4>
+                                       <p className="text-slate-500 font-bold text-[10px] uppercase">{c.issuedBy}</p>
+                                    </div>
+                                    <Button size="icon" variant="ghost" className="h-8 w-8 text-red-400" onClick={() => handleRemoveItem('certification', c.id)}>
+                                       <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                 </div>
+                              ))}
+                              {profile.certifications.length === 0 && (
+                                 <p className="col-span-full py-8 text-center text-slate-400 font-bold italic">No certifications added yet.</p>
+                              )}
+                           </div>
+                        </CardContent>
+                     </Card>
+                  </TabsContent>
+
+                  <TabsContent value="oss" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
+                           <CardHeader className="border-b border-slate-50 pb-6 flex flex-row items-center justify-between">
+                              <CardTitle className="text-xl font-black flex items-center gap-2">
+                                 OSS Work
+                              </CardTitle>
+                              <Button size="icon" variant="ghost" className="rounded-xl h-8 w-8 text-primary" onClick={() => openAddDialog('oss')}>
+                                 <Plus className="h-5 w-5" />
+                              </Button>
+                           </CardHeader>
+                           <CardContent className="pt-6 space-y-4">
+                              {profile.ossContributions.map((oss: any) => (
+                                 <div key={oss.id} className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
+                                    <div className="flex justify-between items-start">
+                                       <div>
+                                          <h4 className="font-black text-slate-900">{oss.projectName}</h4>
+                                          <p className="text-primary font-bold text-xs">{oss.role}</p>
+                                       </div>
+                                       <Button size="icon" variant="ghost" className="h-8 w-8 text-red-400" onClick={() => handleRemoveItem('oss', oss.id)}>
+                                          <Trash2 className="h-4 w-4" />
+                                       </Button>
+                                    </div>
+                                    <p className="text-slate-500 text-sm font-medium leading-relaxed">{oss.description}</p>
+                                    {oss.contributionUrl && (
+                                       <Link href={oss.contributionUrl} target="_blank" className="text-primary font-black text-xs inline-flex items-center hover:underline">
+                                          View Contribution <ExternalLink className="ml-1 h-3 w-3" />
+                                       </Link>
+                                    )}
+                                 </div>
+                              ))}
+                              {profile.ossContributions.length === 0 && (
+                                 <p className="py-8 text-center text-slate-400 font-bold italic">No OSS contributions listed.</p>
+                              )}
+                           </CardContent>
+                        </Card>
+
+                        <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
+                           <CardHeader className="border-b border-slate-50 pb-6 flex flex-row items-center justify-between">
+                              <CardTitle className="text-xl font-black flex items-center gap-2">
+                                 Achievements
+                              </CardTitle>
+                              <Button size="icon" variant="ghost" className="rounded-xl h-8 w-8 text-primary" onClick={() => openAddDialog('achievement')}>
+                                 <Plus className="h-5 w-5" />
+                              </Button>
+                           </CardHeader>
+                           <CardContent className="pt-6 space-y-4">
+                              {profile.achievements.map((ach: any) => (
+                                 <div key={ach.id} className="p-5 rounded-2xl bg-slate-50 border border-slate-100 flex gap-4">
+                                    <div className="h-10 w-10 rounded-xl bg-yellow-500/10 text-yellow-600 flex items-center justify-center shrink-0">
+                                       <Trophy className="h-5 w-5" />
+                                    </div>
+                                    <div className="flex-1 space-y-1">
+                                       <div className="flex justify-between items-start">
+                                          <h4 className="font-black text-slate-900">{ach.title}</h4>
+                                          <Button size="icon" variant="ghost" className="h-8 w-8 text-red-400" onClick={() => handleRemoveItem('achievement', ach.id)}>
+                                             <Trash2 className="h-4 w-4" />
+                                          </Button>
+                                       </div>
+                                       <p className="text-slate-400 font-bold text-[10px] uppercase tracking-wider">{ach.year}</p>
+                                       <p className="text-slate-500 text-sm font-medium">{ach.description}</p>
+                                    </div>
+                                 </div>
+                              ))}
+                              {profile.achievements.length === 0 && (
+                                 <p className="py-8 text-center text-slate-400 font-bold italic">No achievements added yet.</p>
+                              )}
+                           </CardContent>
+                        </Card>
+                     </div>
+                  </TabsContent>
+               </Tabs>
+            </div>
+
+            <div className="lg:col-span-4 space-y-8">
+               <SpotlightStatusCard status={spotlightStatus} onBuy={() => setBuySpotlightOpen(true)} />
+
+               <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden bg-slate-900 text-white">
+                  <CardHeader className="pb-6">
+                     <CardTitle className="text-xl font-black tracking-widest uppercase">Visibility & Preferences</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-8">
+                     <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                           <div className="space-y-0.5">
+                              <Label className="text-sm font-black text-slate-100 uppercase tracking-wide">Availability</Label>
+                              <p className="text-[10px] font-bold text-slate-400">Can employers reach out?</p>
+                           </div>
+                        </div>
+                        <Select value={profile.availabilityStatus} onValueChange={handleToggleAvailability}>
+                           <SelectTrigger className="rounded-xl border-slate-700 bg-slate-800 h-12 font-black text-white focus:ring-primary/20">
+                              <SelectValue />
+                           </SelectTrigger>
+                           <SelectContent className="rounded-xl border-slate-700 bg-slate-800 text-white">
+                              <SelectItem value="AVAILABLE">🟢 Available Now</SelectItem>
+                              <SelectItem value="OPEN_TO_OFFERS">🟡 Open to Offers</SelectItem>
+                              <SelectItem value="NOT_AVAILABLE">🔴 Not Available</SelectItem>
+                           </SelectContent>
+                        </Select>
+                     </div>
+
+                     <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                           <div className="space-y-0.5">
+                              <Label className="text-sm font-black text-slate-100 uppercase tracking-wide">Privacy Mode</Label>
+                              <p className="text-[10px] font-bold text-slate-400">Control who sees your profile</p>
+                           </div>
+                        </div>
+                        <Select value={profile.profileVisibility} onValueChange={handleToggleVisibility}>
+                           <SelectTrigger className="rounded-xl border-slate-700 bg-slate-800 h-12 font-black text-white focus:ring-primary/20">
+                              <SelectValue />
+                           </SelectTrigger>
+                           <SelectContent className="rounded-xl border-slate-700 bg-slate-800 text-white">
+                              <SelectItem value="PUBLIC">🌎 Public Search</SelectItem>
+                              <SelectItem value="PRIVATE">🔒 Private Link Only</SelectItem>
+                              <SelectItem value="HIDDEN">👻 Hidden (Ghost mode)</SelectItem>
+                           </SelectContent>
+                        </Select>
+                     </div>
+                  </CardContent>
+               </Card>
+
+               <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
+                  <CardHeader className="border-b border-slate-50 pb-6">
+                     <CardTitle className="text-xl font-black">Quick Actions</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6 space-y-3">
+                     <Button variant="outline" className="w-full h-14 rounded-2xl border-slate-100 bg-slate-50/50 justify-start px-6 font-black text-slate-900 group" asChild>
+                        <Link href={`/developers/${profile.id || user?.id}`}>
+                           <Eye className="h-5 w-5 mr-4 text-primary group-hover:scale-110 transition-transform" /> 
+                           Preview Public View
+                        </Link>
+                     </Button>
+                     <Button variant="outline" className="w-full h-14 rounded-2xl border-slate-100 bg-slate-50/50 justify-start px-6 font-black text-slate-900 group" onClick={() => router.push('/verify')}>
+                        <ShieldCheck className="h-5 w-5 mr-4 text-emerald-500 group-hover:scale-110 transition-transform" /> 
+                        Verify Identity
+                     </Button>
+                  </CardContent>
+               </Card>
+
+               {!isEmployer && (
+                 <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
+                    <CardHeader className="border-b border-slate-50 pb-6">
+                       <CardTitle className="text-xl font-black">Personal Links</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6 space-y-3">
+                       {isEditing ? (
+                         <div className="space-y-4">
+                            <div className="space-y-1">
+                               <Label className="text-[10px] font-black uppercase text-slate-400">LinkedIn</Label>
+                               <Input className="h-10 rounded-xl" value={profile.linkedinUrl || ''} onChange={(e) => setProfile({...profile, linkedinUrl: e.target.value})} />
+                            </div>
+                            <div className="space-y-1">
+                               <Label className="text-[10px] font-black uppercase text-slate-400">Portfolio</Label>
+                               <Input className="h-10 rounded-xl" value={profile.portfolioUrl || ''} onChange={(e) => setProfile({...profile, portfolioUrl: e.target.value})} />
+                            </div>
+                         </div>
+                       ) : (
+                         <>
+                            <Button variant="outline" className="w-full h-14 rounded-2xl border-slate-100 bg-slate-50/50 justify-start px-6 font-black text-slate-900 group" asChild>
+                               <Link href={profile.linkedinUrl || '#'} target="_blank" className={cn(!profile.linkedinUrl && "opacity-50 pointer-events-none")}>
+                                  <ExternalLink className="h-5 w-5 mr-4 text-[#0077b5] group-hover:scale-110 transition-transform" /> 
+                                  LinkedIn
+                               </Link>
+                            </Button>
+                            <Button variant="outline" className="w-full h-14 rounded-2xl border-slate-100 bg-slate-50/50 justify-start px-6 font-black text-slate-900 group" asChild>
+                               <Link href={profile.portfolioUrl || '#'} target="_blank" className={cn(!profile.portfolioUrl && "opacity-50 pointer-events-none")}>
+                                  <Globe className="h-5 w-5 mr-4 text-primary group-hover:scale-110 transition-transform" /> 
+                                  Portfolio
+                               </Link>
+                            </Button>
+                         </>
+                       )}
+                    </CardContent>
+                 </Card>
+               )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <BuySpotlightDialog 
+        open={buySpotlightOpen} 
+        onClose={() => setBuySpotlightOpen(false)} 
+        onSuccess={() => { fetchSpotlightStatus(); setBuySpotlightOpen(false); }}
+        isVerified={profile.isVerified}
+        hasFeaturedProject={profile.projects?.some((p: any) => p.isFeatured) || false}
+      />
+
+      {/* Add Item Dialogs */}
+      <Dialog open={!!dialogOpen} onOpenChange={(v) => !v && closeDialog()}>
+        <DialogContent className="sm:max-w-md rounded-[2.5rem]">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black">
+              Add {dialogOpen?.charAt(0).toUpperCase()}{dialogOpen?.slice(1)}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {dialogOpen === 'skill' && (
+               <div className="space-y-4">
+                  <div className="space-y-2">
+                     <Label className="font-bold">Skill Name</Label>
+                     <Input 
+                        placeholder="e.g. React, Java" 
+                        className="h-12 rounded-xl"
+                        value={newItem.skill || ''} 
+                        onChange={(e) => setNewItem({ ...newItem, skill: e.target.value })} 
+                     />
+                  </div>
+                  <div className="flex flex-wrap gap-2 pt-2">
+                     {COMMON_SKILLS.slice(0, 8).map(s => (
+                        <Badge 
+                           key={s} 
+                           variant="outline" 
+                           className="cursor-pointer hover:bg-primary hover:text-white transition-colors"
+                           onClick={() => setNewItem({ ...newItem, skill: s })}
+                        >
+                           {s}
+                        </Badge>
+                     ))}
+                  </div>
+               </div>
+            )}
+
+            {dialogOpen === 'language' && (
+               <div className="space-y-2">
+                  <Label className="font-bold">Language Name</Label>
+                  <Input 
+                     placeholder="e.g. Swahili, French" 
+                     className="h-12 rounded-xl"
+                     value={newItem.language || ''} 
+                     onChange={(e) => setNewItem({ ...newItem, language: e.target.value })} 
+                  />
+               </div>
+            )}
+
+            {dialogOpen === 'education' && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                   <Label className="font-bold">Institution</Label>
+                   <Input value={newItem.institution || ''} onChange={(e) => setNewItem({ ...newItem, institution: e.target.value })} className="rounded-xl" />
+                </div>
+                <div className="space-y-2">
+                   <Label className="font-bold">Qualification</Label>
+                   <Input value={newItem.qualification || ''} onChange={(e) => setNewItem({ ...newItem, qualification: e.target.value })} className="rounded-xl" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                   <div className="space-y-2">
+                      <Label className="font-bold">Start Year</Label>
+                      <Input type="number" value={newItem.startYear || ''} onChange={(e) => setNewItem({ ...newItem, startYear: e.target.value })} className="rounded-xl" />
+                   </div>
+                   <div className="space-y-2">
+                      <Label className="font-bold">End Year</Label>
+                      <Input type="number" value={newItem.yearCompleted || ''} onChange={(e) => setNewItem({ ...newItem, yearCompleted: e.target.value })} className="rounded-xl" />
+                   </div>
+                </div>
+              </div>
+            )}
+
+            {dialogOpen === 'project' && (
+               <div className="space-y-4">
+                  <div className="space-y-2">
+                     <Label className="font-bold">Project Title</Label>
+                     <Input value={newItem.title || ''} onChange={(e) => setNewItem({ ...newItem, title: e.target.value })} className="rounded-xl" />
+                  </div>
+                  <div className="space-y-2">
+                     <Label className="font-bold">Description</Label>
+                     <Textarea value={newItem.description || ''} onChange={(e) => setNewItem({ ...newItem, description: e.target.value })} className="rounded-xl min-h-[100px]" />
+                  </div>
+                  <div className="space-y-2">
+                     <Label className="font-bold">Tech Stack (comma separated)</Label>
+                     <Input placeholder="React, Node.js, AWS" value={newItem.techStack || ''} onChange={(e) => setNewItem({ ...newItem, techStack: e.target.value })} className="rounded-xl" />
+                  </div>
+                  <div className="space-y-2">
+                     <Label className="font-bold">Project Preview (Optional)</Label>
+                     <div className="flex items-center gap-4">
+                        <Button variant="outline" className="rounded-xl h-12 w-full font-bold relative" asChild>
+                           <label className="cursor-pointer">
+                              {selectedFile ? selectedFile.name : 'Choose Screenshot'}
+                              <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
+                           </label>
+                        </Button>
+                     </div>
+                     {previewUrl && <img src={previewUrl} className="mt-4 w-full h-32 object-cover rounded-2xl" />}
+                  </div>
+                  <div className="flex items-center space-x-2 pt-2">
+                    <Switch id="featured" checked={newItem.isFeatured || false} onCheckedChange={(v) => setNewItem({ ...newItem, isFeatured: v })} />
+                    <Label htmlFor="featured" className="font-bold text-sm">Feature this project</Label>
+                  </div>
+               </div>
+            )}
+
+            {/* Other dialogs for OSS, Achievement, Certification follow same pattern */}
+            {(dialogOpen === 'oss' || dialogOpen === 'achievement' || dialogOpen === 'certification') && (
+               <div className="space-y-4">
+                  <div className="space-y-2">
+                     <Label className="font-bold">Title / Project Name</Label>
+                     <Input 
+                        value={newItem.projectName || newItem.title || newItem.name || ''} 
+                        onChange={(e) => setNewItem({ ...newItem, [dialogOpen === 'oss' ? 'projectName' : dialogOpen === 'achievement' ? 'title' : 'name']: e.target.value })} 
+                        className="rounded-xl" 
+                     />
+                  </div>
+                  <div className="space-y-2">
+                     <Label className="font-bold">{dialogOpen === 'certification' ? 'Issued By' : 'Description'}</Label>
+                     <Textarea 
+                        value={newItem.description || newItem.issuedBy || ''} 
+                        onChange={(e) => setNewItem({ ...newItem, [dialogOpen === 'certification' ? 'issuedBy' : 'description']: e.target.value })} 
+                        className="rounded-xl min-h-[100px]" 
+                     />
+                  </div>
+               </div>
+            )}
+          </div>
+
+          <DialogFooter className="pt-4 border-t border-slate-50 gap-3">
+             <Button variant="ghost" onClick={closeDialog} className="font-bold">Cancel</Button>
+             <Button className="font-black rounded-xl px-8 h-12 shadow-lg" onClick={() => handleAddItem(dialogOpen as string)} disabled={isSaving}>
+                {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Save Item'}
+             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Image Crop Dialog */}
+      <Dialog open={cropDialogOpen} onOpenChange={(v) => !v && setCropDialogOpen(false)}>
+        <DialogContent className="sm:max-w-xl rounded-[2.5rem]">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black">Crop Profile Photo</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-8 py-4">
+             <div className="relative w-full h-[400px] rounded-[2rem] overflow-hidden bg-slate-900 border-8 border-slate-100">
+                <Cropper
+                  image={cropImageSrc || ''}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={(_, pixels) => setCroppedAreaPixels(pixels)}
                 />
-              )}
-              {dialogOpen === 'language' && (
-                <TextField label="Language Name" placeholder="e.g. Swahili" fullWidth value={newItem.language || ''} onChange={(e) => setNewItem({ ...newItem, language: e.target.value })} />
-              )}
-              {dialogOpen === 'education' && (
-                <>
-                  <TextField label="Institution" fullWidth value={newItem.institution || ''} onChange={(e) => setNewItem({ ...newItem, institution: e.target.value })} />
-                  <TextField label="Qualification" fullWidth value={newItem.qualification || ''} onChange={(e) => setNewItem({ ...newItem, qualification: e.target.value })} />
-                  <TextField label="Field of Study" fullWidth value={newItem.fieldOfStudy || ''} onChange={(e) => setNewItem({ ...newItem, fieldOfStudy: e.target.value })} />
-                  <Stack direction="row" spacing={2}>
-                    <TextField label="Start Year" type="number" fullWidth value={newItem.startYear || ''} onChange={(e) => setNewItem({ ...newItem, startYear: e.target.value })} />
-                    <TextField label="Year Completed" type="number" fullWidth value={newItem.yearCompleted || ''} onChange={(e) => setNewItem({ ...newItem, yearCompleted: e.target.value })} />
-                  </Stack>
-                  <FormControlLabel control={<Switch checked={newItem.isCertification || false} onChange={(e) => setNewItem({ ...newItem, isCertification: e.target.checked })} />} label="This is a certification" />
-                </>
-              )}
-              {dialogOpen === 'certification' && (
-                <>
-                  <TextField label="Certification Name" fullWidth value={newItem.name || ''} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} />
-                  <TextField label="Issued By" fullWidth value={newItem.issuedBy || ''} onChange={(e) => setNewItem({ ...newItem, issuedBy: e.target.value })} />
-                  <TextField label="Credential URL" fullWidth value={newItem.certUrl || ''} onChange={(e) => setNewItem({ ...newItem, certUrl: e.target.value })} />
-                </>
-              )}
-              {dialogOpen === 'oss' && (
-                <>
-                  <TextField label="Project Name" fullWidth value={newItem.projectName || ''} onChange={(e) => setNewItem({ ...newItem, projectName: e.target.value })} />
-                  <TextField label="Your Role" fullWidth value={newItem.role || ''} onChange={(e) => setNewItem({ ...newItem, role: e.target.value })} />
-                  <TextField label="Contribution URL" fullWidth value={newItem.contributionUrl || ''} onChange={(e) => setNewItem({ ...newItem, contributionUrl: e.target.value })} />
-                  <TextField label="Brief Description" fullWidth multiline rows={3} value={newItem.description || ''} onChange={(e) => setNewItem({ ...newItem, description: e.target.value })} />
-                </>
-              )}
-              {dialogOpen === 'achievement' && (
-                <>
-                  <TextField label="Achievement Title" fullWidth value={newItem.title || ''} onChange={(e) => setNewItem({ ...newItem, title: e.target.value })} />
-                  <TextField label="Year Received" type="number" fullWidth value={newItem.year || ''} onChange={(e) => setNewItem({ ...newItem, year: e.target.value })} />
-                  <TextField label="Description" fullWidth multiline rows={3} value={newItem.description || ''} onChange={(e) => setNewItem({ ...newItem, description: e.target.value })} />
-                </>
-              )}
-              {dialogOpen === 'project' && (
-                <>
-                  <TextField label="Project Title" fullWidth value={newItem.title || ''} onChange={(e) => setNewItem({ ...newItem, title: e.target.value })} />
-                  <TextField label="Description" fullWidth multiline rows={3} value={newItem.description || ''} onChange={(e) => setNewItem({ ...newItem, description: e.target.value })} />
-                  <TextField label="Tech Stack (comma separated)" fullWidth value={newItem.techStack || ''} onChange={(e) => setNewItem({ ...newItem, techStack: e.target.value })} />
-                  <Stack direction="row" spacing={2}>
-                    <TextField label="Live URL" fullWidth value={newItem.projectUrl || ''} onChange={(e) => setNewItem({ ...newItem, projectUrl: e.target.value })} />
-                    <TextField label="Repo URL" fullWidth value={newItem.repoUrl || ''} onChange={(e) => setNewItem({ ...newItem, repoUrl: e.target.value })} />
-                  </Stack>
-                  <Box>
-                    <Typography variant="caption" sx={{ fontWeight: 800, display: 'block', mb: 1 }}>PROJECT SCREENSHOT</Typography>
-                    <Button variant="outlined" component="label" fullWidth startIcon={<CloudUploadIcon />}>
-                      {selectedFile ? selectedFile.name : 'Choose File'}
-                      <input type="file" hidden accept="image/*" onChange={handleFileChange} />
-                    </Button>
-                    {previewUrl && <Box component="img" src={previewUrl} sx={{ mt: 2, width: '100%', borderRadius: 2, height: 150, objectFit: 'cover' }} />}
-                  </Box>
-                  <FormControlLabel control={<Switch checked={newItem.isFeatured || false} onChange={(e) => setNewItem({ ...newItem, isFeatured: e.target.checked })} />} label="Feature this project (requires screenshot + live URL)" />
-                </>
-              )}
-            </Stack>
-          </DialogContent>
-          <DialogActions sx={{ p: 3 }}>
-            <Button onClick={closeDialog} sx={{ fontWeight: 700 }}>Cancel</Button>
-            <Button variant="contained" disabled={isSaving} onClick={() => handleAddItem(dialogOpen as string)} sx={{ borderRadius: 2, fontWeight: 800, px: 4 }}>
-              {isSaving ? <CircularProgress size={24} /> : 'Save Item'}
-            </Button>
-          </DialogActions>
-        </Dialog>
+             </div>
+             
+             <div className="space-y-4 px-2">
+                <div className="flex justify-between items-center">
+                   <Label className="font-black uppercase tracking-widest text-[10px] text-slate-400">Zoom Level</Label>
+                   <span className="font-black text-xs text-primary">{(zoom * 100).toFixed(0)}%</span>
+                </div>
+                <Slider 
+                   value={[zoom]} 
+                   min={1} 
+                   max={3} 
+                   step={0.1} 
+                   onValueChange={(val) => setZoom(val[0])} 
+                />
+             </div>
+          </div>
 
-        {/* Image Crop Dialog */}
-        <Dialog open={cropDialogOpen} onClose={() => setCropDialogOpen(false)} fullWidth maxWidth="sm" slotProps={{ paper: { sx: { borderRadius: 4 } } }}>
-          <DialogTitle sx={{ fontWeight: 900 }}>Crop Profile Photo</DialogTitle>
-          <DialogContent>
-            <Box sx={{ position: 'relative', width: '100%', height: 400, mt: 2, borderRadius: 3, overflow: 'hidden' }}>
-              <Cropper
-                image={cropImageSrc || ''}
-                crop={crop}
-                zoom={zoom}
-                aspect={1}
-                onCropChange={setCrop}
-                onZoomChange={setZoom}
-                onCropComplete={(_, pixels) => setCroppedAreaPixels(pixels)}
-              />
-            </Box>
-            <Box sx={{ mt: 4, px: 2 }}>
-              <Typography gutterBottom sx={{ fontWeight: 700 }}>Zoom</Typography>
-              <Slider value={zoom} min={1} max={3} step={0.1} onChange={(_, val) => setZoom(val as number)} />
-            </Box>
-          </DialogContent>
-          <DialogActions sx={{ p: 3 }}>
-            <Button onClick={() => setCropDialogOpen(false)} sx={{ fontWeight: 700 }}>Cancel</Button>
-            <Button 
-              variant="contained" 
-              disabled={isSaving}
-              onClick={async () => {
-                try {
-                  setIsSaving(true);
-                  const croppedBlob = await getCroppedImg(cropImageSrc!, croppedAreaPixels);
-                  const file = new File([croppedBlob], 'profile.jpg', { type: 'image/jpeg' });
-                  
-                  let response;
-                  if (user?.role === 'EMPLOYER') {
-                    response = await employerService.uploadLogo(file);
-                  } else {
-                    response = await developerService.uploadProfilePhoto(file);
-                  }
+          <DialogFooter className="pt-4 border-t border-slate-50 gap-3">
+             <Button variant="ghost" onClick={() => setCropDialogOpen(false)} className="font-bold">Cancel</Button>
+             <Button 
+                className="font-black rounded-xl px-8 h-12 shadow-lg" 
+                disabled={isSaving}
+                onClick={async () => {
+                  try {
+                    setIsSaving(true);
+                    const croppedBlob = await getCroppedImg(cropImageSrc!, croppedAreaPixels);
+                    const file = new File([croppedBlob], 'profile.jpg', { type: 'image/jpeg' });
+                    
+                    let response;
+                    if (user?.role === 'EMPLOYER') {
+                      response = await employerService.uploadLogo(file);
+                    } else {
+                      response = await developerService.uploadProfilePhoto(file);
+                    }
 
-                  if (response.success) {
-                    setProfile(response.data);
-                    setCropDialogOpen(false);
+                    if (response.success) {
+                      setProfile(response.data);
+                      setCropDialogOpen(false);
+                      toast.success('Profile photo updated');
+                    }
+                  } catch (err) {
+                    console.error(err);
+                    toast.error('Failed to crop and upload photo.');
+                  } finally {
+                    setIsSaving(false);
                   }
-                } catch (err) {
-                  console.error(err);
-                  alert('Failed to crop and upload photo.');
-                } finally {
-                  setIsSaving(false);
-                }
-              }}
-              sx={{ borderRadius: 2, fontWeight: 800, px: 4 }}
-            >
-              {isSaving ? <CircularProgress size={24} /> : 'Set Profile Photo'}
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Container>
-    </Box>
+                }}
+             >
+                {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Set Profile Photo'}
+             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
 
 function SpotlightStatusCard({ status, onBuy }: { status: any, onBuy: () => void }) {
   const isActive = !!status;
   return (
-    <Paper sx={{ p: 3, borderRadius: 6, background: isActive ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#f3f4f6', color: isActive ? 'white' : 'text.primary', position: 'relative', overflow: 'hidden' }}>
-      <Stack spacing={2}>
-        <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-          <SpeedIcon />
-          <Typography variant="h6" sx={{ fontWeight: 900 }}>{isActive ? 'Spotlight Active!' : 'Get Spotlight'}</Typography>
-        </Stack>
-        {isActive ? (
-          <Box>
-            <Typography variant="body2">Developer of the {status.type}</Typography>
-            <Typography variant="caption" sx={{ opacity: 0.8 }}>Expires: {new Date(status.expiresAt).toLocaleString()}</Typography>
-          </Box>
-        ) : (
-          <Box>
-            <Typography variant="body2" color="text.secondary">Get featured on the landing page!</Typography>
-            <Button variant="contained" fullWidth sx={{ mt: 2, bgcolor: 'white', color: 'primary.main', fontWeight: 800 }} onClick={onBuy}>Boost Profile</Button>
-          </Box>
-        )}
-      </Stack>
-    </Paper>
+    <Card className={cn(
+      "rounded-[2rem] border-none shadow-xl overflow-hidden relative group",
+      isActive ? "bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-emerald-500/20" : "bg-slate-50 border border-slate-100 shadow-slate-100/50"
+    )}>
+       {isActive && (
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-white/20 transition-all pointer-events-none" />
+       )}
+       <CardContent className="p-8 space-y-6">
+          <div className="flex items-center gap-4">
+             <div className={cn(
+                "h-14 w-14 rounded-2xl flex items-center justify-center shadow-lg",
+                isActive ? "bg-white text-emerald-500" : "bg-primary text-white"
+             )}>
+                <Zap className={cn("h-7 w-7", isActive && "fill-current")} />
+             </div>
+             <div>
+                <h3 className="text-xl font-black uppercase tracking-tight leading-none">
+                   {isActive ? 'Spotlight Active!' : 'Get Spotlight'}
+                </h3>
+                <p className={cn("text-xs font-bold mt-1 uppercase tracking-widest", isActive ? "text-emerald-100" : "text-slate-400")}>
+                   {isActive ? 'You are being featured' : 'Boost your reach'}
+                </p>
+             </div>
+          </div>
+
+          {isActive ? (
+             <div className="space-y-4 pt-2">
+                <div className="p-4 rounded-2xl bg-white/10 border border-white/20">
+                   <p className="font-black text-sm">Developer of the {status.type}</p>
+                   <p className="text-[10px] font-bold text-emerald-100 uppercase mt-1">
+                      Expires: {new Date(status.expiresAt).toLocaleDateString()}
+                   </p>
+                </div>
+                <p className="text-xs font-medium text-emerald-50">
+                   You are currently showcased on the homepage spotlight.
+                </p>
+             </div>
+          ) : (
+             <div className="space-y-6 pt-2">
+                <p className="text-sm font-medium text-slate-500 leading-relaxed">
+                   Get featured on the homepage and attract up to <span className="font-black text-slate-900">10x more</span> employer views.
+                </p>
+                <Button className="w-full h-12 rounded-xl font-black bg-white text-slate-900 hover:bg-slate-50 shadow-lg" onClick={onBuy}>
+                   Boost Profile Now
+                </Button>
+             </div>
+          )}
+       </CardContent>
+    </Card>
   );
 }

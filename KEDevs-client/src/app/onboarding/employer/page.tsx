@@ -1,43 +1,52 @@
-// src/app/onboarding/employer/page.tsx
 'use client';
 
 import React, { useState } from 'react';
-import {
-  Container,
-  Paper,
-  Typography,
-  Box,
-  TextField,
-  Button,
-  Stepper,
-  Step,
-  StepLabel,
-  Grid,
-  MenuItem,
-  Stack,
-  CircularProgress,
-  Alert,
-  Checkbox,
-  FormControlLabel,
-  Divider,
-  Chip,
-} from '@mui/material';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { 
+  Building2, 
+  Contact, 
+  LayoutDashboard, 
+  CheckCircle2, 
+  Loader2, 
+  ChevronRight, 
+  ChevronLeft,
+  Info,
+  ShieldCheck,
+  Globe,
+  X,
+  Users,
+  MapPin,
+  Mail,
+  User,
+  Eye, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import BusinessIcon from '@mui/icons-material/Business';
-import ContactMailIcon from '@mui/icons-material/ContactMail';
-import PreviewIcon from '@mui/icons-material/Preview';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutlined';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import LanguageIcon from '@mui/icons-material/Language';
-import LinkedInIcon from '@mui/icons-material/LinkedIn';
-import XIcon from '@mui/icons-material/X';
-import PeopleIcon from '@mui/icons-material/People';
 import { employerService } from '@/services/employerService';
 import { KENYA_COUNTIES, INDUSTRIES } from '@/lib/constants';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
-const steps = ['Company Profile', 'Contact & Presence', 'Review & Submit'];
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Separator } from '@/components/ui/separator';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const steps = [
+  { label: 'Profile', icon: Building2 },
+  { label: 'Contact', icon: Contact },
+  { label: 'Review', icon: Eye }
+];
 
 const COMPANY_SIZES = [
   { value: 'ONE_TO_TEN', label: '1–10 employees' },
@@ -46,43 +55,14 @@ const COMPANY_SIZES = [
   { value: 'TWO_HUNDRED_PLUS', label: '200+ employees' },
 ];
 
-const menuProps = {
-  slotProps: {
-    select: {
-      MenuProps: {
-        slotProps: { paper: { sx: { maxHeight: 300, overflow: 'auto' } } },
-      },
-    },
-  },
-};
-
-interface FormData {
-  companyName: string;
-  industry: string;
-  companySize: string;
-  locationCity: string;
-  companyBio: string;
-  contactPersonName: string;
-  contactEmail: string;
-  websiteUrl: string;
-  linkedinUrl: string;
-  twitterHandle: string;
-}
-
-interface FieldErrors {
-  [key: string]: string;
-}
-
 export default function EmployerOnboarding() {
+  const router = useRouter();
+  const { completeOnboarding, user } = useAuth();
   const [activeStep, setActiveStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const { completeOnboarding, user } = useAuth();
-  const router = useRouter();
 
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState({
     companyName: '',
     industry: '',
     companySize: 'TEN_TO_FIFTY',
@@ -95,56 +75,34 @@ export default function EmployerOnboarding() {
     twitterHandle: '',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (fieldErrors[name]) {
-      setFieldErrors((prev) => ({ ...prev, [name]: '' }));
-    }
-  };
-
-  const validateStep = (step: number): boolean => {
-    const errors: FieldErrors = {};
-
-    if (step === 0) {
-      if (!formData.companyName.trim()) errors.companyName = 'Company name is required.';
-      if (!formData.industry) errors.industry = 'Please select an industry.';
-      if (!formData.companySize) errors.companySize = 'Please select a company size.';
-      if (!formData.locationCity) errors.locationCity = 'Please select your county / HQ.';
-      if (!formData.companyBio.trim()) errors.companyBio = 'A short company bio is required.';
-      else if (formData.companyBio.trim().length < 20)
-        errors.companyBio = 'Bio must be at least 20 characters.';
-    }
-
-    if (step === 1) {
-      if (!formData.contactPersonName.trim())
-        errors.contactPersonName = 'Contact person name is required.';
-      if (!formData.contactEmail.trim()) {
-        errors.contactEmail = 'Contact email is required.';
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contactEmail)) {
-        errors.contactEmail = 'Please enter a valid email address.';
-      }
-    }
-
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
   const handleNext = async () => {
     if (activeStep < steps.length - 1) {
-      if (!validateStep(activeStep)) return;
+      if (activeStep === 0) {
+        if (!formData.companyName || !formData.industry || !formData.locationCity || !formData.companyBio) {
+          toast.error('Please fill all required company details');
+          return;
+        }
+      }
+      if (activeStep === 1) {
+        if (!formData.contactPersonName || !formData.contactEmail) {
+          toast.error('Please fill all required contact details');
+          return;
+        }
+      }
       setActiveStep((prev) => prev + 1);
       return;
     }
 
     // Final submit
-    if (!agreedToTerms) return;
+    if (!agreedToTerms) {
+      toast.error('Please agree to the Terms of Service');
+      return;
+    }
     setIsSubmitting(true);
-    setSubmitError(null);
 
     try {
       const response = await employerService.createProfile({
-        contactPersonName: formData.contactPersonName.trim() || user?.fullName || 'Employer',
+        contactPersonName: formData.contactPersonName.trim(),
         companyName: formData.companyName.trim(),
         companyBio: formData.companyBio.trim(),
         companyWebsite: formData.websiteUrl.trim(),
@@ -154,482 +112,299 @@ export default function EmployerOnboarding() {
         companySize: formData.companySize,
         locationHQ: formData.locationCity ? `${formData.locationCity}, Kenya` : 'Nairobi, Kenya',
         logoUrl: '',
-        contactEmail: formData.contactEmail.trim() || user?.email || '',
+        contactEmail: formData.contactEmail.trim(),
       });
 
       if (response.success) {
         completeOnboarding();
+        toast.success('Profile submitted for approval!');
         router.push('/pending-approval');
-      } else {
-        setSubmitError('Submission failed. Please try again.');
       }
     } catch (err: any) {
-      setSubmitError(err.message || 'Failed to create employer profile.');
+      toast.error(err.message || 'Failed to create employer profile');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleBack = () => {
-    setActiveStep((prev) => prev - 1);
-    setFieldErrors({});
+    setActiveStep((prev) => Math.max(prev - 1, 0));
   };
 
   const companySizeLabel = COMPANY_SIZES.find((s) => s.value === formData.companySize)?.label || '';
 
   return (
-    <Container maxWidth="md" sx={{ py: 8 }}>
-      <Paper
-        sx={{
-          p: { xs: 4, md: 6 },
-          borderRadius: 4,
-          boxShadow: '0 10px 60px rgba(0,0,0,0.08)',
-        }}
-      >
-        {/* Header */}
-        <Stack alignItems="center" spacing={1} sx={{ mb: 5 }}>
-          <Box
-            sx={{
-              width: 56,
-              height: 56,
-              bgcolor: 'primary.main',
-              borderRadius: 3,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mb: 1,
-            }}
-          >
-            <BusinessIcon sx={{ color: 'white', fontSize: 30 }} />
-          </Box>
-          <Typography variant="h4" sx={{ fontWeight: 800 }}>
-            Build Your{' '}
-            <Box component="span" sx={{ color: 'primary.main' }}>
-              Company Profile
-            </Box>
-          </Typography>
-          <Typography variant="body2" color="text.secondary" align="center">
-            Join KEDevs to find and hire the best tech talent in Kenya. This takes about 2 minutes.
-          </Typography>
-        </Stack>
+    <div className="min-h-screen bg-slate-50/50 flex flex-col items-center justify-center p-4 py-20">
+      <div className="absolute top-0 left-0 w-full h-[400px] bg-gradient-to-b from-primary/5 to-transparent -z-10" />
+      
+      <div className="w-full max-w-2xl animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <div className="text-center mb-12">
+           <Badge variant="outline" className="rounded-lg font-black tracking-widest text-[10px] uppercase bg-emerald-50 text-emerald-600 border-emerald-100 mb-4 px-3 py-1">
+              EMPLOYER VERIFICATION
+           </Badge>
+           <h1 className="text-4xl font-black tracking-tight text-slate-900">Build Your Presence</h1>
+           <p className="text-slate-500 font-semibold mt-2">Connect with the top tech talent in Kenya</p>
+        </div>
 
-        {/* Stepper */}
-        <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 6 }}>
-          {steps.map((label, index) => (
-            <Step key={label} completed={activeStep > index}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
+        <div className="flex justify-between items-center mb-12 relative px-4 max-w-md mx-auto">
+          <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-200 -translate-y-1/2 -z-10 rounded-full" />
+          <div 
+            className="absolute top-1/2 left-0 h-1 bg-emerald-500 -translate-y-1/2 -z-10 transition-all duration-500 rounded-full" 
+            style={{ width: `${(activeStep / (steps.length - 1)) * 100}%` }}
+          />
+          {steps.map((step, index) => {
+            const Icon = step.icon;
+            return (
+              <div key={step.label} className="flex flex-col items-center gap-2">
+                <div 
+                  className={cn(
+                    "h-10 w-10 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-lg",
+                    index < activeStep ? "bg-emerald-500 text-white scale-90" : 
+                    index === activeStep ? "bg-white text-emerald-500 border-4 border-emerald-500 scale-110" : "bg-white text-slate-300 border-2 border-slate-100"
+                  )}
+                >
+                  {index < activeStep ? <CheckCircle2 className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+                </div>
+              </div>
+            );
+          })}
+        </div>
 
-        {submitError && (
-          <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
-            {submitError}
-          </Alert>
-        )}
-
-        <Box
-          component="form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleNext();
-          }}
-          sx={{ minHeight: 380 }}
-        >
-          {/* ─── STEP 0: Company Profile ─── */}
-          {activeStep === 0 && (
-            <Stack spacing={3}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                <BusinessIcon color="primary" />
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-                    Company Information
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    All fields marked * are required.
-                  </Typography>
-                </Box>
-              </Box>
-
-              <Grid container spacing={3}>
-                {/* Company Name */}
-                <Grid size={{ xs: 12 }}>
-                  <TextField
-                    fullWidth
-                    label="Company Name *"
-                    name="companyName"
-                    value={formData.companyName}
-                    onChange={handleChange}
+        <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-emerald-500/5 overflow-hidden">
+          <CardHeader className="bg-slate-900 p-8 text-white">
+             <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center">
+                   {activeStep === 0 && <Building2 className="h-6 w-6" />}
+                   {activeStep === 1 && <Contact className="h-6 w-6" />}
+                   {activeStep === 2 && <Eye className="h-6 w-6" />}
+                </div>
+                <div>
+                   <CardTitle className="text-2xl font-black uppercase tracking-tight">{steps[activeStep].label}</CardTitle>
+                   <CardDescription className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+                      Step {activeStep + 1} of {steps.length}
+                   </CardDescription>
+                </div>
+             </div>
+          </CardHeader>
+          
+          <CardContent className="p-8 md:p-12 min-h-[400px]">
+            {activeStep === 0 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="space-y-2">
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Company Name</Label>
+                  <Input 
                     placeholder="e.g. TechFlow Solutions Ltd"
-                    error={!!fieldErrors.companyName}
-                    helperText={fieldErrors.companyName}
+                    value={formData.companyName}
+                    onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                    className="h-14 rounded-2xl border-slate-200 font-bold"
                   />
-                </Grid>
-
-                {/* Industry */}
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    fullWidth
-                    select
-                    label="Industry *"
-                    name="industry"
-                    value={formData.industry}
-                    onChange={handleChange}
-                    error={!!fieldErrors.industry}
-                    helperText={fieldErrors.industry || 'Your primary business sector'}
-                    {...menuProps}
-                  >
-                    <MenuItem value="" disabled>
-                      Select industry...
-                    </MenuItem>
-                    {INDUSTRIES.map((ind) => (
-                      <MenuItem key={ind} value={ind}>
-                        {ind}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-
-                {/* Company Size */}
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    fullWidth
-                    select
-                    label="Company Size *"
-                    name="companySize"
-                    value={formData.companySize}
-                    onChange={handleChange}
-                    error={!!fieldErrors.companySize}
-                    helperText={fieldErrors.companySize}
-                    {...menuProps}
-                  >
-                    {COMPANY_SIZES.map((s) => (
-                      <MenuItem key={s.value} value={s.value}>
-                        {s.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-
-                {/* HQ Location */}
-                <Grid size={{ xs: 12 }}>
-                  <TextField
-                    fullWidth
-                    select
-                    label="Headquarters County *"
-                    name="locationCity"
-                    value={formData.locationCity}
-                    onChange={handleChange}
-                    error={!!fieldErrors.locationCity}
-                    helperText={fieldErrors.locationCity || 'Where your company is based in Kenya'}
-                    {...menuProps}
-                  >
-                    <MenuItem value="" disabled>
-                      Select county...
-                    </MenuItem>
-                    {KENYA_COUNTIES.map((county) => (
-                      <MenuItem key={county} value={county}>
-                        {county}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-
-                {/* Company Bio */}
-                <Grid size={{ xs: 12 }}>
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={5}
-                    label="Company Bio / Mission *"
-                    name="companyBio"
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Industry</Label>
+                    <Select value={formData.industry} onValueChange={(v) => setFormData({ ...formData, industry: v })}>
+                      <SelectTrigger className="h-14 rounded-2xl border-slate-200 font-black">
+                        <SelectValue placeholder="Select industry..." />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl max-h-[300px]">
+                        {INDUSTRIES.map(i => <SelectItem key={i} value={i} className="font-bold">{i}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Company Size</Label>
+                    <Select value={formData.companySize} onValueChange={(v) => setFormData({ ...formData, companySize: v })}>
+                      <SelectTrigger className="h-14 rounded-2xl border-slate-200 font-black">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {COMPANY_SIZES.map(s => <SelectItem key={s.value} value={s.value} className="font-bold">{s.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">HQ Location (Kenya)</Label>
+                  <Select value={formData.locationCity} onValueChange={(v) => setFormData({ ...formData, locationCity: v })}>
+                    <SelectTrigger className="h-14 rounded-2xl border-slate-200 font-black">
+                      <SelectValue placeholder="Select county..." />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl max-h-[300px]">
+                      {KENYA_COUNTIES.map(c => <SelectItem key={c} value={c} className="font-bold">{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Company Bio / Culture</Label>
+                  <Textarea 
+                    placeholder="Tell developers what makes your company a great place to work..."
+                    className="min-h-[120px] rounded-2xl border-slate-200 font-medium text-base"
                     value={formData.companyBio}
-                    onChange={handleChange}
-                    placeholder="Tell developers what makes your company a great place to work. Describe your culture, mission, tech stack, and what you're building..."
-                    error={!!fieldErrors.companyBio}
-                    helperText={
-                      fieldErrors.companyBio ||
-                      `${formData.companyBio.length} characters — be compelling!`
-                    }
+                    onChange={(e) => setFormData({ ...formData, companyBio: e.target.value })}
                   />
-                </Grid>
-              </Grid>
-            </Stack>
-          )}
+                </div>
+              </div>
+            )}
 
-          {/* ─── STEP 1: Contact & Presence ─── */}
-          {activeStep === 1 && (
-            <Stack spacing={3}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                <ContactMailIcon color="primary" />
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-                    Contact & Online Presence
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    How developers can find and reach you.
-                  </Typography>
-                </Box>
-              </Box>
+            {activeStep === 1 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 px-1">Recruitment Contact</Label>
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Input 
+                        placeholder="e.g. HR Manager"
+                        value={formData.contactPersonName}
+                        onChange={(e) => setFormData({ ...formData, contactPersonName: e.target.value })}
+                        className="pl-11 h-14 rounded-2xl border-slate-200 font-bold"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 px-1">Contact Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Input 
+                        type="email"
+                        placeholder="hiring@company.com"
+                        value={formData.contactEmail}
+                        onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
+                        className="pl-11 h-14 rounded-2xl border-slate-200 font-bold"
+                      />
+                    </div>
+                  </div>
+                </div>
 
-              <Grid container spacing={3}>
-                {/* Contact Person */}
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    fullWidth
-                    label="Contact Person Name *"
-                    name="contactPersonName"
-                    value={formData.contactPersonName}
-                    onChange={handleChange}
-                    placeholder="e.g. Joy Wambui"
-                    error={!!fieldErrors.contactPersonName}
-                    helperText={fieldErrors.contactPersonName || 'HR / Hiring manager name'}
+                <Separator className="my-8" />
+
+                <div className="space-y-4">
+                   <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 px-1">Online Presence (Optional)</Label>
+                   <div className="space-y-4">
+                      <div className="relative">
+                         <Globe className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                         <Input 
+                            placeholder="Website URL"
+                            value={formData.websiteUrl}
+                            onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
+                            className="pl-11 h-12 rounded-xl"
+                         />
+                      </div>
+                      <div className="relative">
+                         <ExternalLink className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#0077b5]" />
+                         <Input 
+                            placeholder="LinkedIn Profile"
+                            value={formData.linkedinUrl}
+                            onChange={(e) => setFormData({ ...formData, linkedinUrl: e.target.value })}
+                            className="pl-11 h-12 rounded-xl"
+                         />
+                      </div>
+                       <div className="relative">
+                          <X className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-900" />
+                          <Input 
+                             placeholder="X / Twitter Handle"
+                             value={formData.twitterHandle}
+                             onChange={(e) => setFormData({ ...formData, twitterHandle: e.target.value })}
+                             className="pl-11 h-12 rounded-xl"
+                          />
+                       </div>
+                   </div>
+                </div>
+              </div>
+            )}
+
+            {activeStep === 2 && (
+              <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="p-8 rounded-[2.5rem] bg-slate-900 text-white space-y-6 shadow-2xl shadow-slate-900/10">
+                   <div className="flex justify-between items-start">
+                      <div className="space-y-1">
+                         <h3 className="text-3xl font-black">{formData.companyName || '—'}</h3>
+                         <div className="flex items-center gap-3">
+                            <Badge className="bg-white/10 text-white border-white/20 font-black text-[10px] uppercase">{formData.industry || 'Industry'}</Badge>
+                            <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest"><Users className="h-3 w-3" /> {companySizeLabel}</span>
+                         </div>
+                      </div>
+                      <div className="h-12 w-12 rounded-2xl bg-white text-slate-900 flex items-center justify-center font-black text-xl">
+                         {formData.companyName?.charAt(0)}
+                      </div>
+                   </div>
+
+                   <Separator className="bg-white/10" />
+
+                   <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-1">
+                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Headquarters</p>
+                         <p className="font-bold text-sm flex items-center gap-2"><MapPin className="h-4 w-4 text-emerald-500" /> {formData.locationCity}, Kenya</p>
+                      </div>
+                      <div className="space-y-1">
+                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Main Contact</p>
+                         <p className="font-bold text-sm">{formData.contactPersonName}</p>
+                      </div>
+                   </div>
+
+                   <div className="space-y-2">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Company Bio</p>
+                      <p className="text-sm font-medium text-slate-300 line-clamp-3 italic">{formData.companyBio}</p>
+                   </div>
+                </div>
+
+                <div className="p-6 rounded-[2rem] bg-blue-50 border border-blue-100 flex gap-4">
+                   <Info className="h-6 w-6 text-blue-500 shrink-0" />
+                   <p className="text-xs font-medium text-blue-700 leading-relaxed">
+                      Your profile will be reviewed by our moderation team. Approval usually takes less than 24 hours.
+                   </p>
+                </div>
+
+                <div className="flex items-start space-x-3 pt-2">
+                  <Checkbox 
+                     id="terms-employer" 
+                     checked={agreedToTerms} 
+                     onCheckedChange={(v) => setAgreedToTerms(v as boolean)} 
+                     className="mt-1"
                   />
-                </Grid>
+                  <div className="grid gap-1.5 leading-none">
+                    <Label htmlFor="terms-employer" className="text-sm font-bold text-slate-700 leading-relaxed cursor-pointer">
+                      I agree to the <Link href="/terms" className="text-primary hover:underline font-black">Terms of Service</Link> and <Link href="/privacy" className="text-primary hover:underline font-black">Privacy Policy</Link>.
+                    </Label>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
 
-                {/* Contact Email */}
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    fullWidth
-                    label="Recruitment Email *"
-                    name="contactEmail"
-                    type="email"
-                    value={formData.contactEmail}
-                    onChange={handleChange}
-                    placeholder="hiring@yourcompany.com"
-                    error={!!fieldErrors.contactEmail}
-                    helperText={fieldErrors.contactEmail || 'Used for developer inquiries'}
-                  />
-                </Grid>
-
-                <Grid size={{ xs: 12 }}>
-                  <Divider>
-                    <Typography variant="caption" color="text.secondary" sx={{ px: 1 }}>
-                      OPTIONAL LINKS
-                    </Typography>
-                  </Divider>
-                </Grid>
-
-                {/* Website */}
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    fullWidth
-                    label="Company Website"
-                    name="websiteUrl"
-                    value={formData.websiteUrl}
-                    onChange={handleChange}
-                    placeholder="https://yourcompany.com"
-                  />
-                </Grid>
-
-                {/* LinkedIn */}
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    fullWidth
-                    label="LinkedIn Company Page"
-                    name="linkedinUrl"
-                    value={formData.linkedinUrl}
-                    onChange={handleChange}
-                    placeholder="https://linkedin.com/company/..."
-                  />
-                </Grid>
-
-                {/* Twitter */}
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    fullWidth
-                    label="Twitter / X Handle"
-                    name="twitterHandle"
-                    value={formData.twitterHandle}
-                    onChange={handleChange}
-                    placeholder="@yourcompany"
-                  />
-                </Grid>
-              </Grid>
-            </Stack>
-          )}
-
-          {/* ─── STEP 2: Review & Submit ─── */}
-          {activeStep === 2 && (
-            <Stack spacing={3}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                <PreviewIcon color="primary" />
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-                    Review Your Profile
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    This is how your company will appear after approval.
-                  </Typography>
-                </Box>
-              </Box>
-
-              {/* Preview Card */}
-              <Paper
-                variant="outlined"
-                sx={{ p: 3, borderRadius: 3, bgcolor: 'background.subtle' }}
-              >
-                <Stack spacing={2.5}>
-                  {/* Header */}
-                  <Box>
-                    <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
-                      {formData.industry && (
-                        <Chip label={formData.industry} size="small" color="primary" variant="outlined" />
-                      )}
-                      {formData.companySize && (
-                        <Chip label={companySizeLabel} size="small" variant="outlined" />
-                      )}
-                    </Stack>
-                    <Typography variant="h5" sx={{ fontWeight: 800 }}>
-                      {formData.companyName || '—'}
-                    </Typography>
-                  </Box>
-
-                  <Divider />
-
-                  {/* Details grid */}
-                  <Grid container spacing={2}>
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <Stack direction="row" spacing={1} alignItems="flex-start">
-                        <LocationOnIcon fontSize="small" color="action" sx={{ mt: 0.3 }} />
-                        <Box>
-                          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>HQ</Typography>
-                          <Typography variant="body2">{formData.locationCity ? `${formData.locationCity}, Kenya` : '—'}</Typography>
-                        </Box>
-                      </Stack>
-                    </Grid>
-
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <Stack direction="row" spacing={1} alignItems="flex-start">
-                        <PeopleIcon fontSize="small" color="action" sx={{ mt: 0.3 }} />
-                        <Box>
-                          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>Size</Typography>
-                          <Typography variant="body2">{companySizeLabel || '—'}</Typography>
-                        </Box>
-                      </Stack>
-                    </Grid>
-
-                    <Grid size={{ xs: 12 }}>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>Company Bio</Typography>
-                      <Typography variant="body2" sx={{ mt: 0.5, whiteSpace: 'pre-wrap' }}>
-                        {formData.companyBio || '—'}
-                      </Typography>
-                    </Grid>
-
-                    <Grid size={{ xs: 12 }}>
-                      <Divider />
-                    </Grid>
-
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>Contact</Typography>
-                      <Typography variant="body2">{formData.contactPersonName || '—'}</Typography>
-                      <Typography variant="body2" color="text.secondary">{formData.contactEmail || '—'}</Typography>
-                    </Grid>
-
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>Links</Typography>
-                      {formData.websiteUrl && (
-                        <Stack direction="row" spacing={0.5} alignItems="center">
-                          <LanguageIcon fontSize="small" color="action" />
-                          <Typography variant="body2" noWrap>{formData.websiteUrl}</Typography>
-                        </Stack>
-                      )}
-                      {formData.linkedinUrl && (
-                        <Stack direction="row" spacing={0.5} alignItems="center">
-                          <LinkedInIcon fontSize="small" sx={{ color: '#0077b5' }} />
-                          <Typography variant="body2" noWrap>LinkedIn</Typography>
-                        </Stack>
-                      )}
-                      {formData.twitterHandle && (
-                        <Stack direction="row" spacing={0.5} alignItems="center">
-                          <XIcon fontSize="small" />
-                          <Typography variant="body2" noWrap>{formData.twitterHandle}</Typography>
-                        </Stack>
-                      )}
-                      {!formData.websiteUrl && !formData.linkedinUrl && !formData.twitterHandle && (
-                        <Typography variant="body2" color="text.disabled" sx={{ fontStyle: 'italic' }}>None provided</Typography>
-                      )}
-                    </Grid>
-                  </Grid>
-                </Stack>
-              </Paper>
-
-              {/* What happens next */}
-              <Alert severity="info" sx={{ borderRadius: 2 }} icon={<CheckCircleOutlineIcon />}>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>What happens next?</Typography>
-                <Typography variant="body2">
-                  Your profile will be reviewed by our admin team. Approval usually takes less than 24 hours.
-                  Once approved, you will be able to browse developers and post jobs.
-                </Typography>
-              </Alert>
-
-              {/* Terms */}
-              <FormControlLabel
-                sx={{ alignItems: 'flex-start' }}
-                control={
-                  <Checkbox
-                    size="small"
-                    checked={agreedToTerms}
-                    onChange={(e) => setAgreedToTerms(e.target.checked)}
-                    color="primary"
-                    sx={{ pt: 0.5 }}
-                  />
-                }
-                label={
-                  <Typography variant="body2" color="text.secondary" sx={{ pt: 0.5 }}>
-                    I agree to the{' '}
-                    <Link href="/terms" style={{ fontWeight: 700 }}>
-                      Terms of Service
-                    </Link>{' '}
-                    and{' '}
-                    <Link href="/privacy" style={{ fontWeight: 700 }}>
-                      Privacy Policy
-                    </Link>
-                    .
-                  </Typography>
-                }
-              />
-            </Stack>
-          )}
-
-          {/* Navigation */}
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              mt: 5,
-              pt: 4,
-              borderTop: '1px solid',
-              borderColor: 'divider',
-            }}
-          >
-            <Button
-              disabled={activeStep === 0}
+          <CardFooter className="bg-slate-50 p-8 flex justify-between gap-4">
+            <Button 
+              variant="ghost" 
+              size="lg" 
+              className="rounded-2xl font-black h-14 px-8"
               onClick={handleBack}
-              sx={{ fontWeight: 700 }}
+              disabled={activeStep === 0 || isSubmitting}
             >
-              Back
+              <ChevronLeft className="mr-2 h-5 w-5" /> Back
             </Button>
-            <Button
-              variant="contained"
-              type="submit"
-              sx={{ px: 5, py: 1.5, borderRadius: 2, fontWeight: 700 }}
-              disabled={
-                isSubmitting ||
-                (activeStep === steps.length - 1 && !agreedToTerms)
-              }
-            >
-              {isSubmitting ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : activeStep === steps.length - 1 ? (
-                'Submit for Approval'
-              ) : (
-                'Next →'
-              )}
-            </Button>
-          </Box>
-        </Box>
-      </Paper>
-    </Container>
+
+            {activeStep === steps.length - 1 ? (
+              <Button 
+                size="lg" 
+                className="rounded-2xl font-black h-14 px-10 bg-emerald-500 hover:bg-emerald-600 text-white shadow-xl shadow-emerald-500/20 transition-all active:scale-95"
+                onClick={handleNext}
+                disabled={isSubmitting || !agreedToTerms}
+              >
+                {isSubmitting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <ShieldCheck className="mr-2 h-5 w-5" />}
+                {isSubmitting ? 'Submitting...' : 'Submit Profile'}
+              </Button>
+            ) : (
+              <Button 
+                size="lg" 
+                className="rounded-2xl font-black h-14 px-10 shadow-xl shadow-emerald-500/10"
+                onClick={handleNext}
+              >
+                Continue <ChevronRight className="ml-2 h-5 w-5" />
+              </Button>
+            )}
+          </CardFooter>
+        </Card>
+      </div>
+    </div>
   );
 }

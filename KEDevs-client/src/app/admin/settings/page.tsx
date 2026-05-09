@@ -1,25 +1,37 @@
-// src/app/admin/settings/page.tsx
 'use client';
 
 import React, { useEffect, useState } from 'react';
 import { 
-  Box, 
-  Typography, 
-  Paper, 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
-  TextField, 
-  Button, 
-  Divider,
-  CircularProgress,
-  Alert,
-} from '@mui/material';
-import SaveIcon from '@mui/icons-material/Save';
+  Settings2, 
+  Save, 
+  RotateCcw, 
+  Info, 
+  ShieldCheck, 
+  Zap, 
+  Globe, 
+  Lock,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  Wallet
+} from 'lucide-react';
 import { adminService } from '@/services/adminService';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Separator } from '@/components/ui/separator';
 
 interface SettingEntry {
   key: string;
@@ -46,8 +58,7 @@ export default function PlatformSettings() {
           setSettings(entries);
         }
       } catch (err: any) {
-        console.error(err);
-        setError('Failed to load platform settings.');
+        setError('Failed to load platform configuration.');
       } finally {
         setIsLoading(false);
       }
@@ -65,74 +76,134 @@ export default function PlatformSettings() {
       const setting = settings.find((item) => item.key === key);
       if (!setting) return;
       await adminService.updateSetting(key, setting.value);
+      toast.success(`${setting.label} updated`);
     } catch (err: any) {
-      console.error(err);
+      toast.error('Failed to update setting');
     } finally {
       setSaving((prev) => ({ ...prev, [key]: false }));
     }
   };
 
   const handleSaveAll = async () => {
-    await Promise.all(settings.map((item) => adminService.updateSetting(item.key, item.value)));
+    try {
+      await Promise.all(settings.map((item) => adminService.updateSetting(item.key, item.value)));
+      toast.success('All configurations synchronized');
+    } catch (err) {
+      toast.error('Batch update failed');
+    }
   };
 
   return (
-    <Box>
-      <Typography variant="h4" sx={{ fontWeight: 800, mb: 4 }}>Platform <Box component="span" sx={{ color: 'primary.main' }}>Settings</Box></Typography>
+    <div className="space-y-8 animate-in fade-in duration-700">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+         <div>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+               <Settings2 className="h-8 w-8 text-primary" /> Platform Core
+            </h1>
+            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">Configure global parameters and business logic</p>
+         </div>
+      </div>
 
-      <Alert severity="info" sx={{ mb: 4, borderRadius: 3 }}>
-        All changes to platform configuration are applied instantly and recorded in the audit log.
-      </Alert>
+      <div className="p-6 rounded-[2.5rem] bg-blue-50 border-2 border-blue-100 flex gap-4 shadow-sm">
+         <Info className="h-6 w-6 text-blue-500 shrink-0" />
+         <div className="space-y-1">
+            <p className="text-sm font-black text-blue-900 uppercase tracking-tight">Security Notice</p>
+            <p className="text-xs font-medium text-blue-700 leading-relaxed">
+               Modifications to platform variables impact real-time transactions, fee structures, and visibility logic. Changes are auditable.
+            </p>
+         </div>
+      </div>
 
-      <Paper sx={{ p: 4, borderRadius: 4 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>General Configuration</Typography>
+      <Card className="rounded-[3rem] border-none shadow-2xl shadow-slate-200/40 overflow-hidden bg-white">
+         <CardHeader className="p-10 pb-6 border-b border-slate-50">
+            <div className="flex items-center justify-between">
+               <div>
+                  <CardTitle className="text-2xl font-black">Configuration Matrix</CardTitle>
+                  <CardDescription className="font-bold text-slate-400 uppercase text-[10px] tracking-widest">Master environment variables</CardDescription>
+               </div>
+               <Badge className="bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest px-4 py-1.5 rounded-xl">
+                  LIVE_PROD_ENV
+               </Badge>
+            </div>
+         </CardHeader>
 
-        {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-            <CircularProgress />
-          </Box>
-        ) : error ? (
-          <Alert severity="error">{error}</Alert>
-        ) : (
-          <TableContainer>
-            <Table>
-              <TableHead sx={{ bgcolor: 'grey.50' }}>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 700 }}>SETTING</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>VALUE</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>UNIT</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }} align="right">ACTION</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {settings.map((s) => (
-                  <TableRow key={s.key} hover>
-                    <TableCell sx={{ fontWeight: 600 }}>{s.label}</TableCell>
-                    <TableCell sx={{ width: 200 }}>
-                      <TextField fullWidth size="small" value={s.value} onChange={(e) => handleChange(s.key, e.target.value)} />
-                    </TableCell>
-                    <TableCell>{s.unit}</TableCell>
-                    <TableCell align="right">
-                      <Button size="small" startIcon={<SaveIcon />} variant="outlined" onClick={() => handleSave(s.key)} disabled={saving[s.key]}>
-                        Save
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
+         <CardContent className="p-0">
+            {isLoading ? (
+               <div className="py-20 flex flex-col items-center gap-4">
+                  <Loader2 className="h-10 w-10 text-primary animate-spin" />
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Synchronizing state...</p>
+               </div>
+            ) : error ? (
+               <div className="p-10 text-center text-red-500 font-bold">{error}</div>
+            ) : (
+               <Table>
+                  <TableHeader className="bg-slate-50/50">
+                     <TableRow className="border-slate-100">
+                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-10">Parameter Key</TableHead>
+                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-10">Current Value</TableHead>
+                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-10">Dimension</TableHead>
+                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-10 text-right">Control</TableHead>
+                     </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                     {settings.map((s) => (
+                        <TableRow key={s.key} className="border-slate-50 hover:bg-slate-50/50 transition-colors">
+                           <TableCell className="py-6 px-10">
+                              <div className="flex items-center gap-3">
+                                 <div className={cn(
+                                    "h-8 w-8 rounded-lg flex items-center justify-center text-white",
+                                    s.key.includes('fee') ? "bg-emerald-500" : s.key.includes('api') ? "bg-blue-500" : "bg-slate-900"
+                                 )}>
+                                    {s.key.includes('fee') ? <Wallet className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
+                                 </div>
+                                 <span className="font-black text-slate-900 text-sm tracking-tight">{s.label}</span>
+                              </div>
+                           </TableCell>
+                           <TableCell className="py-6 px-10">
+                              <Input 
+                                 className="h-10 rounded-xl bg-slate-50 border-none font-bold text-slate-900 w-32 focus-visible:ring-primary/20" 
+                                 value={s.value} 
+                                 onChange={(e) => handleChange(s.key, e.target.value)}
+                              />
+                           </TableCell>
+                           <TableCell className="py-6 px-10">
+                              <Badge variant="outline" className="rounded-lg font-black text-[9px] uppercase tracking-widest border-slate-200">
+                                 {s.unit || 'VALUE'}
+                              </Badge>
+                           </TableCell>
+                           <TableCell className="py-6 px-10 text-right">
+                              <Button 
+                                 size="sm" 
+                                 variant="ghost" 
+                                 className="rounded-xl font-black text-[10px] uppercase tracking-widest text-primary gap-2 h-10 hover:bg-primary/5"
+                                 onClick={() => handleSave(s.key)}
+                                 disabled={saving[s.key]}
+                              >
+                                 {saving[s.key] ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                                 Sync
+                              </Button>
+                           </TableCell>
+                        </TableRow>
+                     ))}
+                  </TableBody>
+               </Table>
+            )}
 
-        <Divider sx={{ my: 4 }} />
-
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-          <Button variant="outlined" sx={{ borderRadius: 2, fontWeight: 700 }} onClick={() => window.location.reload()}>
-            Reset to Defaults
-          </Button>
-          <Button variant="contained" sx={{ borderRadius: 2, fontWeight: 700 }} onClick={handleSaveAll}>Save All Changes</Button>
-        </Box>
-      </Paper>
-    </Box>
+            <div className="p-10 bg-slate-50 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6">
+               <div className="flex items-center gap-3 text-xs font-bold text-slate-400">
+                  <Lock className="h-4 w-4" /> Platform logic is protected by multi-layer encryption.
+               </div>
+               <div className="flex gap-4 w-full md:w-auto">
+                  <Button variant="outline" className="flex-1 md:flex-none rounded-2xl h-14 px-8 font-black border-slate-200" onClick={() => window.location.reload()}>
+                     <RotateCcw className="h-4 w-4 mr-2" /> Revert State
+                  </Button>
+                  <Button className="flex-1 md:flex-none rounded-2xl h-14 px-10 font-black bg-slate-900 shadow-xl shadow-slate-900/10" onClick={handleSaveAll}>
+                     Apply Global Sync
+                  </Button>
+               </div>
+            </div>
+         </CardContent>
+      </Card>
+    </div>
   );
 }

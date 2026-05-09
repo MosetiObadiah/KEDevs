@@ -1,33 +1,37 @@
-// src/components/jobs/ApplyDialog.tsx
 'use client';
+
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Stepper,
-  Step,
-  StepLabel,
-  Typography,
-  Box,
-  CircularProgress,
-  Alert,
-  Paper,
-  Chip,
-  Stack,
-  Divider,
-  Grid,
-} from '@mui/material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import BusinessIcon from '@mui/icons-material/Business';
+import { 
+  CheckCircle2, 
+  CloudUpload, 
+  FileText, 
+  Building2, 
+  MapPin, 
+  X, 
+  Loader2, 
+  ChevronRight, 
+  ChevronLeft,
+  AlertCircle,
+  FileCheck
+} from 'lucide-react';
 import { developerService } from '@/services/developerService';
 import { jobService } from '@/services/jobService';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface ApplyDialogProps {
   open: boolean;
@@ -49,426 +53,305 @@ export default function ApplyDialog({ open, onClose, job, onSuccess }: ApplyDial
   const [resume, setResume] = useState<File | null>(null);
   const [coverLetter, setCoverLetter] = useState<File | null>(null);
 
-  // Drag over states
-  const [resumeDrag, setResumeDrag] = useState(false);
-  const [coverDrag, setCoverDrag] = useState(false);
-
   useEffect(() => {
     if (open && activeStep === 0) {
-      const fetchProfile = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-          const response = await developerService.getMyProfile();
-          if (response.success) {
-            setProfile(response.data);
-          } else {
-            setError('Failed to fetch profile details.');
-          }
-        } catch (err: any) {
-          setError(err.message || 'An error occurred while fetching profile.');
-        } finally {
-          setLoading(false);
-        }
-      };
       fetchProfile();
     }
   }, [open, activeStep]);
 
-  const handleNext = () => {
-    setActiveStep((prev) => prev + 1);
-  };
-
-  const handleBack = () => {
-    setActiveStep((prev) => prev - 1);
-  };
-
-  const handleReset = () => {
-    setActiveStep(0);
-    setResume(null);
-    setCoverLetter(null);
-    setError(null);
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'resume' | 'cover') => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const validTypes = ['.pdf', '.docx'];
-      const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-
-      if (!validTypes.includes(fileExtension)) {
-        setError(`Invalid file type for ${type}. Only PDF and DOCX are allowed.`);
-        return;
-      }
-
-      if (file.size > 5 * 1024 * 1024) {
-        setError(`File size for ${type} exceeds the 5MB limit.`);
-        return;
-      }
-
-      setError(null);
-      if (type === 'resume') setResume(file);
-      else setCoverLetter(file);
-    }
-  };
-
-  // Drag & drop handlers
-  const handleDragOver = (e: React.DragEvent, type: 'resume' | 'cover') => {
-    e.preventDefault();
-    if (type === 'resume') setResumeDrag(true);
-    else setCoverDrag(true);
-  };
-
-  const handleDragLeave = (type: 'resume' | 'cover') => {
-    if (type === 'resume') setResumeDrag(false);
-    else setCoverDrag(false);
-  };
-
-  const handleDrop = (e: React.DragEvent, type: 'resume' | 'cover') => {
-    e.preventDefault();
-    if (type === 'resume') setResumeDrag(false);
-    else setCoverDrag(false);
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      const validTypes = ['.pdf', '.docx'];
-      const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-
-      if (!validTypes.includes(fileExtension)) {
-        setError(`Invalid file type for ${type}. Only PDF and DOCX are allowed.`);
-        return;
-      }
-
-      if (file.size > 5 * 1024 * 1024) {
-        setError(`File size for ${type} exceeds the 5MB limit.`);
-        return;
-      }
-
-      setError(null);
-      if (type === 'resume') setResume(file);
-      else setCoverLetter(file);
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!resume) {
-      setError('Please upload a resume to continue.');
-      return;
-    }
+  const fetchProfile = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await jobService.applyToJob(job.id, resume, coverLetter);
+      const response = await developerService.getMyProfile();
       if (response.success) {
-        onSuccess();
-        onClose();
-        handleReset();
+        setProfile(response.data);
       } else {
-        setError('Failed to submit application.');
+        setError('Failed to fetch profile details.');
       }
     } catch (err: any) {
-      setError(err.message || 'An error occurred during submission.');
+      setError(err.message || 'An error occurred while fetching profile.');
     } finally {
       setLoading(false);
     }
   };
 
-  const renderStepContent = (step: number) => {
-    switch (step) {
-      case 0:
-        if (loading) {
-          return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-              <CircularProgress />
-            </Box>
-          );
-        }
-        if (!profile) {
-          return (
-            <Box sx={{ mt: 2, textAlign: 'center' }}>
-              <Alert severity="warning" sx={{ mb: 3, textAlign: 'left' }}>
-                No profile found. Please complete your profile details on the profile page before applying.
-              </Alert>
-              <Button
-                variant="contained"
-                onClick={() => {
-                  onClose();
-                  router.push('/profile/me');
-                }}
-                sx={{ borderRadius: 2, fontWeight: 700, px: 4 }}
-              >
-                Go to Profile Page
-              </Button>
-            </Box>
-          );
-        }
-        return (
-          <Box sx={{ mt: 3 }}>
-            <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, bgcolor: 'background.subtle' }}>
-              <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 3 }}>
-                <CheckCircleIcon color="success" />
-                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                  Pre-filled Profile Details
-                </Typography>
-              </Stack>
-              <Grid container spacing={3}>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="caption" color="text.secondary">FULL NAME</Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 600 }}>{profile.firstName} {profile.lastName}</Typography>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="caption" color="text.secondary">EMAIL ADDRESS</Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 600 }}>{profile.publicEmail || 'Not specified'}</Typography>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="caption" color="text.secondary">LOCATION</Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                    {profile.locationCity || 'Nairobi'}, {profile.locationCountry || 'Kenya'}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography variant="caption" color="text.secondary">EXPERIENCE LEVEL</Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                    {profile.yearsOfExperience?.replace('_', ' ') || 'Not specified'}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>SKILLS</Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                    {(profile.skills || []).map((skill: string) => (
-                      <Chip key={skill} label={skill} size="small" variant="outlined" color="primary" sx={{ fontWeight: 600 }} />
-                    ))}
-                  </Box>
-                </Grid>
-              </Grid>
-            </Paper>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2, textAlign: 'center' }}>
-              These details will be shared automatically with the employer.
-            </Typography>
-          </Box>
-        );
+  const handleNext = () => {
+    setActiveStep((prev) => Math.min(prev + 1, steps.length - 1));
+  };
 
-      case 1:
-        return (
-          <Box sx={{ mt: 3 }}>
-            <Stack spacing={3}>
-              {/* Resume Upload */}
-              <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-                  Resume / CV (Required)
-                </Typography>
-                <Paper
-                  variant="outlined"
-                  onDragOver={(e) => handleDragOver(e, 'resume')}
-                  onDragLeave={() => handleDragLeave('resume')}
-                  onDrop={(e) => handleDrop(e, 'resume')}
-                  sx={{
-                    p: 3,
-                    textAlign: 'center',
-                    borderRadius: 3,
-                    borderStyle: 'dashed',
-                    borderColor: resumeDrag ? 'primary.main' : 'divider',
-                    bgcolor: resumeDrag ? 'rgba(0, 0, 0, 0.02)' : 'transparent',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    '&:hover': { borderColor: 'primary.main', bgcolor: 'rgba(0, 0, 0, 0.01)' },
-                  }}
-                  component="label"
-                >
-                  <input type="file" accept=".pdf,.docx" hidden onChange={(e) => handleFileChange(e, 'resume')} />
-                  {resume ? (
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
-                      <InsertDriveFileIcon color="primary" sx={{ fontSize: 32 }} />
-                      <Box sx={{ textAlign: 'left' }}>
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>{resume.name}</Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {(resume.size / 1024 / 1024).toFixed(2)} MB
-                        </Typography>
-                      </Box>
-                    </Box>
-                  ) : (
-                    <Box>
-                      <CloudUploadIcon color="action" sx={{ fontSize: 40, mb: 1 }} />
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        Drag & drop or <span style={{ color: '#007FFF', textDecoration: 'underline' }}>browse</span>
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                        Supports PDF or DOCX (Max 5MB)
-                      </Typography>
-                    </Box>
-                  )}
-                </Paper>
-              </Box>
+  const handleBack = () => {
+    setActiveStep((prev) => Math.max(prev - 1, 0));
+  };
 
-              {/* Cover Letter Upload */}
-              <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-                  Cover Letter (Required)
-                </Typography>
-                <Paper
-                  variant="outlined"
-                  onDragOver={(e) => handleDragOver(e, 'cover')}
-                  onDragLeave={() => handleDragLeave('cover')}
-                  onDrop={(e) => handleDrop(e, 'cover')}
-                  sx={{
-                    p: 3,
-                    textAlign: 'center',
-                    borderRadius: 3,
-                    borderStyle: 'dashed',
-                    borderColor: coverDrag ? 'primary.main' : 'divider',
-                    bgcolor: coverDrag ? 'rgba(0, 0, 0, 0.02)' : 'transparent',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    '&:hover': { borderColor: 'primary.main', bgcolor: 'rgba(0, 0, 0, 0.01)' },
-                  }}
-                  component="label"
-                >
-                  <input type="file" accept=".pdf,.docx" hidden onChange={(e) => handleFileChange(e, 'cover')} />
-                  {coverLetter ? (
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
-                      <InsertDriveFileIcon color="primary" sx={{ fontSize: 32 }} />
-                      <Box sx={{ textAlign: 'left' }}>
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>{coverLetter.name}</Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {(coverLetter.size / 1024 / 1024).toFixed(2)} MB
-                        </Typography>
-                      </Box>
-                    </Box>
-                  ) : (
-                    <Box>
-                      <CloudUploadIcon color="action" sx={{ fontSize: 40, mb: 1 }} />
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        Drag & drop or <span style={{ color: '#007FFF', textDecoration: 'underline' }}>browse</span>
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                        Supports PDF or DOCX (Max 5MB)
-                      </Typography>
-                    </Box>
-                  )}
-                </Paper>
-              </Box>
-            </Stack>
-          </Box>
-        );
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'resume' | 'cover') => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const validTypes = ['.pdf', '.docx'];
+      const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
 
-      case 2:
-        return (
-          <Box sx={{ mt: 3 }}>
-            <Stack spacing={3}>
-              <Box sx={{ p: 2.5, bgcolor: 'primary.light', color: 'primary.main', borderRadius: 3 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
-                  You are applying for:
-                </Typography>
-                <Typography variant="h5" sx={{ fontWeight: 900, mt: 1 }}>{job?.title}</Typography>
-                <Stack direction="row" spacing={2} sx={{ mt: 1.5, flexWrap: 'wrap', gap: 1 }}>
-                  <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
-                    <BusinessIcon sx={{ fontSize: 18 }} />
-                    <Typography variant="body2" sx={{ fontWeight: 700 }}>{job?.companyName}</Typography>
-                  </Stack>
-                  <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
-                    <LocationOnIcon sx={{ fontSize: 18 }} />
-                    <Typography variant="body2" sx={{ fontWeight: 700 }}>{job?.locationCity}, Kenya</Typography>
-                  </Stack>
-                </Stack>
-              </Box>
+      if (!validTypes.includes(fileExtension)) {
+        toast.error(`Invalid file type for ${type}. Only PDF and DOCX are allowed.`);
+        return;
+      }
 
-              <Paper variant="outlined" sx={{ p: 3, borderRadius: 3 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>
-                  Application Summary
-                </Typography>
-                 <Grid container spacing={2}>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <Typography variant="caption" color="text.secondary">APPLICANT</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 700 }}>{profile?.firstName} {profile?.lastName}</Typography>
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <Typography variant="caption" color="text.secondary">EMAIL</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 700 }}>{profile?.publicEmail}</Typography>
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <Divider sx={{ my: 1 }} />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <Typography variant="caption" color="text.secondary">RESUME / CV FILE</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <InsertDriveFileIcon sx={{ fontSize: 16 }} color="action" />
-                      {resume?.name}
-                    </Typography>
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <Typography variant="caption" color="text.secondary">COVER LETTER FILE</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <InsertDriveFileIcon sx={{ fontSize: 16 }} color="action" />
-                      {coverLetter?.name}
-                    </Typography>
-                  </Grid>
-                </Grid>
-              </Paper>
-            </Stack>
-          </Box>
-        );
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`File size for ${type} exceeds the 5MB limit.`);
+        return;
+      }
 
-      default:
-        return null;
+      if (type === 'resume') setResume(file);
+      else setCoverLetter(file);
+      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} selected`);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!resume) {
+      toast.error('Please upload a resume to continue.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await jobService.applyToJob(job.id, resume, coverLetter);
+      if (response.success) {
+        onSuccess();
+        onClose();
+        setActiveStep(0);
+        setResume(null);
+        setCoverLetter(null);
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to submit application.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { borderRadius: 4, p: 1 } } }}>
-      <DialogTitle sx={{ fontWeight: 800, fontSize: '1.5rem', pb: 1 }}>
-        Apply for Role
-      </DialogTitle>
-      <DialogContent sx={{ pb: 2 }}>
-        <Stepper activeStep={activeStep} alternativeLabel sx={{ mt: 1, mb: 3 }}>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel sx={{ '& .MuiStepLabel-label': { fontWeight: 700 } }}>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="sm:max-w-xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+        <div className="bg-slate-900 p-8 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-3xl font-black uppercase tracking-tight">Apply for Role</DialogTitle>
+            <DialogDescription className="text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-1">
+              {steps[activeStep]} — Step {activeStep + 1} of {steps.length}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-8">
+             <div className="flex justify-between mb-2">
+                {steps.map((_, i) => (
+                   <div key={i} className={cn(
+                      "h-1.5 flex-1 mx-0.5 rounded-full transition-all duration-500",
+                      i <= activeStep ? "bg-primary" : "bg-slate-800"
+                   )} />
+                ))}
+             </div>
+          </div>
+        </div>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-            {error}
-          </Alert>
-        )}
+        <div className="p-8 max-h-[70vh] overflow-y-auto no-scrollbar">
+          {error && (
+            <div className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center gap-3 mb-6">
+              <AlertCircle className="h-5 w-5 text-red-500" />
+              <p className="text-sm font-black text-red-900">{error}</p>
+            </div>
+          )}
 
-        {renderStepContent(activeStep)}
-      </DialogContent>
-      <DialogActions sx={{ p: 3, pt: 1, justifyContent: 'space-between' }}>
-        <Button
-          disabled={activeStep === 0 || loading}
-          onClick={handleBack}
-          variant="outlined"
-          sx={{ borderRadius: 2, fontWeight: 700 }}
-        >
-          Back
-        </Button>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button onClick={onClose} color="inherit" sx={{ borderRadius: 2, fontWeight: 700 }}>
-            Cancel
+          {activeStep === 0 && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              {loading ? (
+                <div className="py-12 flex flex-col items-center gap-4">
+                  <Loader2 className="h-10 w-10 text-primary animate-spin" />
+                  <p className="text-slate-500 font-black text-xs uppercase tracking-widest">Validating profile...</p>
+                </div>
+              ) : !profile ? (
+                <div className="text-center py-8 space-y-6">
+                  <div className="h-20 w-20 bg-amber-50 text-amber-500 rounded-3xl flex items-center justify-center mx-auto">
+                    <AlertCircle className="h-10 w-10" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black">Profile Incomplete</h3>
+                    <p className="text-slate-500 font-medium mt-2">Please complete your profile details before applying.</p>
+                  </div>
+                  <Button className="rounded-xl font-black h-12 w-full" onClick={() => { onClose(); router.push('/profile/me'); }}>
+                    Go to Profile
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="p-6 rounded-[2rem] bg-emerald-50 border border-emerald-100 flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-emerald-500">
+                       <CheckCircle2 className="h-6 w-6" />
+                    </div>
+                    <div>
+                       <p className="text-sm font-black text-emerald-900">Profile Details Loaded</p>
+                       <p className="text-xs font-medium text-emerald-700">These will be shared with the employer.</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Full Name</p>
+                      <p className="font-bold text-slate-900">{profile.firstName} {profile.lastName}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Email</p>
+                      <p className="font-bold text-slate-900 truncate">{profile.publicEmail || 'Not set'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Location</p>
+                      <p className="font-bold text-slate-900">{profile.locationCity}, {profile.locationCountry}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Experience</p>
+                      <p className="font-bold text-slate-900">{profile.yearsOfExperience?.replace(/_/g, ' ')}</p>
+                    </div>
+                  </div>
+
+                  <Separator className="bg-slate-100" />
+
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Core Skills</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {profile.skills?.map((s: string) => (
+                        <Badge key={s} variant="outline" className="rounded-lg bg-white border-slate-200 text-slate-900 font-bold px-2 py-0.5">
+                          {s}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeStep === 1 && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+               <div className="space-y-4">
+                  <div className="space-y-2">
+                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Resume / CV (Required)</p>
+                     <label className={cn(
+                        "flex flex-col items-center justify-center p-8 rounded-[2rem] border-4 border-dashed cursor-pointer transition-all",
+                        resume ? "border-primary bg-primary/5" : "border-slate-100 hover:border-primary/50"
+                     )}>
+                        <input type="file" className="hidden" accept=".pdf,.docx" onChange={(e) => handleFileChange(e, 'resume')} />
+                        {resume ? (
+                           <div className="flex items-center gap-4">
+                              <div className="h-12 w-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-primary">
+                                 <FileCheck className="h-6 w-6" />
+                              </div>
+                              <div className="text-left">
+                                 <p className="font-black text-slate-900 truncate max-w-[200px]">{resume.name}</p>
+                                 <p className="text-[10px] font-bold text-slate-400">{(resume.size / 1024 / 1024).toFixed(2)} MB</p>
+                              </div>
+                           </div>
+                        ) : (
+                           <div className="text-center space-y-2">
+                              <CloudUpload className="h-10 w-10 text-slate-300 mx-auto" />
+                              <p className="font-black text-sm">Upload PDF or DOCX</p>
+                              <p className="text-[10px] font-bold text-slate-400">Maximum 5MB</p>
+                           </div>
+                        )}
+                     </label>
+                  </div>
+
+                  <div className="space-y-2">
+                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Cover Letter (Optional)</p>
+                     <label className={cn(
+                        "flex flex-col items-center justify-center p-8 rounded-[2rem] border-4 border-dashed cursor-pointer transition-all",
+                        coverLetter ? "border-emerald-500 bg-emerald-50" : "border-slate-100 hover:border-emerald-500/50"
+                     )}>
+                        <input type="file" className="hidden" accept=".pdf,.docx" onChange={(e) => handleFileChange(e, 'cover')} />
+                        {coverLetter ? (
+                           <div className="flex items-center gap-4">
+                              <div className="h-12 w-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-emerald-500">
+                                 <FileText className="h-6 w-6" />
+                              </div>
+                              <div className="text-left">
+                                 <p className="font-black text-slate-900 truncate max-w-[200px]">{coverLetter.name}</p>
+                                 <p className="text-[10px] font-bold text-slate-400">{(coverLetter.size / 1024 / 1024).toFixed(2)} MB</p>
+                              </div>
+                           </div>
+                        ) : (
+                           <div className="text-center space-y-2">
+                              <CloudUpload className="h-10 w-10 text-slate-300 mx-auto" />
+                              <p className="font-black text-sm text-slate-400 italic">Optional Cover Letter</p>
+                           </div>
+                        )}
+                     </label>
+                  </div>
+               </div>
+            </div>
+          )}
+
+          {activeStep === 2 && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+               <div className="p-8 rounded-[2.5rem] bg-slate-900 text-white space-y-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Applying for</p>
+                  <h4 className="text-2xl font-black">{job.title}</h4>
+                  <div className="flex flex-wrap gap-4 pt-2">
+                     <span className="flex items-center gap-2 text-xs font-bold"><Building2 className="h-4 w-4 text-primary" /> {job.companyName}</span>
+                     <span className="flex items-center gap-2 text-xs font-bold"><MapPin className="h-4 w-4 text-primary" /> {job.locationCity}, Kenya</span>
+                  </div>
+               </div>
+
+               <div className="p-6 rounded-[2rem] border border-slate-100 bg-slate-50 space-y-4">
+                  <div className="flex justify-between items-center">
+                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Files to Submit</p>
+                  </div>
+                  <div className="space-y-2">
+                     <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-100">
+                        <FileCheck className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-bold text-slate-900 truncate flex-1">{resume?.name}</span>
+                        <Badge className="bg-primary/10 text-primary text-[8px] uppercase">Resume</Badge>
+                     </div>
+                     {coverLetter && (
+                        <div className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-100">
+                           <FileText className="h-4 w-4 text-emerald-500" />
+                           <span className="text-sm font-bold text-slate-900 truncate flex-1">{coverLetter.name}</span>
+                           <Badge className="bg-emerald-500/10 text-emerald-500 text-[8px] uppercase">Cover Letter</Badge>
+                        </div>
+                     )}
+                  </div>
+               </div>
+            </div>
+          )}
+        </div>
+
+        <DialogFooter className="bg-slate-50 p-8 flex flex-row justify-between items-center gap-4">
+          <Button 
+            variant="ghost" 
+            size="lg" 
+            className="rounded-2xl font-black h-14 px-8"
+            onClick={handleBack}
+            disabled={activeStep === 0 || loading}
+          >
+            <ChevronLeft className="mr-2 h-5 w-5" /> Back
           </Button>
+
           {activeStep === steps.length - 1 ? (
-            <Button
-              variant="contained"
+            <Button 
+              size="lg" 
+              className="rounded-2xl font-black h-14 px-10 shadow-xl shadow-primary/20"
               onClick={handleSubmit}
               disabled={loading}
-              sx={{ borderRadius: 2, fontWeight: 800, px: 3 }}
             >
-              {loading ? <CircularProgress size={24} color="inherit" /> : 'Submit Application'}
+              {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <ChevronRight className="mr-2 h-5 w-5" />}
+              {loading ? 'Submitting...' : 'Send Application'}
             </Button>
           ) : (
-            <Button
-              variant="contained"
+            <Button 
+              size="lg" 
+              className="rounded-2xl font-black h-14 px-10 shadow-xl shadow-primary/20"
               onClick={handleNext}
-              disabled={(activeStep === 0 && !profile) || (activeStep === 1 && (!resume || !coverLetter)) || loading}
-              sx={{ borderRadius: 2, fontWeight: 800, px: 3 }}
+              disabled={loading || (activeStep === 0 && !profile) || (activeStep === 1 && !resume)}
             >
-              Next
+              Continue <ChevronRight className="ml-2 h-5 w-5" />
             </Button>
           )}
-        </Box>
-      </DialogActions>
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   );
 }

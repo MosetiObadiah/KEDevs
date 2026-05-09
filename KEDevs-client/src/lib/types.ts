@@ -68,6 +68,8 @@ export interface User {
   id: string;
   email: string;
   fullName: string;
+  avatarUrl?: string;
+  avatar?: string;
   role: 'DEVELOPER' | 'EMPLOYER' | 'ADMIN';
   isEmailVerified: boolean;
   isApproved: boolean;

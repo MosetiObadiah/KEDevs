@@ -1,39 +1,40 @@
-// src/app/developers/page.tsx
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import {
-  Box,
-  Container,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  Chip,
-  TextField,
-  MenuItem,
-  Stack,
-  InputAdornment,
-  Avatar,
-  Button,
-  Tooltip,
-  IconButton,
-  Paper,
-  Divider,
-  Skeleton,
-  Alert,
-} from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import VerifiedIcon from '@mui/icons-material/Verified';
+import { 
+  Search, 
+  CheckCircle2, 
+  Mail, 
+  Phone, 
+  Star, 
+  Bookmark, 
+  MapPin, 
+  FilterX,
+  ChevronRight,
+  ArrowRight, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import EmailIcon from '@mui/icons-material/Email';
-import PhoneIcon from '@mui/icons-material/Phone';
-import LinkedInIcon from '@mui/icons-material/LinkedIn';
-import StarIcon from '@mui/icons-material/Star';
-import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
-import { PillBadge } from '@/components/shared/PillBadge';
 import { developerService } from '@/services/developerService';
 import { DeveloperSummary } from '@/lib/types';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function DevelopersPage() {
   const { isLoggedIn, user } = useAuth();
@@ -73,195 +74,203 @@ export default function DevelopersPage() {
   );
 
   return (
-    <Box sx={{ bgcolor: 'background.subtle', minHeight: '100vh', py: 8 }}>
-      <Container maxWidth="xl">
-        <Box sx={{ mb: 6 }}>
-          <PillBadge variant="mint">TALENT DIRECTORY</PillBadge>
-          <Typography variant="h2" sx={{ mt: 2 }}>
-            Kenyan <Box component="span" sx={{ color: 'primary.main' }}>Developers</Box>
-          </Typography>
-        </Box>
+    <div className="flex flex-col min-h-screen bg-muted/30">
+      <div className="container mx-auto px-6 py-12">
+        <div className="mb-10 space-y-2">
+          <Badge variant="secondary" className="bg-primary/10 text-primary border-none font-bold uppercase tracking-widest text-[10px]">Talent Directory</Badge>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+            Kenyan <span className="text-primary">Developers</span>
+          </h1>
+          <p className="text-muted-foreground">Discover and connect with top-tier technical talent in Kenya.</p>
+        </div>
         
-        <Grid container spacing={4}>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Filters Sidebar */}
-          <Grid size={{ xs: 12, md: 3 }}>
-            <Paper sx={{ p: 4, borderRadius: 4 }}>
-              <Typography variant="h6" sx={{ fontWeight: 800 }} gutterBottom>Search Talent</Typography>
-              <TextField
-                fullWidth
-                placeholder="Name, role, or skill..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-                sx={{ mb: 4 }}
-              />
+          <aside className="lg:col-span-1 space-y-8">
+            <Card className="border-border/50 shadow-sm sticky top-24">
+              <CardHeader className="pb-4">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Filter Talent</h3>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground uppercase">Search</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="Name, role, or skill..." 
+                      className="pl-10 text-sm border-border/50 focus-visible:ring-primary/20"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
 
-              <Typography variant="h6" sx={{ fontWeight: 800 }} gutterBottom>Availability</Typography>
-              <TextField
-                select
-                fullWidth
-                value={availability}
-                onChange={(e) => setAvailability(e.target.value)}
-              >
-                <MenuItem value="All">Any Availability</MenuItem>
-                <MenuItem value="AVAILABLE_NOW">Available Now</MenuItem>
-                <MenuItem value="OPEN_TO_OFFERS">Open to Offers</MenuItem>
-              </TextField>
-            </Paper>
-          </Grid>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground uppercase">Availability</label>
+                  <Select value={availability} onValueChange={setAvailability}>
+                    <SelectTrigger className="border-border/50 focus:ring-primary/20">
+                      <SelectValue placeholder="Any Availability" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All">Any Availability</SelectItem>
+                      <SelectItem value="AVAILABLE_NOW">Available Now</SelectItem>
+                      <SelectItem value="OPEN_TO_OFFERS">Open to Offers</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-          {/* Results */}
-          <Grid size={{ xs: 12, md: 9 }}>
-            {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+                {(searchTerm || availability !== 'All') && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full text-xs font-bold text-muted-foreground"
+                    onClick={() => {
+                      setSearchTerm('');
+                      setAvailability('All');
+                    }}
+                  >
+                    <FilterX className="mr-2 h-3.5 w-3.5" /> Reset Filters
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </aside>
+
+          {/* Results Area */}
+          <main className="lg:col-span-3">
+            {error && (
+              <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-xl mb-6 text-sm font-medium">
+                {error}
+              </div>
+            )}
             
-            <Grid container spacing={3}>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {isLoading ? (
                 [1, 2, 3, 4, 5, 6].map(i => (
-                  <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={i}>
-                    <Card sx={{ p: 4, textAlign: 'center' }}>
-                      <Skeleton variant="circular" width={90} height={90} sx={{ mx: 'auto', mb: 2 }} />
-                      <Skeleton variant="text" width="60%" sx={{ mx: 'auto', mb: 1 }} />
-                      <Skeleton variant="text" width="40%" sx={{ mx: 'auto', mb: 3 }} />
-                      <Stack direction="row" spacing={1} sx={{ justifyContent: 'center' }}>
-                        <Skeleton variant="rectangular" width={50} height={24} />
-                        <Skeleton variant="rectangular" width={50} height={24} />
-                      </Stack>
-                    </Card>
-                  </Grid>
+                  <Card key={i} className="p-8 flex flex-col items-center border-border/50">
+                    <Skeleton className="h-20 w-20 rounded-full mb-4" />
+                    <Skeleton className="h-6 w-3/4 mb-2" />
+                    <Skeleton className="h-4 w-1/2 mb-6" />
+                    <div className="flex gap-2">
+                      <Skeleton className="h-5 w-12" />
+                      <Skeleton className="h-5 w-12" />
+                    </div>
+                  </Card>
                 ))
               ) : filteredDevs.length > 0 ? (
                 filteredDevs.map((dev) => (
-                  <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={dev.id}>
-                    <Card 
-                      sx={{ 
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        p: 1
-                      }}
-                    >
-                      <CardContent sx={{ p: 3, textAlign: 'center', flexGrow: 1 }}>
-                        <Box component={Link} href={`/developers/${dev.id}`} sx={{ textDecoration: 'none' }}>
-                          <Box sx={{ position: 'relative', display: 'inline-block', mb: 2 }}>
-                            <Avatar 
-                              src={dev.profilePhoto}
-                              sx={{ 
-                                width: 90, 
-                                height: 90, 
-                                bgcolor: 'primary.light',
-                                color: 'primary.main',
-                                mx: 'auto',
-                                fontSize: '2.5rem',
-                                fontWeight: 800
-                              }}
-                            >
-                              {!dev.profilePhoto && dev.firstName.charAt(0)}
-                            </Avatar>
-                            {dev.isVerified && (
-                              <VerifiedIcon 
-                                color="primary" 
-                                sx={{ 
-                                  position: 'absolute', 
-                                  bottom: 4, 
-                                  right: 4, 
-                                  bgcolor: 'background.paper', 
-                                  borderRadius: '50%',
-                                  p: 0.2
-                                }} 
-                                fontSize="small"
-                              />
-                            )}
-                          </Box>
-                          
-                          <Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5 }}>
+                  <Card key={dev.id} className="group border-border/50 hover:shadow-xl hover:shadow-primary/5 transition-all flex flex-col overflow-hidden">
+                    <CardContent className="p-8 text-center flex-1">
+                      <Link href={`/developers/${dev.id}`} className="inline-block relative mb-6">
+                        <Avatar className="h-20 w-20 border-4 border-muted group-hover:border-primary/20 transition-colors shadow-sm">
+                          <AvatarImage src={dev.profilePhoto} />
+                          <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-black">
+                            {dev.firstName.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        {dev.isVerified && (
+                          <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-0.5 shadow-sm">
+                            <CheckCircle2 className="h-5 w-5 text-primary fill-primary text-white" />
+                          </div>
+                        )}
+                      </Link>
+                      
+                      <div className="mb-4">
+                        <Link href={`/developers/${dev.id}`}>
+                          <h3 className="text-xl font-bold group-hover:text-primary transition-colors mb-1">
                             {dev.firstName} {dev.lastName}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600, mb: 2 }}>
-                            {dev.currentLastRole}
-                          </Typography>
-                        </Box>
+                          </h3>
+                        </Link>
+                        <p className="text-sm font-semibold text-muted-foreground">{dev.currentLastRole}</p>
+                      </div>
 
-                        <Chip 
-                          label={dev.availabilityStatus.replace('_', ' ')} 
-                          size="small" 
-                          color={dev.availabilityStatus === 'AVAILABLE_NOW' ? 'success' : 'warning'} 
-                          sx={{ mb: 3, fontWeight: 700, borderRadius: 1.5 }}
-                        />
-                        
-                        {(isLoggedIn && (user?.role === 'EMPLOYER' || user?.id === dev.id)) && (
-                          <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'center', mb: 3, color: 'text.secondary' }}>
-                            <Tooltip title="Email"><IconButton size="small"><EmailIcon fontSize="small" /></IconButton></Tooltip>
-                            <Tooltip title="LinkedIn Profile"><IconButton size="small"><LinkedInIcon fontSize="small" /></IconButton></Tooltip>
-                            <Tooltip title="Phone"><IconButton size="small"><PhoneIcon fontSize="small" /></IconButton></Tooltip>
-                          </Stack>
+                      <Badge 
+                        variant={dev.availabilityStatus === 'AVAILABLE_NOW' ? 'default' : 'secondary'}
+                        className={cn(
+                          "mb-6 text-[10px] uppercase font-black px-2 shadow-sm",
+                          dev.availabilityStatus === 'AVAILABLE_NOW' ? "bg-emerald-500 hover:bg-emerald-500" : ""
                         )}
-
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 0.5 }}>
-                          {dev.skills.slice(0, 3).map(skill => (
-                            <Chip key={skill} label={skill} size="small" variant="outlined" sx={{ borderRadius: 1 }} />
-                          ))}
-                        </Box>
-                      </CardContent>
-
-                      <Divider />
-
-                      <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
-                          LOCATION: {dev.locationCity}, {dev.locationCountry}
-                        </Typography>
-                        {user?.role === 'DEVELOPER' ? (
-                          <Button 
-                            size="small" 
-                            disabled={!isLoggedIn}
-                            startIcon={<StarIcon />}
-                            sx={{ fontWeight: 800 }}
-                          >
-                            Endorse
-                          </Button>
-                        ) : (
-                          <Stack direction="row" spacing={1}>
-                            <Tooltip title="Bookmark">
-                              <IconButton size="small" color="primary" sx={{ bgcolor: 'background.subtle' }}>
-                                <BookmarkBorderIcon fontSize="small" />
-                              </IconButton>
+                      >
+                        {dev.availabilityStatus.replace('_', ' ')}
+                      </Badge>
+                      
+                      {isLoggedIn && (user?.role === 'EMPLOYER' || user?.id === dev.id) && (
+                        <div className="flex justify-center gap-2 mb-6">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full border border-border/50">
+                                  <Mail className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent><p>Email</p></TooltipContent>
                             </Tooltip>
-                            <Button 
-                              size="small" 
-                              variant="contained" 
-                              component={Link} 
-                              href="/hiring-assist"
-                              sx={{ fontWeight: 800, borderRadius: 1.5 }}
-                            >
-                              Request
-                            </Button>
-                          </Stack>
-                        )}
-                      </Box>
-                    </Card>
-                  </Grid>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full border border-border/50">
+                                  <ExternalLink className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent><p>LinkedIn Profile</p></TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full border border-border/50">
+                                  <Phone className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent><p>Phone</p></TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      )}
+
+                      <div className="flex flex-wrap justify-center gap-1.5">
+                        {dev.skills.slice(0, 3).map(skill => (
+                          <Badge key={skill} variant="outline" className="text-[10px] py-0 px-2 font-medium bg-muted/30 border-muted">
+                            {skill}
+                          </Badge>
+                        ))}
+                      </div>
+                    </CardContent>
+
+                    <CardFooter className="p-4 border-t border-border/50 bg-muted/10 flex justify-between items-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                      <div className="flex items-center gap-1.5">
+                        <MapPin className="h-3 w-3" />
+                        {dev.locationCity}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:text-primary">
+                          <Bookmark className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" className="h-8 px-3 font-bold group/btn" asChild>
+                          <Link href={`/developers/${dev.id}`}>
+                            View <ArrowRight className="ml-1.5 h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
+                          </Link>
+                        </Button>
+                      </div>
+                    </CardFooter>
+                  </Card>
                 ))
               ) : (
-                <Grid size={{ xs: 12 }}>
-                  <Box sx={{ textAlign: 'center', py: 10 }}>
-                    <Typography variant="h5" sx={{ color: 'text.secondary', fontWeight: 700 }}>
-                      No developers found.
-                    </Typography>
-                  </Box>
-                </Grid>
+                <div className="col-span-full py-20 text-center space-y-4">
+                  <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                    <FilterX className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">No developers found</h3>
+                    <p className="text-muted-foreground">Try adjusting your filters or search term.</p>
+                  </div>
+                  <Button variant="outline" onClick={() => { setSearchTerm(''); setAvailability('All'); }}>
+                    Clear all filters
+                  </Button>
+                </div>
               )}
-            </Grid>
-          </Grid>
-        </Grid>
-      </Container>
-    </Box>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
   );
 }
 

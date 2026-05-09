@@ -1,59 +1,57 @@
-// src/app/jobs/[id]/applications/page.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { 
+  ChevronLeft, 
+  Users, 
+  Mail, 
+  Calendar, 
+  Check, 
+  X, 
+  Eye, 
+  Download, 
+  Copy, 
+  ExternalLink, 
+  MessageSquare,
+  Loader2,
+  FileText,
+  BadgeCheck,
+  MoreVertical,
+  ArrowRight
+} from 'lucide-react';
+import { jobService } from '@/services/jobService';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
-  Container,
-  Typography,
-  Box,
-  Paper,
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
+  TableHeader,
   TableRow,
-  Chip,
-  Button,
-  Avatar,
-  IconButton,
-  Tooltip,
-  Breadcrumbs,
-  Stack,
+} from "@/components/ui/table";
+import {
   Dialog,
-  DialogTitle,
   DialogContent,
-  DialogActions,
-  CircularProgress,
-  Alert,
-  Divider,
-  TextField,
-  Collapse,
-} from '@mui/material';
-import { jobService } from '@/services/jobService';
-import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import LaunchIcon from '@mui/icons-material/Launch';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import MessageIcon from '@mui/icons-material/Message';
-import DownloadIcon from '@mui/icons-material/Download';
-import toast from 'react-hot-toast';
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@/components/ui/separator';
 
-const statusColors: Record<string, "success" | "warning" | "error" | "info" | "default"> = {
-  'PENDING': 'warning',
-  'VIEWED': 'info',
-  'SHORTLISTED': 'success',
-  'REJECTED': 'error',
-};
-
-const statusLabels: Record<string, string> = {
-  'PENDING': 'Pending',
-  'VIEWED': 'Under Review',
-  'SHORTLISTED': 'Accepted',
-  'REJECTED': 'Rejected',
+const statusConfig: Record<string, { label: string, color: string }> = {
+  'PENDING': { label: 'Pending', color: 'bg-amber-100 text-amber-600' },
+  'VIEWED': { label: 'Reviewed', color: 'bg-blue-100 text-blue-600' },
+  'SHORTLISTED': { label: 'Accepted', color: 'bg-emerald-100 text-emerald-600' },
+  'REJECTED': { label: 'Rejected', color: 'bg-red-100 text-red-600' },
 };
 
 export default function ApplicationsInbox() {
@@ -65,7 +63,6 @@ export default function ApplicationsInbox() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Review modal state
   const [selectedApplicant, setSelectedApplicant] = useState<any>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [employerMessage, setEmployerMessage] = useState('');
@@ -86,8 +83,7 @@ export default function ApplicationsInbox() {
         setApplicants(appsRes.data?.content || []);
       }
     } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'An error occurred while loading applicants.');
+      setError('An error occurred while loading applicants.');
     } finally {
       setLoading(false);
     }
@@ -102,13 +98,11 @@ export default function ApplicationsInbox() {
     try {
       const res = await jobService.updateApplicationStatus(id as string, appId, newStatus, message);
       if (res.success) {
-        const label = newStatus === 'SHORTLISTED' ? 'accepted' : newStatus === 'REJECTED' ? 'rejected' : 'updated';
-        toast.success(`Applicant ${label} successfully.`);
+        toast.success(`Application status updated to ${newStatus.toLowerCase()}`);
         setApplicants((prev: any[]) => prev.map((app: any) => app.id === appId ? { ...app, status: newStatus } : app));
         if (selectedApplicant && selectedApplicant.id === appId) {
           setSelectedApplicant((prev: any) => ({ ...prev, status: newStatus }));
         }
-        // Close modal after accept/reject
         if (newStatus === 'SHORTLISTED' || newStatus === 'REJECTED') {
           setSelectedApplicant(null);
           setEmployerMessage('');
@@ -116,7 +110,7 @@ export default function ApplicationsInbox() {
         }
       }
     } catch (err: any) {
-      toast.error(err.message || 'Failed to update application status.');
+      toast.error(err.message || 'Failed to update status.');
     } finally {
       setActionLoading(false);
     }
@@ -124,22 +118,13 @@ export default function ApplicationsInbox() {
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard!');
-  };
-
-  const openDownload = (url: string, filename: string) => {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.target = '_blank';
-    a.click();
+    toast.success('Copied to clipboard');
   };
 
   const openModal = (app: any) => {
     setSelectedApplicant(app);
     setEmployerMessage('');
     setShowMessageBox(false);
-    // Mark as VIEWED if still PENDING
     if (app.status === 'PENDING') {
       handleStatusChange(app.id, 'VIEWED');
     }
@@ -147,344 +132,253 @@ export default function ApplicationsInbox() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <CircularProgress />
-      </Box>
+      <div className="container mx-auto px-4 py-20 flex flex-col items-center justify-center space-y-4">
+        <Loader2 className="h-10 w-10 text-primary animate-spin" />
+        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Accessing talent inbox...</p>
+      </div>
     );
   }
 
   if (error || !job) {
     return (
-      <Container maxWidth="lg" sx={{ py: 6 }}>
-        <Alert severity="error">{error || 'Job post not found.'}</Alert>
-        <Button startIcon={<ArrowBackIcon />} onClick={() => router.push('/jobs/my-posts')} sx={{ mt: 3 }}>
-          Back to My Posts
+      <div className="container mx-auto px-4 py-20 text-center">
+        <h2 className="text-3xl font-black mb-4">{error || 'Job post not found'}</h2>
+        <Button variant="outline" className="rounded-2xl h-12 font-black" asChild>
+           <Link href="/jobs/my-posts">Back to My Posts</Link>
         </Button>
-      </Container>
+      </div>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 6 }}>
-      <Breadcrumbs sx={{ mb: 2 }}>
-        <Link href="/jobs/my-posts" style={{ textDecoration: 'none', color: 'inherit' }}>My Posts</Link>
-        <Typography color="text.primary">Applications</Typography>
-      </Breadcrumbs>
+    <div className="container mx-auto px-4 py-20 max-w-6xl animate-in fade-in duration-700">
+      <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8">
+         <div className="space-y-4">
+            <Link href="/jobs/my-posts" className="inline-flex items-center text-slate-400 hover:text-slate-900 font-black uppercase text-[10px] tracking-widest transition-all group">
+               <ChevronLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
+               Back to Listings
+            </Link>
+            <div className="space-y-1">
+               <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">Talent Inbox</h1>
+               <p className="text-lg font-bold text-primary flex items-center gap-2">
+                  <span className="text-slate-400 font-medium">Applicants for</span> {job.title}
+               </p>
+            </div>
+         </div>
+         <div className="flex items-center gap-4">
+            <div className="text-right hidden sm:block">
+               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Pipeline</p>
+               <p className="text-2xl font-black text-slate-900">{applicants.length}</p>
+            </div>
+            <Separator orientation="vertical" className="h-12 hidden sm:block" />
+            <Button className="rounded-2xl h-14 px-8 font-black bg-slate-900" asChild>
+               <Link href={`/jobs/${job.id}`}>View Job Post <ExternalLink className="ml-2 h-4 w-4" /></Link>
+            </Button>
+         </div>
+      </div>
 
-      <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
-        <IconButton onClick={() => router.push('/jobs/my-posts')}>
-          <ArrowBackIcon />
-        </IconButton>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800 }}>
-            Applicants for <Box component="span" sx={{ color: 'primary.main' }}>{job.title}</Box>
-          </Typography>
-          <Typography variant="subtitle1" color="text.secondary">
-            {applicants.length} application{applicants.length !== 1 ? 's' : ''} received
-          </Typography>
-        </Box>
-      </Box>
+      <Card className="rounded-[3rem] border-none shadow-2xl shadow-slate-200/50 overflow-hidden bg-white">
+         <CardContent className="p-0">
+            {applicants.length > 0 ? (
+               <Table>
+                  <TableHeader className="bg-slate-50/50">
+                     <TableRow className="border-slate-100">
+                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-8">Applicant</TableHead>
+                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-8">Email & Connectivity</TableHead>
+                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-8">Applied</TableHead>
+                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-8">Pipeline Status</TableHead>
+                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-8 text-right">Review</TableHead>
+                     </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                     {applicants.map((app) => (
+                        <TableRow key={app.id} className="border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer group" onClick={() => openModal(app)}>
+                           <TableCell className="py-6 px-8">
+                              <div className="flex items-center gap-4">
+                                 <Avatar className="h-12 w-12 rounded-2xl border-2 border-white shadow-sm group-hover:border-primary/20 transition-all">
+                                    <AvatarImage src={app.avatarUrl} />
+                                    <AvatarFallback className="bg-primary text-white font-black text-sm uppercase">
+                                       {app.applicantName?.charAt(0)}
+                                    </AvatarFallback>
+                                 </Avatar>
+                                 <div className="space-y-0.5">
+                                    <p className="font-black text-slate-900 text-base">{app.applicantName}</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Developer Class</p>
+                                 </div>
+                              </div>
+                           </TableCell>
+                           <TableCell className="py-6 px-8">
+                              <div className="flex flex-col gap-1">
+                                 <span className="text-sm font-bold text-slate-600 flex items-center gap-2"><Mail className="h-3.5 w-3.5 text-primary" /> {app.applicantEmail}</span>
+                                 <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Profile Verified</span>
+                              </div>
+                           </TableCell>
+                           <TableCell className="py-6 px-8">
+                              <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
+                                 <Calendar className="h-4 w-4" /> {new Date(app.createdAt).toLocaleDateString()}
+                              </div>
+                           </TableCell>
+                           <TableCell className="py-6 px-8">
+                              <Badge className={cn("rounded-lg font-black text-[9px] uppercase tracking-widest px-3 py-1 border-none", statusConfig[app.status]?.color)}>
+                                 {statusConfig[app.status]?.label || app.status}
+                              </Badge>
+                           </TableCell>
+                           <TableCell className="py-6 px-8 text-right" onClick={(e) => e.stopPropagation()}>
+                              <div className="flex justify-end gap-2">
+                                 <Button size="sm" variant="outline" className="h-10 w-10 p-0 rounded-xl border-slate-100 group-hover:border-primary/20" onClick={() => openModal(app)}>
+                                    <Eye className="h-4 w-4" />
+                                 </Button>
+                                 <Button size="sm" variant="outline" className="h-10 w-10 p-0 rounded-xl border-slate-100 hover:bg-emerald-50 hover:text-emerald-600" onClick={() => { openModal(app); setShowMessageBox(true); }}>
+                                    <Check className="h-4 w-4" />
+                                 </Button>
+                                 <Button size="sm" variant="outline" className="h-10 w-10 p-0 rounded-xl border-slate-100 hover:bg-red-50 hover:text-red-600" onClick={() => handleStatusChange(app.id, 'REJECTED')}>
+                                    <X className="h-4 w-4" />
+                                 </Button>
+                              </div>
+                           </TableCell>
+                        </TableRow>
+                     ))}
+                  </TableBody>
+               </Table>
+            ) : (
+               <div className="p-24 text-center space-y-6">
+                  <div className="h-20 w-20 bg-slate-50 rounded-[2rem] flex items-center justify-center text-slate-200 mx-auto border-2 border-dashed border-slate-100">
+                     <Users className="h-10 w-10" />
+                  </div>
+                  <div className="space-y-1">
+                     <h3 className="text-2xl font-black text-slate-900">Waiting for Talent</h3>
+                     <p className="text-slate-500 font-medium">No applications have been received for this post yet.</p>
+                  </div>
+               </div>
+            )}
+         </CardContent>
+      </Card>
 
-      {applicants.length > 0 ? (
-        <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
-          <Table sx={{ minWidth: 650 }}>
-            <TableHead sx={{ bgcolor: 'background.subtle' }}>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 700 }}>APPLICANT</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>EMAIL ADDRESS</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>APPLIED DATE</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>STATUS</TableCell>
-                <TableCell sx={{ fontWeight: 700 }} align="right">ACTIONS</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {applicants.map((app) => (
-                <TableRow 
-                  key={app.id} 
-                  hover 
-                  onClick={() => openModal(app)}
-                  sx={{ cursor: 'pointer', '&:last-child td, &:last-child th': { border: 0 } }}
-                >
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Avatar sx={{ bgcolor: 'primary.main', fontWeight: 700 }}>{app.applicantName?.charAt(0)}</Avatar>
-                      <Box>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
-                          {app.applicantName}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">Developer</Typography>
-                      </Box>
-                    </Box>
-                  </TableCell>
-                  <TableCell>{app.applicantEmail}</TableCell>
-                  <TableCell>{new Date(app.createdAt).toLocaleDateString()}</TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <Chip 
-                      label={statusLabels[app.status] || app.status} 
-                      size="small"
-                      color={statusColors[app.status] || 'default'}
-                      sx={{ fontWeight: 700 }}
-                    />
-                  </TableCell>
-                  <TableCell align="right" onClick={(e) => e.stopPropagation()}>
-                    <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
-                      <Tooltip title="Accept Candidate">
-                        <IconButton 
-                          color="success" 
-                          onClick={() => { openModal(app); setShowMessageBox(true); }}
-                          disabled={app.status === 'SHORTLISTED' || actionLoading}
-                          sx={{ bgcolor: '#e8f5e9', '&:hover': { bgcolor: '#c8e6c9' } }}
-                        >
-                          <CheckIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Reject Candidate">
-                        <IconButton 
-                          color="error" 
-                          onClick={() => handleStatusChange(app.id, 'REJECTED')}
-                          disabled={app.status === 'REJECTED' || actionLoading}
-                          sx={{ bgcolor: '#ffebee', '&:hover': { bgcolor: '#ffcdd2' } }}
-                        >
-                          <CloseIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      ) : (
-        <Paper sx={{ textAlign: 'center', py: 10, borderRadius: 3 }}>
-          <Typography variant="h6" color="text.secondary">
-            No applications received for this job post yet.
-          </Typography>
-        </Paper>
-      )}
+      <Dialog open={Boolean(selectedApplicant)} onOpenChange={(v) => !v && setSelectedApplicant(null)}>
+         <DialogContent className="sm:max-w-4xl rounded-[3rem] p-0 overflow-hidden border-none shadow-2xl">
+            {selectedApplicant && (
+               <>
+                  <div className="bg-slate-900 p-10 text-white relative">
+                     <div className="absolute top-0 right-0 w-48 h-48 bg-primary/20 rounded-full blur-[80px] -mr-24 -mt-24" />
+                     <DialogHeader className="relative z-10 flex flex-row items-center justify-between">
+                        <div className="space-y-4">
+                           <div className="flex items-center gap-4">
+                              <Avatar className="h-20 w-20 rounded-[1.5rem] border-4 border-white/10 shadow-2xl">
+                                 <AvatarImage src={selectedApplicant.avatarUrl} />
+                                 <AvatarFallback className="bg-primary text-white text-2xl font-black">{selectedApplicant.applicantName?.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <div className="space-y-1">
+                                 <DialogTitle className="text-3xl font-black text-white tracking-tight">{selectedApplicant.applicantName}</DialogTitle>
+                                 <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest flex items-center gap-2">
+                                    <Mail className="h-3 w-3" /> {selectedApplicant.applicantEmail}
+                                 </p>
+                              </div>
+                           </div>
+                        </div>
+                        <Badge className={cn("rounded-xl font-black text-[10px] uppercase tracking-widest px-4 py-2 border-none self-start", statusConfig[selectedApplicant.status]?.color)}>
+                           {statusConfig[selectedApplicant.status]?.label}
+                        </Badge>
+                     </DialogHeader>
+                  </div>
 
-      {/* Applicant Review Modal */}
-      <Dialog 
-        open={Boolean(selectedApplicant)} 
-        onClose={() => { setSelectedApplicant(null); setEmployerMessage(''); setShowMessageBox(false); }}
-        maxWidth="md"
-        fullWidth
-        sx={{ '& .MuiDialog-paper': { borderRadius: 3, p: 1 } }}
-      >
-        {selectedApplicant && (
-          <>
-            <DialogTitle sx={{ fontWeight: 800, fontSize: '1.5rem', pb: 1 }}>
-              Review Application
-            </DialogTitle>
-            <DialogContent>
-              <Stack spacing={3} sx={{ mt: 1 }}>
+                  <div className="p-10 space-y-10 overflow-y-auto no-scrollbar max-h-[60vh]">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <div className="space-y-6">
+                           <div className="space-y-4">
+                              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Application Documents</h4>
+                              <div className="space-y-3">
+                                 {selectedApplicant.resumeUrl && (
+                                    <div className="flex items-center justify-between p-5 rounded-[2rem] bg-slate-50 border border-slate-100 group hover:border-primary/20 transition-all">
+                                       <div className="flex items-center gap-4">
+                                          <div className="h-12 w-12 bg-primary rounded-2xl flex items-center justify-center text-white font-black text-xs uppercase">PDF</div>
+                                          <div className="space-y-0.5">
+                                             <p className="font-black text-slate-900 text-sm">Professional Resume</p>
+                                             <p className="text-[10px] font-bold text-slate-400 uppercase">Uploaded on {new Date(selectedApplicant.createdAt).toLocaleDateString()}</p>
+                                          </div>
+                                       </div>
+                                       <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl" asChild>
+                                          <a href={selectedApplicant.resumeUrl} target="_blank"><Download className="h-4 w-4" /></a>
+                                       </Button>
+                                    </div>
+                                 )}
+                                 {selectedApplicant.coverLetterUrl && (
+                                    <div className="flex items-center justify-between p-5 rounded-[2rem] bg-slate-50 border border-slate-100 group hover:border-emerald-200 transition-all">
+                                       <div className="flex items-center gap-4">
+                                          <div className="h-12 w-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white font-black text-xs uppercase">DOC</div>
+                                          <div className="space-y-0.5">
+                                             <p className="font-black text-slate-900 text-sm">Cover Letter</p>
+                                             <p className="text-[10px] font-bold text-slate-400 uppercase">Supporting Document</p>
+                                          </div>
+                                       </div>
+                                       <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl" asChild>
+                                          <a href={selectedApplicant.coverLetterUrl} target="_blank"><Download className="h-4 w-4" /></a>
+                                       </Button>
+                                    </div>
+                                 )}
+                              </div>
+                           </div>
 
-                {/* Applicant Header */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Avatar sx={{ bgcolor: 'primary.main', width: 56, height: 56, fontSize: '1.5rem', fontWeight: 700 }}>
-                    {selectedApplicant.applicantName?.charAt(0)}
-                  </Avatar>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                      {selectedApplicant.applicantName}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {selectedApplicant.applicantEmail}
-                    </Typography>
-                  </Box>
-                  <Chip 
-                    label={statusLabels[selectedApplicant.status] || selectedApplicant.status}
-                    color={statusColors[selectedApplicant.status] || 'default'}
-                    sx={{ fontWeight: 700 }}
-                  />
-                </Box>
+                           <Button variant="outline" className="w-full h-14 rounded-2xl font-black gap-2 border-slate-100" asChild>
+                              <Link href={`/developers/${selectedApplicant.applicantProfileId}`} target="_blank">
+                                 <ExternalLink className="h-4 w-4 text-primary" /> View Talent Profile
+                              </Link>
+                           </Button>
+                        </div>
 
-                <Box sx={{ display: 'flex', gap: 4 }}>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>APPLIED ON</Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                      {new Date(selectedApplicant.createdAt).toLocaleDateString()}
-                    </Typography>
-                  </Box>
-                </Box>
+                        <div className="space-y-6">
+                           <div className="flex items-center justify-between">
+                              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Written Statement</h4>
+                              <Button variant="ghost" size="sm" className="h-8 rounded-lg px-2 text-[10px] font-black uppercase gap-2" onClick={() => handleCopy(selectedApplicant.coverLetter)}>
+                                 <Copy className="h-3 w-3" /> Copy
+                              </Button>
+                           </div>
+                           <div className="p-8 rounded-[2.5rem] bg-slate-50 border border-slate-100 min-h-[200px] max-h-[300px] overflow-y-auto no-scrollbar font-medium text-slate-600 leading-relaxed italic relative">
+                              <MessageSquare className="h-10 w-10 text-slate-200 absolute top-4 right-4 opacity-10" />
+                              {selectedApplicant.coverLetter || "The applicant didn't provide a written statement."}
+                           </div>
+                        </div>
+                     </div>
 
-                <Divider />
+                     {showMessageBox && (
+                        <div className="animate-in slide-in-from-bottom-4 duration-500 space-y-4 p-8 rounded-[3rem] bg-emerald-50 border-2 border-emerald-100">
+                           <div className="flex items-center gap-3">
+                              <MessageSquare className="h-5 w-5 text-emerald-600" />
+                              <h4 className="text-lg font-black text-emerald-900">Decision Message</h4>
+                           </div>
+                           <p className="text-sm font-medium text-emerald-700/70 mb-4">Include a personalized note for the applicant. They will be notified immediately.</p>
+                           <Textarea 
+                              placeholder="e.g. We were impressed by your portfolio! We'd love to schedule an introductory call..."
+                              className="min-h-[120px] rounded-[1.5rem] border-emerald-200 bg-white focus-visible:ring-emerald-500/20"
+                              value={employerMessage}
+                              onChange={(e) => setEmployerMessage(e.target.value)}
+                           />
+                        </div>
+                     )}
+                  </div>
 
-                {/* Resume Section */}
-                <Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 700 }}>
-                      RESUME / CV
-                    </Typography>
-                    {selectedApplicant.resumeUrl ? (
-                      <Tooltip title="Download Resume">
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          startIcon={<DownloadIcon fontSize="small" />}
-                          onClick={() => openDownload(selectedApplicant.resumeUrl, `Resume_${selectedApplicant.applicantName.replace(/\s+/g, '_')}`)}
-                          sx={{ borderRadius: 2, fontWeight: 700 }}
-                        >
-                          Download
-                        </Button>
-                      </Tooltip>
-                    ) : (
-                      <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>Not available</Typography>
-                    )}
-                  </Box>
-                  {selectedApplicant.resumeUrl ? (
-                    <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'background.subtle' }}>
-                      <Box sx={{ width: 40, height: 40, bgcolor: 'primary.main', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Typography variant="caption" sx={{ color: 'white', fontWeight: 800, fontSize: '0.6rem' }}>PDF</Typography>
-                      </Box>
-                      <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>Resume / CV File</Typography>
-                        <Typography variant="caption" color="text.secondary">Click Download to view or save the file</Typography>
-                      </Box>
-                    </Paper>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', p: 1 }}>
-                      No resume uploaded.
-                    </Typography>
-                  )}
-                </Box>
-
-                <Divider />
-
-                {/* Cover Letter Section */}
-                <Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 700 }}>
-                      COVER LETTER
-                    </Typography>
-                    <Stack direction="row" spacing={1}>
-                      {selectedApplicant.coverLetterUrl && (
-                        <Tooltip title="Download Cover Letter file">
-                          <IconButton size="small" onClick={() => openDownload(selectedApplicant.coverLetterUrl, `Cover_Letter_${selectedApplicant.applicantName.replace(/\s+/g, '_')}`)}>
-                            <DownloadIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                      {selectedApplicant.coverLetter && (
-                        <Tooltip title="Copy to clipboard">
-                          <IconButton size="small" onClick={() => handleCopy(selectedApplicant.coverLetter)}>
-                            <ContentCopyIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                    </Stack>
-                  </Box>
-                  <Paper 
-                    variant="outlined" 
-                    sx={{ 
-                      p: 2.5, 
-                      borderRadius: 2, 
-                      bgcolor: 'background.subtle', 
-                      minHeight: '120px', 
-                      maxHeight: '300px',
-                      overflowY: 'auto',
-                      whiteSpace: 'pre-wrap',
-                      fontFamily: 'inherit',
-                      fontSize: '0.9rem',
-                      lineHeight: 1.7,
-                    }}
-                  >
-                    {selectedApplicant.coverLetter || 
-                      <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                        No written cover letter provided.
-                      </Typography>
-                    }
-                  </Paper>
-                </Box>
-
-                {/* View Profile Button */}
-                {selectedApplicant.applicantProfileId ? (
-                  <Button
-                    variant="outlined"
-                    component={Link}
-                    href={`/developers/${selectedApplicant.applicantProfileId}`}
-                    target="_blank"
-                    startIcon={<LaunchIcon />}
-                    sx={{ borderRadius: 2, fontWeight: 700, py: 1 }}
-                  >
-                    View Full Developer Profile
-                  </Button>
-                ) : (
-                  <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                    Developer profile not available.
-                  </Typography>
-                )}
-
-                {/* Employer Message Section (for accepting) */}
-                <Collapse in={showMessageBox}>
-                  <Box sx={{ p: 2.5, bgcolor: 'success.light', borderRadius: 2, border: '1px solid', borderColor: 'success.main' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                      <MessageIcon color="success" fontSize="small" />
-                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'success.dark' }}>
-                        Add a message (optional)
-                      </Typography>
-                    </Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-                      This message will be included in the notification sent to the developer.
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      multiline
-                      rows={4}
-                      placeholder="e.g. Congratulations! We'd love to schedule an interview. Please reply to this notification or email us at..."
-                      value={employerMessage}
-                      onChange={(e) => setEmployerMessage(e.target.value)}
-                      sx={{ bgcolor: 'background.paper', borderRadius: 1 }}
-                    />
-                  </Box>
-                </Collapse>
-
-              </Stack>
-            </DialogContent>
-            <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
-              <Button 
-                onClick={() => { setSelectedApplicant(null); setEmployerMessage(''); setShowMessageBox(false); }} 
-                color="inherit" 
-                sx={{ borderRadius: 2, fontWeight: 700 }}
-              >
-                Close
-              </Button>
-              <Box sx={{ flexGrow: 1 }} />
-              <Button
-                variant="outlined"
-                color="error"
-                disabled={selectedApplicant.status === 'REJECTED' || actionLoading}
-                onClick={() => handleStatusChange(selectedApplicant.id, 'REJECTED')}
-                sx={{ borderRadius: 2, fontWeight: 700, px: 3 }}
-              >
-                {actionLoading ? <CircularProgress size={20} /> : 'Reject'}
-              </Button>
-
-              {!showMessageBox ? (
-                <Button
-                  variant="contained"
-                  color="success"
-                  disabled={selectedApplicant.status === 'SHORTLISTED' || actionLoading}
-                  onClick={() => setShowMessageBox(true)}
-                  sx={{ borderRadius: 2, fontWeight: 700, px: 3 }}
-                >
-                  Accept ✓
-                </Button>
-              ) : (
-                <Button
-                  variant="contained"
-                  color="success"
-                  disabled={actionLoading}
-                  onClick={() => handleStatusChange(selectedApplicant.id, 'SHORTLISTED', employerMessage)}
-                  sx={{ borderRadius: 2, fontWeight: 700, px: 3 }}
-                >
-                  {actionLoading ? <CircularProgress size={20} color="inherit" /> : 'Confirm & Notify Developer'}
-                </Button>
-              )}
-            </DialogActions>
-          </>
-        )}
+                  <DialogFooter className="bg-slate-50 p-10 flex flex-row justify-end gap-4 border-t border-slate-100">
+                     {!showMessageBox ? (
+                        <>
+                           <Button variant="ghost" className="rounded-2xl font-black h-14 px-10 text-red-500 hover:bg-red-50" onClick={() => handleStatusChange(selectedApplicant.id, 'REJECTED')} disabled={actionLoading}>
+                              {actionLoading ? <Loader2 className="animate-spin" /> : <X className="mr-2 h-5 w-5" />} Reject
+                           </Button>
+                           <Button className="rounded-2xl font-black h-14 px-12 bg-emerald-500 hover:bg-emerald-600 shadow-xl shadow-emerald-500/20" onClick={() => setShowMessageBox(true)} disabled={selectedApplicant.status === 'SHORTLISTED'}>
+                              <Check className="mr-2 h-5 w-5" /> Shortlist Talent
+                           </Button>
+                        </>
+                     ) : (
+                        <>
+                           <Button variant="ghost" className="rounded-2xl font-black h-14 px-8" onClick={() => setShowMessageBox(false)}>Cancel</Button>
+                           <Button className="rounded-2xl font-black h-14 px-12 bg-emerald-500 hover:bg-emerald-600 shadow-xl shadow-emerald-500/20" onClick={() => handleStatusChange(selectedApplicant.id, 'SHORTLISTED', employerMessage)} disabled={actionLoading}>
+                              {actionLoading ? <Loader2 className="animate-spin" /> : <BadgeCheck className="mr-2 h-5 w-5" />} Confirm & Notify
+                           </Button>
+                        </>
+                     )}
+                  </DialogFooter>
+               </>
+            )}
+         </DialogContent>
       </Dialog>
-    </Container>
+    </div>
   );
 }

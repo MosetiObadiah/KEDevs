@@ -1,68 +1,48 @@
-// src/components/shared/PillBadge.tsx
-import Box from '@mui/material/Box';
-import { useTheme } from '@mui/material/styles';
+'use client';
+
+import React from 'react';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 type BadgeVariant = 'mint' | 'sage' | 'neutral' | 'amber' | 'red';
+
+interface PillBadgeProps {
+  variant?: BadgeVariant;
+  children: React.ReactNode;
+  className?: string;
+}
 
 export const PillBadge = ({
   variant = 'neutral',
   children,
-}: {
-  variant?: BadgeVariant;
-  children: React.ReactNode;
-}) => {
-  const theme = useTheme();
-
-  const getStyle = () => {
-    const dark = theme.palette.mode === 'dark';
+  className,
+}: PillBadgeProps) => {
+  const getVariantStyles = () => {
     switch (variant) {
       case 'mint':
-        return {
-          bgcolor: dark ? 'primary.dark' : 'primary.light',
-          color: dark ? 'primary.contrastText' : 'primary.contrastText',
-        };
+        return "bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100";
       case 'sage':
-        return {
-          bgcolor: dark ? 'secondary.dark' : 'secondary.light',
-          color: dark ? 'white' : 'secondary.contrastText',
-        };
+        return "bg-primary/5 text-primary border-primary/10 hover:bg-primary/10";
       case 'amber':
-        return {
-          bgcolor: dark ? 'warning.dark' : 'warning.light',
-          color: dark ? 'warning.contrastText' : 'warning.contrastText',
-        };
+        return "bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-100";
       case 'red':
-        return {
-          bgcolor: dark ? 'error.dark' : 'error.light',
-          color: dark ? 'error.contrastText' : 'error.contrastText',
-        };
+        return "bg-red-50 text-red-600 border-red-100 hover:bg-red-100";
       case 'neutral':
       default:
-        return {
-          bgcolor: dark ? 'grey.800' : 'grey.200',
-          color: dark ? 'grey.300' : 'grey.700',
-        };
+        return "bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200";
     }
   };
 
   return (
-    <Box
-      component="span"
-      sx={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 0.5,
-        px: 1.25,
-        py: 0.25,
-        fontSize: 11,
-        fontWeight: 600,
-        borderRadius: 2,
-        letterSpacing: '0.05em',
-        textTransform: 'uppercase',
-        ...getStyle(),
-      }}
+    <Badge 
+      variant="outline"
+      className={cn(
+        "rounded-md font-black text-[10px] uppercase tracking-widest px-2.5 py-0.5 border shadow-sm transition-all duration-300",
+        getVariantStyles(),
+        className
+      )}
     >
       {children}
-    </Box>
+    </Badge>
   );
 };

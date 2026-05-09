@@ -1,29 +1,36 @@
 'use client';
+
 import React, { useState } from 'react';
-import {
-  Box,
-  Typography,
-  IconButton,
-  Button,
-  Stack,
-  TextField,
-  Tooltip,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
-  Divider,
-} from '@mui/material';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-import ChatBubbleOutlinedIcon from '@mui/icons-material/ChatBubbleOutlined';
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import FlagIcon from '@mui/icons-material/Flag';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { 
+  ArrowBigUp, 
+  ArrowBigDown, 
+  MessageSquare, 
+  MoreHorizontal, 
+  Flag, 
+  Edit2, 
+  Trash2,
+  Check,
+  X,
+  Reply,
+  ShieldAlert,
+  Loader2
+} from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import { forumService } from '@/services/forumService';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 
 interface CommentProps {
   comment: any;
@@ -39,19 +46,21 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false 
   const [replyContent, setReplyContent] = useState('');
   const [editContent, setEditContent] = useState(comment.content);
   const [submitting, setSubmitting] = useState(false);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const isAuthor = user?.id === comment.authorId;
   const canEdit = isAuthor && (new Date().getTime() - new Date(comment.createdAt).getTime()) < 15 * 60 * 1000;
   const canDelete = isAuthor && (new Date().getTime() - new Date(comment.createdAt).getTime()) < 60 * 60 * 1000;
 
   const handleVote = async (type: 'UPVOTE' | 'DOWNVOTE') => {
-    if (!isLoggedIn) return;
+    if (!isLoggedIn) {
+      toast.error('Please login to vote');
+      return;
+    }
     try {
       await forumService.voteComment(comment.id, type);
       onUpdate();
     } catch (err: any) {
-      alert(err.message || 'Failed to vote');
+      toast.error(err.message || 'Failed to vote');
     }
   };
 
@@ -63,8 +72,9 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false 
       setReplyContent('');
       setIsReplying(false);
       onUpdate();
+      toast.success('Reply posted');
     } catch (err: any) {
-      alert(err.message || 'Failed to post reply');
+      toast.error(err.message || 'Failed to post reply');
     } finally {
       setSubmitting(false);
     }
@@ -77,8 +87,9 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false 
       await forumService.editComment(comment.id, editContent.trim());
       setIsEditing(false);
       onUpdate();
+      toast.success('Comment updated');
     } catch (err: any) {
-      alert(err.message || 'Failed to edit comment');
+      toast.error(err.message || 'Failed to edit comment');
     } finally {
       setSubmitting(false);
     }
@@ -89,8 +100,9 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false 
     try {
       await forumService.deleteComment(comment.id);
       onUpdate();
+      toast.success('Comment deleted');
     } catch (err: any) {
-      alert(err.message || 'Failed to delete comment');
+      toast.error(err.message || 'Failed to delete comment');
     }
   };
 
@@ -99,147 +111,165 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false 
     if (!reason) return;
     try {
       await forumService.flagComment(comment.id, reason);
-      alert('Comment flagged.');
+      toast.success('Comment flagged for review');
       onUpdate();
     } catch (err: any) {
-      alert(err.message || 'Failed to flag comment');
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent, action: () => void) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      action();
+      toast.error(err.message || 'Failed to flag comment');
     }
   };
 
   return (
-    <Box sx={{ mb: 2, ml: isReply ? 4 : 0, borderLeft: isReply ? '2px solid #edeff1' : 'none', pl: isReply ? 2 : 0 }}>
-      <Stack direction="row" spacing={1}>
+    <div className={cn(
+      "group relative transition-all duration-300",
+      isReply ? "ml-8 md:ml-12 border-l-2 border-slate-100 pl-4 md:pl-6 mt-4" : "mt-6"
+    )}>
+      <div className="flex gap-4">
         {/* Voting Pillar */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 40, pt: 0.5 }}>
-          <IconButton 
-            size="small" 
+        <div className="flex flex-col items-center gap-1 shrink-0 bg-slate-50/80 rounded-full py-2 px-1 h-fit border border-slate-100/50">
+          <button 
             onClick={() => handleVote('UPVOTE')}
-            color={comment.currentUserVote === 'UPVOTE' ? 'primary' : 'default'}
+            className={cn(
+              "p-1.5 rounded-full transition-colors",
+              comment.currentUserVote === 'UPVOTE' ? "text-primary bg-primary/10" : "text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+            )}
             disabled={isAuthor || !isLoggedIn}
           >
-            <ArrowUpwardIcon fontSize="small" />
-          </IconButton>
-          <Typography variant="caption" sx={{ fontWeight: 800, py: 0.2 }}>
+            <ArrowBigUp className={cn("h-5 w-5", comment.currentUserVote === 'UPVOTE' && "fill-current")} />
+          </button>
+          <span className="text-xs font-black text-slate-700 min-w-[20px] text-center">
             {comment.upvoteCount}
-          </Typography>
-          <IconButton 
-            size="small" 
+          </span>
+          <button 
             onClick={() => handleVote('DOWNVOTE')}
-            color={comment.currentUserVote === 'DOWNVOTE' ? 'secondary' : 'default'}
+            className={cn(
+              "p-1.5 rounded-full transition-colors",
+              comment.currentUserVote === 'DOWNVOTE' ? "text-red-500 bg-red-50" : "text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+            )}
             disabled={isAuthor || !isLoggedIn}
           >
-            <ArrowDownwardIcon fontSize="small" />
-          </IconButton>
-        </Box>
+            <ArrowBigDown className={cn("h-5 w-5", comment.currentUserVote === 'DOWNVOTE' && "fill-current")} />
+          </button>
+        </div>
 
         {/* Content Area */}
-        <Box sx={{ flex: 1 }}>
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 0.5 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-              {comment.authorName}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              • {formatDistanceToNow(new Date(comment.createdAt))} ago
-            </Typography>
-            {comment.isFlagged && (
-              <Tooltip title="This comment has been flagged">
-                <FlagIcon sx={{ fontSize: 14, color: 'error.main' }} />
-              </Tooltip>
+        <div className="flex-1 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Avatar className="h-6 w-6 rounded-lg border border-slate-200">
+                <AvatarFallback className="text-[10px] font-black bg-slate-900 text-white">
+                  {comment.authorName?.charAt(0) || '?'}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-sm font-black text-slate-900">{comment.authorName}</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                • {formatDistanceToNow(new Date(comment.createdAt))} ago
+              </span>
+              {comment.isFlagged && (
+                <Badge variant="destructive" className="h-4 px-1 rounded text-[8px] flex gap-0.5 items-center">
+                  <ShieldAlert className="h-2.5 w-2.5" /> Flagged
+                </Badge>
+              )}
+            </div>
+
+            {isLoggedIn && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="rounded-2xl border-slate-100 shadow-2xl">
+                  {canEdit && (
+                    <DropdownMenuItem onClick={() => setIsEditing(true)} className="rounded-xl font-bold gap-2">
+                      <Edit2 className="h-4 w-4" /> Edit
+                    </DropdownMenuItem>
+                  )}
+                  {canDelete && (
+                    <DropdownMenuItem onClick={handleDelete} className="rounded-xl font-bold gap-2 text-red-500">
+                      <Trash2 className="h-4 w-4" /> Delete
+                    </DropdownMenuItem>
+                  )}
+                  {!isAuthor && (
+                    <DropdownMenuItem onClick={handleFlag} className="rounded-xl font-bold gap-2">
+                      <Flag className="h-4 w-4" /> Report
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
-          </Stack>
+          </div>
 
           {isEditing ? (
-            <Box sx={{ mt: 1 }}>
-              <TextField
-                fullWidth
-                multiline
-                size="small"
+            <div className="space-y-3 pt-2 animate-in fade-in duration-200">
+              <Textarea
+                className="min-h-[100px] rounded-[1.5rem] border-slate-200 focus-visible:ring-primary/20 font-medium"
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, handleSaveEdit)}
                 autoFocus
               />
-              <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                <Button size="small" variant="contained" onClick={handleSaveEdit} disabled={submitting}>Save</Button>
-                <Button size="small" onClick={() => setIsEditing(false)}>Cancel</Button>
-              </Stack>
-            </Box>
+              <div className="flex gap-2 justify-end">
+                <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)} className="rounded-xl font-bold">
+                  Cancel
+                </Button>
+                <Button size="sm" onClick={handleSaveEdit} disabled={submitting} className="rounded-xl font-black gap-2">
+                   {submitting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                   Save Changes
+                </Button>
+              </div>
+            </div>
           ) : (
-            <Typography variant="body2" sx={{ whiteSpace: 'pre-line', color: comment.authorId === null ? 'text.secondary' : 'text.primary', fontStyle: comment.authorId === null ? 'italic' : 'normal' }}>
+            <p className={cn(
+              "text-sm leading-relaxed font-medium",
+              comment.authorId === null ? "text-slate-400 italic" : "text-slate-600"
+            )}>
               {comment.content}
-            </Typography>
+            </p>
           )}
 
           {/* Action Row */}
-          <Stack direction="row" spacing={2} sx={{ mt: 1, ml: -1 }}>
-            {!isReply && isLoggedIn && comment.authorId !== null && (
-              <Button 
-                size="small" 
-                startIcon={<ChatBubbleOutlinedIcon fontSize="small" />} 
-                onClick={() => setIsReplying(!isReplying)}
-                sx={{ textTransform: 'none', color: 'text.secondary', fontWeight: 700 }}
-              >
-                Reply
-              </Button>
-            )}
-            {isLoggedIn && (
-              <>
-                <IconButton size="small" onClick={(e) => setAnchorEl(e.currentTarget)}>
-                  <MoreHorizIcon fontSize="small" />
-                </IconButton>
-                <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
-                  {canEdit && (
-                    <MenuItem onClick={() => { setIsEditing(true); setAnchorEl(null); }}>
-                      <ListItemIcon><EditIcon fontSize="small" /></ListItemIcon>
-                      <ListItemText>Edit</ListItemText>
-                    </MenuItem>
-                  )}
-                  {canDelete && (
-                    <MenuItem onClick={() => { handleDelete(); setAnchorEl(null); }} sx={{ color: 'error.main' }}>
-                      <ListItemIcon><DeleteIcon fontSize="small" color="error" /></ListItemIcon>
-                      <ListItemText>Delete</ListItemText>
-                    </MenuItem>
-                  )}
-                  {!isAuthor && (
-                    <MenuItem onClick={() => { handleFlag(); setAnchorEl(null); }}>
-                      <ListItemIcon><FlagIcon fontSize="small" /></ListItemIcon>
-                      <ListItemText>Report</ListItemText>
-                    </MenuItem>
-                  )}
-                </Menu>
-              </>
-            )}
-          </Stack>
+          {!isEditing && (
+            <div className="flex gap-4 pt-1">
+              {!isReply && isLoggedIn && comment.authorId !== null && (
+                <button 
+                  onClick={() => setIsReplying(!isReplying)}
+                  className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary transition-colors"
+                >
+                  <MessageSquare className="h-3.5 w-3.5" />
+                  Reply
+                </button>
+              )}
+            </div>
+          )}
 
           {isReplying && (
-            <Box sx={{ mt: 2, mb: 2 }}>
-              <TextField
-                fullWidth
-                multiline
-                placeholder="What are your thoughts?"
-                size="small"
-                value={replyContent}
-                onChange={(e) => setReplyContent(e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, handlePostReply)}
-                autoFocus
-              />
-              <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                <Button size="small" variant="contained" onClick={handlePostReply} disabled={submitting}>Reply</Button>
-                <Button size="small" onClick={() => setIsReplying(false)}>Cancel</Button>
-              </Stack>
-            </Box>
+            <div className="space-y-3 pt-4 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="flex gap-3">
+                <div className="w-1 border-l-2 border-primary rounded-full ml-2" />
+                <div className="flex-1 space-y-3">
+                  <Textarea
+                    className="min-h-[80px] rounded-[1.5rem] border-slate-200 focus-visible:ring-primary/20 font-medium"
+                    placeholder="Share your thoughts..."
+                    value={replyContent}
+                    onChange={(e) => setReplyContent(e.target.value)}
+                    autoFocus
+                  />
+                  <div className="flex gap-2 justify-end">
+                    <Button variant="ghost" size="sm" onClick={() => setIsReplying(false)} className="rounded-xl font-bold">
+                      Cancel
+                    </Button>
+                    <Button size="sm" onClick={handlePostReply} disabled={submitting} className="rounded-xl font-black gap-2">
+                       {submitting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Reply className="h-3 w-3" />}
+                       Post Reply
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Render Replies */}
           {comment.replies && comment.replies.length > 0 && (
-            <Box sx={{ mt: 2 }}>
+            <div className="space-y-4">
               {comment.replies.map((reply: any) => (
                 <CommentItem 
                   key={reply.id} 
@@ -249,10 +279,10 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false 
                   isReply={true} 
                 />
               ))}
-            </Box>
+            </div>
           )}
-        </Box>
-      </Stack>
-    </Box>
+        </div>
+      </div>
+    </div>
   );
 }

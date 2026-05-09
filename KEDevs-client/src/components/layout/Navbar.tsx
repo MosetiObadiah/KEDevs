@@ -1,75 +1,64 @@
-// src/components/layout/Navbar.tsx
 'use client';
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Button,
-  Box,
-  Container,
-  IconButton,
-  Menu,
-  MenuItem,
-  Divider,
-  Avatar,
-  Badge,
-  Tooltip,
-} from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import WorkIcon from '@mui/icons-material/Work';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import GroupIcon from '@mui/icons-material/Group';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
-import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useTheme as useNextTheme } from 'next-themes';
-import { useTheme } from '@mui/material/styles';
-import { useThemeStyle } from '@/context/ThemeStyleContext';
-import PaletteIcon from '@mui/icons-material/Palette';
-import NotificationPopover from '../notifications/NotificationPopover';
+import { 
+  Menu, 
+  X, 
+  Bell, 
+  User, 
+  LogOut, 
+  Settings, 
+  ShieldCheck, 
+  Briefcase, 
+  Users, 
+  Sun, 
+  Moon, 
+  Palette,
+  CreditCard,
+  ChevronDown,
+  Sparkles,
+  LayoutDashboard,
+  Zap,
+  Globe
+} from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { useTheme } from 'next-themes';
+import { cn } from '@/lib/utils';
 import { notificationService } from '@/services/notificationService';
+import NotificationPopover from '../notifications/NotificationPopover';
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const Navbar = () => {
   const { isLoggedIn, user, logout } = useAuth();
   const router = useRouter();
-  const { theme: mode, setTheme } = useNextTheme();
-  const muiTheme = useTheme();
-
-  const { style, setStyle } = useThemeStyle();
-  const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
-  const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
-  const [anchorElStyle, setAnchorElStyle] = useState<null | HTMLElement>(null);
-  const [anchorElNotifications, setAnchorElNotifications] = useState<null | HTMLElement>(null);
+  const { theme, setTheme } = useTheme();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const isDev = user?.role === 'DEVELOPER';
   const isEmp = user?.role === 'EMPLOYER';
   const isAdmin = user?.role === 'ADMIN';
 
   const navItems = [
-    { label: 'Jobs', href: '/jobs' },
-    { label: 'Developers', href: '/developers' },
-    { label: 'Companies', href: '/companies' },
-    { label: 'Contact Us', href: '/contact' },
+    { label: 'Marketplace', href: '/jobs' },
+    { label: 'Talent', href: '/developers' },
+    { label: 'Ecosystem', href: '/companies' },
+    { label: 'Support', href: '/contact' },
     ...(isEmp ? [{ label: 'Hiring Assist', href: '/hiring-assist' }] : []),
-    ...(isAdmin ? [{ label: 'Admin Panel', href: '/admin/dashboard' }] : []),
+    ...(isAdmin ? [{ label: 'Command Center', href: '/admin/dashboard' }] : []),
   ];
-
-  const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => setAnchorElNav(event.currentTarget);
-  const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => setAnchorElUser(event.currentTarget);
-  const handleOpenStyleMenu = (event: React.MouseEvent<HTMLElement>) => setAnchorElStyle(event.currentTarget);
-  const handleCloseNavMenu = () => setAnchorElNav(null);
-  const handleCloseUserMenu = () => setAnchorElUser(null);
-  const handleCloseStyleMenu = () => setAnchorElStyle(null);
-
-  const handleNavigate = (path: string) => {
-    router.push(path);
-    handleCloseNavMenu();
-    handleCloseUserMenu();
-  };
 
   const fetchUnreadCount = async () => {
     if (isLoggedIn) {
@@ -84,207 +73,164 @@ const Navbar = () => {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 60000); // Poll every minute
+    const interval = setInterval(fetchUnreadCount, 60000);
     return () => clearInterval(interval);
   }, [isLoggedIn]);
 
-  const handleOpenNotifications = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElNotifications(event.currentTarget);
-  };
-
-  const handleCloseNotifications = () => {
-    setAnchorElNotifications(null);
-  };
-
   return (
-    <AppBar position="sticky" elevation={0} sx={{
-      bgcolor: 'background.paper',
-      borderBottom: '1px solid',
-      borderColor: 'divider',
-      color: 'text.primary',
-      zIndex: (theme) => theme.zIndex.drawer + 1
-    }}>
-      <Container maxWidth="xl">
-        <Toolbar disableGutters sx={{ height: { xs: 70, md: 80 } }}>
-          <Box component={Link} href="/" sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none', mr: 4 }}>
-            <Box component="img" src="/logo.svg" sx={{ height: { xs: 40, md: 50 }, width: 'auto' }} />
-          </Box>
+    <nav className="sticky top-0 z-50 w-full border-b border-slate-100 bg-white/80 backdrop-blur-md">
+      <div className="container mx-auto px-4 xl:max-w-7xl">
+        <div className="flex h-20 items-center justify-between">
+          {/* Brand Logo */}
+          <Link href="/" className="flex items-center gap-2 group transition-all">
+            <div className="h-10 w-10 bg-slate-900 rounded-xl flex items-center justify-center group-hover:rotate-6 transition-transform">
+               <Zap className="h-6 w-6 text-white fill-white" />
+            </div>
+            <span className="text-xl font-black text-slate-900 tracking-tighter">KE<span className="text-primary italic">Devs</span></span>
+          </Link>
 
-          {/* Mobile Menu */}
-          <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
-            <IconButton size="large" onClick={handleOpenNavMenu} color="inherit">
-              <MenuIcon />
-            </IconButton>
-            <Menu
-              anchorEl={anchorElNav}
-              open={Boolean(anchorElNav)}
-              onClose={handleCloseNavMenu}
-              sx={{ display: { xs: 'block', md: 'none' } }}
-            >
-              {navItems.map((item) => (
-                <MenuItem key={item.label} onClick={() => handleNavigate(item.href)}>
-                  <Typography sx={{ textAlign: 'center', fontWeight: 600 }}>{item.label}</Typography>
-                </MenuItem>
-              ))}
-            </Menu>
-          </Box>
-
-          <Box component={Link} href="/" sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' }, alignItems: 'center' }}>
-            <Box component="img" src="/logo.svg" sx={{ height: 36, width: 'auto' }} />
-          </Box>
-
-          {/* Desktop Menu */}
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, gap: 1 }}>
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-2">
             {navItems.map((item) => (
               <Button
                 key={item.label}
-                onClick={() => handleNavigate(item.href)}
-                sx={{
-                  color: 'text.secondary',
-                  fontWeight: 700,
-                  px: 2,
-                  '&:hover': { color: 'primary.main', bgcolor: 'background.subtle' }
-                }}
+                variant="ghost"
+                asChild
+                className="rounded-xl px-4 font-black text-[11px] uppercase tracking-widest text-slate-500 hover:text-slate-900 hover:bg-slate-50"
               >
-                {item.label}
+                <Link href={item.href}>{item.label}</Link>
               </Button>
             ))}
-          </Box>
+          </div>
 
-          <Box sx={{ flexGrow: 0, display: 'flex', alignItems: 'center', gap: { xs: 1, md: 2 } }}>
-            {/* Theme Style Dropdown */}
-            <Tooltip title="Switch Style">
-              <IconButton onClick={handleOpenStyleMenu} sx={{ color: 'text.secondary' }}>
-                <PaletteIcon />
-              </IconButton>
-            </Tooltip>
-            <Menu
-              anchorEl={anchorElStyle}
-              open={Boolean(anchorElStyle)}
-              onClose={handleCloseStyleMenu}
-              sx={{ mt: '45px', '& .MuiPaper-root': { borderRadius: 3, boxShadow: muiTheme.shadows[3] } }}
-              anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          {/* Action Area */}
+          <div className="flex items-center gap-3">
+            {/* Theme Toggle (Simplified) */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-xl h-10 w-10 text-slate-400 hover:text-slate-900 hover:bg-slate-50"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             >
-              <MenuItem onClick={() => { setStyle('catppuccin'); handleCloseStyleMenu(); }} selected={style === 'catppuccin'}>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>Catppuccin Frappé</Typography>
-              </MenuItem>
-              <MenuItem onClick={() => { setStyle('material'); handleCloseStyleMenu(); }} selected={style === 'material'}>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>Material Default</Typography>
-              </MenuItem>
-            </Menu>
-
-            {/* Theme Toggle */}
-            <Tooltip title={mode === 'dark' ? 'Light Mode' : 'Dark Mode'}>
-              <IconButton onClick={() => setTheme(mode === 'dark' ? 'light' : 'dark')} sx={{ color: 'text.secondary' }}>
-                {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-              </IconButton>
-            </Tooltip>
+              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
 
             {!isLoggedIn ? (
-              <>
-                <Button color="inherit" component={Link} href="/login" sx={{ fontWeight: 700 }}>Login</Button>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  component={Link}
-                  href="/register"
-                  sx={{
-                    borderRadius: 2.5,
-                    fontWeight: 800,
-                    px: 3
-                  }}
-                >
-                  Join Community
+              <div className="hidden sm:flex items-center gap-3">
+                <Button variant="ghost" asChild className="font-black text-[11px] uppercase tracking-widest rounded-xl">
+                  <Link href="/login">Auth Access</Link>
                 </Button>
-              </>
+                <Button asChild className="rounded-xl font-black text-[11px] uppercase tracking-widest bg-slate-900 shadow-xl shadow-slate-900/10 px-6">
+                  <Link href="/register">Join Grid</Link>
+                </Button>
+              </div>
             ) : (
-              <>
-                <Tooltip title="Notifications">
-                  <IconButton onClick={handleOpenNotifications} sx={{ bgcolor: 'background.subtle' }}>
-                    <Badge badgeContent={unreadCount} color="error">
-                      <NotificationsIcon />
-                    </Badge>
-                  </IconButton>
-                </Tooltip>
+              <div className="flex items-center gap-3">
+                <NotificationPopover unreadCount={unreadCount} onMarkAllAsRead={fetchUnreadCount}>
+                   <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 bg-slate-50 text-slate-400 hover:text-primary">
+                      <Bell className="h-5 w-5" />
+                   </Button>
+                </NotificationPopover>
 
-                <NotificationPopover
-                  anchorEl={anchorElNotifications}
-                  onClose={handleCloseNotifications}
-                  onMarkAllAsRead={fetchUnreadCount}
-                />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-10 w-10 rounded-xl border-2 border-primary/20 p-0 overflow-hidden hover:border-primary transition-all">
+                      <Avatar className="h-full w-full rounded-none">
+                        <AvatarImage src={user?.avatar} alt={user?.fullName} />
+                        <AvatarFallback className="bg-primary text-white font-black text-xs uppercase">
+                          {user?.fullName?.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-64 rounded-[2rem] p-3 border-none shadow-3xl mt-4 mr-4 bg-white" align="end">
+                    <div className="p-4 mb-2">
+                       <p className="text-sm font-black text-slate-900 tracking-tight">{user?.fullName}</p>
+                       <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{user?.role} NODE</p>
+                    </div>
+                    <DropdownMenuSeparator className="bg-slate-50 mx-2" />
+                    
+                    <DropdownMenuItem asChild className="rounded-xl py-3 cursor-pointer group">
+                       <Link href="/profile/me" className="flex items-center gap-3 font-bold text-xs text-slate-600 group-hover:text-primary">
+                          <User className="h-4 w-4" /> Professional Profile
+                       </Link>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem asChild className="rounded-xl py-3 cursor-pointer group">
+                       <Link href="/payments" className="flex items-center gap-3 font-bold text-xs text-slate-600 group-hover:text-primary">
+                          <CreditCard className="h-4 w-4" /> Financial Ledger
+                       </Link>
+                    </DropdownMenuItem>
 
-                {isEmp && (
-                  <Tooltip title="Hiring Pipeline">
-                    <IconButton onClick={() => router.push('/hiring-assist/pipeline')} sx={{ bgcolor: 'background.subtle' }}>
-                      <GroupIcon />
-                    </IconButton>
-                  </Tooltip>
-                )}
+                    <DropdownMenuItem asChild className="rounded-xl py-3 cursor-pointer group">
+                       <Link href="/verify" className="flex items-center gap-3 font-bold text-xs text-slate-600 group-hover:text-emerald-500">
+                          <ShieldCheck className="h-4 w-4" /> Identity Protocol
+                       </Link>
+                    </DropdownMenuItem>
 
-                <Tooltip title="Open Profile">
-                  <IconButton onClick={handleOpenUserMenu} sx={{ p: 0.5, border: '2px solid', borderColor: 'primary.main' }}>
-                    <Avatar alt={user?.fullName} sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.875rem' }}>{user?.fullName?.charAt(0)}</Avatar>
-                  </IconButton>
-                </Tooltip>
-                <Menu
-                  sx={{ mt: '45px', '& .MuiPaper-root': { borderRadius: 3, boxShadow: muiTheme.shadows[3] } }}
-                  anchorEl={anchorElUser}
-                  anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                  keepMounted
-                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                  open={Boolean(anchorElUser)}
-                  onClose={handleCloseUserMenu}
-                >
-                  <Box sx={{ px: 2, py: 1.5, minWidth: 200 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>{user?.fullName}</Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>{user?.role} ACCOUNT</Typography>
-                  </Box>
-                  <Divider />
-                  <MenuItem onClick={() => handleNavigate('/profile/me')}>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>My Profile</Typography>
-                  </MenuItem>
-                  {isDev ? (
-                    <>
-                      <MenuItem onClick={() => handleNavigate('/jobs/my-applications')}>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>My Applications</Typography>
-                      </MenuItem>
-                      <MenuItem onClick={() => handleNavigate('/jobs/my-posts')}>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>My Job Posts</Typography>
-                      </MenuItem>
-                    </>
-                  ) : (
-                    <>
-                      <MenuItem onClick={() => handleNavigate('/jobs/my-posts')}>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>Manage Jobs</Typography>
-                      </MenuItem>
-                      <MenuItem onClick={() => handleNavigate('/hiring-assist/pipeline')}>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>Hiring Pipeline</Typography>
-                      </MenuItem>
-                    </>
-                  )}
-                  <MenuItem onClick={() => handleNavigate('/payments')}>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>Payments & Status</Typography>
-                  </MenuItem>
-                  <MenuItem onClick={() => handleNavigate('/verify')}>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>Verification</Typography>
-                  </MenuItem>
-                  <MenuItem onClick={() => handleNavigate('/settings/notifications')}>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>Notification Settings</Typography>
-                  </MenuItem>
-                  <Divider />
-                  <MenuItem onClick={() => { handleCloseUserMenu(); logout(); }} sx={{ color: 'error.main' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 800 }}>Logout</Typography>
-                  </MenuItem>
-                </Menu>
-              </>
+                    <DropdownMenuItem asChild className="rounded-xl py-3 cursor-pointer group">
+                       <Link href="/settings/notifications" className="flex items-center gap-3 font-bold text-xs text-slate-600 group-hover:text-primary">
+                          <Settings className="h-4 w-4" /> Preferences
+                       </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator className="bg-slate-50 mx-2" />
+                    
+                    <DropdownMenuItem 
+                       className="rounded-xl py-3 cursor-pointer group focus:bg-red-50"
+                       onClick={() => logout()}
+                    >
+                       <div className="flex items-center gap-3 font-black text-xs text-red-500">
+                          <LogOut className="h-4 w-4" /> Terminate Session
+                       </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             )}
-          </Box>
-        </Toolbar>
-      </Container>
-    </AppBar>
+
+            {/* Mobile Toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden rounded-xl h-10 w-10 bg-slate-50 text-slate-400"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+          </div>
+        </div>
+
+        {/* Mobile Navigation Feed */}
+        {isMobileMenuOpen && (
+           <div className="md:hidden border-t border-slate-50 py-6 space-y-2 animate-in slide-in-from-top-2 duration-300">
+              {navItems.map((item) => (
+                 <Link 
+                    key={item.label} 
+                    href={item.href}
+                    className="flex items-center justify-between p-4 rounded-2xl hover:bg-slate-50 transition-colors group"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                 >
+                    <span className="font-black text-xs uppercase tracking-widest text-slate-600 group-hover:text-slate-900">{item.label}</span>
+                    <ChevronDown className="h-4 w-4 text-slate-300 -rotate-90" />
+                 </Link>
+              ))}
+              {!isLoggedIn && (
+                 <div className="pt-6 grid grid-cols-2 gap-4 px-4">
+                    <Button asChild variant="outline" className="rounded-xl font-black text-[10px] uppercase tracking-widest h-12">
+                       <Link href="/login">Login</Link>
+                    </Button>
+                    <Button asChild className="rounded-xl font-black text-[10px] uppercase tracking-widest h-12 bg-slate-900">
+                       <Link href="/register">Join</Link>
+                    </Button>
+                 </div>
+              )}
+           </div>
+        )}
+      </div>
+    </nav>
   );
 };
 

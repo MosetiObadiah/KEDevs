@@ -1,218 +1,293 @@
-// src/app/hiring-assist/page.tsx
 'use client';
 
 import React, { useState } from 'react';
-import {
-  Container,
-  Typography,
-  Box,
-  Paper,
-  Button,
-  Stack,
-  Grid,
-  TextField,
-  Chip,
-  Divider,
-  Checkbox,
-  FormControlLabel,
-  Avatar,
-  Tooltip,
-  IconButton,
-  Modal,
-  Alert,
-  MenuItem
-} from '@mui/material';
-import SpeedIcon from '@mui/icons-material/Speed';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
-import BookmarkIcon from '@mui/icons-material/Bookmark';
-import SendIcon from '@mui/icons-material/Send';
+import Link from 'next/link';
+import { 
+  Zap, 
+  Filter, 
+  Search, 
+  Bookmark, 
+  Send, 
+  Clock, 
+  ShieldCheck, 
+  Users, 
+  Sparkles, 
+  MapPin, 
+  Briefcase,
+  ChevronRight,
+  Loader2,
+  Lock,
+  ArrowRight,
+  MoreVertical,
+  CheckCircle2,
+  Info
+} from 'lucide-react';
 import { developers } from '@/data/mockData';
 import { usePlatformSettings } from '@/hooks/usePlatformSettings';
-import Link from 'next/link';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from '@/components/ui/checkbox';
+import { Separator } from '@/components/ui/separator';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Textarea } from '@/components/ui/textarea';
 
 export default function HiringAssist() {
   const { getPrice } = usePlatformSettings();
-  const [isActive, setIsActive] = useState(false); // Mock session state
+  const [isActive, setIsActive] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDev, setSelectedDev] = useState<any>(null);
 
-  const handleActivate = () => setIsActive(true);
+  const handleActivate = () => {
+    setIsActive(true);
+    toast.success('Hiring Assist protocols activated');
+  };
 
   if (!isActive) {
     return (
-      <Container maxWidth="md" sx={{ py: 10 }}>
-        <Paper sx={{ p: { xs: 4, md: 8 }, textAlign: 'center', borderRadius: 4, boxShadow: '0 20px 60px rgba(0,0,0,0.1)' }}>
-          <SpeedIcon sx={{ fontSize: 80, color: 'primary.main', mb: 4 }} />
-          <Typography variant="h3" sx={{ fontWeight: 800, mb: 2 }}>
-            Hiring <Box component="span" sx={{ color: 'primary.main' }}>Assist</Box>
-          </Typography>
-          <Typography variant="h5" color="text.secondary" sx={{ mb: 4 }}>
-            Speed up your recruitment with advanced tools.
-          </Typography>
+      <div className="container mx-auto px-4 py-32 max-w-5xl animate-in fade-in duration-700">
+        <Card className="rounded-[4rem] border-none shadow-3xl shadow-slate-200/50 overflow-hidden bg-white">
+           <CardContent className="p-12 md:p-24 text-center space-y-12">
+              <div className="h-24 w-24 bg-primary/5 rounded-[2.5rem] flex items-center justify-center mx-auto relative group">
+                 <Zap className="h-12 w-12 text-primary group-hover:scale-110 transition-transform" />
+                 <div className="absolute -top-2 -right-2 bg-white rounded-xl p-2 shadow-lg">
+                    <Lock className="h-5 w-5 text-slate-300" />
+                 </div>
+              </div>
 
-          <Grid container spacing={3} sx={{ mb: 6, textAlign: 'left' }}>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Advanced Filters</Typography>
-                <Typography variant="body2" color="text.secondary">Filter developers by experience, availability, and specific tech combinations.</Typography>
-              </Paper>
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Direct Outreach</Typography>
-                <Typography variant="body2" color="text.secondary">Send personalized job requests directly to top candidates with one click.</Typography>
-              </Paper>
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Saved Searches</Typography>
-                <Typography variant="body2" color="text.secondary">Save your common search patterns and get notified of new matches.</Typography>
-              </Paper>
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Pipeline Management</Typography>
-                <Typography variant="body2" color="text.secondary">Organize your bookmarked developers into custom hiring stages.</Typography>
-              </Paper>
-            </Grid>
-          </Grid>
+              <div className="space-y-4">
+                 <Badge variant="outline" className="rounded-lg font-black tracking-widest text-[10px] uppercase bg-primary/5 text-primary border-primary/10 px-4 py-1.5">
+                    RECRUITMENT ENGINE
+                 </Badge>
+                 <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter">Hiring <span className="text-primary italic">Assist</span></h1>
+                 <p className="text-lg text-slate-500 font-semibold max-w-xl mx-auto italic leading-relaxed">
+                    Accelerate your hiring cycle with advanced discovery tools and direct outreach protocols.
+                 </p>
+              </div>
 
-          <Box sx={{ bgcolor: 'rgba(0,0,0,0.02)', p: 4, borderRadius: 3 }}>
-            <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>KES {getPrice('SPOTLIGHT_DAY_FEE', '50')}</Typography>
-            <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 3 }}>for 24 hours of full access</Typography>
-            <Button
-              variant="contained"
-              size="large"
-              fullWidth
-              onClick={handleActivate}
-              sx={{ py: 2, borderRadius: 2, fontWeight: 700, fontSize: '1.1rem' }}
-            >
-              Activate Now
-            </Button>
-          </Box>
-        </Paper>
-      </Container>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+                 {[
+                    { title: 'Advanced Filtering', desc: 'Precision discovery by experience, tech stacks, and availability.', icon: Filter },
+                    { title: 'Direct Outreach', desc: 'Personalized requests sent directly to verified talent.', icon: Send },
+                    { title: 'Search Persistence', desc: 'Save search nodes and receive alerts for new matches.', icon: Search },
+                    { title: 'Pipeline Ops', desc: 'Organize candidates into custom lifecycle stages.', icon: Briefcase },
+                 ].map((feature, i) => (
+                    <div key={i} className="p-8 rounded-[2.5rem] bg-slate-50 border-2 border-slate-100 space-y-3 group hover:border-primary/20 transition-all">
+                       <feature.icon className="h-6 w-6 text-primary" />
+                       <h3 className="text-lg font-black text-slate-900 tracking-tight">{feature.title}</h3>
+                       <p className="text-sm font-medium text-slate-500 leading-relaxed">{feature.desc}</p>
+                    </div>
+                 ))}
+              </div>
+
+              <div className="p-10 rounded-[3rem] bg-slate-900 text-white relative overflow-hidden">
+                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-[60px] -mr-32 -mt-32" />
+                 <div className="relative z-10 flex flex-col items-center space-y-6">
+                    <div className="space-y-1">
+                       <p className="text-5xl font-black text-white">KES {getPrice('SPOTLIGHT_DAY_FEE', '50')}</p>
+                       <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Full Access / 24 Cycle</p>
+                    </div>
+                    <Button 
+                       className="h-16 rounded-[2rem] px-16 font-black bg-white text-slate-900 hover:bg-slate-100 shadow-xl shadow-white/5 text-lg group"
+                       onClick={handleActivate}
+                    >
+                       Activate Engine <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                    </Button>
+                 </div>
+              </div>
+           </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 6 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800 }}>
-            Hiring <Box component="span" sx={{ color: 'primary.main' }}>Assist</Box>
-          </Typography>
-          <Typography variant="subtitle1" color="text.secondary">
-            Advanced search and outreach active.
-          </Typography>
-        </Box>
-        <Box sx={{ textAlign: 'right' }}>
-          <Chip label="23:54:12 Remaining" color="warning" sx={{ fontWeight: 700, mb: 1 }} />
-          <Button size="small" variant="outlined" sx={{ ml: 2 }}>Buy More Time</Button>
-        </Box>
-      </Box>
+    <div className="container mx-auto px-4 py-20 animate-in fade-in duration-700">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
+         <div className="space-y-4">
+            <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight flex items-center gap-4">
+               Hiring <span className="text-primary italic">Assist</span>
+               <Badge className="bg-amber-100 text-amber-600 border-none font-black text-[10px] tracking-widest px-3 py-1 animate-pulse">LIVE_SESSION</Badge>
+            </h1>
+            <p className="text-slate-500 font-semibold italic">Advanced talent discovery and direct outreach active.</p>
+         </div>
+         
+         <div className="flex items-center gap-4 p-4 rounded-[2rem] bg-slate-900 text-white shadow-xl shadow-slate-900/10">
+            <div className="flex flex-col px-4 border-r border-white/10">
+               <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Time Remaining</span>
+               <span className="text-sm font-black text-amber-400">23:54:12</span>
+            </div>
+            <Button variant="ghost" className="rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-white/10 hover:text-white px-4 h-10">Extend Access</Button>
+         </div>
+      </div>
 
-      <Grid container spacing={4}>
-        {/* Advanced Filters */}
-        <Grid size={{ xs: 12, md: 3 }}>
-          <Paper sx={{ p: 3, borderRadius: 3, position: 'sticky', top: 20 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
-              <FilterListIcon /> Filters
-            </Typography>
-            <Stack spacing={3}>
-              <TextField fullWidth label="Tech Stack" placeholder="e.g. React, Python" size="small" />
-              <TextField fullWidth select label="Experience" defaultValue="3-5 years" size="small">
-                <MenuItem value="0-1 years">0-1 years</MenuItem>
-                <MenuItem value="1-3 years">1-3 years</MenuItem>
-                <MenuItem value="3-5 years">3-5 years</MenuItem>
-                <MenuItem value="5+ years">5+ years</MenuItem>
-              </TextField>
-              <TextField fullWidth select label="Availability" defaultValue="Available" size="small">
-                <MenuItem value="Available">Available Now</MenuItem>
-                <MenuItem value="Open">Open to Offers</MenuItem>
-              </TextField>
-              <TextField fullWidth label="City" defaultValue="Nairobi" size="small" />
-              <FormControlLabel control={<Checkbox defaultChecked />} label="Verified Developers Only" />
-              <Button variant="contained" fullWidth sx={{ borderRadius: 1.5, fontWeight: 700 }}>Apply Search</Button>
-              <Button variant="text" size="small" sx={{ fontWeight: 700 }}>Save Search</Button>
-            </Stack>
-          </Paper>
-        </Grid>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        {/* Modern Sidebar Filters */}
+        <div className="lg:col-span-3">
+           <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-slate-200/40 bg-white sticky top-24 overflow-hidden">
+              <CardHeader className="p-8 pb-4">
+                 <CardTitle className="text-xl font-black flex items-center gap-3">
+                    <Filter className="h-5 w-5 text-primary" /> Filters
+                 </CardTitle>
+              </CardHeader>
+              <CardContent className="p-8 space-y-8">
+                 <div className="space-y-6">
+                    <div className="space-y-2">
+                       <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Tech Stack</p>
+                       <Input placeholder="React, Python, AWS" className="h-12 rounded-xl bg-slate-50 border-none font-bold" />
+                    </div>
+                    
+                    <div className="space-y-2">
+                       <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Experience Tier</p>
+                       <Select defaultValue="3-5 years">
+                          <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-none font-black text-slate-600">
+                             <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl border-slate-100">
+                             <SelectItem value="0-1 years" className="font-bold">0-1 Years</SelectItem>
+                             <SelectItem value="1-3 years" className="font-bold">1-3 Years</SelectItem>
+                             <SelectItem value="3-5 years" className="font-bold">3-5 Years</SelectItem>
+                             <SelectItem value="5+ years" className="font-bold">5+ Years</SelectItem>
+                          </SelectContent>
+                       </Select>
+                    </div>
 
-        {/* Results */}
-        <Grid size={{ xs: 12, md: 9 }}>
-          <Stack spacing={2}>
-            {developers.filter(d => d.role === 'DEVELOPER').map((dev) => (
-              <Paper key={dev.id} sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'transparent', '&:hover': { borderColor: 'primary.main', boxShadow: 3 } }}>
-                <Grid container spacing={3} sx={{ alignItems: 'center' }}>
-                  <Grid size={{ xs: 12, sm: 2 }} sx={{ textAlign: 'center' }}>
-                    <Avatar sx={{ width: 80, height: 80, mx: 'auto', bgcolor: 'primary.light', color: 'primary.main', fontWeight: 700, fontSize: '1.5rem' }}>
-                      {dev.name.charAt(0)}
-                    </Avatar>
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="h6" component={Link} href={`/developers/${dev.id}`} sx={{ fontWeight: 700, textDecoration: 'none', color: 'inherit', '&:hover': { color: 'primary.main' } }}>
-                        {dev.name}
-                      </Typography>
-                      {dev.isVerified && <Chip label="Verified" size="small" color="primary" variant="outlined" sx={{ height: 20, fontSize: '0.6rem' }} />}
-                    </Box>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>{dev.role} • {dev.city}</Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
-                      {dev.skills.map(s => <Chip key={s} label={s} size="small" sx={{ height: 24 }} />)}
-                    </Box>
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 4 }}>
-                    <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
-                      <Tooltip title="Bookmark">
-                        <IconButton><BookmarkBorderIcon /></IconButton>
-                      </Tooltip>
-                      <Button
-                        variant="contained"
-                        startIcon={<SendIcon />}
-                        size="small"
-                        onClick={() => { setSelectedDev(dev); setIsModalOpen(true); }}
-                        sx={{ borderRadius: 1.5, fontWeight: 700 }}
-                      >
-                        Job Request
-                      </Button>
-                    </Stack>
-                  </Grid>
-                </Grid>
-              </Paper>
-            ))}
-          </Stack>
-        </Grid>
-      </Grid>
+                    <div className="flex items-center space-x-3 p-4 rounded-xl bg-slate-50">
+                       <Checkbox id="verified" defaultChecked className="data-[state=checked]:bg-primary rounded-md" />
+                       <label htmlFor="verified" className="text-xs font-black uppercase tracking-widest text-slate-600 cursor-pointer">Verified Only</label>
+                    </div>
+                 </div>
 
-      {/* Outreach Modal */}
-      <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <Box sx={{
-          position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-          width: 500, bgcolor: 'background.paper', borderRadius: 4, boxShadow: 24, p: 4
-        }}>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Send Job Request</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Inviting <strong>{selectedDev?.name}</strong> to apply for a position.
-          </Typography>
+                 <div className="space-y-3 pt-4">
+                    <Button className="w-full h-14 rounded-2xl bg-slate-900 font-black shadow-lg">Scan Ecosystem</Button>
+                    <Button variant="ghost" className="w-full h-10 rounded-xl font-black text-[10px] uppercase tracking-widest text-slate-400">Save Search Profile</Button>
+                 </div>
+              </CardContent>
+           </Card>
+        </div>
 
-          <Stack spacing={3}>
-            <TextField fullWidth select label="Select Job" defaultValue="1">
-              <MenuItem value="1">Senior Full Stack Engineer</MenuItem>
-              <MenuItem value="2">Junior React Developer</MenuItem>
-            </TextField>
-            <TextField fullWidth multiline rows={4} label="Personal Message" defaultValue={`Hi ${selectedDev?.name.split(' ')[0]}, I saw your profile on KEDevs and I'm impressed with your background in ${selectedDev?.skills[0]}. I'd love for you to check out this opening at TechFlow.`} />
-            <Alert severity="info" sx={{ borderRadius: 2 }}>
-              Your contact email ({selectedDev?.email}) will be shared if they accept.
-            </Alert>
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <Button fullWidth variant="outlined" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-              <Button fullWidth variant="contained" onClick={() => setIsModalOpen(false)}>Send Request</Button>
-            </Box>
-          </Stack>
-        </Box>
-      </Modal>
-    </Container>
+        {/* Results List */}
+        <div className="lg:col-span-9 space-y-6">
+           {developers.filter(d => d.role === 'DEVELOPER').map((dev) => (
+              <Card key={dev.id} className="rounded-[3rem] border-none shadow-xl shadow-slate-200/40 bg-white group hover:shadow-2xl transition-all duration-500 overflow-hidden">
+                 <CardContent className="p-8">
+                    <div className="flex flex-col md:flex-row items-center gap-8">
+                       <div className="relative shrink-0">
+                          <Avatar className="h-24 w-24 rounded-[2rem] border-2 border-slate-50 shadow-sm group-hover:border-primary/20 transition-all">
+                             <AvatarFallback className="bg-slate-900 text-white font-black text-2xl uppercase">
+                                {dev.name.charAt(0)}
+                             </AvatarFallback>
+                          </Avatar>
+                          {dev.isVerified && (
+                             <div className="absolute -bottom-1 -right-1 bg-white rounded-xl p-1 shadow-md">
+                                <ShieldCheck className="h-5 w-5 text-emerald-500" />
+                             </div>
+                          )}
+                       </div>
+
+                       <div className="flex-1 text-center md:text-left space-y-3">
+                          <div className="space-y-1">
+                             <Link href={`/developers/${dev.id}`} className="text-2xl font-black text-slate-900 hover:text-primary transition-colors tracking-tight">{dev.name}</Link>
+                             <div className="flex items-center justify-center md:justify-start gap-3 text-xs font-bold text-slate-400">
+                                <span className="flex items-center gap-1.5"><Briefcase className="h-3 w-3" /> {dev.role}</span>
+                                <span className="h-1 w-1 bg-slate-200 rounded-full" />
+                                <span className="flex items-center gap-1.5"><MapPin className="h-3 w-3" /> {dev.city}</span>
+                             </div>
+                          </div>
+                          
+                          <div className="flex flex-wrap justify-center md:justify-start gap-2">
+                             {dev.skills.map(s => (
+                                <Badge key={s} variant="outline" className="rounded-lg font-black text-[9px] uppercase tracking-widest bg-slate-50 border-slate-100 text-slate-500">
+                                   {s}
+                                </Badge>
+                             ))}
+                          </div>
+                       </div>
+
+                       <div className="flex gap-2">
+                          <Button variant="ghost" className="h-12 w-12 rounded-xl bg-slate-50 text-slate-400 hover:text-primary">
+                             <Bookmark className="h-5 w-5" />
+                          </Button>
+                          <Dialog open={isModalOpen && selectedDev?.id === dev.id} onOpenChange={(open) => { setIsModalOpen(open); if(!open) setSelectedDev(null); }}>
+                             <DialogTrigger asChild>
+                                <Button 
+                                   className="h-12 rounded-2xl px-6 font-black bg-slate-900 gap-2 group-hover:bg-primary transition-colors"
+                                   onClick={() => setSelectedDev(dev)}
+                                >
+                                   <Send className="h-4 w-4" /> Job Request
+                                </Button>
+                             </DialogTrigger>
+                             <DialogContent className="rounded-[3rem] p-12 max-w-xl border-none shadow-3xl">
+                                <DialogHeader className="space-y-4 mb-6">
+                                   <div className="h-16 w-16 bg-primary/5 rounded-[1.5rem] flex items-center justify-center">
+                                      <Send className="h-8 w-8 text-primary" />
+                                   </div>
+                                   <div className="space-y-1 text-left">
+                                      <DialogTitle className="text-3xl font-black tracking-tight">Direct Outreach</DialogTitle>
+                                      <DialogDescription className="font-bold text-slate-400 uppercase text-[10px] tracking-widest">Inviting {selectedDev?.name} to collaborate</DialogDescription>
+                                   </div>
+                                </DialogHeader>
+                                
+                                <div className="space-y-6">
+                                   <div className="space-y-2">
+                                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Target Position</p>
+                                      <Select defaultValue="1">
+                                         <SelectTrigger className="h-14 rounded-2xl bg-slate-50 border-none font-bold">
+                                            <SelectValue />
+                                         </SelectTrigger>
+                                         <SelectContent className="rounded-xl">
+                                            <SelectItem value="1" className="font-bold">Senior Full Stack Engineer</SelectItem>
+                                            <SelectItem value="2" className="font-bold">Junior React Developer</SelectItem>
+                                         </SelectContent>
+                                      </Select>
+                                   </div>
+
+                                   <div className="space-y-2">
+                                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Personalized Transmission</p>
+                                      <Textarea 
+                                         className="min-h-[150px] rounded-3xl bg-slate-50 border-none p-6 font-medium leading-relaxed"
+                                         defaultValue={`Hi ${selectedDev?.name.split(' ')[0]}, I discovered your profile through Hiring Assist. Your background in ${selectedDev?.skills[0]} is impressive. I'd love for you to check out this opening.`}
+                                      />
+                                   </div>
+
+                                   <div className="p-6 rounded-2xl bg-blue-50 border border-blue-100 flex gap-4">
+                                      <Info className="h-5 w-5 text-blue-500 shrink-0" />
+                                      <p className="text-xs font-medium text-blue-700 leading-relaxed">Your contact node will be shared once the developer acknowledges the request.</p>
+                                   </div>
+
+                                   <div className="grid grid-cols-2 gap-4">
+                                      <Button variant="ghost" className="h-14 rounded-2xl font-black text-slate-400" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+                                      <Button className="h-14 rounded-2xl font-black bg-slate-900 shadow-xl" onClick={() => { toast.success('Outreach transmitted'); setIsModalOpen(false); }}>Dispatch Request</Button>
+                                   </div>
+                                </div>
+                             </DialogContent>
+                          </Dialog>
+                       </div>
+                    </div>
+                 </CardContent>
+              </Card>
+           ))}
+        </div>
+      </div>
+    </div>
   );
 }

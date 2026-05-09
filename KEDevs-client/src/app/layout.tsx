@@ -1,19 +1,17 @@
 // src/app/layout.tsx
 import type { Metadata } from "next";
 import "./globals.css";
-import "@fontsource/inter";
-import "@fontsource/inter/500.css";
-import "@fontsource/inter/600.css";
-import "@fontsource/inter/700.css";
-import "@fontsource/inter/800.css";
 import { ThemeProvider as NextThemeProvider } from 'next-themes';
-import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import AppLayout from "@/components/layout/AppLayout";
 import { AuthProvider } from "@/context/AuthContext";
-import { ThemeStyleProvider } from "@/context/ThemeStyleContext";
 import { RouteGuard } from "@/components/auth/RouteGuard";
 import { GoogleAuthProvider } from "@/components/providers/GoogleAuthProvider";
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Inter } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "KEDevs - Kenya's Developer Community",
@@ -26,25 +24,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body>
-        <NextThemeProvider attribute="class" defaultTheme="dark" enableSystem>
-          <ThemeStyleProvider>
-            <ThemeProvider>
-              <GoogleAuthProvider>
-                <AuthProvider>
-                  <RouteGuard>
-                    <AppLayout>
-                      {children}
-                    </AppLayout>
-                    <Toaster position="top-right" />
-                  </RouteGuard>
-                </AuthProvider>
-              </GoogleAuthProvider>
-            </ThemeProvider>
-          </ThemeStyleProvider>
+    <html lang="en" suppressHydrationWarning className={cn("min-h-screen bg-background font-sans antialiased", inter.variable)}>
+      <body className="min-h-screen bg-background font-sans antialiased">
+        <NextThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          <AuthProvider>
+            <GoogleAuthProvider>
+              <TooltipProvider>
+                <RouteGuard>
+                  <AppLayout>
+                    {children}
+                  </AppLayout>
+                  <Toaster richColors position="top-right" />
+                </RouteGuard>
+              </TooltipProvider>
+            </GoogleAuthProvider>
+          </AuthProvider>
         </NextThemeProvider>
       </body>
     </html>
   );
 }
+

@@ -1,33 +1,40 @@
 'use client';
+
 import React, { useEffect, useState } from 'react';
-import {
-  Container,
-  Typography,
-  Box,
-  Paper,
-  Switch,
-  FormControlLabel,
-  Divider,
-  Button,
-  CircularProgress,
-  Alert,
-  Snackbar,
-} from '@mui/material';
-import {
-  NotificationsActive as NotificationsIcon,
-  Email as EmailIcon,
-  AppRegistration as AppIcon,
-  Save as SaveIcon,
-} from '@mui/icons-material';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { 
+  Bell, 
+  Mail, 
+  AppWindow, 
+  Save, 
+  ChevronLeft, 
+  ShieldCheck, 
+  Loader2, 
+  CheckCircle2, 
+  Zap, 
+  Globe, 
+  Sparkles,
+  Smartphone,
+  AtSign
+} from 'lucide-react';
 import { notificationService } from '@/services/notificationService';
 import { useAuth } from '@/context/AuthContext';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
-const NotificationSettingsPage = () => {
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+
+export default function NotificationSettingsPage() {
   const { user } = useAuth();
   const [preferences, setPreferences] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
+  const router = useRouter();
 
   useEffect(() => {
     fetchPreferences();
@@ -40,7 +47,7 @@ const NotificationSettingsPage = () => {
         setPreferences(response.data);
       }
     } catch (error) {
-      console.error('Failed to fetch preferences', error);
+      toast.error('Failed to load preferences');
     } finally {
       setLoading(false);
     }
@@ -58,10 +65,10 @@ const NotificationSettingsPage = () => {
     try {
       const response = await notificationService.updatePreferences(preferences);
       if (response.success) {
-        setSnackbar({ open: true, message: 'Preferences updated successfully', severity: 'success' });
+        toast.success('Notification protocols updated');
       }
     } catch (error) {
-      setSnackbar({ open: true, message: 'Failed to update preferences', severity: 'error' });
+      toast.error('Failed to synchronize settings');
     } finally {
       setSaving(false);
     }
@@ -69,144 +76,105 @@ const NotificationSettingsPage = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 20 }}>
-        <CircularProgress />
-      </Box>
+      <div className="container mx-auto px-4 py-20 flex flex-col items-center justify-center space-y-4">
+        <Loader2 className="h-10 w-10 text-primary animate-spin" />
+        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Configuring preferences...</p>
+      </div>
     );
   }
 
   const sections = [
     {
-      title: 'Email Notifications',
-      description: 'Choose which updates you want to receive via email',
-      icon: <EmailIcon sx={{ color: 'primary.main' }} />,
+      title: 'Email Protocols',
+      description: 'Decide which transmissions reach your official inbox',
+      icon: <AtSign className="h-6 w-6 text-primary" />,
       items: [
-        { key: 'emailOnPaymentReceipt', label: 'Payment Receipts', desc: 'Get an email for every successful payment' },
-        { key: 'emailOnJobApplication', label: 'Job Applications', desc: 'Notify me when someone applies to my job' },
-        { key: 'emailOnJobFlagged', label: 'Content Flags', desc: 'Notify me if my job post is flagged for review' },
-        { key: 'emailOnSubscriptionExpiry', label: 'Subscription Alerts', desc: 'Alert me before my subscription expires' },
-        { key: 'emailOnSpotlightExpired', label: 'Spotlight Updates', desc: 'Notify me when my spotlight slot ends' },
-        { key: 'emailOnVerifiedBadge', label: 'Verification Status', desc: 'Updates on your verified badge application' },
+        { key: 'emailOnPaymentReceipt', label: 'Financial Transactions', desc: 'Detailed receipts for every payment cycle' },
+        { key: 'emailOnJobApplication', label: 'Talent Acquisition', desc: 'Instant alerts when candidates apply to your posts' },
+        { key: 'emailOnJobFlagged', label: 'Moderation Alerts', desc: 'Critical notifications regarding content policy flags' },
+        { key: 'emailOnSubscriptionExpiry', label: 'Ecosystem Access', desc: 'Lifecycle alerts for your subscription tiers' },
+        { key: 'emailOnSpotlightExpired', label: 'Spotlight Cycles', desc: 'Alerts when premium visibility windows close' },
+        { key: 'emailOnVerifiedBadge', label: 'Identity Status', desc: 'Progress updates on your verification badges' },
       ],
     },
     {
-      title: 'In-App Notifications',
-      description: 'Control the alerts you see while browsing KEDevs',
-      icon: <AppIcon sx={{ color: 'secondary.main' }} />,
+      title: 'Real-time Pulse',
+      description: 'Configure in-app alerts and mobile notifications',
+      icon: <Zap className="h-6 w-6 text-amber-500" />,
       items: [
-        { key: 'inAppOnJobApplication', label: 'Applications', desc: 'Show alert for new job applications' },
-        { key: 'inAppOnCommentReply', label: 'Community Replies', desc: 'Notify me of replies to my forum comments' },
-        { key: 'inAppOnEndorsement', label: 'Endorsements', desc: 'Show alert when someone endorses my profile' },
-        { key: 'inAppOnFlagReviewed', label: 'Review Updates', desc: 'Notify me when an admin reviews my flagged content' },
-        { key: 'inAppOnSpotlightExpired', label: 'Spotlight Status', desc: 'Show alert when spotlight slot expires' },
+        { key: 'inAppOnJobApplication', label: 'Application Pulse', desc: 'Real-time banners for incoming talent' },
+        { key: 'inAppOnCommentReply', label: 'Community Sync', desc: 'Instant alerts for forum interaction and replies' },
+        { key: 'inAppOnEndorsement', label: 'Social Proof', desc: 'Notify when peers endorse your professional profile' },
+        { key: 'inAppOnFlagReviewed', label: 'Decision Trace', desc: 'Updates on administrative content reviews' },
+        { key: 'inAppOnSpotlightExpired', label: 'Visibility Status', desc: 'Real-time status of your premium placement' },
       ],
     },
   ];
 
   return (
-    <Container maxWidth="md" sx={{ py: 6 }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 900, mb: 1 }}>
-          Notification Settings
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 600 }}>
-          Manage how and when you receive updates from the platform
-        </Typography>
-      </Box>
+    <div className="container mx-auto px-4 py-20 max-w-3xl animate-in fade-in duration-700">
+      <div className="mb-12 space-y-4">
+         <Link href="/notifications" className="inline-flex items-center text-slate-400 hover:text-slate-900 font-black uppercase text-[10px] tracking-widest transition-all group">
+            <ChevronLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
+            Back to Inbox
+         </Link>
+         <div className="space-y-1">
+            <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">Sync Preferences</h1>
+            <p className="text-slate-500 font-semibold italic">Fine-tune how the platform communicates with you</p>
+         </div>
+      </div>
 
-      {sections.map((section, sIdx) => (
-        <Paper
-          key={sIdx}
-          elevation={0}
-          sx={{
-            borderRadius: 4,
-            border: '1px solid',
-            borderColor: 'divider',
-            mb: 4,
-            overflow: 'hidden',
-          }}
-        >
-          <Box sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'background.subtle' }}>
-            {section.icon}
-            <Box>
-              <Typography variant="h6" sx={{ fontWeight: 800 }}>
-                {section.title}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
-                {section.description}
-              </Typography>
-            </Box>
-          </Box>
-          <Divider />
-          <Box sx={{ p: 0 }}>
-            {section.items.map((item, iIdx) => (
-              <React.Fragment key={item.key}>
-                <Box
-                  sx={{
-                    px: 3,
-                    py: 2.5,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    '&:hover': { bgcolor: 'action.hover' },
-                  }}
-                >
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="body1" sx={{ fontWeight: 700, mb: 0.5 }}>
-                      {item.label}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-                      {item.desc}
-                    </Typography>
-                  </Box>
-                  <Switch
-                    checked={preferences?.[item.key] || false}
-                    onChange={() => handleToggle(item.key)}
-                    color="primary"
-                  />
-                </Box>
-                {iIdx < section.items.length - 1 && <Divider />}
-              </React.Fragment>
-            ))}
-          </Box>
-        </Paper>
-      ))}
+      <div className="space-y-8 mb-12">
+         {sections.map((section, sIdx) => (
+            <Card key={sIdx} className="rounded-[3rem] border-none shadow-2xl shadow-slate-200/40 overflow-hidden bg-white">
+               <CardHeader className="p-10 pb-6 bg-slate-50/50 border-b border-slate-50">
+                  <div className="flex items-center gap-4">
+                     <div className="h-12 w-12 rounded-2xl bg-white shadow-sm flex items-center justify-center border border-slate-100">
+                        {section.icon}
+                     </div>
+                     <div>
+                        <CardTitle className="text-xl font-black">{section.title}</CardTitle>
+                        <CardDescription className="text-[10px] font-black uppercase tracking-widest text-slate-400">{section.description}</CardDescription>
+                     </div>
+                  </div>
+               </CardHeader>
+               <CardContent className="p-0">
+                  <div className="divide-y divide-slate-50">
+                     {section.items.map((item) => (
+                        <div key={item.key} className="p-8 flex items-center justify-between gap-6 group hover:bg-slate-50/30 transition-colors">
+                           <div className="flex-1 min-w-0 space-y-1">
+                              <h3 className="font-black text-slate-900 text-sm tracking-tight">{item.label}</h3>
+                              <p className="text-xs font-medium text-slate-400 leading-relaxed max-w-sm">{item.desc}</p>
+                           </div>
+                           <Switch 
+                              checked={preferences?.[item.key] || false}
+                              onCheckedChange={() => handleToggle(item.key)}
+                              className="data-[state=checked]:bg-primary"
+                           />
+                        </div>
+                     ))}
+                  </div>
+               </CardContent>
+            </Card>
+         ))}
+      </div>
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-        <Button
-          variant="outlined"
-          onClick={() => router.back()}
-          sx={{ borderRadius: 2.5, fontWeight: 700, px: 4 }}
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="contained"
-          startIcon={saving ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
-          onClick={handleSave}
-          disabled={saving}
-          sx={{
-            borderRadius: 2.5,
-            fontWeight: 800,
-            px: 4,
-            boxShadow: '0 4px 14px 0 rgba(0,118,255,0.39)',
-          }}
-        >
-          Save Changes
-        </Button>
-      </Box>
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
-        <Alert severity={snackbar.severity} sx={{ width: '100%', borderRadius: 2, fontWeight: 700 }}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Container>
+      <div className="flex items-center justify-between p-8 bg-slate-900 rounded-[3rem] text-white shadow-2xl shadow-slate-900/20">
+         <div className="flex items-center gap-4">
+            <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center">
+               <ShieldCheck className="h-5 w-5 text-emerald-400" />
+            </div>
+            <p className="text-xs font-black uppercase tracking-widest">Preferences stored securely</p>
+         </div>
+         <div className="flex gap-4">
+            <Button variant="ghost" className="rounded-2xl h-14 px-8 text-white/50 hover:text-white hover:bg-white/5 font-black" onClick={() => router.back()}>
+               Cancel
+            </Button>
+            <Button className="rounded-2xl h-14 px-10 bg-white text-slate-900 hover:bg-slate-100 font-black shadow-xl" onClick={handleSave} disabled={saving}>
+               {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5 mr-2" />} Synchronize
+            </Button>
+         </div>
+      </div>
+    </div>
   );
-};
-
-export default NotificationSettingsPage;
+}

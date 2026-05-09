@@ -1,29 +1,20 @@
 'use client';
-
 import React from 'react';
-import {
-  Box,
-  Container,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  Avatar,
-  Chip,
-  Button,
-  Stack,
-  alpha,
-  Divider,
-  Tooltip,
-  Skeleton
-} from '@mui/material';
 import Link from 'next/link';
-import VerifiedIcon from '@mui/icons-material/Verified';
-import SpeedIcon from '@mui/icons-material/Speed';
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import CodeIcon from '@mui/icons-material/Code';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import { PillBadge } from '@/components/shared/PillBadge';
+import { 
+  CheckCircle2, 
+  ExternalLink, 
+  Code, 
+  ArrowRight, 
+  Zap, 
+  Trophy 
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 interface SpotlightSectionProps {
   dayDev: any;
@@ -33,64 +24,20 @@ interface SpotlightSectionProps {
 
 function EmptySpotlightCard({ type }: { type: string }) {
   return (
-    <Card 
-      sx={{ 
-        height: '100%', 
-        minHeight: 400,
-        borderRadius: 6, 
-        overflow: 'hidden', 
-        border: '2px dashed', 
-        borderColor: 'divider',
-        bgcolor: alpha('#000', 0.02),
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        textAlign: 'center',
-        p: 4,
-        position: 'relative',
-        '&:hover': {
-          borderColor: 'primary.main',
-          bgcolor: alpha('#10b981', 0.02)
-        }
-      }}
-    >
-      <Box sx={{ position: 'absolute', top: 20, right: 20 }}>
-        <PillBadge variant="sage">{type}</PillBadge>
-      </Box>
-
-      <Stack spacing={3} sx={{ alignItems: 'center' }}>
-        <Box 
-          sx={{ 
-            width: 80, 
-            height: 80, 
-            borderRadius: '50%', 
-            bgcolor: 'background.paper', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            boxShadow: 1
-          }}
-        >
-          <SpeedIcon sx={{ fontSize: 40, color: 'text.disabled' }} />
-        </Box>
-        
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 900, mb: 1 }}>Slot Available</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 280, mx: 'auto' }}>
-            This spotlight spot is currently vacant. Verified developers can claim it to boost their visibility.
-          </Typography>
-        </Box>
-
-        <Button 
-          variant="outlined" 
-          component={Link}
-          href="/profile/me?buySpotlight=true"
-          sx={{ borderRadius: 2, fontWeight: 700, px: 4 }}
-        >
-          Claim This Spot
-        </Button>
-      </Stack>
+    <Card className="h-full min-h-[400px] border-2 border-dashed border-muted hover:border-primary/50 transition-colors bg-muted/20 flex flex-col items-center justify-center text-center p-8 relative">
+      <div className="absolute top-4 right-4">
+        <Badge variant="secondary" className="bg-background/50 backdrop-blur-sm border-none shadow-sm">{type}</Badge>
+      </div>
+      <div className="w-16 h-16 rounded-full bg-background flex items-center justify-center shadow-sm mb-6">
+        <Zap className="h-8 w-8 text-muted-foreground" />
+      </div>
+      <h3 className="text-xl font-bold mb-2">Slot Available</h3>
+      <p className="text-sm text-muted-foreground max-w-[260px] mb-8 leading-relaxed">
+        This spotlight spot is currently vacant. Verified developers can claim it to boost their visibility.
+      </p>
+      <Button variant="outline" className="font-semibold" asChild>
+        <Link href="/profile/me?buySpotlight=true">Claim This Spot</Link>
+      </Button>
     </Card>
   );
 }
@@ -99,168 +46,125 @@ function SpotlightBigCard({ dev, type }: { dev: any, type: string }) {
   const project = dev.featuredProjects?.[0];
 
   return (
-    <Card 
-      sx={{ 
-        height: '100%', 
-        borderRadius: 6, 
-        overflow: 'hidden', 
-        border: '1px solid', 
-        borderColor: 'primary.light',
-        boxShadow: '0 20px 40px rgba(16, 185, 129, 0.08)',
-        position: 'relative'
-      }}
-    >
-      <Box sx={{ position: 'absolute', top: 20, right: 20, zIndex: 1 }}>
-        <PillBadge variant="mint">{type}</PillBadge>
-      </Box>
-
-      <Grid container sx={{ height: '100%' }}>
+    <Card className="h-full border-border shadow-xl shadow-primary/5 overflow-hidden group">
+      <div className="absolute top-4 right-4 z-10">
+        <Badge className="bg-primary hover:bg-primary border-none shadow-md">{type}</Badge>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-5 h-full">
         {/* Left: Dev Info */}
-        <Grid size={{ xs: 12, md: 5 }} sx={{ p: 4, bgcolor: alpha('#10b981', 0.03) }}>
-          <Stack spacing={3} sx={{ height: '100%', alignItems: 'center', textAlign: 'center' }}>
-            <Avatar 
-              src={dev.profilePhoto} 
-              sx={{ width: 120, height: 120, border: '4px solid white', boxShadow: 3, bgcolor: 'primary.main', fontSize: '3rem', fontWeight: 900 }}
-            >
+        <div className="md:col-span-2 p-8 bg-muted/30 flex flex-col items-center text-center">
+          <Avatar className="h-28 w-28 border-4 border-background shadow-xl mb-6">
+            <AvatarImage src={dev.profilePhoto} />
+            <AvatarFallback className="bg-primary text-primary-foreground text-3xl font-black">
               {dev.developerName?.charAt(0)}
-            </Avatar>
-            
-            <Box>
-              <Typography variant="h4" sx={{ fontWeight: 900, mb: 0.5, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                {dev.developerName}
-                {dev.isVerified && <VerifiedIcon color="primary" fontSize="small" />}
-              </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 700 }}>
-                {dev.currentLastRole}
-              </Typography>
-            </Box>
-
-            <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, flexGrow: 1 }}>
-              {dev.bio || "Full-stack developer specializing in building scalable web applications."}
-            </Typography>
-
-            <Button 
-              variant="contained" 
-              fullWidth 
-              component={Link} 
-              href={`/developers/${dev.developerId || dev.id}`}
-              endIcon={<ArrowForwardIcon />}
-              sx={{ 
-                borderRadius: 3, 
-                fontWeight: 800, 
-                py: 1.5,
-                boxShadow: '0 4px 14px 0 rgba(16, 185, 129, 0.39)',
-                '&:hover': {
-                  boxShadow: '0 6px 20px rgba(16, 185, 129, 0.23)',
-                }
-              }}
-            >
-              View Full Profile
-            </Button>
-          </Stack>
-        </Grid>
+            </AvatarFallback>
+          </Avatar>
+          <div className="mb-4">
+            <h3 className="text-xl font-bold flex items-center justify-center gap-1.5 mb-1">
+              {dev.developerName}
+              {dev.isVerified && <CheckCircle2 className="h-4 w-4 text-primary" />}
+            </h3>
+            <p className="text-sm font-semibold text-muted-foreground">{dev.currentLastRole}</p>
+          </div>
+          <p className="text-sm text-muted-foreground mb-8 leading-relaxed line-clamp-3">
+            {dev.bio || "Full-stack developer specializing in building scalable web applications."}
+          </p>
+          <Button className="w-full font-bold group" asChild>
+            <Link href={`/developers/${dev.developerId || dev.id}`}>
+              View Profile <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </Button>
+        </div>
 
         {/* Right: Featured Project */}
-        <Grid size={{ xs: 12, md: 7 }} sx={{ p: 4, borderLeft: { md: '1px solid' }, borderColor: 'divider' }}>
-          <Typography variant="overline" sx={{ fontWeight: 900, color: 'text.secondary', letterSpacing: '0.1em' }}>
-            FEATURED PROJECT
-          </Typography>
+        <div className="md:col-span-3 p-8 flex flex-col">
+          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-6">Featured Project</span>
           
           {project ? (
-            <Stack spacing={2} sx={{ mt: 2 }}>
-              <Box 
-                sx={{ 
-                  height: 180, 
-                  borderRadius: 4, 
-                  overflow: 'hidden', 
-                  bgcolor: 'background.subtle',
-                  border: '1px solid',
-                  borderColor: 'divider'
-                }}
-              >
+            <div className="flex flex-col h-full">
+              <div className="relative aspect-video rounded-xl overflow-hidden bg-muted border border-border mb-6 group/img">
                 {project.screenshotUrl ? (
-                  <Box component="img" src={project.screenshotUrl} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={project.screenshotUrl} alt={project.title} className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500" />
                 ) : (
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', opacity: 0.1 }}>
-                    <CodeIcon sx={{ fontSize: 60 }} />
-                  </Box>
+                  <div className="flex items-center justify-center h-full text-muted-foreground opacity-20">
+                    <Code className="h-16 w-16" />
+                  </div>
                 )}
-              </Box>
-              
-              <Typography variant="h5" sx={{ fontWeight: 900 }}>{project.title}</Typography>
-              
-              <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, height: 48, overflow: 'hidden' }}>
+              </div>
+              <h4 className="text-lg font-bold mb-2">{project.title}</h4>
+              <p className="text-sm text-muted-foreground line-clamp-2 mb-6 flex-1">
                 {project.description}
-              </Typography>
-
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+              </p>
+              <div className="flex flex-wrap gap-1.5 mb-6">
                 {(Array.isArray(project.techStack) ? project.techStack : (project.techStack?.split(',') || [])).slice(0, 4).map((tech: string) => (
-                  <Chip key={tech} label={tech.trim()} size="small" sx={{ fontWeight: 700, bgcolor: 'background.subtle', borderRadius: 1 }} />
+                  <Badge key={tech} variant="secondary" className="text-[10px] py-0 px-2 font-medium">
+                    {tech.trim()}
+                  </Badge>
                 ))}
-              </Box>
-
+              </div>
               {project.projectUrl && (
-                <Button 
-                  variant="outlined" 
-                  size="small" 
-                  startIcon={<OpenInNewIcon />} 
-                  href={project.projectUrl} 
-                  target="_blank"
-                  sx={{ borderRadius: 2, fontWeight: 700, mt: 1 }}
-                >
-                  Visit Project
+                <Button variant="ghost" size="sm" className="w-fit -ml-2 text-primary font-bold hover:text-primary hover:bg-primary/5" asChild>
+                  <a href={project.projectUrl} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="mr-2 h-3.5 w-3.5" /> Visit Live Project
+                  </a>
                 </Button>
               )}
-            </Stack>
+            </div>
           ) : (
-            <Box sx={{ mt: 4, textAlign: 'center', opacity: 0.5 }}>
-              <CodeIcon sx={{ fontSize: 60, mb: 2 }} />
-              <Typography variant="body2">No featured project listed yet.</Typography>
-            </Box>
+            <div className="flex flex-col items-center justify-center h-full text-center opacity-30">
+              <Code className="h-12 w-12 mb-2" />
+              <p className="text-sm">No featured project listed yet.</p>
+            </div>
           )}
-        </Grid>
-      </Grid>
+        </div>
+      </div>
     </Card>
   );
 }
 
 export default function SpotlightSection({ dayDev, weekDev, loading }: SpotlightSectionProps) {
-  // Always show the section structure
-
   return (
-    <Box sx={{ py: { xs: 8, md: 12 }, bgcolor: 'background.paper' }}>
-      <Container maxWidth="xl">
-        <Box sx={{ mb: 6, textAlign: 'center' }}>
-          <PillBadge variant="mint">TALENT SPOTLIGHT</PillBadge>
-          <Typography variant="h2" sx={{ mt: 2, fontWeight: 900 }}>
-            Featured <Box component="span" sx={{ color: 'primary.main' }}>Talent</Box>
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+    <section className="py-16 md:py-24 bg-background">
+      <div className="container mx-auto px-6">
+        <div className="flex flex-col items-center text-center mb-16">
+          <Badge variant="secondary" className="mb-4 bg-primary/10 text-primary border-none font-bold uppercase tracking-widest text-[10px]">
+            Talent Spotlight
+          </Badge>
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
+            Featured <span className="text-primary">Talent</span>
+          </h2>
+          <p className="text-muted-foreground max-w-lg">
             Exceptional Kenyan developers currently in the spotlight.
-          </Typography>
-        </Box>
+          </p>
+        </div>
 
-        <Grid container spacing={4} sx={{ justifyContent: 'center' }}>
-          <Grid size={{ xs: 12, lg: 6 }}>
-            {loading ? (
-              <Skeleton variant="rectangular" height={400} sx={{ borderRadius: 6 }} />
-            ) : dayDev ? (
-              <SpotlightBigCard dev={dayDev} type="Developer of the Day" />
-            ) : (
-              <EmptySpotlightCard type="Developer of the Day" />
-            )}
-          </Grid>
-          <Grid size={{ xs: 12, lg: 6 }}>
-            {loading ? (
-              <Skeleton variant="rectangular" height={400} sx={{ borderRadius: 6 }} />
-            ) : weekDev ? (
-              <SpotlightBigCard dev={weekDev} type="Developer of the Week" />
-            ) : (
-              <EmptySpotlightCard type="Developer of the Week" />
-            )}
-          </Grid>
-        </Grid>
-      </Container>
-    </Box>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+          {loading ? (
+            <>
+              <Skeleton className="h-[400px] rounded-3xl" />
+              <Skeleton className="h-[400px] rounded-3xl" />
+            </>
+          ) : (
+            <>
+              <div>
+                {dayDev ? (
+                  <SpotlightBigCard dev={dayDev} type="Developer of the Day" />
+                ) : (
+                  <EmptySpotlightCard type="Developer of the Day" />
+                )}
+              </div>
+              <div>
+                {weekDev ? (
+                  <SpotlightBigCard dev={weekDev} type="Developer of the Week" />
+                ) : (
+                  <EmptySpotlightCard type="Developer of the Week" />
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </section>
   );
 }
+

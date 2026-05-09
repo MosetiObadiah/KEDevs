@@ -1,12 +1,11 @@
-// src/components/auth/RouteGuard.tsx
 'use client';
 
 import React, { useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
-import { Box, CircularProgress } from '@mui/material';
+import { Loader2, Zap } from 'lucide-react';
 
-const publicRoutes = ['/', '/login', '/register', '/jobs', '/developers', '/companies', '/contact', '/verify-email', '/reset-password'];
+const publicRoutes = ['/', '/login', '/register', '/jobs', '/developers', '/companies', '/contact', '/verify-email', '/reset-password', '/spotlight'];
 const devOnboarding = '/onboarding/developer';
 const empOnboarding = '/onboarding/employer';
 const pendingApproval = '/pending-approval';
@@ -73,9 +72,18 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <CircularProgress />
-      </Box>
+      <div className="min-h-screen flex flex-col items-center justify-center space-y-6 bg-white animate-in fade-in duration-500">
+        <div className="relative">
+           <div className="h-16 w-16 bg-primary/5 rounded-[1.5rem] flex items-center justify-center animate-pulse">
+              <Zap className="h-8 w-8 text-primary fill-primary" />
+           </div>
+           <Loader2 className="absolute -bottom-2 -right-2 h-6 w-6 text-primary animate-spin" />
+        </div>
+        <div className="text-center space-y-1">
+           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Synchronizing Session</p>
+           <p className="text-sm font-bold text-slate-900 italic">Establishing secure connection...</p>
+        </div>
+      </div>
     );
   }
 

@@ -1,34 +1,48 @@
-// src/app/onboarding/developer/page.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import {
-  Container,
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Paper,
-  Stepper,
-  Step,
-  StepLabel,
-  Grid,
-  Chip,
-  Autocomplete,
-  MenuItem,
-  Stack,
-  Fade,
-  Alert,
-  Checkbox,
-  FormControlLabel,
-} from '@mui/material';
+import { 
+  User, 
+  Code2, 
+  Briefcase, 
+  MapPin, 
+  CheckCircle2, 
+  Loader2, 
+  ChevronRight, 
+  ChevronLeft,
+  Info,
+  ShieldCheck,
+  Plus,
+  X
+} from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { developerService } from '@/services/developerService';
 import { KENYA_COUNTIES } from '@/lib/constants';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
-const steps = ['Basic Info', 'Skills & Status', 'Experience'];
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const steps = [
+  { label: 'Identity', icon: User },
+  { label: 'Arsenal', icon: Code2 },
+  { label: 'Experience', icon: Briefcase }
+];
 
 const skillsOptions = [
   'React', 'Next.js', 'TypeScript', 'Node.js', 'Python', 'Java', 'Spring Boot',
@@ -48,8 +62,8 @@ export default function DeveloperOnboarding() {
   const { isLoggedIn, isOnboarded, completeOnboarding, user } = useAuth();
   const [activeStep, setActiveStep] = useState(0);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // Form State
   const [formData, setFormData] = useState({
     firstName: user?.fullName?.split(' ')[0] || '',
     lastName: user?.fullName?.split(' ').slice(1).join(' ') || '',
@@ -57,7 +71,7 @@ export default function DeveloperOnboarding() {
     city: 'Nairobi',
     bio: '',
     skills: [] as string[],
-    availability: 'Available',
+    availability: 'AVAILABLE',
     yearsOfExperience: 'ZERO_TO_ONE',
     summary: '',
   });
@@ -70,13 +84,13 @@ export default function DeveloperOnboarding() {
     }
   }, [isLoggedIn, isOnboarded, router]);
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
   const handleNext = async () => {
     if (activeStep === steps.length - 1) {
+      if (!agreedToTerms) {
+        toast.error('Please agree to the Terms of Service');
+        return;
+      }
       setLoading(true);
-      setError(null);
       try {
         const payload = {
           firstName: formData.firstName,
@@ -84,8 +98,8 @@ export default function DeveloperOnboarding() {
           bio: formData.bio,
           currentLastRole: formData.role,
           locationCity: formData.city.split(',')[0].trim(),
-          locationCountry: formData.city.split(',')[1]?.trim() || 'Kenya',
-          availabilityStatus: formData.availability === 'Available' ? 'AVAILABLE' : 'OPEN_TO_OFFERS',
+          locationCountry: 'Kenya',
+          availabilityStatus: formData.availability,
           yearsOfExperience: formData.yearsOfExperience,
           visibility: 'PUBLIC',
           skills: formData.skills,
@@ -96,10 +110,11 @@ export default function DeveloperOnboarding() {
         const response = await developerService.createProfile(payload);
         if (response.success) {
           completeOnboarding();
+          toast.success('Welcome to KEDevs-Connect!');
           router.push('/developers');
         }
       } catch (err: any) {
-        setError(err.message || 'Failed to create profile. Please try again.');
+        toast.error(err.message || 'Failed to create profile');
       } finally {
         setLoading(false);
       }
@@ -108,251 +123,257 @@ export default function DeveloperOnboarding() {
     }
   };
 
-
   const handleBack = () => {
-    setActiveStep((prev) => prev - 1);
+    setActiveStep((prev) => Math.max(prev - 1, 0));
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const addSkill = (skill: string) => {
+    if (skill && !formData.skills.includes(skill)) {
+      setFormData({ ...formData, skills: [...formData.skills, skill] });
+    }
+  };
+
+  const removeSkill = (skill: string) => {
+    setFormData({ ...formData, skills: formData.skills.filter(s => s !== skill) });
   };
 
   if (!isLoggedIn || isOnboarded) return null;
 
   return (
-    <Container maxWidth="md" sx={{ py: 8 }}>
-      <Paper sx={{ p: { xs: 3, md: 6 }, borderRadius: 4, boxShadow: '0 10px 40px rgba(0,0,0,0.05)' }}>
-        <Typography variant="h4" component="h1" align="center" gutterBottom>
-          Complete Your <Box component="span" sx={{ color: 'primary.main' }}>Profile</Box>
-        </Typography>
-        <Typography variant="body1" align="center" color="text.secondary" sx={{ mb: 6 }}>
-          Tell us more about yourself to get started on KEDevs.
-        </Typography>
+    <div className="min-h-screen bg-slate-50/50 flex flex-col items-center justify-center p-4 py-20">
+      <div className="absolute top-0 left-0 w-full h-[400px] bg-gradient-to-b from-primary/5 to-transparent -z-10" />
+      
+      <div className="w-full max-w-2xl animate-in fade-in slide-in-from-bottom-8 duration-700">
+        <div className="text-center mb-12">
+           <Badge variant="outline" className="rounded-lg font-black tracking-widest text-[10px] uppercase bg-primary/5 text-primary border-primary/10 mb-4 px-3 py-1">
+              FINALIZE YOUR ACCOUNT
+           </Badge>
+           <h1 className="text-4xl font-black tracking-tight text-slate-900">Developer Onboarding</h1>
+           <p className="text-slate-500 font-semibold mt-2">Let's build your professional presence</p>
+        </div>
 
-        {error && <Alert severity="error" sx={{ mb: 4 }}>{error}</Alert>}
+        <div className="flex justify-between items-center mb-12 relative px-4 max-w-md mx-auto">
+          <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-200 -translate-y-1/2 -z-10 rounded-full" />
+          <div 
+            className="absolute top-1/2 left-0 h-1 bg-primary -translate-y-1/2 -z-10 transition-all duration-500 rounded-full" 
+            style={{ width: `${(activeStep / (steps.length - 1)) * 100}%` }}
+          />
+          {steps.map((step, index) => {
+            const Icon = step.icon;
+            return (
+              <div key={step.label} className="flex flex-col items-center gap-2">
+                <div 
+                  className={cn(
+                    "h-10 w-10 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-lg",
+                    index < activeStep ? "bg-primary text-white scale-90" : 
+                    index === activeStep ? "bg-white text-primary border-4 border-primary scale-110" : "bg-white text-slate-300 border-2 border-slate-100"
+                  )}
+                >
+                  {index < activeStep ? <CheckCircle2 className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+                </div>
+              </div>
+            );
+          })}
+        </div>
 
-        <Stepper activeStep={activeStep} sx={{ mb: 8 }}>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-
-        <Box component="form" onSubmit={(e) => { e.preventDefault(); handleNext(); }} sx={{ minHeight: 400 }}>
-          {activeStep === 0 && (
-            <Fade in={activeStep === 0}>
-              <Grid container spacing={3}>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    fullWidth
-                    label="First Name"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    variant="outlined"
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    fullWidth
-                    label="Last Name"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    variant="outlined"
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
-                    fullWidth
-                    label="Current Role"
-                    name="role"
-                    value={formData.role}
-                    onChange={handleChange}
+        <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-primary/5 overflow-hidden">
+          <CardHeader className="bg-slate-900 p-8 text-white">
+             <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center">
+                   {activeStep === 0 && <User className="h-6 w-6" />}
+                   {activeStep === 1 && <Code2 className="h-6 w-6" />}
+                   {activeStep === 2 && <Briefcase className="h-6 w-6" />}
+                </div>
+                <div>
+                   <CardTitle className="text-2xl font-black uppercase tracking-tight">{steps[activeStep].label}</CardTitle>
+                   <CardDescription className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+                      Step {activeStep + 1} of {steps.length}
+                   </CardDescription>
+                </div>
+             </div>
+          </CardHeader>
+          
+          <CardContent className="p-8 md:p-12 min-h-[400px]">
+            {activeStep === 0 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">First Name</Label>
+                    <Input 
+                      value={formData.firstName}
+                      onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                      className="h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Last Name</Label>
+                    <Input 
+                      value={formData.lastName}
+                      onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                      className="h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Current / Desired Role</Label>
+                  <Input 
                     placeholder="e.g. Senior Frontend Engineer"
+                    value={formData.role}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                    className="h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
                   />
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                  <TextField
-                    select
-                    fullWidth
-                    label="County / Location"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleChange}
-                    slotProps={{
-                      select: {
-                        MenuProps: {
-                          slotProps: {
-                            paper: {
-                              sx: {
-                                maxHeight: 300,
-                                overflow: 'auto'
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }}
-                  >
-                    {KENYA_COUNTIES.map((county) => (
-                      <MenuItem key={county} value={county}>
-                        {county}
-                      </MenuItem>
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Location (Kenya)</Label>
+                  <Select value={formData.city} onValueChange={(v) => setFormData({ ...formData, city: v })}>
+                    <SelectTrigger className="h-14 rounded-2xl border-slate-200 font-black">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl max-h-[300px]">
+                      {KENYA_COUNTIES.map(c => <SelectItem key={c} value={c} className="font-bold">{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+
+            {activeStep === 1 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="space-y-4">
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Your Arsenal (Skills)</Label>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {formData.skills.map(skill => (
+                      <Badge key={skill} className="h-10 px-4 rounded-xl bg-primary text-white font-black text-sm flex items-center gap-2 group">
+                        {skill}
+                        <button onClick={() => removeSkill(skill)}><X className="h-4 w-4" /></button>
+                      </Badge>
                     ))}
-                  </TextField>
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={4}
-                    label="Short Bio"
-                    name="bio"
+                    {formData.skills.length === 0 && <p className="text-slate-400 font-medium italic py-2">Select skills from below or type to add...</p>}
+                  </div>
+                  
+                  <div className="space-y-2">
+                     <Input 
+                        placeholder="Type a skill and press enter..." 
+                        className="h-12 rounded-xl"
+                        onKeyDown={(e) => {
+                           if (e.key === 'Enter') {
+                              const val = (e.target as HTMLInputElement).value.trim();
+                              if (val) {
+                                 addSkill(val);
+                                 (e.target as HTMLInputElement).value = '';
+                              }
+                           }
+                        }}
+                     />
+                     <div className="flex flex-wrap gap-2 pt-4">
+                        {skillsOptions.map(skill => (
+                           <button
+                              key={skill}
+                              type="button"
+                              onClick={() => addSkill(skill)}
+                              className={cn(
+                                 "px-4 py-2 rounded-xl border font-bold text-xs transition-all",
+                                 formData.skills.includes(skill) ? "bg-slate-100 text-slate-400 border-slate-100" : "bg-white text-slate-600 border-slate-200 hover:border-primary hover:text-primary"
+                              )}
+                           >
+                              {skill}
+                           </button>
+                        ))}
+                     </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-6">
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Work Availability</Label>
+                  <Select value={formData.availability} onValueChange={(v) => setFormData({ ...formData, availability: v })}>
+                    <SelectTrigger className="h-14 rounded-2xl border-slate-200 font-black">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      <SelectItem value="AVAILABLE" className="font-bold">Available Now</SelectItem>
+                      <SelectItem value="OPEN_TO_OFFERS" className="font-bold">Open to Offers</SelectItem>
+                      <SelectItem value="BUSY" className="font-bold">Currently Busy</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+
+            {activeStep === 2 && (
+              <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="space-y-2">
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Years of Experience</Label>
+                  <Select value={formData.yearsOfExperience} onValueChange={(v) => setFormData({ ...formData, yearsOfExperience: v })}>
+                    <SelectTrigger className="h-14 rounded-2xl border-slate-200 font-black">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {experienceLevels.map(l => <SelectItem key={l.value} value={l.value} className="font-bold">{l.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Professional Summary</Label>
+                  <Textarea 
+                    placeholder="Highlight your best work, achievements, and what you're looking for..."
+                    className="min-h-[150px] rounded-2xl border-slate-200 font-medium text-base focus-visible:ring-primary/20"
                     value={formData.bio}
-                    onChange={handleChange}
-                    placeholder="A brief description of your professional background..."
+                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                   />
-                </Grid>
-              </Grid>
-            </Fade>
-          )}
+                </div>
 
-          {activeStep === 1 && (
-            <Fade in={activeStep === 1}>
-              <Grid container spacing={3}>
-                <Grid size={{ xs: 12 }}>
-                  <Autocomplete
-                    multiple
-                    options={skillsOptions}
-                    value={formData.skills}
-                    onChange={(_, newValue) => setFormData({ ...formData, skills: newValue })}
-                    renderInput={(params) => (
-                      <TextField {...params} variant="outlined" label="Skills" placeholder="Add skills" />
-                    )}
+                <div className="flex items-start space-x-3 pt-4">
+                  <Checkbox 
+                     id="terms" 
+                     checked={agreedToTerms} 
+                     onCheckedChange={(v) => setAgreedToTerms(v as boolean)} 
+                     className="mt-1"
                   />
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                  <TextField
-                    select
-                    fullWidth
-                    label="Work Availability"
-                    name="availability"
-                    value={formData.availability}
-                    onChange={handleChange}
-                    slotProps={{
-                      select: {
-                        MenuProps: {
-                          slotProps: {
-                            paper: {
-                              sx: {
-                                maxHeight: 300,
-                                overflow: 'auto'
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }}
-                  >
-                    <MenuItem value="Available">Available</MenuItem>
-                    <MenuItem value="Open to Offers">Open to Offers</MenuItem>
-                    <MenuItem value="Busy">Busy</MenuItem>
-                  </TextField>
-                </Grid>
-              </Grid>
-            </Fade>
-          )}
+                  <div className="grid gap-1.5 leading-none">
+                    <Label htmlFor="terms" className="text-sm font-bold text-slate-700 leading-relaxed cursor-pointer">
+                      I agree to the <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link> and <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>.
+                    </Label>
+                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Required to finalize account</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
 
-          {activeStep === 2 && (
-            <Fade in={activeStep === 2}>
-              <Grid container spacing={3}>
-                <Grid size={{ xs: 12 }}>
-                  <TextField
-                    select
-                    fullWidth
-                    label="Years of Experience"
-                    name="yearsOfExperience"
-                    value={formData.yearsOfExperience}
-                    onChange={handleChange}
-                    slotProps={{
-                      select: {
-                        MenuProps: {
-                          slotProps: {
-                            paper: {
-                              sx: {
-                                maxHeight: 300,
-                                overflow: 'auto'
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }}
-                  >
-                    {experienceLevels.map((option) => (
-                      <MenuItem key={option.value} value={option.value}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={6}
-                    label="Professional Summary"
-                    name="summary"
-                    value={formData.summary}
-                    onChange={handleChange}
-                    placeholder="Describe your career highlights and expertise..."
-                  />
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                  <FormControlLabel
-                    sx={{ alignItems: 'flex-start', mt: 1 }}
-                    control={
-                      <Checkbox 
-                        size="small"
-                        checked={agreedToTerms} 
-                        onChange={(e) => setAgreedToTerms(e.target.checked)}
-                        color="primary"
-                        required
-                        sx={{ pt: 0.5 }}
-                      />
-                    }
-                    label={
-                      <Typography variant="body2" color="text.secondary" sx={{ pt: 0.5 }}>
-                        I agree to the <Link href="/terms" style={{ color: 'inherit', fontWeight: 700 }}>Terms of Service</Link> and <Link href="/privacy" style={{ color: 'inherit', fontWeight: 700 }}>Privacy Policy</Link>.
-                      </Typography>
-                    }
-                  />
-                </Grid>
-              </Grid>
-            </Fade>
-          )}
-
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
-            <Button
-              disabled={activeStep === 0}
+          <CardFooter className="bg-slate-50 p-8 flex justify-between gap-4">
+            <Button 
+              variant="ghost" 
+              size="lg" 
+              className="rounded-2xl font-black h-14 px-8"
               onClick={handleBack}
-              sx={{ fontWeight: 700 }}
+              disabled={activeStep === 0 || loading}
             >
-              Back
+              <ChevronLeft className="mr-2 h-5 w-5" /> Back
             </Button>
-            <Button
-              variant="contained"
-              type="submit"
-              sx={{ px: 4, py: 1.5, borderRadius: 2, fontWeight: 700, boxShadow: 0 }}
-              disabled={loading || (activeStep === steps.length - 1 && !agreedToTerms)}
-            >
-              {loading ? 'Processing...' : activeStep === steps.length - 1 ? 'Finish Profile' : 'Continue'}
-            </Button>
-          </Box>
-        </Box>
-      </Paper>
-    </Container>
+
+            {activeStep === steps.length - 1 ? (
+              <Button 
+                size="lg" 
+                className="rounded-2xl font-black h-14 px-10 shadow-xl shadow-primary/20 transition-all active:scale-95"
+                onClick={handleNext}
+                disabled={loading || !agreedToTerms}
+              >
+                {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <ShieldCheck className="mr-2 h-5 w-5" />}
+                {loading ? 'Finalizing...' : 'Launch Profile'}
+              </Button>
+            ) : (
+              <Button 
+                size="lg" 
+                className="rounded-2xl font-black h-14 px-10 shadow-xl shadow-primary/20"
+                onClick={handleNext}
+              >
+                Continue <ChevronRight className="ml-2 h-5 w-5" />
+              </Button>
+            )}
+          </CardFooter>
+        </Card>
+      </div>
+    </div>
   );
 }

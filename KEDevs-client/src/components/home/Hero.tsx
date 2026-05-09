@@ -1,18 +1,11 @@
-// src/components/home/Hero.tsx
 'use client';
-
 import React from 'react';
-import Box from '@mui/material/Box';
-import Container from '@mui/material/Container';
-import Grid from '@mui/material/Grid';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import Stack from '@mui/material/Stack';
-import { PillBadge } from '@/components/shared/PillBadge';
 import Link from 'next/link';
-import { Card, Avatar, Chip } from '@mui/material';
-import VerifiedIcon from '@mui/icons-material/Verified';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import { Briefcase, Users, Star, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { JobSummary, DeveloperSummary } from '@/lib/types';
 
 interface HeroProps {
@@ -22,142 +15,115 @@ interface HeroProps {
 
 export const Hero = ({ randomJob, randomDev }: HeroProps) => {
   return (
-    <Box
-      sx={{
-        position: 'relative',
-        overflow: 'hidden',
-        bgcolor: 'background.paper',
-        py: { xs: 10, lg: 16 },
-      }}
-    >
-      {/* Background blobs */}
-      <Box
-        sx={{
-          position: 'absolute',
-          inset: 0,
-          pointerEvents: 'none',
-          '& > div': {
-            position: 'absolute',
-            borderRadius: '50%',
-            filter: 'blur(100px)',
-            opacity: 0.1,
-          },
-        }}
-      >
-        <Box sx={{ top: -160, right: -160, width: 600, height: 600, bgcolor: 'primary.main' }} />
-        <Box sx={{ bottom: -80, left: -80, width: 400, height: 400, bgcolor: 'secondary.main' }} />
-      </Box>
+    <section className="relative overflow-hidden bg-background py-12 md:py-24 lg:py-32">
+      {/* Decorative background elements */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-primary/5 blur-[100px]" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] rounded-full bg-violet-500/5 blur-[100px]" />
+      </div>
 
-      <Container maxWidth="xl">
-        <Grid container spacing={8} sx={{ alignItems: 'center', position: 'relative' }}>
+      <div className="container mx-auto px-6 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
-          <Grid size={{ xs: 12, lg: 6 }}>
-            <PillBadge variant="mint">🇰🇪 Kenya's Developer Community</PillBadge>
-            <Typography variant="h1" component="h1" sx={{ mt: 3, mb: 3 }}>
-              Find Kenyan tech{' '}
-              <Box component="span" sx={{ color: 'primary.main' }}>talent</Box>{' '}
-              and{' '}
-              <Box component="span" sx={{ color: 'primary.main' }}>opportunity</Box>
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 560, mb: 5 }}>
+          <div className="max-w-2xl">
+            <Badge variant="secondary" className="mb-6 px-3 py-1 text-xs font-semibold tracking-wider uppercase bg-secondary/50 text-secondary-foreground border-none">
+              🇰🇪 Kenya's Tech Talent Hub
+            </Badge>
+            <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-tight mb-6">
+              Find Kenyan tech <span className="text-primary">talent</span> and <span className="text-primary">opportunity</span>.
+            </h1>
+            <p className="text-lg text-muted-foreground mb-10 leading-relaxed">
               Browse jobs from top companies, showcase your skills to employers, and connect with
-              Kenya's best developers. No account needed to explore.
-            </Typography>
-            <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap' }}>
-              <Button 
-                variant="contained" 
-                color="primary" 
-                size="large" 
-                component={Link} 
-                href="/jobs"
-              >
-                Browse Jobs →
+              Kenya's best developers. A clean, modern platform for the tech community.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 mb-12">
+              <Button size="lg" className="h-12 px-8 font-semibold" asChild>
+                <Link href="/jobs">Browse Jobs <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
-              <Button 
-                variant="outlined" 
-                color="secondary"
-                size="large" 
-                component={Link} 
-                href="/register"
-              >
-                Join as Developer
+              <Button variant="outline" size="lg" className="h-12 px-8 font-semibold" asChild>
+                <Link href="/register">Join the Community</Link>
               </Button>
-            </Stack>
+            </div>
             
-            {/* Trust stats */}
-            <Box sx={{ display: 'flex', gap: 6, mt: 8, pt: 4, borderTop: 1, borderColor: 'divider' }}>
+            {/* Stats */}
+            <div className="flex gap-10 pt-10 border-t border-border">
               {[
-                { n: '2.5k+', label: 'Developers' },
-                { n: '150+', label: 'Companies' },
-                { n: '800+', label: 'Jobs Posted' },
-              ].map((s) => (
-                <Box key={s.label}>
-                  <Typography variant="h4">{s.n}</Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>{s.label}</Typography>
-                </Box>
+                { label: 'Developers', value: '2.5k+' },
+                { label: 'Companies', value: '150+' },
+                { label: 'Jobs Posted', value: '800+' },
+              ].map((stat) => (
+                <div key={stat.label}>
+                  <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mt-1">{stat.label}</p>
+                </div>
               ))}
-            </Box>
-          </Grid>
+            </div>
+          </div>
 
-          {/* Right Floating Visuals */}
-          <Grid size={{ xs: 12, lg: 6 }} sx={{ display: { xs: 'none', lg: 'block' }, position: 'relative', height: 550 }}>
-            {/* Developer Card */}
+          {/* Right Visuals */}
+          <div className="hidden lg:block relative h-[500px]">
+            {/* Developer Card Card */}
             {randomDev && (
-              <Card sx={{ 
-                position: 'absolute', top: 20, right: 40, width: 320, p: 3, zIndex: 3,
-                boxShadow: '0 20px 50px rgba(0,0,0,0.1)', border: 'none'
-              }}>
-                <Stack direction="row" spacing={2} sx={{ alignItems: 'center', mb: 2 }}>
-                  <Avatar sx={{ width: 56, height: 56, bgcolor: 'primary.main' }}>
-                    {randomDev.firstName.charAt(0)}{randomDev.lastName.charAt(0)}
-                  </Avatar>
-                  <Box>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>{randomDev.firstName} {randomDev.lastName}</Typography>
-                    <Typography variant="caption" color="text.secondary">{randomDev.currentLastRole}</Typography>
-                  </Box>
-                  {randomDev.isVerified && <VerifiedIcon color="primary" sx={{ ml: 'auto' }} />}
-                </Stack>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 3 }}>
-                  {randomDev.skills.slice(0, 3).map(s => <Chip key={s} label={s} size="small" />)}
-                </Box>
-                <Button 
-                  variant="outlined" 
-                  size="small" 
-                  fullWidth 
-                  component={Link} 
-                  href={`/developers/${randomDev.id}`}
-                  endIcon={<ArrowForwardIcon />}
-                  sx={{ borderRadius: 1.5, fontWeight: 700 }}
-                >
-                  View Profile
-                </Button>
+              <Card className="absolute top-0 right-0 w-[320px] shadow-2xl shadow-primary/5 border-border/50 backdrop-blur-sm z-20 hover:translate-y-[-4px] transition-transform duration-300">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4 mb-4">
+                    <Avatar className="h-14 w-14 border-2 border-primary/20">
+                      <AvatarImage src={randomDev.profilePhoto} />
+                      <AvatarFallback className="bg-primary text-primary-foreground font-bold">
+                        {randomDev.firstName.charAt(0)}{randomDev.lastName.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 overflow-hidden">
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="font-bold text-foreground truncate">{randomDev.firstName} {randomDev.lastName}</h3>
+                        {randomDev.isVerified && <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />}
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">{randomDev.currentLastRole}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 mb-6">
+                    {randomDev.skills.slice(0, 3).map(skill => (
+                      <Badge key={skill} variant="secondary" className="text-[10px] py-0 px-2 font-medium">
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                  <Button variant="outline" size="sm" className="w-full font-semibold group" asChild>
+                    <Link href={`/developers/${randomDev.id}`}>
+                      View Profile <ArrowRight className="ml-2 h-3 w-3 group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                  </Button>
+                </CardContent>
               </Card>
             )}
 
-            {/* Job Card */}
+            {/* Job Card Card */}
             {randomJob && (
-              <Card sx={{ 
-                position: 'absolute', bottom: 60, left: 0, width: 340, p: 3, zIndex: 2,
-                boxShadow: '0 20px 50px rgba(0,0,0,0.1)', border: 'none'
-              }}>
-                <Typography variant="caption" color="primary" sx={{ fontWeight: 800, mb: 1, display: 'block' }}>NEW OPPORTUNITY</Typography>
-                <Typography variant="h6" sx={{ fontWeight: 800 }} gutterBottom>{randomJob.title}</Typography>
-                <Typography variant="body2" color="text.secondary" gutterBottom>{randomJob.companyName} • {randomJob.locationCity}</Typography>
-                <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'primary.main' }}>Open Position</Typography>
-                  <Button component={Link} href={`/jobs/${randomJob.id}`} size="small" variant="contained" sx={{ borderRadius: 1.5 }}>View</Button>
-                </Stack>
+              <Card className="absolute bottom-10 left-0 w-[340px] shadow-2xl shadow-primary/5 border-border/50 backdrop-blur-sm z-10 hover:translate-y-[-4px] transition-transform duration-300">
+                <CardContent className="p-6">
+                  <Badge variant="outline" className="mb-3 text-primary border-primary/20 bg-primary/5 text-[10px] font-bold tracking-widest uppercase">
+                    New Opportunity
+                  </Badge>
+                  <h3 className="text-lg font-bold text-foreground mb-1">{randomJob.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    {randomJob.companyName} • {randomJob.locationCity}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-primary">Open Position</span>
+                    <Button size="sm" className="h-8 px-4 font-bold" asChild>
+                      <Link href={`/jobs/${randomJob.id}`}>View</Link>
+                    </Button>
+                  </div>
+                </CardContent>
               </Card>
             )}
 
-            {/* Accent Circle */}
-            <Box sx={{ 
-              position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-              width: 400, height: 400, borderRadius: '50%', border: '2px dashed', borderColor: 'divider', zIndex: 1
-            }} />
-          </Grid>
-        </Grid>
-      </Container>
-    </Box>
+            {/* Decorative circle */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 border border-dashed border-border rounded-full -z-10" />
+          </div>
+        </div>
+      </div>
+    </section>
   );
 };
+
