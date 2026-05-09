@@ -98,6 +98,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     : [
         { label: 'Browse Developers', href: '/developers', icon: <PeopleIcon /> },
         { label: 'Companies', href: '/companies', icon: <BusinessIcon /> },
+        { label: 'Jobs', href: '/jobs', icon: <WorkIcon /> },
         { label: 'My Job Posts', href: '/jobs/my-posts', icon: <AssignmentIcon /> },
         { label: 'Received Applications', href: '/jobs/my-applications', icon: <DescriptionIcon /> },
         { label: 'Spotlight', href: '/spotlight', icon: <StarIcon /> },

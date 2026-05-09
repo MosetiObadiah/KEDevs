@@ -22,9 +22,11 @@ import SearchIcon from '@mui/icons-material/Search';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import BusinessIcon from '@mui/icons-material/Business';
 import { companyService } from '@/services/companyService';
+import { INDUSTRIES } from '@/lib/constants';
 
 export default function CompaniesPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [industryFilter, setIndustryFilter] = useState('All');
   const [companies, setCompanies] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -46,10 +48,14 @@ export default function CompaniesPage() {
     fetchCompanies();
   }, []);
 
-  const filteredCompanies = companies.filter(company => 
-    company.companyName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (company.industry && company.industry.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredCompanies = companies.filter(company => {
+    const matchesSearch = company.companyName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      (company.industry && company.industry.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesIndustry = industryFilter === 'All' || company.industry === industryFilter;
+    
+    return matchesSearch && matchesIndustry;
+  });
 
   return (
     <Container maxWidth="lg" sx={{ py: 6 }}>
@@ -82,11 +88,15 @@ export default function CompaniesPage() {
               select
               fullWidth
               label="Industry"
-              defaultValue="All"
+              value={industryFilter}
+              onChange={(e) => setIndustryFilter(e.target.value)}
             >
               <MenuItem value="All">All Industries</MenuItem>
-              <MenuItem value="Software">Software</MenuItem>
-              <MenuItem value="Fintech">Fintech</MenuItem>
+              {INDUSTRIES.map(industry => (
+                <MenuItem key={industry} value={industry}>
+                  {industry}
+                </MenuItem>
+              ))}
             </TextField>
           </Grid>
         </Grid>

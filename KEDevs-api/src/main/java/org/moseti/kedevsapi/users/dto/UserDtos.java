@@ -118,7 +118,8 @@ public class UserDtos {
             @Schema(description = "Brief company background", example = "Leading provider of cloud solutions.") String companyBio,
             @Schema(description = "URL to company logo", example = "https://techsolutions.com/logo.png") String logoUrl,
             @Schema(description = "LinkedIn company page URL", example = "https://linkedin.com/company/techsolutions") String linkedinUrl,
-            @Schema(description = "X/Twitter handle or URL", example = "@techsolutions") String twitterUrl
+            @Schema(description = "X/Twitter handle or URL", example = "@techsolutions") String twitterUrl,
+            @Schema(description = "Direct contact email", example = "hiring@techsolutions.com") String contactEmail
     ) {}
 
     public record UpdateEmployerProfileRequest(
@@ -131,7 +132,8 @@ public class UserDtos {
             @Schema(description = "Brief company background", example = "Updated company bio.") String companyBio,
             @Schema(description = "URL to company logo", example = "https://techsolutions.com/logo.png") String logoUrl,
             @Schema(description = "LinkedIn company page URL", example = "https://linkedin.com/company/techsolutions") String linkedinUrl,
-            @Schema(description = "X/Twitter handle or URL", example = "@techsolutions") String twitterUrl
+            @Schema(description = "X/Twitter handle or URL", example = "@techsolutions") String twitterUrl,
+            @Schema(description = "Contact email address", example = "contact@company.com") String contactEmail
     ) {}
 
     public record SaveSearchRequest(
@@ -221,6 +223,7 @@ public class UserDtos {
             String linkedinUrl,
             String twitterUrl,
             boolean isApproved,
+            boolean isVerified,
             boolean isProAccount,
             java.time.LocalDateTime createdAt
     ) {}

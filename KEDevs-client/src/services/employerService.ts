@@ -14,6 +14,12 @@ export const employerService = {
     return apiClient.put<ApiResponse<any>>('/api/v1/employers/profile', data);
   },
 
+  async uploadLogo(file: File): Promise<ApiResponse<any>> {
+    const formData = new FormData();
+    formData.append('image', file);
+    return apiClient.post<ApiResponse<any>>('/api/v1/employers/profile/logo', formData);
+  },
+
   async getSavedSearches(): Promise<ApiResponse<any>> {
     return apiClient.get<ApiResponse<any>>('/api/v1/employers/searches');
   },

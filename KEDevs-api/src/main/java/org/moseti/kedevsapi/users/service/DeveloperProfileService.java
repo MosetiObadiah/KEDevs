@@ -73,12 +73,14 @@ public class DeveloperProfileService {
         return toFullResponse(profile);
     }
 
+    @Transactional(readOnly = true)
     public UserDtos.DeveloperProfileResponse getProfileByUserId(UUID userId) {
         DeveloperProfile profile = profileRepository.findByUserId(userId)
                 .orElseThrow(() -> new ProfileNotFoundException("Developer profile not found"));
         return toFullResponse(profile);
     }
 
+    @Transactional(readOnly = true)
     public UserDtos.DeveloperProfileResponse getPublicProfile(UUID profileId) {
         DeveloperProfile profile = profileRepository.findById(profileId)
                 .orElseThrow(() -> new ProfileNotFoundException("Profile not found"));
@@ -480,11 +482,13 @@ public class DeveloperProfileService {
     // Public / Filtered Listings
     // ----------------------------------------------------------------
 
+    @Transactional(readOnly = true)
     public Page<UserDtos.DeveloperSummaryResponse> getPublicDevelopers(Pageable pageable) {
         return profileRepository.findByProfileVisibility(ProfileVisibility.PUBLIC, pageable)
                 .map(this::toSummaryResponse);
     }
 
+    @Transactional(readOnly = true)
     public Page<UserDtos.DeveloperSummaryResponse> filterDevelopers(UserDtos.DeveloperFilterRequest filter, Pageable pageable) {
         // For the initial implementation, filter by availability + public visibility
         // Advanced multi-field filtering can be added via Specification/Criteria API

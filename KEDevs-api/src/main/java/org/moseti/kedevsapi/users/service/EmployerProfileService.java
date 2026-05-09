@@ -16,7 +16,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.moseti.kedevsapi.notifications.service.NotificationService;
+import org.moseti.kedevsapi.shared.service.FileUploadService;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,6 +37,7 @@ public class EmployerProfileService {
     private final NotificationService notificationService;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
+    private final FileUploadService fileUploadService;
 
 
     // ----------------------------------------------------------------
@@ -56,6 +59,7 @@ public class EmployerProfileService {
         return toResponse(profile);
     }
 
+    @Transactional(readOnly = true)
     public UserDtos.EmployerProfileResponse getProfileByUserId(UUID userId) {
         EmployerProfile profile = getProfileEntityByUserId(userId);
         return toResponse(profile);
@@ -262,6 +266,7 @@ public class EmployerProfileService {
         profile.setLogoUrl(request.logoUrl());
         profile.setLinkedinUrl(request.linkedinUrl());
         profile.setTwitterUrl(request.twitterUrl());
+        profile.setContactEmail(request.contactEmail());
     }
 
     private void applyUpdateFields(EmployerProfile profile, UserDtos.UpdateEmployerProfileRequest request) {
@@ -275,13 +280,26 @@ public class EmployerProfileService {
         if (request.logoUrl() != null) profile.setLogoUrl(request.logoUrl());
         if (request.linkedinUrl() != null) profile.setLinkedinUrl(request.linkedinUrl());
         if (request.twitterUrl() != null) profile.setTwitterUrl(request.twitterUrl());
+        if (request.contactEmail() != null) profile.setContactEmail(request.contactEmail());
     }
 
+    @Transactional
+    public UserDtos.EmployerProfileResponse uploadLogo(UUID userId, MultipartFile image) {
+        EmployerProfile profile = getProfileEntityByUserId(userId);
+        String url = fileUploadService.uploadFile(image, "kedevs/employers");
+        profile.setLogoUrl(url);
+        profile = employerProfileRepository.save(profile);
+        log.info("Employer logo updated for userId={}", userId);
+        return toResponse(profile);
+    }
+
+    @Transactional(readOnly = true)
     public Page<UserDtos.EmployerProfileResponse> getPublicProfiles(Pageable pageable) {
         return employerProfileRepository.findByIsApprovedTrue(pageable)
                 .map(this::toResponse);
     }
 
+    @Transactional(readOnly = true)
     public UserDtos.EmployerProfileResponse getPublicProfileById(UUID id) {
         EmployerProfile profile = employerProfileRepository.findById(id)
                 .orElseThrow(() -> new ProfileNotFoundException("Employer profile not found"));
@@ -296,13 +314,14 @@ public class EmployerProfileService {
 
         return new UserDtos.EmployerProfileResponse(
                 profile.getId(), profile.getUserId(),
-                profile.getContactPersonName(), email,
+                profile.getContactPersonName(), 
+                profile.getContactEmail() != null ? profile.getContactEmail() : email,
                 profile.getCompanyName(),
                 profile.getCompanyWebsite(), profile.getIndustry(),
                 profile.getCompanySize(), profile.getLocationHQ(),
                 profile.getCompanyBio(), profile.getLogoUrl(),
                 profile.getLinkedinUrl(), profile.getTwitterUrl(),
-                profile.isApproved(), profile.isProAccount(),
+                profile.isApproved(), profile.isVerified(), profile.isProAccount(),
                 profile.getCreatedAt()
         );
     }

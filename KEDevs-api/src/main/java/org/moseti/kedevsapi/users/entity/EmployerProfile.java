@@ -24,6 +24,8 @@ public class EmployerProfile extends BaseEntity {
     @Column(nullable = false)
     private String contactPersonName;
 
+    private String contactEmail;
+
     @Column(nullable = false)
     private String companyName;
 

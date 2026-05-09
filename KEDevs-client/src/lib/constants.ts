@@ -8,3 +8,24 @@ export const KENYA_COUNTIES = [
   'Narok', 'Nyamira', 'Nyandarua', 'Nyeri', 'Samburu', 'Siaya', 'Taita Taveta', 'Tana River',
   'Tharaka-Nithi', 'Trans Nzoia', 'Turkana', 'Uasin Gishu', 'Vihiga', 'Wajir', 'West Pokot'
 ].sort();
+
+export const INDUSTRIES = [
+  'Software Development',
+  'Fintech',
+  'E-commerce',
+  'Healthtech',
+  'Agritech',
+  'Edtech',
+  'Cybersecurity',
+  'Blockchain',
+  'AI & Machine Learning',
+  'Cloud Computing',
+  'Data Analytics',
+  'IoT',
+  'Gaming',
+  'Telecommunications',
+  'Media & Entertainment',
+  'Logistics & Supply Chain',
+  'Consulting',
+  'Other'
+].sort();

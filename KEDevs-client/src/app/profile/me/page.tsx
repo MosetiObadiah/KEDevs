@@ -63,10 +63,15 @@ import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import BusinessIcon from '@mui/icons-material/Business';
+import PeopleIcon from '@mui/icons-material/People';
+import XIcon from '@mui/icons-material/X';
+import TwitterIcon from '@mui/icons-material/Twitter';
 
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PillBadge } from '@/components/shared/PillBadge';
+import { KENYA_COUNTIES, INDUSTRIES } from '@/lib/constants';
 import { developerService } from '@/services/developerService';
 import { employerService } from '@/services/employerService';
 import { spotlightService } from '@/services/spotlightService';
@@ -162,6 +167,16 @@ export default function MyProfile() {
     achievements: [],
     projects: [],
     isVerified: false,
+    contactPersonName: '',
+    contactEmail: '',
+    companyName: '',
+    companyWebsite: '',
+    industry: '',
+    companySize: 'TEN_TO_FIFTY',
+    locationHQ: '',
+    companyBio: '',
+    logoUrl: '',
+    twitterUrl: '',
   });
 
   const [spotlightStatus, setSpotlightStatus] = useState<any>(null);
@@ -238,6 +253,7 @@ export default function MyProfile() {
             logoUrl: profile.logoUrl,
             linkedinUrl: profile.linkedinUrl,
             twitterUrl: profile.twitterUrl,
+            contactEmail: profile.contactEmail,
           }
         : {
             firstName: profile.firstName,
@@ -456,6 +472,301 @@ export default function MyProfile() {
     );
   }
 
+  if (user?.role === 'EMPLOYER') {
+    return (
+      <Box sx={{ 
+        bgcolor: 'background.subtle', 
+        minHeight: '100vh', 
+        py: { xs: 4, md: 8 },
+        backgroundImage: 'radial-gradient(circle at 0% 0%, rgba(16, 185, 129, 0.05) 0%, transparent 50%), radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.05) 0%, transparent 50%)'
+      }}>
+        <Container maxWidth="xl">
+          {isRefreshing && (
+            <Box sx={{ position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 2000 }}>
+              <Paper sx={{ px: 3, py: 1, borderRadius: 10, display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'primary.main', color: 'white', boxShadow: 6 }}>
+                <CircularProgress size={16} color="inherit" />
+                <Typography variant="body2" sx={{ fontWeight: 800 }}>Updating profile...</Typography>
+              </Paper>
+            </Box>
+          )}
+
+          <Fade in timeout={800}>
+            <Box sx={{ mb: 6 }}>
+              {!isEditing && (!profile.companyName || !profile.industry || !profile.locationHQ || !profile.companyBio) && (
+                <Alert severity="warning" sx={{ mb: 3, borderRadius: 3, fontWeight: 600 }} action={<Button color="inherit" size="small" sx={{ fontWeight: 800 }} onClick={() => setIsEditing(true)}>Complete Profile</Button>}>
+                  Your company profile is incomplete. Click <strong>Complete Profile</strong> to add your company name, bio, and more.
+                </Alert>
+              )}
+              <Grid container spacing={4} sx={{ alignItems: 'center' }}>
+                <Grid size={{ xs: 12, md: 8 }}>
+                  <Box sx={{ display: 'flex', alignItems: { xs: 'center', md: 'flex-start' }, flexDirection: { xs: 'column', md: 'row' }, gap: 4, textAlign: { xs: 'center', md: 'left' } }}>
+                    <Box sx={{ position: 'relative' }}>
+                      <Avatar
+                        src={profile.logoUrl}
+                        sx={{
+                          width: { xs: 120, md: 160 },
+                          height: { xs: 120, md: 160 },
+                          bgcolor: 'background.paper',
+                          border: '6px solid white',
+                          boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+                          borderRadius: 4
+                        }}
+                      >
+                        <BusinessIcon sx={{ fontSize: '4rem', color: 'divider' }} />
+                      </Avatar>
+                      {profile.isVerified && (
+                        <Box sx={{ position: 'absolute', top: -10, right: -10, bgcolor: 'white', borderRadius: '50%', p: 0.5, boxShadow: 2, zIndex: 2 }}>
+                          <VerifiedIcon color="primary" sx={{ fontSize: 32 }} />
+                        </Box>
+                      )}
+                      <IconButton
+                        component="label"
+                        sx={{
+                          position: 'absolute',
+                          bottom: -10,
+                          right: -10,
+                          bgcolor: 'white',
+                          boxShadow: 3,
+                          '&:hover': { bgcolor: 'background.paper' },
+                          width: 44,
+                          height: 44,
+                          zIndex: 2
+                        }}
+                      >
+                        <input
+                          type="file"
+                          accept="image/*"
+                          hidden
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = () => {
+                                setCropImageSrc(reader.result as string);
+                                setCrop({ x: 0, y: 0 });
+                                setZoom(1);
+                                setCropDialogOpen(true);
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                        <PhotoCameraIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                    <Box sx={{ pt: { md: 2 }, flexGrow: 1 }}>
+                      {isEditing ? (
+                         <Stack spacing={2} sx={{ width: '100%' }}>
+                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                              <TextField size="small" label="Company Name" value={profile.companyName || ''} onChange={(e) => setProfile({ ...profile, companyName: e.target.value })} fullWidth />
+                              <TextField 
+                                size="small" 
+                                select 
+                                label="Industry" 
+                                value={profile.industry || ''} 
+                                onChange={(e) => setProfile({ ...profile, industry: e.target.value })} 
+                                fullWidth
+                              >
+                                {INDUSTRIES.map((option) => (
+                                  <MenuItem key={option} value={option}>
+                                    {option}
+                                  </MenuItem>
+                                ))}
+                              </TextField>
+                            </Stack>
+                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                              <TextField 
+                                size="small" 
+                                select
+                                label="Headquarters County" 
+                                value={profile.locationHQ ? profile.locationHQ.split(',')[0] : ''} 
+                                onChange={(e) => setProfile({ ...profile, locationHQ: e.target.value ? `${e.target.value}, Kenya` : '' })} 
+                                fullWidth
+                              >
+                                <MenuItem value="" disabled>Select county...</MenuItem>
+                                {KENYA_COUNTIES.map((county) => (
+                                  <MenuItem key={county} value={county}>
+                                    {county}
+                                  </MenuItem>
+                                ))}
+                              </TextField>
+                              <FormControl fullWidth size="small">
+                                <InputLabel>Company Size</InputLabel>
+                                <Select
+                                  value={profile.companySize || 'TEN_TO_FIFTY'}
+                                  label="Company Size"
+                                  onChange={(e) => setProfile({ ...profile, companySize: e.target.value })}
+                                >
+                                  <MenuItem value="ONE_TO_TEN">1-10 employees</MenuItem>
+                                  <MenuItem value="TEN_TO_FIFTY">11-50 employees</MenuItem>
+                                  <MenuItem value="FIFTY_TO_TWO_HUNDRED">51-200 employees</MenuItem>
+                                  <MenuItem value="TWO_HUNDRED_PLUS">200+ employees</MenuItem>
+                                </Select>
+                              </FormControl>
+                            </Stack>
+                         </Stack>
+                      ) : (
+                        <>
+                          <Stack direction="row" spacing={1} sx={{ mb: 1.5, flexWrap: 'wrap', justifyContent: { xs: 'center', md: 'flex-start' } }}>
+                            {profile.isApproved && <PillBadge variant="mint">APPROVED EMPLOYER</PillBadge>}
+                            {profile.isVerified && <PillBadge variant="mint">VERIFIED</PillBadge>}
+                            {profile.industry && <PillBadge variant="neutral">{profile.industry}</PillBadge>}
+                          </Stack>
+                          <Typography variant="h2" sx={{ fontWeight: 900, letterSpacing: '-0.02em', mb: 1, color: profile.companyName ? 'text.primary' : 'text.disabled', fontStyle: profile.companyName ? 'normal' : 'italic' }}>
+                            {profile.companyName || 'Company name not set'}
+                          </Typography>
+                          <Stack direction="row" spacing={3} sx={{ flexWrap: 'wrap', justifyContent: { xs: 'center', md: 'flex-start' }, color: 'text.secondary' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <LocationOnIcon fontSize="small" />
+                              <Typography sx={{ fontWeight: 700, color: profile.locationHQ ? 'text.secondary' : 'text.disabled' }}>
+                                {profile.locationHQ || '— Not set'}
+                              </Typography>
+                            </Box>
+                            {profile.companySize && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <PeopleIcon fontSize="small" />
+                                <Typography sx={{ fontWeight: 700 }}>{profile.companySize.replace(/_/g, ' ')} Employees</Typography>
+                              </Box>
+                            )}
+                          </Stack>
+                        </>
+                      )}
+                    </Box>
+                  </Box>
+                </Grid>
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <Stack direction="row" spacing={2} sx={{ justifyContent: { xs: 'center', md: 'flex-end' } }}>
+                    <Button
+                      variant={isEditing ? "contained" : "outlined"}
+                      startIcon={isEditing ? <SaveIcon /> : <EditIcon />}
+                      onClick={() => isEditing ? handleUpdateBasicInfo() : setIsEditing(true)}
+                      disabled={isSaving}
+                      sx={{ borderRadius: 3, fontWeight: 800, px: 4, py: 1.5 }}
+                    >
+                      {isSaving ? 'Saving...' : (isEditing ? 'Save Changes' : 'Manage Profile')}
+                    </Button>
+                  </Stack>
+                </Grid>
+              </Grid>
+            </Box>
+          </Fade>
+
+          <Grid container spacing={4}>
+            <Grid size={{ xs: 12, lg: 8 }}>
+              <Stack spacing={4}>
+                <Paper sx={{ p: 5, borderRadius: 6, position: 'relative', overflow: 'hidden' }}>
+                  <Box sx={{ position: 'absolute', top: 0, left: 0, width: 6, height: '100%', bgcolor: 'primary.main' }} />
+                  <Typography variant="h4" sx={{ fontWeight: 900, mb: 3 }}>Company Mission & Bio</Typography>
+                  {isEditing ? (
+                    <TextField 
+                      fullWidth 
+                      multiline 
+                      rows={6} 
+                      value={profile.companyBio || ''} 
+                      onChange={(e) => setProfile({...profile, companyBio: e.target.value})}
+                      placeholder="Describe your company culture, mission, and what you're looking for in developers..."
+                    />
+                  ) : (
+                    profile.companyBio ? (
+                      <Typography variant="body1" sx={{ fontSize: '1.15rem', lineHeight: 1.8, color: 'text.secondary', whiteSpace: 'pre-wrap' }}>
+                        {profile.companyBio}
+                      </Typography>
+                    ) : (
+                      <Box sx={{ py: 2, textAlign: 'center' }}>
+                        <Typography variant="body1" sx={{ color: 'text.disabled', fontStyle: 'italic', mb: 1 }}>
+                          No company bio yet.
+                        </Typography>
+                        <Button size="small" variant="outlined" onClick={() => setIsEditing(true)} sx={{ borderRadius: 2, fontWeight: 700 }}>Add Bio</Button>
+                      </Box>
+                    )
+                  )}
+                </Paper>
+
+                <Paper sx={{ p: 5, borderRadius: 6 }}>
+                  <Typography variant="h4" sx={{ fontWeight: 900, mb: 4 }}>Contact Details</Typography>
+                  <Grid container spacing={3}>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <Box sx={{ p: 3, borderRadius: 4, bgcolor: 'background.subtle', border: '1px solid', borderColor: 'divider' }}>
+                        <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 800, mb: 1, textTransform: 'uppercase' }}>Point of Contact</Typography>
+                        {isEditing ? (
+                          <TextField size="small" fullWidth value={profile.contactPersonName || ''} onChange={(e) => setProfile({...profile, contactPersonName: e.target.value})} />
+                        ) : (
+                          <Typography variant="h6" sx={{ fontWeight: 700 }}>{profile.contactPersonName || 'HR Manager'}</Typography>
+                        )}
+                      </Box>
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 6 }}>
+                      <Box sx={{ p: 3, borderRadius: 4, bgcolor: 'background.subtle', border: '1px solid', borderColor: 'divider' }}>
+                        <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 800, mb: 1, textTransform: 'uppercase' }}>Contact Email</Typography>
+                        {isEditing ? (
+                          <TextField size="small" fullWidth value={profile.contactEmail || ''} onChange={(e) => setProfile({...profile, contactEmail: e.target.value})} />
+                        ) : (
+                          <Typography variant="h6" sx={{ fontWeight: 700, color: profile.contactEmail ? 'text.primary' : 'text.disabled', fontStyle: profile.contactEmail ? 'normal' : 'italic' }}>
+                            {profile.contactEmail || (user?.email ? `${user.email} (account email)` : 'Not set')}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </Stack>
+            </Grid>
+
+            <Grid size={{ xs: 12, lg: 4 }}>
+              <Stack spacing={4}>
+                <Paper sx={{ p: 4, borderRadius: 6 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 900, mb: 3 }}>Online Presence</Typography>
+                  <Stack spacing={2}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+                      <LanguageIcon color="primary" />
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>WEBSITE</Typography>
+                        {isEditing ? (
+                          <TextField size="small" fullWidth value={profile.companyWebsite || ''} onChange={(e) => setProfile({...profile, companyWebsite: e.target.value})} />
+                        ) : (
+                          <Link href={profile.companyWebsite} target="_blank" sx={{ display: 'block', fontWeight: 700, color: 'text.primary', textDecoration: 'none' }}>
+                            {profile.companyWebsite?.replace(/^https?:\/\//, '') || 'Not set'}
+                          </Link>
+                        )}
+                      </Box>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+                      <LinkedInIcon sx={{ color: '#0077b5' }} />
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>LINKEDIN</Typography>
+                        {isEditing ? (
+                          <TextField size="small" fullWidth value={profile.linkedinUrl || ''} onChange={(e) => setProfile({...profile, linkedinUrl: e.target.value})} />
+                        ) : (
+                          <Link href={profile.linkedinUrl} target="_blank" sx={{ display: 'block', fontWeight: 700, color: 'text.primary', textDecoration: 'none' }}>
+                            {profile.linkedinUrl ? 'Company Profile' : 'Not set'}
+                          </Link>
+                        )}
+                      </Box>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+                      <XIcon sx={{ color: 'text.primary' }} />
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary' }}>TWITTER / X</Typography>
+                        {isEditing ? (
+                          <TextField size="small" fullWidth value={profile.twitterUrl || ''} onChange={(e) => setProfile({...profile, twitterUrl: e.target.value})} />
+                        ) : (
+                          <Link href={profile.twitterUrl} target="_blank" sx={{ display: 'block', fontWeight: 700, color: 'text.primary', textDecoration: 'none' }}>
+                            {profile.twitterUrl ? 'Follow Us' : 'Not set'}
+                          </Link>
+                        )}
+                      </Box>
+                    </Box>
+                  </Stack>
+                </Paper>
+                
+              </Stack>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ 
       bgcolor: 'background.subtle', 
@@ -567,6 +878,7 @@ export default function MyProfile() {
                             <TextField size="small" label="LinkedIn URL" value={profile.linkedinUrl || ''} onChange={(e) => setProfile({ ...profile, linkedinUrl: e.target.value })} fullWidth />
                             <TextField size="small" label="Twitter/X URL" value={profile.twitterUrl || ''} onChange={(e) => setProfile({ ...profile, twitterUrl: e.target.value })} fullWidth />
                           </Stack>
+                          <TextField size="small" label="Contact Email" value={profile.contactEmail || ''} onChange={(e) => setProfile({ ...profile, contactEmail: e.target.value })} fullWidth />
                         </Stack>
                       ) : (
                         <Stack spacing={2} sx={{ width: '100%' }}>
@@ -1074,9 +1386,16 @@ export default function MyProfile() {
                   setIsSaving(true);
                   const croppedBlob = await getCroppedImg(cropImageSrc!, croppedAreaPixels);
                   const file = new File([croppedBlob], 'profile.jpg', { type: 'image/jpeg' });
-                  const response = await developerService.uploadProfilePhoto(file);
+                  
+                  let response;
+                  if (user?.role === 'EMPLOYER') {
+                    response = await employerService.uploadLogo(file);
+                  } else {
+                    response = await developerService.uploadProfilePhoto(file);
+                  }
+
                   if (response.success) {
-                    setProfile({ ...profile, profilePhoto: response.data.profilePhoto });
+                    setProfile(response.data);
                     setCropDialogOpen(false);
                   }
                 } catch (err) {

@@ -92,6 +92,22 @@ public class EmployerController {
                 employerProfileService.updateProfile(userId, request)));
     }
 
+    @Operation(summary = "Upload employer company logo", description = "Requires EMPLOYER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Logo uploaded successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid or missing image file"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    })
+    @PostMapping(value = "/profile/logo", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('EMPLOYER')")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.EmployerProfileResponse>> uploadLogo(
+            Authentication authentication,
+            @RequestPart("image") org.springframework.web.multipart.MultipartFile image) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Logo uploaded",
+                employerProfileService.uploadLogo(userId, image)));
+    }
+
     @Operation(summary = "Save a filter search (Pro)", description = "Requires EMPLOYER PRO status.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Search saved successfully"),
