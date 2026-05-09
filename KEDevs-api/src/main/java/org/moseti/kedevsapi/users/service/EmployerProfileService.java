@@ -15,6 +15,7 @@ import org.moseti.kedevsapi.users.repository.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.moseti.kedevsapi.notifications.service.NotificationService;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -31,6 +32,8 @@ public class EmployerProfileService {
     private final SavedDeveloperSearchRepository savedSearchRepository;
     private final BookmarkedDeveloperRepository bookmarkRepository;
     private final ContactRequestRepository contactRequestRepository;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
 
 
@@ -194,6 +197,14 @@ public class EmployerProfileService {
         contactRequest.setStatus(ContactRequestStatus.PENDING);
         contactRequest = contactRequestRepository.save(contactRequest);
 
+        notificationService.notify(
+                developer.getUserId(),
+                org.moseti.kedevsapi.shared.enums.NotificationCategory.CONTACT,
+                "New Contact Request",
+                employer.getCompanyName() + " wants to connect with you.",
+                "{\"employerId\":\"" + employer.getId() + "\",\"requestId\":\"" + contactRequest.getId() + "\"}"
+        );
+
         log.info("Contact request sent from employer={} to developer={}", employer.getId(), developerId);
         return toContactRequestResponse(contactRequest);
     }
@@ -209,6 +220,18 @@ public class EmployerProfileService {
         }
         contactRequest.setStatus(status);
         contactRequest = contactRequestRepository.save(contactRequest);
+
+        EmployerProfile employer = employerProfileRepository.findById(contactRequest.getEmployerId()).orElse(null);
+        if (employer != null) {
+            notificationService.notify(
+                    employer.getUserId(),
+                    org.moseti.kedevsapi.shared.enums.NotificationCategory.CONTACT,
+                    "Contact Request Update",
+                    profile.getFirstName() + " " + profile.getLastName() + " has " + status.name().toLowerCase() + " your contact request.",
+                    "{\"developerId\":\"" + profile.getId() + "\",\"requestId\":\"" + contactRequest.getId() + "\"}"
+            );
+        }
+
         return toContactRequestResponse(contactRequest);
     }
 

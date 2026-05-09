@@ -8,5 +8,6 @@ public enum NotificationCategory {
     FLAG,
     ADMIN,
     ENDORSEMENT,
-    SPOTLIGHT
+    SPOTLIGHT,
+    CONTACT
 }

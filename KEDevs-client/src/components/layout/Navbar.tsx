@@ -29,6 +29,8 @@ import { useTheme as useNextTheme } from 'next-themes';
 import { useTheme } from '@mui/material/styles';
 import { useThemeStyle } from '@/context/ThemeStyleContext';
 import PaletteIcon from '@mui/icons-material/Palette';
+import NotificationPopover from '../notifications/NotificationPopover';
+import { notificationService } from '@/services/notificationService';
 
 const Navbar = () => {
   const { isLoggedIn, user, logout } = useAuth();
@@ -40,6 +42,8 @@ const Navbar = () => {
   const [anchorElNav, setAnchorElNav] = useState<null | HTMLElement>(null);
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
   const [anchorElStyle, setAnchorElStyle] = useState<null | HTMLElement>(null);
+  const [anchorElNotifications, setAnchorElNotifications] = useState<null | HTMLElement>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const isDev = user?.role === 'DEVELOPER';
   const isEmp = user?.role === 'EMPLOYER';
@@ -65,6 +69,33 @@ const Navbar = () => {
     router.push(path);
     handleCloseNavMenu();
     handleCloseUserMenu();
+  };
+
+  const fetchUnreadCount = async () => {
+    if (isLoggedIn) {
+      try {
+        const response = await notificationService.getUnreadCount();
+        if (response.success) {
+          setUnreadCount(response.data.count);
+        }
+      } catch (error) {
+        console.error('Failed to fetch unread count', error);
+      }
+    }
+  };
+
+  React.useEffect(() => {
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 60000); // Poll every minute
+    return () => clearInterval(interval);
+  }, [isLoggedIn]);
+
+  const handleOpenNotifications = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorElNotifications(event.currentTarget);
+  };
+
+  const handleCloseNotifications = () => {
+    setAnchorElNotifications(null);
   };
 
   return (
@@ -172,12 +203,18 @@ const Navbar = () => {
             ) : (
               <>
                 <Tooltip title="Notifications">
-                  <IconButton onClick={() => router.push('/notifications')} sx={{ bgcolor: 'background.subtle' }}>
-                    <Badge badgeContent={3} color="error">
+                  <IconButton onClick={handleOpenNotifications} sx={{ bgcolor: 'background.subtle' }}>
+                    <Badge badgeContent={unreadCount} color="error">
                       <NotificationsIcon />
                     </Badge>
                   </IconButton>
                 </Tooltip>
+
+                <NotificationPopover
+                  anchorEl={anchorElNotifications}
+                  onClose={handleCloseNotifications}
+                  onMarkAllAsRead={fetchUnreadCount}
+                />
 
                 {isEmp && (
                   <Tooltip title="Hiring Pipeline">
@@ -233,6 +270,9 @@ const Navbar = () => {
                   </MenuItem>
                   <MenuItem onClick={() => handleNavigate('/verify')}>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>Verification</Typography>
+                  </MenuItem>
+                  <MenuItem onClick={() => handleNavigate('/settings/notifications')}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>Notification Settings</Typography>
                   </MenuItem>
                   <Divider />
                   <MenuItem onClick={() => { handleCloseUserMenu(); logout(); }} sx={{ color: 'error.main' }}>

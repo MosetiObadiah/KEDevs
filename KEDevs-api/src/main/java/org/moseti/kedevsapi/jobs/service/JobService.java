@@ -343,6 +343,15 @@ public class JobService {
 
         application.setStatus(request.status());
         application = jobApplicationRepository.save(application);
+
+        notificationService.notify(
+                application.getApplicantId(),
+                org.moseti.kedevsapi.shared.enums.NotificationCategory.JOB,
+                "Application Update",
+                "Your application for '" + job.getTitle() + "' has been " + request.status().name().toLowerCase() + ".",
+                "{\"jobId\":\"" + jobId + "\",\"applicationId\":\"" + application.getId() + "\"}"
+        );
+
         return toJobApplicationResponse(application);
     }
 

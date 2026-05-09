@@ -13,6 +13,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { ThemeStyleProvider } from "@/context/ThemeStyleContext";
 import { RouteGuard } from "@/components/auth/RouteGuard";
 import { GoogleAuthProvider } from "@/components/providers/GoogleAuthProvider";
+import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
   title: "KEDevs - Kenya's Developer Community",
@@ -36,6 +37,7 @@ export default function RootLayout({
                     <AppLayout>
                       {children}
                     </AppLayout>
+                    <Toaster position="top-right" />
                   </RouteGuard>
                 </AuthProvider>
               </GoogleAuthProvider>

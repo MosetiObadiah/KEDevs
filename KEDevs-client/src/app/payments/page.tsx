@@ -23,18 +23,18 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
-import VerifiedIcon from '@mui/icons-material/Verified';;
+import VerifiedIcon from '@mui/icons-material/Verified';
 import SpeedIcon from '@mui/icons-material/Speed';
 import HistoryIcon from '@mui/icons-material/History';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutlined';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutlined';
 import { useAuth } from '@/context/AuthContext';
 import { usePlatformSettings } from '@/hooks/usePlatformSettings';
 import { paymentService } from '@/services/paymentService';
 import { spotlightService } from '@/services/spotlightService';
 import Link from 'next/link';
-import { toast } from 'sonner';
+import { toast } from 'react-hot-toast';
 
 export default function PaymentsPage() {
   const { user } = useAuth();

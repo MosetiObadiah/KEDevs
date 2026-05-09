@@ -1,228 +1,266 @@
-// src/app/notifications/page.tsx
 'use client';
-
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
 import {
   Container,
   Typography,
   Box,
   Paper,
-  Tabs,
-  Tab,
   List,
   ListItem,
-  ListItemAvatar,
   ListItemText,
-  Avatar,
-  IconButton,
-  Button,
-  Stack,
   Divider,
+  Button,
+  IconButton,
+  Avatar,
   CircularProgress,
-  Alert,
   Chip,
+  Tooltip,
 } from '@mui/material';
-import WorkIcon from '@mui/icons-material/Work';
-import ThumbUpIcon from '@mui/icons-material/ThumbUp';
-import PaymentIcon from '@mui/icons-material/Payment';
-import MessageIcon from '@mui/icons-material/Message';
-import VerifiedIcon from '@mui/icons-material/Verified';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import CircleIcon from '@mui/icons-material/Circle';
-import GroupIcon from '@mui/icons-material/Group';
-import SpeedIcon from '@mui/icons-material/Speed';
+import {
+  Notifications as NotificationsIcon,
+  DoneAll as DoneAllIcon,
+  Delete as DeleteIcon,
+  Settings as SettingsIcon,
+  FilterList as FilterListIcon,
+} from '@mui/icons-material';
 import { notificationService } from '@/services/notificationService';
+import { formatDistanceToNow } from 'date-fns';
+import { useRouter } from 'next/navigation';
 
-const getIcon = (type: string) => {
-  switch (type) {
-    case 'ApplicationUpdate': return <WorkIcon />;
-    case 'Upvote': return <ThumbUpIcon />;
-    case 'Payment': return <PaymentIcon />;
-    case 'Message': return <MessageIcon />;
-    case 'Verification': return <VerifiedIcon />;
-    case 'ContactRequest': return <GroupIcon />;
-    case 'SpotlightExpiry': return <SpeedIcon />;
-    default: return <CircleIcon />;
-  }
-};
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  category: string;
+  isRead: boolean;
+  createdAt: string;
+}
 
-const getColor = (type: string) => {
-  switch (type) {
-    case 'ApplicationUpdate': return 'primary.main';
-    case 'Upvote': return 'warning.main';
-    case 'Payment': return 'success.main';
-    case 'Verification': return 'info.main';
-    case 'ContactRequest': return 'secondary.main';
-    case 'SpotlightExpiry': return 'error.main';
-    default: return 'text.secondary';
-  }
-};
-
-export default function NotificationsPage() {
-  const [tab, setTab] = useState(0);
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const loadNotifications = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await notificationService.getNotifications();
-      if (response.success) {
-        setNotifications(response.data.content || response.data || []);
-      }
-    } catch (err: any) {
-      console.error(err);
-      setError('Unable to load notifications.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+const NotificationsPage = () => {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    loadNotifications();
+    fetchNotifications();
   }, []);
 
-  const markAllRead = async () => {
+  const fetchNotifications = async (isLoadMore = false) => {
+    const currentPage = isLoadMore ? page + 1 : 0;
+    setLoading(true);
     try {
-      const response = await notificationService.markAllRead();
+      const response = await notificationService.getNotifications(currentPage, 20);
       if (response.success) {
-        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+        const newNotifications = response.data.content;
+        if (isLoadMore) {
+          setNotifications((prev) => [...prev, ...newNotifications]);
+          setPage(currentPage);
+        } else {
+          setNotifications(newNotifications);
+          setPage(0);
+        }
+        setHasMore(!response.data.last);
       }
-    } catch (err: any) {
-      console.error(err);
+    } catch (error) {
+      console.error('Failed to fetch notifications', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const filteredNotifications = notifications.filter(n => {
-    if (tab === 0) return true;
-    if (tab === 1) return n.type === 'ApplicationUpdate';
-    if (tab === 2) return n.type === 'Upvote' || n.type === 'ContactRequest';
-    if (tab === 3) return n.type === 'Payment' || n.type === 'Verification' || n.type === 'SpotlightExpiry';
-    return true;
-  });
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      await notificationService.markRead(id);
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
+      );
+    } catch (error) {
+      console.error('Failed to mark notification as read', error);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await notificationService.markAllRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    } catch (error) {
+      console.error('Failed to mark all as read', error);
+    }
+  };
+
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'JOB': return 'primary';
+      case 'PAYMENT': return 'success';
+      case 'ADMIN': return 'error';
+      case 'ENDORSEMENT': return 'secondary';
+      case 'SPOTLIGHT': return 'warning';
+      default: return 'default';
+    }
+  };
 
   return (
     <Container maxWidth="md" sx={{ py: 6 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h3" sx={{ fontWeight: 800 }}>
-          Notifications
-        </Typography>
-        <Button onClick={markAllRead} size="small" sx={{ fontWeight: 700 }}>Mark all as read</Button>
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 900, mb: 1 }}>
+            Notifications
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 600 }}>
+            Stay updated with your activities and opportunities
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Tooltip title="Notification Settings">
+            <IconButton onClick={() => router.push('/settings/notifications')}>
+              <SettingsIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
       </Box>
 
-      <Paper sx={{ borderRadius: 3, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-        <Tabs 
-          value={tab} 
-          onChange={(_, v) => setTab(v)}
-          variant="fullWidth"
-          sx={{ borderBottom: 1, borderColor: 'divider' }}
-        >
-          <Tab label="All" sx={{ fontWeight: 700 }} />
-          <Tab label="Jobs" sx={{ fontWeight: 700 }} />
-          <Tab label="Social" sx={{ fontWeight: 700 }} />
-          <Tab label="System" sx={{ fontWeight: 700 }} />
-        </Tabs>
+      <Paper
+        elevation={0}
+        sx={{
+          borderRadius: 4,
+          border: '1px solid',
+          borderColor: 'divider',
+          overflow: 'hidden',
+        }}
+      >
+        <Box sx={{ px: 3, py: 2, bgcolor: 'background.subtle', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+            Recent Activity
+          </Typography>
+          <Button
+            size="small"
+            startIcon={<DoneAllIcon />}
+            onClick={handleMarkAllRead}
+            disabled={notifications.every(n => n.isRead)}
+            sx={{ fontWeight: 700, textTransform: 'none' }}
+          >
+            Mark all as read
+          </Button>
+        </Box>
+        <Divider />
 
-        {isLoading ? (
-          <Box sx={{ py: 8, display: 'flex', justifyContent: 'center' }}>
+        {loading && notifications.length === 0 ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}>
             <CircularProgress />
           </Box>
-        ) : error ? (
-          <Box sx={{ py: 8, px: 4 }}>
-            <Alert severity="error">{error}</Alert>
+        ) : notifications.length === 0 ? (
+          <Box sx={{ p: 8, textAlign: 'center' }}>
+            <Box
+              sx={{
+                width: 80,
+                height: 80,
+                borderRadius: '50%',
+                bgcolor: 'background.subtle',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 16px',
+              }}
+            >
+              <NotificationsIcon sx={{ fontSize: 40, color: 'text.disabled' }} />
+            </Box>
+            <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>
+              All caught up!
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
+              You don't have any notifications at the moment.
+            </Typography>
           </Box>
         ) : (
           <List sx={{ p: 0 }}>
-            {filteredNotifications.length > 0 ? (
-              filteredNotifications.map((n, index) => (
-                <React.Fragment key={n.id}>
-                  <ListItem 
-                    sx={{ 
-                      py: 3, 
-                      px: 3, 
-                      bgcolor: n.isRead ? 'transparent' : 'rgba(0,0,0,0.02)',
-                      transition: 'background-color 0.2s',
-                      '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' }
-                    }}
-                    secondaryAction={
-                      <IconButton size="small">
-                        <MoreVertIcon />
-                      </IconButton>
+            {notifications.map((n, index) => (
+              <React.Fragment key={n.id}>
+                <ListItem
+                  sx={{
+                    px: 3,
+                    py: 2.5,
+                    bgcolor: n.isRead ? 'transparent' : 'action.hover',
+                    transition: 'background-color 0.2s',
+                    '&:hover': { bgcolor: 'action.selected' },
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => handleMarkAsRead(n.id)}
+                >
+                  <Box sx={{ mr: 2.5 }}>
+                    <Avatar
+                      sx={{
+                        bgcolor: n.isRead ? 'background.subtle' : 'primary.main',
+                        color: n.isRead ? 'text.secondary' : 'primary.contrastText',
+                        width: 48,
+                        height: 48,
+                      }}
+                    >
+                      <NotificationsIcon />
+                    </Avatar>
+                  </Box>
+                  <ListItemText
+                    primary={
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5 }}>
+                        <Typography variant="body1" sx={{ fontWeight: n.isRead ? 700 : 900 }}>
+                          {n.title}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                          {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
+                        </Typography>
+                      </Box>
                     }
-                  >
-                    <ListItemAvatar>
-                      <Avatar sx={{ bgcolor: getColor(n.type), color: 'white' }}>
-                        {getIcon(n.type)}
-                      </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography variant="subtitle1" sx={{ fontWeight: n.isRead ? 500 : 700 }}>
-                            {n.title}
-                          </Typography>
-                          {!n.isRead && <CircleIcon sx={{ fontSize: 10, color: 'primary.main' }} />}
+                    secondary={
+                      <Box>
+                        <Typography
+                          variant="body2"
+                          color="text.primary"
+                          sx={{ mb: 1.5, opacity: 0.8, lineHeight: 1.6, fontWeight: 500 }}
+                        >
+                          {n.message}
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Chip
+                            label={n.category}
+                            size="small"
+                            color={getCategoryColor(n.category) as any}
+                            variant="soft"
+                            sx={{ fontWeight: 700, fontSize: '0.65rem' }}
+                          />
+                          {!n.isRead && (
+                            <Chip
+                              label="NEW"
+                              size="small"
+                              color="primary"
+                              sx={{ fontWeight: 900, fontSize: '0.65rem' }}
+                            />
+                          )}
                         </Box>
-                      }
-                      secondary={
-                        <Box component="div">
-                        <Stack spacing={1}>
-                          <Typography variant="body2" color="text.secondary">{n.message}</Typography>
-                          <Typography variant="caption" color="text.disabled">{new Date(n.date).toLocaleDateString()}</Typography>
-                          <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                            {n.type === 'ApplicationUpdate' && (
-                              <Button variant="contained" size="small" sx={{ borderRadius: 1.5, fontWeight: 700 }}>View Job</Button>
-                            )}
-                            {n.type === 'ContactRequest' && (
-                              <>
-                                <Button variant="contained" size="small" sx={{ borderRadius: 1.5, fontWeight: 700 }}>Accept</Button>
-                                <Button variant="outlined" size="small" sx={{ borderRadius: 1.5, fontWeight: 700 }}>Decline</Button>
-                              </>
-                            )}
-                            {n.type === 'SpotlightExpiry' && (
-                              <Button variant="contained" color="warning" size="small" sx={{ borderRadius: 1.5, fontWeight: 700 }} component={Link} href="/payments">
-                                Buy Spotlight Again
-                              </Button>
-                            )}
-                            {n.type === 'Verification' && (
-                              <Button variant="outlined" size="small" sx={{ borderRadius: 1.5, fontWeight: 700 }} component={Link} href="/verify">
-                                View Status
-                              </Button>
-                            )}
-                          </Box>
-                        </Stack>
-                        </Box>
-                      }
-                    />
-                  </ListItem>
-                  {index < filteredNotifications.length - 1 && <Divider />}
-                </React.Fragment>
-              ))
-            ) : (
-              <Box sx={{ p: 10, textAlign: 'center' }}>
-                <Typography color="text.secondary">No notifications found.</Typography>
-              </Box>
-            )}
+                      </Box>
+                    }
+                  />
+                </ListItem>
+                {index < notifications.length - 1 && <Divider />}
+              </React.Fragment>
+            ))}
           </List>
         )}
-      </Paper>
 
-      <Paper sx={{ mt: 4, p: 3, borderRadius: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Preferences</Typography>
-        <Stack spacing={1}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="body2">Email Notifications</Typography>
-            <Chip label="On" size="small" color="success" variant="outlined" />
+        {hasMore && (
+          <Box sx={{ p: 2, textAlign: 'center', borderTop: '1px solid', borderColor: 'divider' }}>
+            <Button
+              onClick={() => fetchNotifications(true)}
+              disabled={loading}
+              sx={{ fontWeight: 800 }}
+            >
+              {loading ? <CircularProgress size={20} /> : 'Load More'}
+            </Button>
           </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="body2">Push Notifications</Typography>
-            <Chip label="On" size="small" color="success" variant="outlined" />
-          </Box>
-        </Stack>
+        )}
       </Paper>
     </Container>
   );
-}
+};
+
+export default NotificationsPage;

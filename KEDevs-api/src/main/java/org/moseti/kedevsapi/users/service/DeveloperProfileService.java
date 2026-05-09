@@ -20,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.moseti.kedevsapi.notifications.service.NotificationService;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -41,6 +42,7 @@ public class DeveloperProfileService {
     private final EndorsementRepository endorsementRepository;
     private final UserRepository userRepository;
     private final FileUploadService fileUploadService;
+    private final NotificationService notificationService;
 
     // ----------------------------------------------------------------
     // Profile CRUD
@@ -459,6 +461,17 @@ public class DeveloperProfileService {
         endorsement.setAuthorId(authorUserId);
         endorsement.setContent(request.content());
         endorsement = endorsementRepository.save(endorsement);
+        
+        User author = userRepository.findById(authorUserId).orElse(null);
+        if (author != null) {
+            notificationService.notify(
+                recipient.getUserId(),
+                org.moseti.kedevsapi.shared.enums.NotificationCategory.ENDORSEMENT,
+                "New Endorsement",
+                author.getFullName() + " endorsed your profile!",
+                "{\"authorId\":\"" + authorUserId + "\"}"
+            );
+        }
 
         return toEndorsementResponse(endorsement, authorUserId);
     }
