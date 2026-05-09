@@ -75,7 +75,7 @@ class EmployerProfileServiceTest {
         when(employerProfileRepository.save(any(EmployerProfile.class))).thenReturn(testEmployerProfile);
 
         UserDtos.CreateEmployerProfileRequest request = new UserDtos.CreateEmployerProfileRequest(
-                "Alice Smith", "Acme Corp", null, "Tech", null, "Nairobi", null, null, null, null);
+                "Alice Smith", "Acme Corp", null, "Tech", null, "Nairobi", null, null, null, null, null);
 
         UserDtos.EmployerProfileResponse response = employerProfileService.createProfile(userId, request);
 
@@ -89,7 +89,7 @@ class EmployerProfileServiceTest {
         when(employerProfileRepository.existsByUserId(userId)).thenReturn(true);
 
         UserDtos.CreateEmployerProfileRequest request = new UserDtos.CreateEmployerProfileRequest(
-                "Alice", "Acme", null, null, null, null, null, null, null, null);
+                "Alice", "Acme", null, null, null, null, null, null, null, null, null);
 
         assertThrows(ProfileAlreadyExistsException.class,
                 () -> employerProfileService.createProfile(userId, request));
@@ -102,7 +102,7 @@ class EmployerProfileServiceTest {
         when(employerProfileRepository.save(any(EmployerProfile.class))).thenReturn(testEmployerProfile);
 
         UserDtos.UpdateEmployerProfileRequest request = new UserDtos.UpdateEmployerProfileRequest(
-                null, "New Corp", null, null, null, null, null, null, null, null);
+                null, "New Corp", null, null, null, null, null, null, null, null, null);
 
         UserDtos.EmployerProfileResponse response = employerProfileService.updateProfile(userId, request);
 

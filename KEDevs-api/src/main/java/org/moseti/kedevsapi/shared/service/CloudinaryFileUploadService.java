@@ -15,7 +15,9 @@ import java.util.Set;
 public class CloudinaryFileUploadService implements FileUploadService {
 
     private static final Set<String> ALLOWED_TYPES = Set.of(
-            "image/png", "image/jpeg", "image/jpg", "image/webp", "application/pdf"
+            "image/png", "image/jpeg", "image/jpg", "image/webp", "application/pdf",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/msword"
     );
     private final Cloudinary cloudinary;
 

@@ -13,10 +13,12 @@ import org.moseti.kedevsapi.shared.enums.JobStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -183,7 +185,7 @@ public class JobController {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Job flagged"));
     }
 
-    @Operation(summary = "Apply to a job", description = "Requires DEVELOPER role.")
+    @Operation(summary = "Apply to a job", description = "Requires DEVELOPER role. Send as multipart/form-data.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Applied successfully"),
         @ApiResponse(responseCode = "400", description = "Already applied or own job post"),
@@ -191,11 +193,13 @@ public class JobController {
         @ApiResponse(responseCode = "403", description = "Insufficient permissions")
     })
     @PreAuthorize("hasRole('DEVELOPER')")
-    @PostMapping("/{id}/apply")
+    @PostMapping(value = "/{id}/apply", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<JobApplicationResponse>> applyToJob(
             @Parameter(description = "ID of the job post") @PathVariable UUID id,
-            @Valid @RequestBody ApplyJobRequest request) {
-        JobApplicationResponse response = jobService.applyToJob(getCurrentUserId(), id, request);
+            @RequestPart(value = "resume", required = true) MultipartFile resume,
+            @RequestPart(value = "coverLetter", required = false) MultipartFile coverLetterFile,
+            @RequestParam(value = "coverLetterText", required = false) String coverLetterText) {
+        JobApplicationResponse response = jobService.applyToJob(getCurrentUserId(), id, resume, coverLetterFile, coverLetterText);
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Applied to job successfully", response));
     }
 

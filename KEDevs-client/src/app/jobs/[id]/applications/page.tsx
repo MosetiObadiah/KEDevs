@@ -29,12 +29,18 @@ import {
   CircularProgress,
   Alert,
   Divider,
+  TextField,
+  Collapse,
 } from '@mui/material';
 import { jobService } from '@/services/jobService';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LaunchIcon from '@mui/icons-material/Launch';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import MessageIcon from '@mui/icons-material/Message';
+import DownloadIcon from '@mui/icons-material/Download';
+import toast from 'react-hot-toast';
 
 const statusColors: Record<string, "success" | "warning" | "error" | "info" | "default"> = {
   'PENDING': 'warning',
@@ -62,6 +68,8 @@ export default function ApplicationsInbox() {
   // Review modal state
   const [selectedApplicant, setSelectedApplicant] = useState<any>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [employerMessage, setEmployerMessage] = useState('');
+  const [showMessageBox, setShowMessageBox] = useState(false);
 
   const fetchJobAndApplications = async () => {
     if (!id) return;
@@ -89,21 +97,51 @@ export default function ApplicationsInbox() {
     fetchJobAndApplications();
   }, [id]);
 
-  const handleStatusChange = async (appId: string, newStatus: string) => {
+  const handleStatusChange = async (appId: string, newStatus: string, message?: string) => {
     setActionLoading(true);
     try {
-      const res = await jobService.updateApplicationStatus(id as string, appId, newStatus);
+      const res = await jobService.updateApplicationStatus(id as string, appId, newStatus, message);
       if (res.success) {
-        // Refresh local applicants list
+        const label = newStatus === 'SHORTLISTED' ? 'accepted' : newStatus === 'REJECTED' ? 'rejected' : 'updated';
+        toast.success(`Applicant ${label} successfully.`);
         setApplicants((prev: any[]) => prev.map((app: any) => app.id === appId ? { ...app, status: newStatus } : app));
         if (selectedApplicant && selectedApplicant.id === appId) {
           setSelectedApplicant((prev: any) => ({ ...prev, status: newStatus }));
         }
+        // Close modal after accept/reject
+        if (newStatus === 'SHORTLISTED' || newStatus === 'REJECTED') {
+          setSelectedApplicant(null);
+          setEmployerMessage('');
+          setShowMessageBox(false);
+        }
       }
     } catch (err: any) {
-      alert(err.message || 'Failed to update application status.');
+      toast.error(err.message || 'Failed to update application status.');
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Copied to clipboard!');
+  };
+
+  const openDownload = (url: string, filename: string) => {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.target = '_blank';
+    a.click();
+  };
+
+  const openModal = (app: any) => {
+    setSelectedApplicant(app);
+    setEmployerMessage('');
+    setShowMessageBox(false);
+    // Mark as VIEWED if still PENDING
+    if (app.status === 'PENDING') {
+      handleStatusChange(app.id, 'VIEWED');
     }
   };
 
@@ -142,7 +180,7 @@ export default function ApplicationsInbox() {
             Applicants for <Box component="span" sx={{ color: 'primary.main' }}>{job.title}</Box>
           </Typography>
           <Typography variant="subtitle1" color="text.secondary">
-            Manage your hiring pipeline for this position.
+            {applicants.length} application{applicants.length !== 1 ? 's' : ''} received
           </Typography>
         </Box>
       </Box>
@@ -164,7 +202,7 @@ export default function ApplicationsInbox() {
                 <TableRow 
                   key={app.id} 
                   hover 
-                  onClick={() => setSelectedApplicant(app)}
+                  onClick={() => openModal(app)}
                   sx={{ cursor: 'pointer', '&:last-child td, &:last-child th': { border: 0 } }}
                 >
                   <TableCell>
@@ -174,7 +212,7 @@ export default function ApplicationsInbox() {
                         <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
                           {app.applicantName}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">Applicant</Typography>
+                        <Typography variant="body2" color="text.secondary">Developer</Typography>
                       </Box>
                     </Box>
                   </TableCell>
@@ -193,7 +231,7 @@ export default function ApplicationsInbox() {
                       <Tooltip title="Accept Candidate">
                         <IconButton 
                           color="success" 
-                          onClick={() => handleStatusChange(app.id, 'SHORTLISTED')}
+                          onClick={() => { openModal(app); setShowMessageBox(true); }}
                           disabled={app.status === 'SHORTLISTED' || actionLoading}
                           sx={{ bgcolor: '#e8f5e9', '&:hover': { bgcolor: '#c8e6c9' } }}
                         >
@@ -228,8 +266,8 @@ export default function ApplicationsInbox() {
       {/* Applicant Review Modal */}
       <Dialog 
         open={Boolean(selectedApplicant)} 
-        onClose={() => setSelectedApplicant(null)}
-        maxWidth="sm"
+        onClose={() => { setSelectedApplicant(null); setEmployerMessage(''); setShowMessageBox(false); }}
+        maxWidth="md"
         fullWidth
         sx={{ '& .MuiDialog-paper': { borderRadius: 3, p: 1 } }}
       >
@@ -240,11 +278,13 @@ export default function ApplicationsInbox() {
             </DialogTitle>
             <DialogContent>
               <Stack spacing={3} sx={{ mt: 1 }}>
+
+                {/* Applicant Header */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <Avatar sx={{ bgcolor: 'primary.main', width: 56, height: 56, fontSize: '1.5rem', fontWeight: 700 }}>
                     {selectedApplicant.applicantName?.charAt(0)}
                   </Avatar>
-                  <Box>
+                  <Box sx={{ flex: 1 }}>
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
                       {selectedApplicant.applicantName}
                     </Typography>
@@ -252,6 +292,11 @@ export default function ApplicationsInbox() {
                       {selectedApplicant.applicantEmail}
                     </Typography>
                   </Box>
+                  <Chip 
+                    label={statusLabels[selectedApplicant.status] || selectedApplicant.status}
+                    color={statusColors[selectedApplicant.status] || 'default'}
+                    sx={{ fontWeight: 700 }}
+                  />
                 </Box>
 
                 <Box sx={{ display: 'flex', gap: 4 }}>
@@ -261,48 +306,144 @@ export default function ApplicationsInbox() {
                       {new Date(selectedApplicant.createdAt).toLocaleDateString()}
                     </Typography>
                   </Box>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>STATUS</Typography>
-                    <Box sx={{ mt: 0.5 }}>
-                      <Chip 
-                        label={statusLabels[selectedApplicant.status] || selectedApplicant.status} 
-                        size="small"
-                        color={statusColors[selectedApplicant.status] || 'default'}
-                        sx={{ fontWeight: 700 }}
-                      />
-                    </Box>
-                  </Box>
                 </Box>
 
                 <Divider />
 
+                {/* Resume Section */}
                 <Box>
-                  <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 700, mb: 1 }}>
-                    COVER LETTER
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 700 }}>
+                      RESUME / CV
+                    </Typography>
+                    {selectedApplicant.resumeUrl ? (
+                      <Tooltip title="Download Resume">
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          startIcon={<DownloadIcon fontSize="small" />}
+                          onClick={() => openDownload(selectedApplicant.resumeUrl, `Resume_${selectedApplicant.applicantName.replace(/\s+/g, '_')}`)}
+                          sx={{ borderRadius: 2, fontWeight: 700 }}
+                        >
+                          Download
+                        </Button>
+                      </Tooltip>
+                    ) : (
+                      <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>Not available</Typography>
+                    )}
+                  </Box>
+                  {selectedApplicant.resumeUrl ? (
+                    <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'background.subtle' }}>
+                      <Box sx={{ width: 40, height: 40, bgcolor: 'primary.main', borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Typography variant="caption" sx={{ color: 'white', fontWeight: 800, fontSize: '0.6rem' }}>PDF</Typography>
+                      </Box>
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>Resume / CV File</Typography>
+                        <Typography variant="caption" color="text.secondary">Click Download to view or save the file</Typography>
+                      </Box>
+                    </Paper>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', p: 1 }}>
+                      No resume uploaded.
+                    </Typography>
+                  )}
+                </Box>
+
+                <Divider />
+
+                {/* Cover Letter Section */}
+                <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 700 }}>
+                      COVER LETTER
+                    </Typography>
+                    <Stack direction="row" spacing={1}>
+                      {selectedApplicant.coverLetterUrl && (
+                        <Tooltip title="Download Cover Letter file">
+                          <IconButton size="small" onClick={() => openDownload(selectedApplicant.coverLetterUrl, `Cover_Letter_${selectedApplicant.applicantName.replace(/\s+/g, '_')}`)}>
+                            <DownloadIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                      {selectedApplicant.coverLetter && (
+                        <Tooltip title="Copy to clipboard">
+                          <IconButton size="small" onClick={() => handleCopy(selectedApplicant.coverLetter)}>
+                            <ContentCopyIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </Stack>
+                  </Box>
                   <Paper 
                     variant="outlined" 
-                    sx={{ p: 2, borderRadius: 2, bgcolor: 'background.subtle', minHeight: '100px', whiteSpace: 'pre-wrap' }}
+                    sx={{ 
+                      p: 2.5, 
+                      borderRadius: 2, 
+                      bgcolor: 'background.subtle', 
+                      minHeight: '120px', 
+                      maxHeight: '300px',
+                      overflowY: 'auto',
+                      whiteSpace: 'pre-wrap',
+                      fontFamily: 'inherit',
+                      fontSize: '0.9rem',
+                      lineHeight: 1.7,
+                    }}
                   >
-                    {selectedApplicant.coverLetter || "No cover letter submitted."}
+                    {selectedApplicant.coverLetter || 
+                      <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                        No written cover letter provided.
+                      </Typography>
+                    }
                   </Paper>
                 </Box>
 
-                <Button
-                  variant="outlined"
-                  component={Link}
-                  href={`/developers/${selectedApplicant.applicantId}`}
-                  target="_blank"
-                  startIcon={<LaunchIcon />}
-                  sx={{ borderRadius: 2, fontWeight: 700, py: 1 }}
-                >
-                  View Full Developer Profile
-                </Button>
+                {/* View Profile Button */}
+                {selectedApplicant.applicantProfileId ? (
+                  <Button
+                    variant="outlined"
+                    component={Link}
+                    href={`/developers/${selectedApplicant.applicantProfileId}`}
+                    target="_blank"
+                    startIcon={<LaunchIcon />}
+                    sx={{ borderRadius: 2, fontWeight: 700, py: 1 }}
+                  >
+                    View Full Developer Profile
+                  </Button>
+                ) : (
+                  <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                    Developer profile not available.
+                  </Typography>
+                )}
+
+                {/* Employer Message Section (for accepting) */}
+                <Collapse in={showMessageBox}>
+                  <Box sx={{ p: 2.5, bgcolor: 'success.light', borderRadius: 2, border: '1px solid', borderColor: 'success.main' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                      <MessageIcon color="success" fontSize="small" />
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'success.dark' }}>
+                        Add a message (optional)
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                      This message will be included in the notification sent to the developer.
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={4}
+                      placeholder="e.g. Congratulations! We'd love to schedule an interview. Please reply to this notification or email us at..."
+                      value={employerMessage}
+                      onChange={(e) => setEmployerMessage(e.target.value)}
+                      sx={{ bgcolor: 'background.paper', borderRadius: 1 }}
+                    />
+                  </Box>
+                </Collapse>
+
               </Stack>
             </DialogContent>
-            <DialogActions sx={{ px: 3, pb: 2 }}>
+            <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
               <Button 
-                onClick={() => setSelectedApplicant(null)} 
+                onClick={() => { setSelectedApplicant(null); setEmployerMessage(''); setShowMessageBox(false); }} 
                 color="inherit" 
                 sx={{ borderRadius: 2, fontWeight: 700 }}
               >
@@ -310,23 +451,36 @@ export default function ApplicationsInbox() {
               </Button>
               <Box sx={{ flexGrow: 1 }} />
               <Button
-                variant="contained"
+                variant="outlined"
                 color="error"
                 disabled={selectedApplicant.status === 'REJECTED' || actionLoading}
                 onClick={() => handleStatusChange(selectedApplicant.id, 'REJECTED')}
                 sx={{ borderRadius: 2, fontWeight: 700, px: 3 }}
               >
-                Reject
+                {actionLoading ? <CircularProgress size={20} /> : 'Reject'}
               </Button>
-              <Button
-                variant="contained"
-                color="success"
-                disabled={selectedApplicant.status === 'SHORTLISTED' || actionLoading}
-                onClick={() => handleStatusChange(selectedApplicant.id, 'SHORTLISTED')}
-                sx={{ borderRadius: 2, fontWeight: 700, px: 3 }}
-              >
-                Accept
-              </Button>
+
+              {!showMessageBox ? (
+                <Button
+                  variant="contained"
+                  color="success"
+                  disabled={selectedApplicant.status === 'SHORTLISTED' || actionLoading}
+                  onClick={() => setShowMessageBox(true)}
+                  sx={{ borderRadius: 2, fontWeight: 700, px: 3 }}
+                >
+                  Accept ✓
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  color="success"
+                  disabled={actionLoading}
+                  onClick={() => handleStatusChange(selectedApplicant.id, 'SHORTLISTED', employerMessage)}
+                  sx={{ borderRadius: 2, fontWeight: 700, px: 3 }}
+                >
+                  {actionLoading ? <CircularProgress size={20} color="inherit" /> : 'Confirm & Notify Developer'}
+                </Button>
+              )}
             </DialogActions>
           </>
         )}

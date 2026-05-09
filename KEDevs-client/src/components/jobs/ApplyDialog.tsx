@@ -151,16 +151,14 @@ export default function ApplyDialog({ open, onClose, job, onSuccess }: ApplyDial
   };
 
   const handleSubmit = async () => {
+    if (!resume) {
+      setError('Please upload a resume to continue.');
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
-      // In compliance with the backend contract, we send a custom string as coverLetter payload
-      // that incorporates the names of the uploaded files, simulating the upload perfectly.
-      const payload = {
-        coverLetter: `Cover Letter: ${coverLetter?.name} (${(coverLetter!.size / 1024 / 1024).toFixed(2)} MB) | Resume: ${resume?.name} (${(resume!.size / 1024 / 1024).toFixed(2)} MB)`,
-      };
-
-      const response = await jobService.applyToJob(job.id, payload);
+      const response = await jobService.applyToJob(job.id, resume, coverLetter);
       if (response.success) {
         onSuccess();
         onClose();

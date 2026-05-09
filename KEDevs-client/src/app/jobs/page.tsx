@@ -102,7 +102,7 @@ export default function JobsPage() {
     setDownvotedJobs(prevDownvoted);
 
     try {
-      await jobService.voteJob(id, vote);
+      await jobService.voteJob(id, vote === 'UP' ? 'UPVOTE' : 'DOWNVOTE');
     } catch (err: any) {
       setUpvotedJobs(upvotedJobs);
       setDownvotedJobs(downvotedJobs);

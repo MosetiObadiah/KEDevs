@@ -23,6 +23,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloseIcon from '@mui/icons-material/Close';
 import PeopleIcon from '@mui/icons-material/People';
+import toast from 'react-hot-toast';
 
 const statusColors: Record<string, "success" | "warning" | "error" | "default"> = {
   'OPEN': 'success',
@@ -61,10 +62,11 @@ export default function MyJobPosts() {
     try {
       const res = await jobService.updateJobStatus(id, 'CLOSED');
       if (res.success) {
+        toast.success('Job post closed successfully.');
         fetchMyPosts();
       }
     } catch (err: any) {
-      alert(err.message || 'Failed to close job post.');
+      toast.error(err.message || 'Failed to close job post.');
     }
   };
 
@@ -73,10 +75,11 @@ export default function MyJobPosts() {
     try {
       const res = await jobService.deleteJob(id);
       if (res.success) {
+        toast.success('Job post deleted successfully.');
         fetchMyPosts();
       }
     } catch (err: any) {
-      alert(err.message || 'Failed to delete job post.');
+      toast.error(err.message || 'Failed to delete job post.');
     }
   };
 

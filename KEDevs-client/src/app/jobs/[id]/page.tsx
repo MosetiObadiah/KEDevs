@@ -35,6 +35,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloseIcon from '@mui/icons-material/Close';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
+import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import SendIcon from '@mui/icons-material/Send';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import WarningIcon from '@mui/icons-material/Warning';
@@ -43,6 +44,7 @@ import { jobService } from '@/services/jobService';
 import { forumService } from '@/services/forumService';
 import ApplyDialog from '@/components/jobs/ApplyDialog';
 import Forum from '@/components/forum/Forum';
+import toast from 'react-hot-toast';
 
 export default function JobDetailPage() {
   const { id } = useParams();
@@ -54,6 +56,9 @@ export default function JobDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [isUpvoted, setIsUpvoted] = useState(false);
+  const [isDownvoted, setIsDownvoted] = useState(false);
+  const [upvoteCount, setUpvoteCount] = useState(0);
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -64,6 +69,9 @@ export default function JobDetailPage() {
         const response = await jobService.getJobDetails(id as string);
         if (response.success) {
           setJob(response.data);
+          setUpvoteCount(response.data.upvoteCount || 0);
+          setIsUpvoted(response.data.currentUserVote === 'UPVOTE');
+          setIsDownvoted(response.data.currentUserVote === 'DOWNVOTE');
         }
       } catch (err: any) {
         setError('Failed to fetch job details.');
@@ -103,9 +111,50 @@ export default function JobDetailPage() {
     if (!id) return;
     try {
       await jobService.flagJob(id as string, 'Suspicious job listing');
-      alert('Job flagged for review.');
+      toast.success('Job flagged for review.');
     } catch (err: any) {
-      alert(err.message || 'Failed to flag job.');
+      toast.error(err.message || 'Failed to flag job.');
+    }
+  };
+
+  const handleVote = async (type: 'UPVOTE' | 'DOWNVOTE') => {
+    if (!isLoggedIn || !id) return;
+
+    const originalUpvoted = isUpvoted;
+    const originalDownvoted = isDownvoted;
+    const originalCount = upvoteCount;
+
+    // Optimistic UI update
+    if (type === 'UPVOTE') {
+      if (isUpvoted) {
+        setIsUpvoted(false);
+        setUpvoteCount(prev => prev - 1);
+      } else {
+        setIsUpvoted(true);
+        setUpvoteCount(prev => prev + (isDownvoted ? 1 : 1)); // This is simple toggle, backend handles real count
+        // Wait, if it was downvoted, count increases by 1? No, upvoteCount usually just tracks upvotes.
+        // If I toggle upvote on, count increases.
+        setIsDownvoted(false);
+      }
+    } else {
+      if (isDownvoted) {
+        setIsDownvoted(false);
+      } else {
+        setIsDownvoted(true);
+        if (isUpvoted) {
+          setUpvoteCount(prev => prev - 1);
+          setIsUpvoted(false);
+        }
+      }
+    }
+
+    try {
+      await jobService.voteJob(id as string, type);
+    } catch (err: any) {
+      setIsUpvoted(originalUpvoted);
+      setIsDownvoted(originalDownvoted);
+      setUpvoteCount(originalCount);
+      console.error(err);
     }
   };
 
@@ -166,6 +215,29 @@ export default function JobDetailPage() {
                   })()}
                 </Stack>
               </Box>
+              
+              {isLoggedIn && (
+                <Stack direction="row" spacing={1} sx={{ mr: 1 }}>
+                  <Tooltip title="Upvote">
+                    <IconButton 
+                      onClick={() => handleVote('UPVOTE')}
+                      color={isUpvoted ? 'primary' : 'default'}
+                      sx={{ bgcolor: isUpvoted ? 'primary.light' : 'background.subtle', '&:hover': { bgcolor: isUpvoted ? 'primary.light' : 'background.subtle' } }}
+                    >
+                      <ThumbUpIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Downvote">
+                    <IconButton 
+                      onClick={() => handleVote('DOWNVOTE')}
+                      color={isDownvoted ? 'error' : 'default'}
+                      sx={{ bgcolor: isDownvoted ? 'error.light' : 'background.subtle', '&:hover': { bgcolor: isDownvoted ? 'error.light' : 'background.subtle' } }}
+                    >
+                      <ThumbDownIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+              )}
               
               {isLoggedIn && (
                 <>
@@ -335,6 +407,15 @@ export default function JobDetailPage() {
                 <Typography variant="body2" sx={{ color: 'primary.main', fontWeight: 600 }}>{job.contactEmail}</Typography>
               </Box>
 
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ fontWeight: 700 }}>
+                  COMMUNITY RATING
+                </Typography>
+                <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main' }}>
+                  {upvoteCount} Upvotes
+                </Typography>
+              </Box>
+
               <Divider />
 
               {job.isPeerSourced ? (
@@ -421,7 +502,10 @@ export default function JobDetailPage() {
         onClose={() => setApplyOpen(false)}
         job={job}
         onSuccess={() => {
-          alert('Application submitted successfully!');
+          toast.success('Application submitted successfully! Redirecting...', {
+            duration: 4000,
+            icon: '🚀'
+          });
           router.push('/jobs/my-applications');
         }}
       />

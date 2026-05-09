@@ -82,7 +82,8 @@ public class JobDtos {
     ) {}
 
     public record UpdateApplicationStatusRequest(
-            @NotNull @Schema(description = "New status of the application", example = "SHORTLISTED") ApplicationStatus status
+            @NotNull @Schema(description = "New status of the application", example = "SHORTLISTED") ApplicationStatus status,
+            @Schema(description = "Optional message from employer to the applicant (used when accepting/shortlisting)", example = "Congratulations! We'd like to invite you for an interview.") String employerMessage
     ) {}
 
     public record JobPostResponse(
@@ -143,10 +144,13 @@ public class JobDtos {
             String jobTitle,
             String companyName,
             UUID applicantId,
+            UUID applicantProfileId,
             String applicantName,
             String applicantEmail,
             String applicantProfileImage,
             String coverLetter,
+            String coverLetterUrl,
+            String resumeUrl,
             ApplicationStatus status,
             LocalDateTime createdAt,
             LocalDateTime updatedAt

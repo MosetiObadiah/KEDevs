@@ -108,7 +108,7 @@ class JobServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(employer));
         when(employerProfileService.getProfileByUserId(userId)).thenReturn(
-                new UserDtos.EmployerProfileResponse(UUID.randomUUID(), userId, "CP", "cp@company.com", "TrueCompany", null, null, null, null, null, null, null, null, true, true, null)
+                new UserDtos.EmployerProfileResponse(UUID.randomUUID(), userId, "CP", "cp@company.com", "TrueCompany", null, null, null, null, null, null, null, null, true, true, true, null)
         );
         when(jobPostRepository.save(any(JobPost.class))).thenAnswer(i -> {
             JobPost j = i.getArgument(0);
@@ -293,7 +293,7 @@ class JobServiceTest {
         });
         when(userRepository.findById(any())).thenReturn(Optional.of(developer));
 
-        JobApplicationResponse response = jobService.applyToJob(otherUser, jobId, new ApplyJobRequest("Cover letter"));
+        JobApplicationResponse response = jobService.applyToJob(otherUser, jobId, null, null, "Cover letter");
 
         assertThat(response.coverLetter()).isEqualTo("Cover letter");
         verify(notificationService).notify(any(), any(), any(), any(), any());
@@ -307,7 +307,7 @@ class JobServiceTest {
         jobPost.setPeerSourced(true);
         when(jobPostRepository.findById(jobId)).thenReturn(Optional.of(jobPost));
 
-        assertThatThrownBy(() -> jobService.applyToJob(otherUser, jobId, new ApplyJobRequest(null)))
+        assertThatThrownBy(() -> jobService.applyToJob(otherUser, jobId, null, null, null))
                 .isInstanceOf(BadRequestException.class);
     }
 
@@ -316,7 +316,7 @@ class JobServiceTest {
     void applyToJob_ownPost_throws() {
         when(jobPostRepository.findById(jobId)).thenReturn(Optional.of(jobPost));
 
-        assertThatThrownBy(() -> jobService.applyToJob(userId, jobId, new ApplyJobRequest(null)))
+        assertThatThrownBy(() -> jobService.applyToJob(userId, jobId, null, null, null))
                 .isInstanceOf(CannotApplyToOwnJobException.class);
     }
 
@@ -327,7 +327,7 @@ class JobServiceTest {
         when(jobPostRepository.findById(jobId)).thenReturn(Optional.of(jobPost));
         when(jobApplicationRepository.existsByJobIdAndApplicantId(jobId, otherUser)).thenReturn(true);
 
-        assertThatThrownBy(() -> jobService.applyToJob(otherUser, jobId, new ApplyJobRequest(null)))
+        assertThatThrownBy(() -> jobService.applyToJob(otherUser, jobId, null, null, null))
                 .isInstanceOf(AlreadyAppliedException.class);
     }
 
@@ -338,7 +338,7 @@ class JobServiceTest {
         jobPost.setStatus(JobStatus.CLOSED);
         when(jobPostRepository.findById(jobId)).thenReturn(Optional.of(jobPost));
 
-        assertThatThrownBy(() -> jobService.applyToJob(otherUser, jobId, new ApplyJobRequest(null)))
+        assertThatThrownBy(() -> jobService.applyToJob(otherUser, jobId, null, null, null))
                 .isInstanceOf(JobNotOpenException.class);
     }
 
@@ -354,7 +354,7 @@ class JobServiceTest {
         when(jobApplicationRepository.findByJobIdAndId(jobId, appId)).thenReturn(Optional.of(application));
         when(jobApplicationRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-        JobApplicationResponse response = jobService.updateApplicationStatus(userId, jobId, appId, new UpdateApplicationStatusRequest(ApplicationStatus.SHORTLISTED));
+        JobApplicationResponse response = jobService.updateApplicationStatus(userId, jobId, appId, new UpdateApplicationStatusRequest(ApplicationStatus.SHORTLISTED, null));
 
         assertThat(response.status()).isEqualTo(ApplicationStatus.SHORTLISTED);
     }

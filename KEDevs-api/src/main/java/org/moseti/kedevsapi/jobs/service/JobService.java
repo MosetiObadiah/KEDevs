@@ -11,12 +11,15 @@ import org.moseti.kedevsapi.shared.exception.BadRequestException;
 import org.moseti.kedevsapi.shared.exception.ForbiddenException;
 import org.moseti.kedevsapi.shared.exception.ResourceNotFoundException;
 import org.moseti.kedevsapi.users.entity.User;
+import org.moseti.kedevsapi.users.repository.DeveloperProfileRepository;
 import org.moseti.kedevsapi.users.repository.UserRepository;
 import org.moseti.kedevsapi.users.service.EmployerProfileService;
+import org.moseti.kedevsapi.shared.service.FileUploadService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,7 +37,9 @@ public class JobService {
     private final JobApplicationRepository jobApplicationRepository;
 
     private final UserRepository userRepository;
+    private final DeveloperProfileRepository developerProfileRepository;
     private final EmployerProfileService employerProfileService;
+    private final FileUploadService fileUploadService;
     private final org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
     private final org.moseti.kedevsapi.auth.service.EmailService emailService;
 
@@ -295,7 +300,7 @@ public class JobService {
     }
 
     @Transactional
-    public JobApplicationResponse applyToJob(UUID userId, UUID jobId, ApplyJobRequest request) {
+    public JobApplicationResponse applyToJob(UUID userId, UUID jobId, MultipartFile resume, MultipartFile coverLetterFile, String coverLetterText) {
         JobPost job = jobPostRepository.findById(jobId)
                 .orElseThrow(() -> new JobNotFoundException("Job not found"));
 
@@ -315,10 +320,21 @@ public class JobService {
             throw new AlreadyAppliedException("Already applied to this job");
         }
 
+        // Upload resume to Cloudinary (required)
+        String resumeUrl = fileUploadService.uploadFile(resume, "kedevs/resumes");
+
+        // Upload cover letter file if provided
+        String coverLetterUrl = null;
+        if (coverLetterFile != null && !coverLetterFile.isEmpty()) {
+            coverLetterUrl = fileUploadService.uploadFile(coverLetterFile, "kedevs/cover-letters");
+        }
+
         JobApplication application = new JobApplication();
         application.setJobPost(job);
         application.setApplicantId(userId);
-        application.setCoverLetter(request.coverLetter());
+        application.setCoverLetter(coverLetterText);
+        application.setResumeUrl(resumeUrl);
+        application.setCoverLetterUrl(coverLetterUrl);
         application.setStatus(ApplicationStatus.PENDING);
         application = jobApplicationRepository.save(application);
 
@@ -367,11 +383,25 @@ public class JobService {
         application.setStatus(request.status());
         application = jobApplicationRepository.save(application);
 
+        String statusLabel = switch (request.status()) {
+            case SHORTLISTED -> "accepted ✅";
+            case REJECTED -> "not moved forward with at this time";
+            case VIEWED -> "reviewed";
+            default -> request.status().name().toLowerCase();
+        };
+
+        String notifTitle = request.status() == ApplicationStatus.SHORTLISTED ? "Application Accepted 🎉" : "Application Update";
+        String notifBody = "Your application for '" + job.getTitle() + "' at " + job.getCompanyName() + " has been " + statusLabel + ".";
+
+        if (request.status() == ApplicationStatus.SHORTLISTED && request.employerMessage() != null && !request.employerMessage().isBlank()) {
+            notifBody += "\n\nMessage from the employer: " + request.employerMessage();
+        }
+
         notificationService.notify(
                 application.getApplicantId(),
                 org.moseti.kedevsapi.shared.enums.NotificationCategory.JOB,
-                "Application Update",
-                "Your application for '" + job.getTitle() + "' has been " + request.status().name().toLowerCase() + ".",
+                notifTitle,
+                notifBody,
                 "{\"jobId\":\"" + jobId + "\",\"applicationId\":\"" + application.getId() + "\"}"
         );
 
@@ -504,16 +534,24 @@ public class JobService {
         String jobTitle = application.getJobPost() != null ? application.getJobPost().getTitle() : null;
         String companyName = application.getJobPost() != null ? application.getJobPost().getCompanyName() : null;
 
+        // Resolve developer profile ID (not user ID) for proper frontend linking
+        UUID applicantProfileId = developerProfileRepository.findByUserId(application.getApplicantId())
+                .map(p -> p.getId())
+                .orElse(null);
+
         return new JobApplicationResponse(
                 application.getId(),
                 application.getJobPost() != null ? application.getJobPost().getId() : null,
                 jobTitle,
                 companyName,
                 application.getApplicantId(),
+                applicantProfileId,
                 applicantName,
                 applicantEmail,
                 applicantProfileImage,
                 application.getCoverLetter(),
+                application.getCoverLetterUrl(),
+                application.getResumeUrl(),
                 application.getStatus(),
                 application.getCreatedAt(),
                 application.getUpdatedAt()

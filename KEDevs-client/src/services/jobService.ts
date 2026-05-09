@@ -33,24 +33,32 @@ export const jobService = {
     return apiClient.delete<ApiResponse<void>>(`/api/v1/jobs/${id}`);
   },
 
-  async voteJob(id: string, vote: 'UP' | 'DOWN'): Promise<ApiResponse<any>> {
-    return apiClient.post<ApiResponse<any>>(`/api/v1/jobs/${id}/vote`, { vote });
+  async voteJob(id: string, voteType: 'UPVOTE' | 'DOWNVOTE'): Promise<ApiResponse<any>> {
+    return apiClient.post<ApiResponse<any>>(`/api/v1/jobs/${id}/vote`, { voteType });
   },
 
   async flagJob(id: string, reason: string): Promise<ApiResponse<any>> {
     return apiClient.post<ApiResponse<any>>(`/api/v1/jobs/${id}/flag`, { reason });
   },
 
-  async applyToJob(id: string, data: any): Promise<ApiResponse<any>> {
-    return apiClient.post<ApiResponse<any>>(`/api/v1/jobs/${id}/apply`, data);
+  async applyToJob(id: string, resume: File, coverLetterFile: File | null, coverLetterText?: string): Promise<ApiResponse<any>> {
+    const formData = new FormData();
+    formData.append('resume', resume);
+    if (coverLetterFile) {
+      formData.append('coverLetter', coverLetterFile);
+    }
+    if (coverLetterText) {
+      formData.append('coverLetterText', coverLetterText);
+    }
+    return apiClient.post<ApiResponse<any>>(`/api/v1/jobs/${id}/apply`, formData);
   },
 
   async updateJobStatus(id: string, status: string): Promise<ApiResponse<any>> {
     return apiClient.patch<ApiResponse<any>>(`/api/v1/jobs/${id}/status?status=${status}`, {});
   },
 
-  async updateApplicationStatus(jobId: string, appId: string, status: string): Promise<ApiResponse<any>> {
-    return apiClient.patch<ApiResponse<any>>(`/api/v1/jobs/${jobId}/applications/${appId}`, { status });
+  async updateApplicationStatus(jobId: string, appId: string, status: string, employerMessage?: string): Promise<ApiResponse<any>> {
+    return apiClient.patch<ApiResponse<any>>(`/api/v1/jobs/${jobId}/applications/${appId}`, { status, employerMessage });
   },
 
   async getJobApplications(jobId: string): Promise<ApiResponse<PaginatedResponse<any>>> {
