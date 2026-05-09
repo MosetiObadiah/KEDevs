@@ -12,6 +12,7 @@ import { PillBadge } from '@/components/shared/PillBadge';
 import Link from 'next/link';
 import { Card, Avatar, Chip } from '@mui/material';
 import VerifiedIcon from '@mui/icons-material/Verified';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { JobSummary, DeveloperSummary } from '@/lib/types';
 
 interface HeroProps {
@@ -116,9 +117,20 @@ export const Hero = ({ randomJob, randomDev }: HeroProps) => {
                   </Box>
                   {randomDev.isVerified && <VerifiedIcon color="primary" sx={{ ml: 'auto' }} />}
                 </Stack>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 3 }}>
                   {randomDev.skills.slice(0, 3).map(s => <Chip key={s} label={s} size="small" />)}
                 </Box>
+                <Button 
+                  variant="outlined" 
+                  size="small" 
+                  fullWidth 
+                  component={Link} 
+                  href={`/developers/${randomDev.id}`}
+                  endIcon={<ArrowForwardIcon />}
+                  sx={{ borderRadius: 1.5, fontWeight: 700 }}
+                >
+                  View Profile
+                </Button>
               </Card>
             )}
 

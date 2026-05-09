@@ -22,6 +22,7 @@ import VerifiedIcon from '@mui/icons-material/Verified';
 import SpeedIcon from '@mui/icons-material/Speed';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import CodeIcon from '@mui/icons-material/Code';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { PillBadge } from '@/components/shared/PillBadge';
 
 interface SpotlightSectionProps {
@@ -142,10 +143,19 @@ function SpotlightBigCard({ dev, type }: { dev: any, type: string }) {
               variant="contained" 
               fullWidth 
               component={Link} 
-              href={`/developers/${dev.developerId}`}
-              sx={{ borderRadius: 3, fontWeight: 800, py: 1.5 }}
+              href={`/developers/${dev.developerId || dev.id}`}
+              endIcon={<ArrowForwardIcon />}
+              sx={{ 
+                borderRadius: 3, 
+                fontWeight: 800, 
+                py: 1.5,
+                boxShadow: '0 4px 14px 0 rgba(16, 185, 129, 0.39)',
+                '&:hover': {
+                  boxShadow: '0 6px 20px rgba(16, 185, 129, 0.23)',
+                }
+              }}
             >
-              View Profile
+              View Full Profile
             </Button>
           </Stack>
         </Grid>

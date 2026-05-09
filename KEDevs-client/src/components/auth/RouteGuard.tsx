@@ -59,6 +59,12 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
         router.push('/developers');
         return;
       }
+      
+      // 5. Prevent accessing login/register if already logged in
+      if (pathname === '/login' || pathname === '/register') {
+        router.push(isDev ? '/jobs' : (isEmp ? '/developers' : '/admin/dashboard'));
+        return;
+      }
 
     } else if (!isPublicRoute) {
       router.push('/login');

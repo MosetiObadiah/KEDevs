@@ -88,6 +88,8 @@ export interface AuthResponse {
   role: 'DEVELOPER' | 'EMPLOYER' | 'ADMIN';
   emailVerified: boolean;
   requiresApproval: boolean;
+  onboarded: boolean;
+  isVerified: boolean;
 }
 
 

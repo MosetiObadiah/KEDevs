@@ -333,11 +333,26 @@ public class AuthService {
                                 !user.isSubscriptionActive();
 
         boolean onboarded = false;
+        boolean isVerified = user.isApprovedByAdmin();
+        boolean employerApproved = false;
+
         if (user.getRole() == Role.DEVELOPER) {
-            onboarded = developerProfileRepository.existsByUserId(user.getId());
+            var profile = developerProfileRepository.findByUserId(user.getId());
+            onboarded = profile.isPresent();
+            if (profile.isPresent()) {
+                isVerified = profile.get().isVerified();
+            }
         } else if (user.getRole() == Role.EMPLOYER) {
-            onboarded = employerProfileRepository.existsByUserId(user.getId());
+            var profile = employerProfileRepository.findByUserId(user.getId());
+            onboarded = profile.isPresent();
+            if (profile.isPresent()) {
+                employerApproved = profile.get().isApproved();
+                isVerified = employerApproved;
+            }
         }
+
+        // For employers, requiresApproval is driven by employer_profiles.is_approved
+        boolean requiresApproval = user.getRole() == Role.EMPLOYER && !employerApproved;
 
         return AuthResponse.builder()
                 .accessToken(accessToken)
@@ -347,9 +362,10 @@ public class AuthService {
                 .fullName(user.getFullName())
                 .role(user.getRole())
                 .emailVerified(user.isEmailVerified())
-                .requiresApproval(user.getRole() == Role.EMPLOYER && !user.isApprovedByAdmin())
+                .requiresApproval(requiresApproval)
                 .onboarded(onboarded)
                 .inGracePeriod(inGracePeriod)
+                .isVerified(isVerified)
                 .build();
     }
 }

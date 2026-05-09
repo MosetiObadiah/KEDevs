@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role,
       isEmailVerified: emailVerified,
       isApproved: !requiresApproval,
-      isVerified: false,
+      isVerified: data.isVerified || !requiresApproval,
       spotlightStatus: { isActive: false }
     };
 
@@ -97,7 +97,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await authService.login(credentials);
       if (response.success) {
         handleAuthSuccess(response.data);
+      } else {
+        setUser(null);
+        throw new Error(response.message || 'Login failed');
       }
+    } catch (err: any) {
+      setUser(null);
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      throw err;
     } finally {
       setIsLoading(false);
     }
