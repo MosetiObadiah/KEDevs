@@ -164,6 +164,24 @@ export default function CreateJobPostPage() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
+  // Fetch employer profile and auto-fill company name
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (isEmployer) {
+        try {
+          const response = await employerService.getMyProfile();
+          if (response.success && response.data) {
+            setEmployerProfile(response.data);
+            dispatch({ type: 'UPDATE_FIELD', field: 'companyName', value: response.data.companyName || '' });
+          }
+        } catch (err) {
+          console.error('Failed to fetch employer profile:', err);
+        }
+      }
+    };
+    fetchProfile();
+  }, [isEmployer]);
+
   const steps: StepConfig[] = [
     ...(isDeveloper ? [{
       label: 'Job Nature',

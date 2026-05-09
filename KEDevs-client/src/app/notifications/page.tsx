@@ -225,7 +225,7 @@ const NotificationsPage = () => {
                             label={n.category}
                             size="small"
                             color={getCategoryColor(n.category) as any}
-                            variant="soft"
+                            variant="outlined"
                             sx={{ fontWeight: 700, fontSize: '0.65rem' }}
                           />
                           {!n.isRead && (

@@ -60,8 +60,12 @@ public class JobService {
             } catch (ResourceNotFoundException | org.moseti.kedevsapi.users.exception.ProfileNotFoundException e) {
                 job.setCompanyName(request.companyName());
             }
+            job.setPeerSourced(false);
+            job.setSourceUrl(null);
         } else {
             job.setCompanyName(request.companyName());
+            job.setPeerSourced(request.isPeerSourced());
+            job.setSourceUrl(request.sourceUrl());
         }
 
         job.setLocationCity(request.locationCity());
@@ -75,8 +79,6 @@ public class JobService {
         job.setSalaryRangeMax(request.salaryRangeMax());
         job.setSalaryCurrency(request.salaryCurrency() != null ? request.salaryCurrency() : "KES");
         job.setApplicationDeadline(request.applicationDeadline());
-        job.setSourceUrl(request.sourceUrl());
-        job.setPeerSourced(request.isPeerSourced());
         job.setVisibility(request.visibility());
         job.setStatus(JobStatus.OPEN);
 
@@ -136,7 +138,29 @@ public class JobService {
         if (request.title() != null) job.setTitle(request.title());
         if (request.summary() != null) job.setSummary(request.summary());
         if (request.description() != null) job.setDescription(request.description());
-        if (request.companyName() != null) job.setCompanyName(request.companyName());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (user.getRole() == Role.EMPLOYER) {
+            // Employers cannot make jobs peer sourced
+            job.setPeerSourced(false);
+            job.setSourceUrl(null);
+            
+            // If they provided a company name, ignore it and keep the one set on creation or profile
+            if (request.companyName() != null) {
+                try {
+                    var profile = employerProfileService.getProfileByUserId(userId);
+                    job.setCompanyName(profile.companyName());
+                } catch (Exception e) {
+                    // Fallback to existing
+                }
+            }
+        } else {
+            if (request.companyName() != null) job.setCompanyName(request.companyName());
+            if (request.sourceUrl() != null) job.setSourceUrl(request.sourceUrl());
+            if (request.isPeerSourced() != null) job.setPeerSourced(request.isPeerSourced());
+        }
+
         if (request.locationCity() != null) job.setLocationCity(request.locationCity());
         if (request.locationCountry() != null) job.setLocationCountry(request.locationCountry());
         if (request.jobType() != null) job.setJobType(request.jobType());
@@ -148,8 +172,7 @@ public class JobService {
         if (request.salaryRangeMax() != null) job.setSalaryRangeMax(request.salaryRangeMax());
         if (request.salaryCurrency() != null) job.setSalaryCurrency(request.salaryCurrency());
         if (request.applicationDeadline() != null) job.setApplicationDeadline(request.applicationDeadline());
-        if (request.sourceUrl() != null) job.setSourceUrl(request.sourceUrl());
-        if (request.isPeerSourced() != null) job.setPeerSourced(request.isPeerSourced());
+        
         if (request.visibility() != null) job.setVisibility(request.visibility());
 
         job = jobPostRepository.save(job);
