@@ -153,9 +153,9 @@ export default function JobDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-12 animate-pulse">
+      <div className="container mx-auto px-4 pt-4 pb-12 animate-pulse">
         <Skeleton className="h-12 w-3/4 mb-4 rounded-2xl" />
-        <Skeleton className="h-6 w-1/4 mb-12 rounded-xl" />
+        <Skeleton className="h-6 w-1/4 mb-6 rounded-xl" />
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
            <div className="lg:col-span-8 space-y-6">
               <Skeleton className="h-[400px] w-full rounded-[2.5rem]" />
@@ -171,7 +171,7 @@ export default function JobDetailPage() {
 
   if (error || !job) {
     return (
-      <div className="container mx-auto px-4 py-20 text-center">
+      <div className="container mx-auto px-4 pt-12 pb-20 text-center">
         <div className="h-20 w-20 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-6">
            <AlertTriangle className="h-10 w-10" />
         </div>
@@ -186,10 +186,10 @@ export default function JobDetailPage() {
   const isExpired = job.applicationDeadline && new Date(job.applicationDeadline) < new Date();
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-20 pt-12">
+    <div className="min-h-screen bg-slate-50/50 pb-20 pt-4">
       <div className="container mx-auto px-4">
         {/* Breadcrumb & Navigation */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-4">
           <Button variant="ghost" className="rounded-xl font-black text-slate-500 hover:text-slate-900 group" asChild>
             <Link href="/jobs">
                <ChevronLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />

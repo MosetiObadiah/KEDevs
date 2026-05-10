@@ -125,16 +125,8 @@ export default function DevelopersPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
-      <div className="container mx-auto px-6 py-12">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 space-y-4 md:space-y-0 print:hidden">
-           <div>
-              <Badge variant="secondary" className="bg-primary/10 text-primary border-none font-bold uppercase tracking-widest text-[10px]">Talent Directory</Badge>
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-                Kenyan <span className="text-primary">Developers</span>
-              </h1>
-              <p className="text-muted-foreground">Discover and connect with top-tier technical talent in Kenya.</p>
-           </div>
-           
+      <div className="container mx-auto px-6 pt-8 pb-12">
+        <div className="flex flex-col md:flex-row justify-end items-center mb-6 space-y-4 md:space-y-0 print:hidden">
            <DropdownMenu>
               <DropdownMenuTrigger asChild>
                  <Button variant="outline" className="font-bold border-primary/20 hover:bg-primary/5" disabled={isExporting}>

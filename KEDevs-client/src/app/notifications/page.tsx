@@ -124,17 +124,9 @@ export default function NotificationsPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
-      <div className="container mx-auto px-6 py-12">
+      <div className="container mx-auto px-6 pt-8 pb-12">
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 space-y-4 md:space-y-0">
-          <div>
-            <Badge variant="secondary" className="bg-primary/10 text-primary border-none font-bold uppercase tracking-widest text-[10px]">Communication Center</Badge>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-2">
-              System <span className="text-primary">Pulse</span>
-            </h1>
-            <p className="text-muted-foreground mt-2">Stay synchronized with the latest activities across the ecosystem.</p>
-          </div>
-          
+        <div className="flex flex-col md:flex-row justify-end items-center mb-6 space-y-4 md:space-y-0 print:hidden">
           <div className="flex gap-3">
              <Button variant="outline" className="font-bold border-primary/20 hover:bg-primary/5 h-11" onClick={handleMarkAllRead} disabled={notifications.every(n => n.isRead)}>
                 <CheckCheck className="mr-2 h-4 w-4 text-primary" /> Mark All Read

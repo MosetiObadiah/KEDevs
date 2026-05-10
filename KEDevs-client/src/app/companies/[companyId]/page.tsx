@@ -54,7 +54,7 @@ export default function CompanyProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-12 animate-pulse space-y-12">
+      <div className="container mx-auto px-4 pt-4 pb-12 animate-pulse space-y-12">
         <div className="h-[300px] w-full rounded-[3rem] bg-slate-100" />
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
            <div className="md:col-span-8 space-y-6">
@@ -71,7 +71,7 @@ export default function CompanyProfilePage() {
 
   if (error || !company) {
     return (
-      <div className="container mx-auto px-4 py-20 text-center">
+      <div className="container mx-auto px-4 pt-12 pb-20 text-center">
         <h2 className="text-3xl font-black mb-4">{error || 'Company profile not found'}</h2>
         <Button variant="outline" className="rounded-2xl h-12 font-black" asChild>
            <Link href="/companies">Back to Directory</Link>
@@ -83,12 +83,12 @@ export default function CompanyProfilePage() {
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20">
       {/* Premium Spotlight Header */}
-      <div className="bg-emerald-950 pt-32 pb-60 relative overflow-hidden">
+      <div className="bg-emerald-950 pt-16 pb-60 relative overflow-hidden">
          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-transparent to-primary/10 opacity-50" />
          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[120px] -mr-60 -mt-60" />
          
          <div className="container mx-auto px-4 relative z-10">
-            <Link href="/companies" className="inline-flex items-center text-emerald-400 hover:text-white font-black uppercase text-[10px] tracking-widest mb-12 transition-all group">
+            <Link href="/companies" className="inline-flex items-center text-emerald-400 hover:text-white font-black uppercase text-[10px] tracking-widest mb-6 transition-all group">
                <ChevronLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
                Back to Company Directory
             </Link>

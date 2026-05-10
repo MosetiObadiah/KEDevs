@@ -101,16 +101,8 @@ export default function MyJobPosts() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-20 max-w-5xl animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
-         <div>
-            <Badge variant="outline" className="rounded-lg font-black tracking-widest text-[10px] uppercase bg-emerald-50 text-emerald-600 border-emerald-100 mb-4 px-3 py-1">
-               EMPLOYER DASHBOARD
-            </Badge>
-            <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">Active Listings</h1>
-            <p className="text-slate-500 font-semibold mt-2">Manage your current job postings and review talent</p>
-         </div>
-         
+    <div className="container mx-auto px-4 pt-8 pb-12 max-w-5xl animate-in fade-in duration-700">
+      <div className="flex flex-col md:flex-row md:items-center justify-end gap-8 mb-6">
          <Button className="rounded-2xl h-14 px-8 font-black bg-slate-900 shadow-xl shadow-slate-900/10 gap-2" asChild>
             <Link href="/jobs/post">
                <Plus className="h-5 w-5" /> Post New Job

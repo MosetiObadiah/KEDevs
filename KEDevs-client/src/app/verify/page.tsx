@@ -167,9 +167,9 @@ export default function VerificationFlow() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-20 pt-32 animate-in fade-in duration-700">
+    <div className="min-h-screen bg-slate-50/50 pb-20 pt-12 animate-in fade-in duration-700">
       <div className="container mx-auto px-4 max-w-4xl">
-        <div className="text-center mb-16 space-y-4">
+        <div className="text-center mb-8 space-y-4">
            <Badge variant="outline" className="rounded-lg font-black tracking-widest text-[10px] uppercase bg-emerald-50 text-emerald-600 border-emerald-100 px-4 py-1.5">
               TRUST PROTOCOL
            </Badge>

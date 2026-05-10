@@ -196,12 +196,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             >
               <Menu className="h-5 w-5" />
             </button>
-            <div className="relative w-64 md:w-96">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search jobs, devs..." 
-                className="pl-10 h-9 rounded-full bg-muted/50 border-transparent focus-visible:bg-background focus-visible:ring-offset-0 transition-all"
-              />
+            <div className="flex items-center">
+               {(() => {
+                  if (pathname === '/jobs') return <h1 className="text-xl font-black tracking-tight">Job <span className="text-primary">Board</span></h1>;
+                  if (pathname === '/developers') return <h1 className="text-xl font-black tracking-tight">Talent <span className="text-primary">Directory</span></h1>;
+                  if (pathname === '/companies') return <h1 className="text-xl font-black tracking-tight">Ecosystem <span className="text-primary">Directory</span></h1>;
+                  if (pathname === '/notifications') return <h1 className="text-xl font-black tracking-tight text-primary">Notifications</h1>;
+                  if (pathname === '/profile/me') return <h1 className="text-xl font-black tracking-tight text-primary">My Profile</h1>;
+                  if (pathname.startsWith('/settings')) return <h1 className="text-xl font-black tracking-tight text-primary">Settings</h1>;
+                  if (pathname === '/spotlight') return <h1 className="text-xl font-black tracking-tight">Talent <span className="text-primary">Spotlight</span></h1>;
+                  if (pathname === '/payments') return <h1 className="text-xl font-black tracking-tight text-primary">Financial Ledger</h1>;
+                  if (pathname === '/jobs/my-applications') return <h1 className="text-xl font-black tracking-tight text-primary">My Applications</h1>;
+                  if (pathname === '/jobs/my-posts') return <h1 className="text-xl font-black tracking-tight text-primary">Job Management</h1>;
+                  if (pathname.startsWith('/developers/')) return <h1 className="text-xl font-black tracking-tight text-primary">Talent Profile</h1>;
+                  if (pathname.startsWith('/jobs/')) return <h1 className="text-xl font-black tracking-tight text-primary">Job Details</h1>;
+                  if (pathname === '/verify') return <h1 className="text-xl font-black tracking-tight text-primary">Verification Center</h1>;
+                  return null;
+               })()}
             </div>
           </div>
           <div className="flex items-center gap-3">

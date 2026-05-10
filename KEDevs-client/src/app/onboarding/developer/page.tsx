@@ -50,11 +50,11 @@ const skillsOptions = [
 ];
 
 const experienceLevels = [
-  { value: 'ZERO_TO_ONE', label: '0 - 1 Year' },
-  { value: 'ONE_TO_THREE', label: '1 - 3 Years' },
-  { value: 'THREE_TO_FIVE', label: '3 - 5 Years' },
-  { value: 'FIVE_TO_TEN', label: '5 - 10 Years' },
-  { value: 'TEN_PLUS', label: '10+ Years' },
+  { value: 'ZERO_TO_ONE', label: 'Zero to one years of experience' },
+  { value: 'ONE_TO_THREE', label: 'One to three years of experience' },
+  { value: 'THREE_TO_FIVE', label: 'Three to five years of experience' },
+  { value: 'FIVE_TO_TEN', label: 'Five to ten years of experience' },
+  { value: 'TEN_PLUS', label: 'Ten plus years of experience' },
 ];
 
 export default function DeveloperOnboarding() {

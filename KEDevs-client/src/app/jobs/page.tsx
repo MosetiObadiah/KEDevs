@@ -123,15 +123,8 @@ export default function JobsPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
-      <div className="container mx-auto px-6 py-12">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10">
-          <div className="space-y-2">
-            <Badge variant="secondary" className="bg-primary/10 text-primary border-none font-bold uppercase tracking-widest text-[10px]">Opportunities</Badge>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-              Job <span className="text-primary">Board</span>
-            </h1>
-            <p className="text-muted-foreground">Find your next career move in Kenya's tech ecosystem.</p>
-          </div>
+      <div className="container mx-auto px-6 pt-8 pb-12">
+        <div className="flex flex-col md:flex-row justify-end items-center gap-6 mb-6">
           {isLoggedIn && (
             <Button className="h-12 px-6 font-bold shadow-lg shadow-primary/20" asChild>
               <Link href="/jobs/post">

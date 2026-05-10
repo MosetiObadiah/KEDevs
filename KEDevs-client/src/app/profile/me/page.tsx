@@ -67,7 +67,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { cn, formatExperience } from '@/lib/utils';
 
 const COMMON_SKILLS = [
   'React', 'Java', 'Docker', 'Node.js', 'Python', 'TypeScript', 'Spring Boot', 'AWS', 
@@ -475,17 +475,9 @@ export default function MyProfile() {
 
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
-      <div className="container mx-auto px-6 py-12">
+      <div className="container mx-auto px-6 pt-8 pb-12">
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 space-y-4 md:space-y-0">
-          <div>
-            <Badge variant="secondary" className="bg-primary/10 text-primary border-none font-bold uppercase tracking-widest text-[10px]">Professional Identity</Badge>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-2">
-              My <span className="text-primary">Profile</span>
-            </h1>
-            <p className="text-muted-foreground mt-2">Manage your professional presence and visibility in the ecosystem.</p>
-          </div>
-          
+        <div className="flex flex-col md:flex-row justify-end items-center mb-6 space-y-4 md:space-y-0">
           <div className="flex gap-3">
             <Button 
               size="lg" 
@@ -589,7 +581,7 @@ export default function MyProfile() {
                     <>
                       <div className="flex items-center gap-2 text-muted-foreground font-medium text-sm">
                         <Briefcase className="h-4 w-4 text-primary" />
-                        {profile.yearsOfExperience?.replace(/_/g, ' ')} Experience
+                        {formatExperience(profile.yearsOfExperience)} Experience
                       </div>
                       <div className="flex items-center gap-2 text-muted-foreground font-medium text-sm">
                         <Zap className="h-4 w-4 text-primary" />
@@ -839,12 +831,51 @@ export default function MyProfile() {
                         </CardHeader>
                         <CardContent className="pt-6">
                            {isEditing ? (
-                              <Textarea 
-                                 className="min-h-[200px] rounded-2xl border-slate-200 font-medium text-lg focus-visible:ring-primary/20"
-                                 value={profile.bio || ''} 
-                                 onChange={(e) => setProfile({...profile, bio: e.target.value})}
-                                 placeholder="Tell your story, your stack, and what you're passionate about..."
-                              />
+                              <div className="space-y-6">
+                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                       <Label className="font-bold text-xs uppercase tracking-wider text-muted-foreground">First Name</Label>
+                                       <Input value={profile.firstName || ''} onChange={(e) => setProfile({...profile, firstName: e.target.value})} className="h-12 rounded-xl border-border/50 font-bold" />
+                                    </div>
+                                    <div className="space-y-2">
+                                       <Label className="font-bold text-xs uppercase tracking-wider text-muted-foreground">Last Name</Label>
+                                       <Input value={profile.lastName || ''} onChange={(e) => setProfile({...profile, lastName: e.target.value})} className="h-12 rounded-xl border-border/50 font-bold" />
+                                    </div>
+                                 </div>
+                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                       <Label className="font-bold text-xs uppercase tracking-wider text-muted-foreground">Current / Desired Role</Label>
+                                       <Input value={profile.currentLastRole || ''} onChange={(e) => setProfile({...profile, currentLastRole: e.target.value})} className="h-12 rounded-xl border-border/50 font-bold" />
+                                    </div>
+                                    <div className="space-y-2">
+                                       <Label className="font-bold text-xs uppercase tracking-wider text-muted-foreground">Years of Experience</Label>
+                                       <Select 
+                                          value={profile.yearsOfExperience || ''} 
+                                          onValueChange={(v) => setProfile({ ...profile, yearsOfExperience: v })}
+                                       >
+                                          <SelectTrigger className="h-12 rounded-xl border-border/50 font-bold">
+                                             <SelectValue placeholder="Select experience" />
+                                          </SelectTrigger>
+                                          <SelectContent className="rounded-xl border-border/50">
+                                             <SelectItem value="ZERO_TO_ONE">Zero to one years of experience</SelectItem>
+                                             <SelectItem value="ONE_TO_THREE">One to three years of experience</SelectItem>
+                                             <SelectItem value="THREE_TO_FIVE">Three to five years of experience</SelectItem>
+                                             <SelectItem value="FIVE_TO_TEN">Five to ten years of experience</SelectItem>
+                                             <SelectItem value="TEN_PLUS">Ten plus years of experience</SelectItem>
+                                          </SelectContent>
+                                       </Select>
+                                    </div>
+                                 </div>
+                                 <div className="space-y-2">
+                                    <Label className="font-bold text-xs uppercase tracking-wider text-muted-foreground">Professional Story</Label>
+                                    <Textarea 
+                                       className="min-h-[200px] rounded-2xl border-border/50 font-medium text-lg focus-visible:ring-primary/20"
+                                       value={profile.bio || ''} 
+                                       onChange={(e) => setProfile({...profile, bio: e.target.value})}
+                                       placeholder="Tell your story, your stack, and what you're passionate about..."
+                                    />
+                                 </div>
+                              </div>
                            ) : (
                               <p className="text-lg leading-relaxed text-slate-600 font-medium whitespace-pre-wrap">
                                  {profile.bio || "Add a bio to tell employers who you are..."}
