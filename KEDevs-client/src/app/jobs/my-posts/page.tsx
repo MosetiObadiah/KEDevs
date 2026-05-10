@@ -16,7 +16,8 @@ import {
   MoreVertical,
   Lock,
   Eye,
-  ArrowRight
+  ArrowRight,
+  ExternalLink
 } from 'lucide-react';
 import { jobService } from '@/services/jobService';
 import { useAuth } from '@/context/AuthContext';
@@ -166,20 +167,28 @@ export default function MyJobPosts() {
                         <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest bg-primary/10 text-primary border-none">
                           {post.workType}
                         </Badge>
-                        <span className="flex items-center gap-1.5 text-xs font-bold text-slate-900 ml-2">
-                           <Users className="h-3.5 w-3.5" /> 12 Applicants
-                        </span>
+                        {!post.isPeerSourced && (
+                          <span className="flex items-center gap-1.5 text-xs font-bold text-slate-900 ml-2">
+                             <Users className="h-3.5 w-3.5" /> {post.applicationCount || 0} Applicants
+                          </span>
+                        )}
                       </div>
                     </div>
 
                     {/* Management Actions */}
                     <div className="flex md:flex-col items-center md:items-end justify-between md:justify-center md:w-48 shrink-0 gap-4">
-                      <Button variant="outline" className="w-full font-bold group/btn h-11" asChild>
-                        <Link href={`/jobs/${post.id}/applications`}>
-                          Manage Talent
-                          <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
-                        </Link>
-                      </Button>
+                      {!post.isPeerSourced ? (
+                        <Button variant="outline" className="w-full font-bold group/btn h-11" asChild>
+                          <Link href={`/jobs/${post.id}/applications`}>
+                            Manage Talent
+                            <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
+                          </Link>
+                        </Button>
+                      ) : (
+                        <div className="w-full py-2 px-4 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                          <ExternalLink className="h-3 w-3" /> External Source
+                        </div>
+                      )}
 
                       <div className="flex items-center gap-2">
                         <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-slate-100" asChild>

@@ -22,6 +22,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { jobService } from '@/services/jobService';
+import { apiClient } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -120,6 +121,38 @@ export default function ApplicationsInbox() {
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
     toast.success('Copied to clipboard');
+  };
+  
+  const handleDownload = async (url: string, filename: string) => {
+    if (!url) return;
+    
+    const downloadToast = toast.loading('Preparing download...');
+    try {
+      const fullUrl = url.startsWith('http') ? url : `${process.env.NEXT_PUBLIC_API_URL || ''}${url}`;
+      
+      const response = await fetch(fullUrl, {
+        headers: apiClient.getHeaders(),
+      });
+      
+      if (!response.ok) {
+        if (response.status === 401) throw new Error('Unauthorized. Please log in again.');
+        throw new Error(`Download failed (${response.status})`);
+      }
+      
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(blobUrl);
+      
+      toast.success('Download started', { id: downloadToast });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to download file', { id: downloadToast });
+    }
   };
 
   const openModal = (app: any) => {
@@ -257,11 +290,15 @@ export default function ApplicationsInbox() {
 
       <Dialog open={Boolean(selectedApplicant)} onOpenChange={(v) => !v && setSelectedApplicant(null)}>
          <DialogContent className="sm:max-w-4xl rounded-[3rem] p-0 overflow-hidden border-none shadow-2xl">
+            <DialogHeader className="sr-only">
+               <DialogTitle>Application Review</DialogTitle>
+               <DialogDescription>Detailed view of applicant information and documents.</DialogDescription>
+            </DialogHeader>
             {selectedApplicant && (
                <>
                   <div className="bg-slate-900 p-10 text-white relative">
                      <div className="absolute top-0 right-0 w-48 h-48 bg-primary/20 rounded-full blur-[80px] -mr-24 -mt-24" />
-                      <DialogHeader className="relative z-10 flex flex-row items-center justify-between">
+                      <div className="relative z-10 flex flex-row items-center justify-between">
                         <div className="space-y-4">
                            <div className="flex items-center gap-4">
                               <Avatar className="h-20 w-20 rounded-[1.5rem] border-4 border-white/10 shadow-2xl">
@@ -269,10 +306,7 @@ export default function ApplicationsInbox() {
                                  <AvatarFallback className="bg-primary text-white text-2xl font-black">{selectedApplicant.applicantName?.charAt(0)}</AvatarFallback>
                               </Avatar>
                               <div className="space-y-1">
-                                 <DialogTitle className="text-3xl font-black text-white tracking-tight">{selectedApplicant.applicantName}</DialogTitle>
-                                 <DialogDescription className="sr-only">
-                                    Reviewing application from {selectedApplicant.applicantName} for the position.
-                                 </DialogDescription>
+                                 <h3 className="text-3xl font-black text-white tracking-tight">{selectedApplicant.applicantName}</h3>
                                  <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest flex items-center gap-2">
                                     <Mail className="h-3 w-3" /> {selectedApplicant.applicantEmail}
                                  </p>
@@ -282,7 +316,7 @@ export default function ApplicationsInbox() {
                         <Badge className={cn("rounded-xl font-black text-[10px] uppercase tracking-widest px-4 py-2 border-none self-start", statusConfig[selectedApplicant.status]?.color)}>
                            {statusConfig[selectedApplicant.status]?.label}
                         </Badge>
-                     </DialogHeader>
+                     </div>
                   </div>
 
                   <div className="p-10 space-y-10 overflow-y-auto no-scrollbar max-h-[60vh]">
@@ -300,8 +334,8 @@ export default function ApplicationsInbox() {
                                              <p className="text-[10px] font-bold text-slate-400 uppercase">Uploaded on {new Date(selectedApplicant.createdAt).toLocaleDateString()}</p>
                                           </div>
                                        </div>
-                                       <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl" asChild>
-                                          <a href={selectedApplicant.resumeUrl} target="_blank"><Download className="h-4 w-4" /></a>
+                                       <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl" onClick={() => handleDownload(selectedApplicant.resumeUrl, `${selectedApplicant.applicantName}_Resume.pdf`)}>
+                                          <Download className="h-4 w-4" />
                                        </Button>
                                     </div>
                                  )}
@@ -314,8 +348,8 @@ export default function ApplicationsInbox() {
                                              <p className="text-[10px] font-bold text-slate-400 uppercase">Supporting Document</p>
                                           </div>
                                        </div>
-                                       <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl" asChild>
-                                          <a href={selectedApplicant.coverLetterUrl} target="_blank"><Download className="h-4 w-4" /></a>
+                                       <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl" onClick={() => handleDownload(selectedApplicant.coverLetterUrl, `${selectedApplicant.applicantName}_CoverLetter.pdf`)}>
+                                          <Download className="h-4 w-4" />
                                        </Button>
                                     </div>
                                  )}

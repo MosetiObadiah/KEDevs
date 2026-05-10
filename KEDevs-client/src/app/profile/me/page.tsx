@@ -705,7 +705,10 @@ export default function MyProfile() {
 
       <Dialog open={cropDialogOpen} onOpenChange={(v) => !v && setCropDialogOpen(false)}>
         <DialogContent className="sm:max-w-xl rounded-[2.5rem]">
-          <DialogHeader><DialogTitle className="text-2xl font-black">Crop Profile Photo</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black">Crop Profile Photo</DialogTitle>
+            <DialogDescription className="sr-only">Adjust your profile photo by cropping and zooming.</DialogDescription>
+          </DialogHeader>
           <div className="space-y-8 py-4">
             <div className="relative w-full h-[400px] rounded-[2rem] overflow-hidden bg-slate-900 border-8 border-slate-100">
               <Cropper image={cropImageSrc || ''} crop={crop} zoom={zoom} aspect={1} onCropChange={setCrop} onZoomChange={setZoom} onCropComplete={(_, pixels) => setCroppedAreaPixels(pixels)} />

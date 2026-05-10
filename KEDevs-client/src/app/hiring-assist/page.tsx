@@ -243,7 +243,7 @@ export default function HiringAssist() {
                                    </div>
                                    <div className="space-y-1 text-left">
                                       <DialogTitle className="text-3xl font-black tracking-tight">Direct Outreach</DialogTitle>
-                                      <DialogDescription className="font-bold text-slate-400 uppercase text-[10px] tracking-widest">Inviting {selectedDev?.name} to collaborate</DialogDescription>
+                                      <DialogDescription className="font-bold text-slate-400 uppercase text-[10px] tracking-widest">Inviting {selectedDev?.name || 'talent'} to collaborate</DialogDescription>
                                    </div>
                                 </DialogHeader>
                                 

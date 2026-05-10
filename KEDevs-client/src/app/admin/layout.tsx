@@ -30,6 +30,9 @@ import {
   Sheet,
   SheetContent,
   SheetTrigger,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
 } from "@/components/ui/sheet";
 
 const menuItems = [
@@ -114,6 +117,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-80 border-none">
+            <SheetHeader className="sr-only">
+              <SheetTitle>Admin Navigation</SheetTitle>
+              <SheetDescription>Access administrative controls and platform management.</SheetDescription>
+            </SheetHeader>
             <SidebarContent />
           </SheetContent>
         </Sheet>

@@ -125,44 +125,54 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false 
     )}>
       <div className="flex gap-4">
         {/* Voting Pillar */}
-        <div className="flex flex-col items-center gap-1 shrink-0 bg-slate-50/80 rounded-full py-2 px-1 h-fit border border-slate-100/50">
-          <button 
-            onClick={() => handleVote('UPVOTE')}
-            className={cn(
-              "p-1.5 rounded-full transition-colors",
-              comment.currentUserVote === 'UPVOTE' ? "text-primary bg-primary/10" : "text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-            )}
-            disabled={isAuthor || !isLoggedIn}
-          >
-            <ArrowBigUp className={cn("h-5 w-5", comment.currentUserVote === 'UPVOTE' && "fill-current")} />
-          </button>
-          <span className="text-xs font-black text-slate-700 min-w-[20px] text-center">
-            {comment.upvoteCount}
-          </span>
-          <button 
-            onClick={() => handleVote('DOWNVOTE')}
-            className={cn(
-              "p-1.5 rounded-full transition-colors",
-              comment.currentUserVote === 'DOWNVOTE' ? "text-red-500 bg-red-50" : "text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-            )}
-            disabled={isAuthor || !isLoggedIn}
-          >
-            <ArrowBigDown className={cn("h-5 w-5", comment.currentUserVote === 'DOWNVOTE' && "fill-current")} />
-          </button>
-        </div>
+        {!isReply && (
+          <div className="flex flex-col items-center gap-1 shrink-0 bg-slate-50/80 rounded-full py-2 px-1 h-fit border border-slate-100/50">
+            <button 
+              onClick={() => handleVote('UPVOTE')}
+              className={cn(
+                "p-1.5 rounded-full transition-colors",
+                comment.currentUserVote === 'UPVOTE' ? "text-primary bg-primary/10" : "text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              )}
+              disabled={isAuthor || !isLoggedIn}
+            >
+              <ArrowBigUp className={cn("h-5 w-5", comment.currentUserVote === 'UPVOTE' && "fill-current")} />
+            </button>
+            <span className="text-xs font-black text-slate-700 min-w-[20px] text-center">
+              {comment.upvoteCount}
+            </span>
+            <button 
+              onClick={() => handleVote('DOWNVOTE')}
+              className={cn(
+                "p-1.5 rounded-full transition-colors",
+                comment.currentUserVote === 'DOWNVOTE' ? "text-red-500 bg-red-50" : "text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              )}
+              disabled={isAuthor || !isLoggedIn}
+            >
+              <ArrowBigDown className={cn("h-5 w-5", comment.currentUserVote === 'DOWNVOTE' && "fill-current")} />
+            </button>
+          </div>
+        )}
 
-        {/* Content Area */}
-        <div className="flex-1 space-y-2">
-          <div className="flex items-center justify-between">
+        {/* Content Area - Card Wrapped */}
+        <div className={cn(
+          "flex-1 p-5 rounded-[2rem] border transition-all",
+          isAuthor ? "bg-primary/[0.02] border-primary/10 shadow-sm shadow-primary/5" : "bg-slate-50/30 border-slate-100",
+          "group-hover:border-primary/20 group-hover:bg-white transition-all duration-500"
+        )}>
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Avatar className="h-6 w-6 rounded-lg border border-slate-200">
-                <AvatarFallback className="text-[10px] font-black bg-slate-900 text-white">
+                <AvatarFallback className="text-[10px] font-black bg-slate-900 text-white uppercase">
                   {comment.authorName?.charAt(0) || '?'}
                 </AvatarFallback>
               </Avatar>
               <span className="text-sm font-black text-slate-900">{comment.authorName}</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                • {formatDistanceToNow(new Date(comment.createdAt))} ago
+              {isAuthor && (
+                <Badge variant="outline" className="text-[8px] uppercase font-black px-2 h-4 border-primary/20 text-primary bg-primary/5">YOU</Badge>
+              )}
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                <span className="h-1 w-1 bg-slate-200 rounded-full" />
+                {formatDistanceToNow(new Date(comment.createdAt))} ago
               </span>
               {comment.isFlagged && (
                 <Badge variant="destructive" className="h-4 px-1 rounded text-[8px] flex gap-0.5 items-center">
@@ -219,7 +229,7 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false 
             </div>
           ) : (
             <p className={cn(
-              "text-sm leading-relaxed font-medium",
+              "text-sm leading-relaxed font-medium whitespace-pre-wrap",
               comment.authorId === null ? "text-slate-400 italic" : "text-slate-600"
             )}>
               {comment.content}
@@ -228,15 +238,22 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false 
 
           {/* Action Row */}
           {!isEditing && (
-            <div className="flex gap-4 pt-1">
+            <div className="flex gap-4 pt-3 mt-1 border-t border-slate-50/50">
               {!isReply && isLoggedIn && comment.authorId !== null && (
                 <button 
                   onClick={() => setIsReplying(!isReplying)}
                   className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary transition-colors"
                 >
-                  <MessageSquare className="h-3.5 w-3.5" />
+                  <Reply className="h-3.5 w-3.5" />
                   Reply
                 </button>
+              )}
+              {isReply && isLoggedIn && comment.authorId !== null && (
+                <div className="flex items-center gap-2">
+                   <button onClick={() => handleVote('UPVOTE')} className={cn("text-[10px] font-black uppercase tracking-widest flex items-center gap-1 transition-colors", comment.currentUserVote === 'UPVOTE' ? "text-primary" : "text-slate-400 hover:text-slate-600")}>
+                      <ArrowBigUp className="h-3 w-3" /> {comment.upvoteCount}
+                   </button>
+                </div>
               )}
             </div>
           )}
