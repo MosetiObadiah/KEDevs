@@ -56,9 +56,15 @@ public class SecurityConfig {
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(PUBLIC_URLS).permitAll()
-                                                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/developers/{profileId}").permitAll()
-                                                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/forum/jobs/{jobId}/comments").permitAll()
-                                                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/forum/comments/{commentId}/replies").permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.GET,
+                                                                "/api/v1/developers/{profileId}")
+                                                .permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.GET,
+                                                                "/api/v1/forum/jobs/{jobId}/comments")
+                                                .permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.GET,
+                                                                "/api/v1/forum/comments/{commentId}/replies")
+                                                .permitAll()
                                                 .anyRequest().authenticated())
                                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
                 return http.build();
@@ -67,7 +73,8 @@ public class SecurityConfig {
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration config = new CorsConfiguration();
-                config.setAllowedOrigins(List.of("http://localhost:3000"));
+                config.setAllowedOrigins(
+                                List.of("http://localhost:3000", "https://monogamy-revoke-treble.ngrok-free.dev"));
                 config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 config.setAllowedHeaders(List.of("*"));
                 config.setAllowCredentials(true);
