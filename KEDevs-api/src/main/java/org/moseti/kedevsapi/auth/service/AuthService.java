@@ -127,6 +127,7 @@ public class AuthService {
         }
 
         user.setEmailVerified(true);
+        user.setLastLoginAt(LocalDateTime.now());
         userRepository.save(user);
 
         // Send welcome email
@@ -280,6 +281,7 @@ public class AuthService {
             newUser.setAccountStatus(AccountStatus.ACTIVE);
             newUser.setApprovedByAdmin(userRole == Role.DEVELOPER); // Employers need approval
             newUser.setGracePeriodEndsAt(LocalDateTime.now().plusDays(Constants.GRACE_PERIOD_DAYS));
+            newUser.setLastLoginAt(LocalDateTime.now());
 
             log.info("Saving new Google user: email={}, role={}", newUser.getEmail(), newUser.getRole());
             newUser = userRepository.save(newUser);

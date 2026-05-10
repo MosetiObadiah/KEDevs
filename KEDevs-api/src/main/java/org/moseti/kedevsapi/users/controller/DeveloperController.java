@@ -20,8 +20,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.moseti.kedevsapi.users.service.CsvExportService;
+import org.moseti.kedevsapi.users.service.PdfExportService;
 
 import java.util.UUID;
 
@@ -33,6 +38,8 @@ public class DeveloperController {
 
     private final DeveloperProfileService developerProfileService;
     private final EmployerProfileService employerProfileService;
+    private final CsvExportService csvExportService;
+    private final PdfExportService pdfExportService;
 
     @Operation(summary = "Create developer profile", description = "Requires DEVELOPER role.")
     @ApiResponses({
@@ -461,5 +468,36 @@ public class DeveloperController {
         Pageable pageable = PageRequest.of(page, Math.min(size, 50));
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Filtered developers retrieved",
                 developerProfileService.filterDevelopers(request, pageable)));
+    }
+
+    @Operation(summary = "Export developers (CSV/PDF)", description = "Public export of filtered developers")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Export generated successfully"),
+        @ApiResponse(responseCode = "400", description = "Unsupported format")
+    })
+    @PostMapping("/public/export")
+    public ResponseEntity<Resource> exportDevelopers(
+            @RequestParam String format,
+            @RequestBody UserDtos.DeveloperFilterRequest request) {
+        
+        java.util.List<UserDtos.DeveloperSummaryResponse> results = developerProfileService.filterDevelopers(request, Pageable.unpaged()).getContent();
+
+        if ("csv".equalsIgnoreCase(format)) {
+            byte[] csv = csvExportService.generateDeveloperCsv(results);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=developers.csv")
+                    .contentType(MediaType.parseMediaType("text/csv"))
+                    .body(new ByteArrayResource(csv));
+        }
+
+        if ("pdf".equalsIgnoreCase(format)) {
+            byte[] pdf = pdfExportService.generateDeveloperPdf(results);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=developers.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(new ByteArrayResource(pdf));
+        }
+
+        return ResponseEntity.badRequest().build();
     }
 }

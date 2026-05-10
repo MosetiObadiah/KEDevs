@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>KEDevs Talent Report</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #333;
+            margin: 20px;
+        }
+        h1 {
+            color: #0f172a;
+            border-bottom: 2px solid #0ea5e9;
+            padding-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #cbd5e1;
+            padding: 8px;
+            text-align: left;
+            font-size: 12px;
+        }
+        th {
+            background-color: #f8fafc;
+            font-weight: bold;
+            color: #475569;
+        }
+        tr:nth-child(even) {
+            background-color: #f1f5f9;
+        }
+        .skills {
+            font-size: 10px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <h1>KEDevs Talent Report</h1>
+    <p>Generated dynamically from active platform filters.</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Contact</th>
+                <th>Location</th>
+                <th>Availability</th>
+                <th>Skills</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="dev : ${developers}">
+                <td th:text="${dev.firstName} + ' ' + ${dev.lastName}"></td>
+                <td th:text="${dev.currentLastRole}"></td>
+                <td>
+                    <div th:if="${dev.publicEmail != null and !dev.publicEmail.isEmpty()}" th:text="'E: ' + ${dev.publicEmail}"></div>
+                    <div th:if="${dev.publicPhone != null and !dev.publicPhone.isEmpty()}" th:text="'P: ' + ${dev.publicPhone}"></div>
+                </td>
+                <td th:text="${dev.locationCity} + ', ' + ${dev.locationCountry}"></td>
+                <td th:text="${dev.availabilityStatus}"></td>
+                <td class="skills">
+                    <span th:each="skill, iterStat : ${dev.skills}" th:text="!${iterStat.last} ? ${skill} + ', ' : ${skill}"></span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

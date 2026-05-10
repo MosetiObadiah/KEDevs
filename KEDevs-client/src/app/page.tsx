@@ -53,7 +53,7 @@ export default function HomePage() {
           setWeekDev(weekSlot);
 
           [daySlot, weekSlot].forEach(slot => {
-            if (slot) {
+            if (slot && !devs.some(d => d.id === slot.developerId)) {
               devs.push({
                 id: slot.developerId,
                 firstName: slot.developerName.split(' ')[0],
@@ -61,9 +61,13 @@ export default function HomePage() {
                 profilePhoto: slot.profilePhoto,
                 currentLastRole: slot.currentLastRole,
                 skills: slot.featuredProjects && slot.featuredProjects.length > 0
-                  ? (slot.featuredProjects[0].techStack || [])
+                  ? (Array.isArray(slot.featuredProjects[0].techStack)
+                      ? slot.featuredProjects[0].techStack
+                      : typeof slot.featuredProjects[0].techStack === 'string'
+                        ? slot.featuredProjects[0].techStack.split(',')
+                        : [])
                   : [],
-                availabilityStatus: 'AVAILABLE_NOW',
+                availabilityStatus: 'AVAILABLE',
                 isVerified: slot.isVerified,
                 locationCity: slot.locationCity || 'Nairobi',
                 locationCountry: slot.locationCountry || 'Kenya'
@@ -72,11 +76,14 @@ export default function HomePage() {
           });
         }
 
-        const publicResponse = await developerService.getPublicDevelopers(0, 3);
+        const publicResponse = await developerService.getPublicDevelopers(0, 20);
         if (publicResponse.success) {
           const publicDevs = publicResponse.data.content;
           const filteredPublic = publicDevs.filter((pd: any) => !devs.some(d => d.id === pd.id));
-          setSpotlightDevs([...devs, ...filteredPublic].slice(0, 3));
+          const shuffled = [...filteredPublic].sort(() => 0.5 - Math.random());
+          const combined = [...devs, ...shuffled];
+          const uniqueDevs = combined.filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i);
+          setSpotlightDevs(uniqueDevs.slice(0, 5));
         }
 
         setIsLoadingDevs(false);
@@ -209,7 +216,7 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {isLoadingDevs ? (
-              [1, 2, 3].map((i) => (
+              [1, 2, 3, 4, 5].map((i) => (
                 <Card key={i} className="text-center p-8 border-border/50">
                   <Skeleton className="h-24 w-24 rounded-full mx-auto mb-6" />
                   <Skeleton className="h-8 w-3/4 mx-auto mb-2" />

@@ -265,7 +265,7 @@ export default function JobsPage() {
                           
                           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground font-medium mb-6">
                             <span className="flex items-center gap-1.5 font-bold text-foreground/80">
-                              <Building2 className="h-4 w-4" /> {job.companyName}
+                              <Building2 className="h-4 w-4" /> {job.isPeerSourced && job.postedByName ? job.postedByName : job.companyName}
                             </span>
                             <span className="flex items-center gap-1.5">
                               <MapPin className="h-4 w-4" /> {job.locationCity}, {job.locationCountry}

@@ -89,7 +89,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   // Define sidebar links based on role
   const sidebarLinks = isDev
     ? [
-        { label: 'Dashboard', href: '/profile/me', icon: LayoutDashboard },
         { label: 'Jobs', href: '/jobs', icon: Briefcase },
         { label: 'Developers', href: '/developers', icon: Users },
         { label: 'Companies', href: '/companies', icon: Building2 },
@@ -98,7 +97,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         { label: 'Payments', href: '/payments', icon: CreditCard },
       ]
     : [
-        { label: 'Dashboard', href: '/profile/me', icon: LayoutDashboard },
         { label: 'Browse Developers', href: '/developers', icon: Users },
         { label: 'Jobs', href: '/jobs', icon: Briefcase },
         { label: 'My Job Posts', href: '/jobs/my-posts', icon: ClipboardList },

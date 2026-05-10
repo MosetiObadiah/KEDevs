@@ -62,18 +62,39 @@ export default function EmployerOnboarding() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
-  const [formData, setFormData] = useState({
-    companyName: '',
-    industry: '',
-    companySize: 'TEN_TO_FIFTY',
-    locationCity: '',
-    companyBio: '',
-    contactPersonName: user?.fullName || '',
-    contactEmail: '',
-    websiteUrl: '',
-    linkedinUrl: '',
-    twitterHandle: '',
+  const [formData, setFormData] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('employer_onboarding');
+      if (saved) return JSON.parse(saved);
+    }
+    return {
+      companyName: '',
+      industry: '',
+      companySize: 'TEN_TO_FIFTY',
+      locationCity: '',
+      companyBio: '',
+      contactPersonName: user?.fullName || '',
+      contactEmail: '',
+      websiteUrl: '',
+      linkedinUrl: '',
+      twitterHandle: '',
+    };
   });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('employer_onboarding', JSON.stringify(formData));
+    }
+  }, [formData]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
 
   const handleNext = async () => {
     if (activeStep < steps.length - 1) {
@@ -117,6 +138,7 @@ export default function EmployerOnboarding() {
 
       if (response.success) {
         completeOnboarding();
+        localStorage.removeItem('employer_onboarding');
         toast.success('Profile submitted for approval!');
         router.push('/pending-approval');
       }

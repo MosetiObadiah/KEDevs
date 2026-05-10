@@ -64,17 +64,40 @@ export default function DeveloperOnboarding() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const [formData, setFormData] = useState({
-    firstName: user?.fullName?.split(' ')[0] || '',
-    lastName: user?.fullName?.split(' ').slice(1).join(' ') || '',
-    role: '',
-    city: 'Nairobi',
-    bio: '',
-    skills: [] as string[],
-    availability: 'AVAILABLE',
-    yearsOfExperience: 'ZERO_TO_ONE',
-    summary: '',
+  const [formData, setFormData] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('developer_onboarding');
+      if (saved) return JSON.parse(saved);
+    }
+    return {
+      firstName: user?.fullName?.split(' ')[0] || '',
+      lastName: user?.fullName?.split(' ').slice(1).join(' ') || '',
+      role: '',
+      city: 'Nairobi',
+      bio: '',
+      skills: [] as string[],
+      availability: 'AVAILABLE',
+      yearsOfExperience: 'ZERO_TO_ONE',
+      summary: '',
+      publicEmail: user?.email || '',
+      publicPhone: '',
+    };
   });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('developer_onboarding', JSON.stringify(formData));
+    }
+  }, [formData]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -105,11 +128,14 @@ export default function DeveloperOnboarding() {
           skills: formData.skills,
           portfolioUrl: '',
           githubUrl: '',
-          linkedinUrl: ''
+          linkedinUrl: '',
+          publicEmail: formData.publicEmail,
+          publicPhone: formData.publicPhone
         };
         const response = await developerService.createProfile(payload);
         if (response.success) {
           completeOnboarding();
+          localStorage.removeItem('developer_onboarding');
           toast.success('Welcome to KEDevs-Connect!');
           router.push('/developers');
         }
@@ -234,6 +260,28 @@ export default function DeveloperOnboarding() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Public Email</Label>
+                    <Input 
+                      type="email"
+                      placeholder="e.g. hello@example.com"
+                      value={formData.publicEmail}
+                      onChange={(e) => setFormData({ ...formData, publicEmail: e.target.value })}
+                      className="h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Public Phone (Optional)</Label>
+                    <Input 
+                      type="tel"
+                      placeholder="e.g. +254 712 345 678"
+                      value={formData.publicPhone}
+                      onChange={(e) => setFormData({ ...formData, publicPhone: e.target.value })}
+                      className="h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
+                    />
+                  </div>
+                </div>
               </div>
             )}
 
@@ -292,7 +340,7 @@ export default function DeveloperOnboarding() {
                     <SelectContent className="rounded-xl">
                       <SelectItem value="AVAILABLE" className="font-bold">Available Now</SelectItem>
                       <SelectItem value="OPEN_TO_OFFERS" className="font-bold">Open to Offers</SelectItem>
-                      <SelectItem value="BUSY" className="font-bold">Currently Busy</SelectItem>
+                      <SelectItem value="NOT_AVAILABLE" className="font-bold">Currently Busy</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -314,12 +362,25 @@ export default function DeveloperOnboarding() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Professional Summary</Label>
+                  <div className="flex justify-between items-center">
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Professional Summary</Label>
+                    <span className={cn(
+                      "text-[10px] font-bold tracking-widest uppercase",
+                      formData.bio.length >= 300 ? "text-red-500" : "text-slate-400"
+                    )}>
+                      {formData.bio.length} / 300
+                    </span>
+                  </div>
                   <Textarea 
                     placeholder="Highlight your best work, achievements, and what you're looking for..."
                     className="min-h-[150px] rounded-2xl border-slate-200 font-medium text-base focus-visible:ring-primary/20"
                     value={formData.bio}
-                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                    onChange={(e) => {
+                      if (e.target.value.length <= 300) {
+                        setFormData({ ...formData, bio: e.target.value });
+                      }
+                    }}
+                    maxLength={300}
                   />
                 </div>
 

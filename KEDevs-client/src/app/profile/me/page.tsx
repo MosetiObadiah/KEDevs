@@ -973,7 +973,12 @@ export default function MyProfile() {
                                     </div>
 
                                     <div className="flex flex-wrap gap-2">
-                                       {project.techStack?.split(',').map((tech: string) => (
+                                       {(Array.isArray(project.techStack) 
+                                         ? project.techStack 
+                                         : typeof project.techStack === 'string' 
+                                           ? project.techStack.split(',').filter(Boolean) 
+                                           : []
+                                       ).map((tech: string) => (
                                           <Badge key={tech} variant="outline" className="rounded-lg text-[10px] font-bold uppercase border-slate-100 bg-slate-50/50">{tech.trim()}</Badge>
                                        ))}
                                     </div>

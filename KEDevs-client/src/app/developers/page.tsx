@@ -11,7 +11,7 @@ import {
   MapPin, 
   FilterX,
   ChevronRight,
-  ArrowRight, ExternalLink } from 'lucide-react';
+  ArrowRight, ExternalLink, Printer, Download, FileSpreadsheet, FileText } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { developerService } from '@/services/developerService';
 import { DeveloperSummary } from '@/lib/types';
@@ -35,15 +35,25 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function DevelopersPage() {
   const { isLoggedIn, user } = useAuth();
   const [devs, setDevs] = useState<DeveloperSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
   
   const [searchTerm, setSearchTerm] = useState('');
   const [availability, setAvailability] = useState('All');
+  const [location, setLocation] = useState('All');
+  const [isVerifiedOnly, setIsVerifiedOnly] = useState(false);
 
   useEffect(() => {
     const fetchDevs = async () => {
@@ -65,28 +75,92 @@ export default function DevelopersPage() {
     fetchDevs();
   }, []);
 
+  const uniqueLocations = Array.from(new Set(devs.map(d => d.locationCity).filter(Boolean))).sort();
+
   const filteredDevs = devs.filter(dev => 
     (
       `${dev.firstName} ${dev.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) || 
       dev.currentLastRole.toLowerCase().includes(searchTerm.toLowerCase()) ||
       dev.skills.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()))
-    ) && (availability === 'All' || dev.availabilityStatus === availability)
+    ) && 
+    (availability === 'All' || dev.availabilityStatus === availability) &&
+    (location === 'All' || dev.locationCity === location) &&
+    (!isVerifiedOnly || dev.isVerified)
   );
+
+  const handleExport = async (format: 'csv' | 'pdf') => {
+    setIsExporting(true);
+    try {
+      const payload = {
+        availabilityStatus: availability !== 'All' ? availability : undefined,
+        locationCity: location !== 'All' ? location : undefined,
+        isVerified: isVerifiedOnly ? true : undefined,
+        currentLastRole: searchTerm || undefined
+      };
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      const response = await fetch(`${API_URL}/api/v1/developers/public/export?format=${format}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) throw new Error('Export failed');
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `developers.${format}`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Export failed", err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
       <div className="container mx-auto px-6 py-12">
-        <div className="mb-10 space-y-2">
-          <Badge variant="secondary" className="bg-primary/10 text-primary border-none font-bold uppercase tracking-widest text-[10px]">Talent Directory</Badge>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-            Kenyan <span className="text-primary">Developers</span>
-          </h1>
-          <p className="text-muted-foreground">Discover and connect with top-tier technical talent in Kenya.</p>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 space-y-4 md:space-y-0 print:hidden">
+           <div>
+              <Badge variant="secondary" className="bg-primary/10 text-primary border-none font-bold uppercase tracking-widest text-[10px]">Talent Directory</Badge>
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+                Kenyan <span className="text-primary">Developers</span>
+              </h1>
+              <p className="text-muted-foreground">Discover and connect with top-tier technical talent in Kenya.</p>
+           </div>
+           
+           <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                 <Button variant="outline" className="font-bold border-primary/20 hover:bg-primary/5" disabled={isExporting}>
+                    <Download className="mr-2 h-4 w-4 text-primary" /> 
+                    {isExporting ? 'Exporting...' : 'Export'}
+                 </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                 <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium">
+                    <FileSpreadsheet className="mr-2 h-4 w-4" /> Download as CSV
+                 </DropdownMenuItem>
+                 <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium">
+                    <FileText className="mr-2 h-4 w-4" /> Download as PDF
+                 </DropdownMenuItem>
+              </DropdownMenuContent>
+           </DropdownMenu>
+        </div>
+        
+        <div className="hidden print:block mb-8 border-b pb-4">
+           <h1 className="text-2xl font-black text-black">KEDevs Talent Report</h1>
+           <p className="text-sm text-gray-500">Generated on {new Date().toLocaleDateString()}</p>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Filters Sidebar */}
-          <aside className="lg:col-span-1 space-y-8">
+          <aside className="lg:col-span-1 space-y-8 print:hidden">
             <Card className="border-border/50 shadow-sm sticky top-24">
               <CardHeader className="pb-4">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Filter Talent</h3>
@@ -113,13 +187,44 @@ export default function DevelopersPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="All">Any Availability</SelectItem>
-                      <SelectItem value="AVAILABLE_NOW">Available Now</SelectItem>
+                      <SelectItem value="AVAILABLE">Available Now</SelectItem>
                       <SelectItem value="OPEN_TO_OFFERS">Open to Offers</SelectItem>
+                      <SelectItem value="NOT_AVAILABLE">Currently Busy</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                {(searchTerm || availability !== 'All') && (
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground uppercase">Location</label>
+                  <Select value={location} onValueChange={setLocation}>
+                    <SelectTrigger className="border-border/50 focus:ring-primary/20">
+                      <SelectValue placeholder="Any Location" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All">Any Location</SelectItem>
+                      {uniqueLocations.map(loc => (
+                         <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex flex-row items-start space-x-3 space-y-0 rounded-xl border border-border/50 p-4">
+                  <Checkbox 
+                     id="verified" 
+                     checked={isVerifiedOnly} 
+                     onCheckedChange={(checked) => setIsVerifiedOnly(checked as boolean)} 
+                     className="mt-1"
+                  />
+                  <div className="space-y-1 leading-none">
+                     <label htmlFor="verified" className="text-sm font-bold leading-none cursor-pointer">
+                        Verified Only
+                     </label>
+                     <p className="text-[10px] text-muted-foreground">Show only verified profiles</p>
+                  </div>
+                </div>
+
+                {(searchTerm || availability !== 'All' || location !== 'All' || isVerifiedOnly) && (
                   <Button 
                     variant="ghost" 
                     size="sm" 
@@ -127,6 +232,8 @@ export default function DevelopersPage() {
                     onClick={() => {
                       setSearchTerm('');
                       setAvailability('All');
+                      setLocation('All');
+                      setIsVerifiedOnly(false);
                     }}
                   >
                     <FilterX className="mr-2 h-3.5 w-3.5" /> Reset Filters
@@ -137,7 +244,7 @@ export default function DevelopersPage() {
           </aside>
 
           {/* Results Area */}
-          <main className="lg:col-span-3">
+          <main className="lg:col-span-3 print:col-span-full">
             {error && (
               <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-xl mb-6 text-sm font-medium">
                 {error}
@@ -185,10 +292,10 @@ export default function DevelopersPage() {
                       </div>
 
                       <Badge 
-                        variant={dev.availabilityStatus === 'AVAILABLE_NOW' ? 'default' : 'secondary'}
+                        variant={dev.availabilityStatus === 'AVAILABLE' ? 'default' : 'secondary'}
                         className={cn(
                           "mb-6 text-[10px] uppercase font-black px-2 shadow-sm",
-                          dev.availabilityStatus === 'AVAILABLE_NOW' ? "bg-emerald-500 hover:bg-emerald-500" : ""
+                          dev.availabilityStatus === 'AVAILABLE' ? "bg-emerald-500 hover:bg-emerald-500" : ""
                         )}
                       >
                         {dev.availabilityStatus.replace('_', ' ')}
@@ -234,7 +341,7 @@ export default function DevelopersPage() {
                       </div>
                     </CardContent>
 
-                    <CardFooter className="p-4 border-t border-border/50 bg-muted/10 flex justify-between items-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                    <CardFooter className="p-4 border-t border-border/50 bg-muted/10 flex justify-between items-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest print:hidden">
                       <div className="flex items-center gap-1.5">
                         <MapPin className="h-3 w-3" />
                         {dev.locationCity}

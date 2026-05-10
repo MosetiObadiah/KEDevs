@@ -490,15 +490,33 @@ public class DeveloperProfileService {
 
     @Transactional(readOnly = true)
     public Page<UserDtos.DeveloperSummaryResponse> filterDevelopers(UserDtos.DeveloperFilterRequest filter, Pageable pageable) {
-        // For the initial implementation, filter by availability + public visibility
-        // Advanced multi-field filtering can be added via Specification/Criteria API
-        if (filter.availabilityStatus() != null) {
-            return profileRepository.findByAvailabilityStatusAndProfileVisibility(
-                            filter.availabilityStatus(), ProfileVisibility.PUBLIC, pageable)
-                    .map(this::toSummaryResponse);
+        List<DeveloperProfile> allProfiles = profileRepository.findByProfileVisibility(ProfileVisibility.PUBLIC, Pageable.unpaged()).getContent();
+
+        List<UserDtos.DeveloperSummaryResponse> filtered = allProfiles.stream()
+            .filter(p -> filter.availabilityStatus() == null || filter.availabilityStatus() == p.getAvailabilityStatus())
+            .filter(p -> filter.locationCity() == null || filter.locationCity().isEmpty() || filter.locationCity().equalsIgnoreCase(p.getLocationCity()))
+            .filter(p -> filter.isVerified() == null || !filter.isVerified() || p.isVerified())
+            .map(this::toSummaryResponse)
+            .filter(s -> matchesKeyword(s, filter.currentLastRole())) // Using currentLastRole property as a general keyword param
+            .toList();
+
+        if (pageable.isPaged()) {
+            int start = (int) pageable.getOffset();
+            int end = Math.min((start + pageable.getPageSize()), filtered.size());
+            List<UserDtos.DeveloperSummaryResponse> pageContent = start <= end ? filtered.subList(start, end) : List.of();
+            return new org.springframework.data.domain.PageImpl<>(pageContent, pageable, filtered.size());
         }
-        return profileRepository.findByProfileVisibility(ProfileVisibility.PUBLIC, pageable)
-                .map(this::toSummaryResponse);
+        return new org.springframework.data.domain.PageImpl<>(filtered, pageable, filtered.size());
+    }
+
+    private boolean matchesKeyword(UserDtos.DeveloperSummaryResponse s, String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) return true;
+        String kw = keyword.toLowerCase();
+        if (s.firstName() != null && s.firstName().toLowerCase().contains(kw)) return true;
+        if (s.lastName() != null && s.lastName().toLowerCase().contains(kw)) return true;
+        if (s.currentLastRole() != null && s.currentLastRole().toLowerCase().contains(kw)) return true;
+        if (s.skills() != null && s.skills().stream().anyMatch(sk -> sk.toLowerCase().contains(kw))) return true;
+        return false;
     }
 
     // ----------------------------------------------------------------
@@ -599,7 +617,8 @@ public class DeveloperProfileService {
                 profile.getFirstName(), profile.getLastName(),
                 profile.getProfilePhoto(), profile.getCurrentLastRole(),
                 skills, profile.getAvailabilityStatus(),
-                profile.isVerified(), profile.getLocationCity(), profile.getLocationCountry()
+                profile.isVerified(), profile.getLocationCity(), profile.getLocationCountry(),
+                profile.getPublicEmail(), profile.getPublicPhone()
         );
     }
 

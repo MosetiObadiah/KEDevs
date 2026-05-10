@@ -43,7 +43,7 @@ export default function DeveloperProfilePage() {
   const [message, setMessage] = useState('');
   const [isRequesting, setIsRequesting] = useState(false);
 
-  const fullName = dev ? (dev.fullName || `${dev.firstName || ''} ${dev.lastName || ''}`.trim() || dev.email || 'Developer') : '';
+  const fullName = dev ? (dev.fullName || `${dev.firstName || ''} ${dev.lastName || ''}`.trim() || dev.publicEmail || dev.email || 'Developer') : '';
 
   useEffect(() => {
     const loadDeveloper = async () => {
@@ -54,7 +54,7 @@ export default function DeveloperProfilePage() {
         if (response.success) {
           const data = response.data;
           setDev(data);
-          const computedName = data.fullName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.email || 'Developer';
+          const computedName = data.fullName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.publicEmail || data.email || 'Developer';
           setMessage(`Hi ${computedName}, I found your profile on KEDevs and would like to invite you to apply for an opportunity.`);
         }
       } catch (err: any) {
@@ -315,7 +315,7 @@ export default function DeveloperProfilePage() {
                               </div>
                               <div className="flex-1 min-w-0">
                                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Email Address</p>
-                                 <p className="font-bold text-slate-900 truncate">{dev.email || 'Not shared'}</p>
+                                 <p className="font-bold text-slate-900 truncate">{dev.publicEmail || dev.email || 'Not shared'}</p>
                               </div>
                            </div>
                            <div className="flex items-center gap-4">
@@ -324,7 +324,7 @@ export default function DeveloperProfilePage() {
                               </div>
                               <div className="flex-1 min-w-0">
                                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Phone Number</p>
-                                 <p className="font-bold text-slate-900 truncate">{dev.phone || 'Not shared'}</p>
+                                 <p className="font-bold text-slate-900 truncate">{dev.publicPhone || dev.phone || 'Not shared'}</p>
                               </div>
                            </div>
                            <div className="pt-2 flex flex-col gap-3">

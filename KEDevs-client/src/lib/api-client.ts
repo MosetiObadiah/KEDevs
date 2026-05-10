@@ -95,7 +95,13 @@ async function handleResponse<T>(response: Response, requestFn?: () => Promise<R
     const errorData = await response.json().catch(() => ({}));
     throw new Error(errorData?.message || `HTTP error! status: ${response.status}`);
   }
-  return response.json();
+  
+  const data = await response.json();
+  if (data && typeof data === 'object' && 'success' in data && data.success === false) {
+    throw new Error(data.message || 'API reported a failure despite 200 status');
+  }
+  
+  return data;
 }
 
 export const apiClient = {

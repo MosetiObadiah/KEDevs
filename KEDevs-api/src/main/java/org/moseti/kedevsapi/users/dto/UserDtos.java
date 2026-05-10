@@ -205,7 +205,9 @@ public class UserDtos {
             AvailabilityStatus availabilityStatus,
             boolean isVerified,
             String locationCity,
-            String locationCountry
+            String locationCountry,
+            String publicEmail,
+            String publicPhone
     ) {}
 
     public record EmployerProfileResponse(

@@ -254,11 +254,17 @@ export default function JobDetailPage() {
                    </h1>
                    <div className="flex items-center gap-4 pt-2">
                       <div className="h-10 w-10 rounded-2xl bg-primary text-white flex items-center justify-center font-black text-lg shadow-lg shadow-primary/20">
-                         {job.companyName?.charAt(0)}
+                         {(job.isPeerSourced && job.postedByName ? job.postedByName : job.companyName)?.charAt(0)}
                       </div>
-                      <Link href={`/companies/${job.companyId}`} className="text-xl font-black text-primary hover:underline transition-all">
-                         {job.companyName}
-                      </Link>
+                      {job.isPeerSourced && job.postedByName ? (
+                        <Link href={`/developers/${job.postedById}`} className="text-xl font-black text-primary hover:underline transition-all">
+                           {job.postedByName}
+                        </Link>
+                      ) : (
+                        <Link href={`/companies/${job.companyId}`} className="text-xl font-black text-primary hover:underline transition-all">
+                           {job.companyName}
+                        </Link>
+                      )}
                       <ShieldCheck className="h-5 w-5 text-emerald-500 fill-emerald-50" />
                    </div>
                 </div>
@@ -470,24 +476,38 @@ export default function JobDetailPage() {
                 </CardContent>
              </Card>
 
-             {/* Company Quick Links */}
+             {/* Company / Poster Quick Links */}
              <Card className="rounded-[2.5rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
                 <CardHeader className="border-b border-slate-50 pb-6">
-                   <CardTitle className="text-xl font-black">Employer Info</CardTitle>
+                   <CardTitle className="text-xl font-black">
+                     {job.isPeerSourced && job.postedByName ? 'Shared By' : 'Employer Info'}
+                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6 space-y-4">
                    <div className="flex items-center gap-4">
                       <Avatar className="h-12 w-12 rounded-2xl">
-                         <AvatarFallback className="bg-primary text-white font-black">{job.companyName?.charAt(0)}</AvatarFallback>
+                         <AvatarFallback className="bg-primary text-white font-black">
+                           {(job.isPeerSourced && job.postedByName ? job.postedByName : job.companyName)?.charAt(0)}
+                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                         <p className="font-black text-slate-900 truncate">{job.companyName}</p>
-                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Verified Employer</p>
+                         <p className="font-black text-slate-900 truncate">
+                           {job.isPeerSourced && job.postedByName ? job.postedByName : job.companyName}
+                         </p>
+                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                           {job.isPeerSourced && job.postedByName ? 'Community Member' : 'Verified Employer'}
+                         </p>
                       </div>
                    </div>
-                   <Button variant="outline" className="w-full h-12 rounded-xl border-slate-100 font-bold" asChild>
-                      <Link href={`/companies/${job.companyId}`}>View Company Profile</Link>
-                   </Button>
+                   {job.isPeerSourced && job.postedByName ? (
+                     <Button variant="outline" className="w-full h-12 rounded-xl border-slate-100 font-bold" asChild>
+                        <Link href={`/developers/${job.postedById}`}>View Developer Profile</Link>
+                     </Button>
+                   ) : (
+                     <Button variant="outline" className="w-full h-12 rounded-xl border-slate-100 font-bold" asChild>
+                        <Link href={`/companies/${job.companyId}`}>View Company Profile</Link>
+                     </Button>
+                   )}
                 </CardContent>
              </Card>
           </div>
