@@ -124,7 +124,13 @@ export default function JobsPage() {
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
       <div className="container mx-auto px-6 pt-8 pb-12">
-        <div className="flex flex-col md:flex-row justify-end items-center gap-6 mb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+          <div>
+            <Badge variant="outline" className="rounded-lg font-black tracking-widest text-[10px] uppercase bg-primary/10 text-primary border-none px-3 py-1 mb-2">
+              Marketplace
+            </Badge>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Job Board</h1>
+          </div>
           {isLoggedIn && (
             <Button className="h-12 px-6 font-bold shadow-lg shadow-primary/20" asChild>
               <Link href="/jobs/post">
