@@ -548,6 +548,9 @@ public class DeveloperProfileService {
         profile.setPortfolioUrl(request.portfolioUrl());
         profile.setPublicEmail(request.publicEmail());
         profile.setPublicPhone(request.publicPhone());
+        if (request.canEmployersReachOut() != null) {
+            profile.setCanEmployersReachOut(request.canEmployersReachOut());
+        }
     }
 
     private void applyUpdateFields(DeveloperProfile profile, UserDtos.UpdateDeveloperProfileRequest request) {
@@ -568,6 +571,9 @@ public class DeveloperProfileService {
         if (request.portfolioUrl() != null) profile.setPortfolioUrl(request.portfolioUrl());
         if (request.publicEmail() != null) profile.setPublicEmail(request.publicEmail());
         if (request.publicPhone() != null) profile.setPublicPhone(request.publicPhone());
+        if (request.canEmployersReachOut() != null) {
+            profile.setCanEmployersReachOut(request.canEmployersReachOut());
+        }
     }
 
     // ----------------------------------------------------------------
@@ -603,6 +609,7 @@ public class DeveloperProfileService {
                 profile.isVerified(), profile.getLinkedinUrl(),
                 profile.getGithubUrl(), profile.getPortfolioUrl(),
                 profile.getPublicEmail(), profile.getPublicPhone(),
+                profile.isCanEmployersReachOut(),
                 skills, languages, education, certs, oss, achievements, projects,
                 endorsements, endorsements.size(),
                 profile.getCreatedAt()

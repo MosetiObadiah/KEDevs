@@ -474,26 +474,60 @@ export default function MyProfile() {
   const isEmployer = user?.role === 'EMPLOYER';
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-20">
-      {/* Background Decorative Elements */}
-      <div className="absolute top-0 left-0 w-full h-[400px] bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
-      <div className="absolute top-40 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
-      
-      <div className="container mx-auto px-4 pt-12 relative z-10">
+    <div className="flex flex-col min-h-screen bg-muted/30">
+      <div className="container mx-auto px-6 py-12">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 space-y-4 md:space-y-0">
+          <div>
+            <Badge variant="secondary" className="bg-primary/10 text-primary border-none font-bold uppercase tracking-widest text-[10px]">Professional Identity</Badge>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight mt-2">
+              My <span className="text-primary">Profile</span>
+            </h1>
+            <p className="text-muted-foreground mt-2">Manage your professional presence and visibility in the ecosystem.</p>
+          </div>
+          
+          <div className="flex gap-3">
+            <Button 
+              size="lg" 
+              className={cn(
+                "rounded-xl font-bold px-8 h-12 shadow-xl transition-all",
+                isEditing ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20" : "shadow-primary/20"
+              )}
+              onClick={() => isEditing ? handleUpdateBasicInfo() : setIsEditing(true)}
+              disabled={isSaving}
+            >
+              {isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : (isEditing ? <Save className="mr-2 h-5 w-5" /> : <Edit2 className="mr-2 h-5 w-5" />)}
+              {isEditing ? 'Save Profile' : 'Manage Profile'}
+            </Button>
+            {isEditing && (
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="rounded-xl font-bold h-12 border-border/50"
+                onClick={() => setIsEditing(false)}
+              >
+                Cancel
+              </Button>
+            )}
+          </div>
+        </div>
+
         {/* Profile Header Card */}
-        <Card className="border-none shadow-2xl shadow-primary/5 overflow-hidden rounded-[2rem] mb-12">
-          <div className="h-32 bg-gradient-to-r from-primary to-primary-foreground/20" />
-          <CardContent className="pt-0 -mt-16 pb-8">
+        <Card className="border-border/50 shadow-sm overflow-hidden bg-white rounded-3xl mb-12">
+          <div className="h-40 bg-gradient-to-r from-primary/80 to-primary/20 relative">
+             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
+          </div>
+          <CardContent className="pt-0 -mt-20 pb-8 px-8">
             <div className="flex flex-col md:flex-row gap-8 items-start">
               <div className="relative group">
-                <Avatar className="w-40 h-40 border-[8px] border-white shadow-xl rounded-[2.5rem] bg-white">
+                <Avatar className="w-44 h-44 border-[6px] border-white shadow-2xl rounded-3xl bg-white overflow-hidden">
                   <AvatarImage src={isEmployer ? profile.logoUrl : profile.profilePhoto} className="object-cover" />
                   <AvatarFallback className="text-5xl font-black bg-primary text-white">
                     {isEmployer ? (profile.companyName?.charAt(0) || <Building2 />) : (profile.firstName?.charAt(0) || <Users2 />)}
                   </AvatarFallback>
                 </Avatar>
                 
-                <Label htmlFor="photo-upload" className="absolute bottom-2 right-2 h-10 w-10 bg-primary text-white rounded-2xl flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 transition-transform z-20 border-4 border-white">
+                <Label htmlFor="photo-upload" className="absolute bottom-3 right-3 h-10 w-10 bg-primary text-white rounded-xl flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 transition-transform z-20 border-4 border-white">
                    <Camera className="h-5 w-5" />
                    <input 
                       id="photo-upload" 
@@ -515,104 +549,53 @@ export default function MyProfile() {
                       }}
                    />
                 </Label>
-                
-                {profile.isVerified && (
-                  <div className="absolute top-2 right-2 h-8 w-8 bg-white text-primary rounded-full flex items-center justify-center shadow-md z-20 border-2 border-primary/10">
-                    <ShieldCheck className="h-5 w-5 fill-primary/10" />
-                  </div>
-                )}
               </div>
 
-              <div className="flex-1 pt-12 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+              <div className="flex-1 pt-20 md:pt-24 space-y-4">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                   <div>
-                    <div className="flex items-center gap-3 flex-wrap mb-2">
-                       <Badge variant="outline" className="rounded-lg font-black tracking-wider text-[10px] uppercase bg-primary/5 text-primary border-primary/20">
-                          {user?.role} PROFILE
+                    <div className="flex items-center gap-2 flex-wrap mb-2">
+                       <Badge variant="outline" className="rounded-lg font-bold tracking-wider text-[10px] uppercase bg-primary/5 text-primary border-primary/20">
+                          {user?.role} NODE
                        </Badge>
                        {profile.isVerified && (
-                         <Badge className="bg-emerald-500 hover:bg-emerald-600 rounded-lg font-black tracking-wider text-[10px] uppercase">
+                         <Badge className="bg-emerald-500 hover:bg-emerald-600 rounded-lg font-bold tracking-wider text-[10px] uppercase">
                            VERIFIED
-                         </Badge>
-                       )}
-                       {isEmployer && profile.isApproved && (
-                         <Badge className="bg-blue-500 hover:bg-blue-600 rounded-lg font-black tracking-wider text-[10px] uppercase">
-                           APPROVED EMPLOYER
                          </Badge>
                        )}
                     </div>
                     
-                    <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900">
+                    <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">
                        {isEmployer ? (profile.companyName || 'My Company') : `${profile.firstName} ${profile.lastName}`}
                     </h1>
                     
-                    <p className="text-lg md:text-xl font-semibold text-slate-500 mt-1 flex items-center gap-2">
-                       {isEmployer ? (profile.industry || 'Industry not set') : (profile.currentLastRole || 'Awaiting Role Definition')}
+                    <p className="text-lg md:text-xl font-medium text-muted-foreground mt-1 flex items-center gap-2">
+                       {isEmployer ? (profile.industry || 'Industry not set') : (profile.currentLastRole || 'Professional Architect')}
                     </p>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <Button 
-                      size="lg" 
-                      className={cn(
-                        "rounded-2xl font-black px-8 h-14 shadow-xl transition-all",
-                        isEditing ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20" : "shadow-primary/20"
-                      )}
-                      onClick={() => isEditing ? handleUpdateBasicInfo() : setIsEditing(true)}
-                      disabled={isSaving}
-                    >
-                      {isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : (isEditing ? <Save className="mr-2 h-5 w-5" /> : <Edit2 className="mr-2 h-5 w-5" />)}
-                      {isEditing ? 'Save Changes' : 'Manage Profile'}
-                    </Button>
-                    {isEditing && (
-                      <Button 
-                        size="lg" 
-                        variant="ghost" 
-                        className="rounded-2xl font-black h-14"
-                        onClick={() => setIsEditing(false)}
-                      >
-                        Cancel
-                      </Button>
-                    )}
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-x-8 gap-y-4 pt-2">
-                  <div className="flex items-center gap-2 text-slate-600 font-bold text-sm">
+                <div className="flex flex-wrap gap-x-8 gap-y-4 pt-4 border-t border-border/50">
+                  <div className="flex items-center gap-2 text-muted-foreground font-medium text-sm">
                     <MapPin className="h-4 w-4 text-primary" />
                     {isEmployer ? (profile.locationHQ || 'Location not set') : `${profile.locationCity || 'City'}, ${profile.locationCountry || 'Kenya'}`}
                   </div>
                   {isEmployer ? (
-                    <div className="flex items-center gap-2 text-slate-600 font-bold text-sm">
+                    <div className="flex items-center gap-2 text-muted-foreground font-medium text-sm">
                       <Users2 className="h-4 w-4 text-primary" />
-                      {profile.companySize?.replace(/_/g, ' ') || 'Size not set'} Employees
+                      {profile.companySize?.replace(/_/g, ' ') || 'Size not set'} Scale
                     </div>
                   ) : (
                     <>
-                      <div className="flex items-center gap-2 text-slate-600 font-bold text-sm">
+                      <div className="flex items-center gap-2 text-muted-foreground font-medium text-sm">
                         <Briefcase className="h-4 w-4 text-primary" />
                         {profile.yearsOfExperience?.replace(/_/g, ' ')} Experience
                       </div>
-                      <div className="flex items-center gap-2 text-slate-600 font-bold text-sm">
+                      <div className="flex items-center gap-2 text-muted-foreground font-medium text-sm">
                         <Zap className="h-4 w-4 text-primary" />
                         {profile.preferredWorkType || 'REMOTE'}
                       </div>
                     </>
-                  )}
-                  {isEmployer ? (
-                    profile.companyWebsite && (
-                      <Link href={profile.companyWebsite} target="_blank" className="flex items-center gap-2 text-primary font-black text-sm hover:underline">
-                        <Globe className="h-4 w-4" />
-                        {profile.companyWebsite.replace(/^https?:\/\//, '')}
-                      </Link>
-                    )
-                  ) : (
-                    profile.githubUrl && (
-                      <Link href={profile.githubUrl} target="_blank" className="flex items-center gap-2 text-slate-900 font-black text-sm hover:underline">
-                        <ExternalLink className="h-4 w-4" />
-                        {profile.githubUrl.replace(/^https?:\/\/(www\.)?github\.com\//, '')}
-                      </Link>
-                    )
                   )}
                 </div>
               </div>
@@ -1157,50 +1140,6 @@ export default function MyProfile() {
             <div className="lg:col-span-4 space-y-8">
                <SpotlightStatusCard status={spotlightStatus} onBuy={() => setBuySpotlightOpen(true)} />
 
-               <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden bg-slate-900 text-white">
-                  <CardHeader className="pb-6">
-                     <CardTitle className="text-xl font-black tracking-widest uppercase">Visibility & Preferences</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-8">
-                     <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                           <div className="space-y-0.5">
-                              <Label className="text-sm font-black text-slate-100 uppercase tracking-wide">Availability</Label>
-                              <p className="text-[10px] font-bold text-slate-400">Can employers reach out?</p>
-                           </div>
-                        </div>
-                        <Select value={profile.availabilityStatus} onValueChange={handleToggleAvailability}>
-                           <SelectTrigger className="rounded-xl border-slate-700 bg-slate-800 h-12 font-black text-white focus:ring-primary/20">
-                              <SelectValue />
-                           </SelectTrigger>
-                           <SelectContent className="rounded-xl border-slate-700 bg-slate-800 text-white">
-                              <SelectItem value="AVAILABLE">🟢 Available Now</SelectItem>
-                              <SelectItem value="OPEN_TO_OFFERS">🟡 Open to Offers</SelectItem>
-                              <SelectItem value="NOT_AVAILABLE">🔴 Not Available</SelectItem>
-                           </SelectContent>
-                        </Select>
-                     </div>
-
-                     <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                           <div className="space-y-0.5">
-                              <Label className="text-sm font-black text-slate-100 uppercase tracking-wide">Privacy Mode</Label>
-                              <p className="text-[10px] font-bold text-slate-400">Control who sees your profile</p>
-                           </div>
-                        </div>
-                        <Select value={profile.profileVisibility} onValueChange={handleToggleVisibility}>
-                           <SelectTrigger className="rounded-xl border-slate-700 bg-slate-800 h-12 font-black text-white focus:ring-primary/20">
-                              <SelectValue />
-                           </SelectTrigger>
-                           <SelectContent className="rounded-xl border-slate-700 bg-slate-800 text-white">
-                              <SelectItem value="PUBLIC">🌎 Public Search</SelectItem>
-                              <SelectItem value="PRIVATE">🔒 Private Link Only</SelectItem>
-                              <SelectItem value="HIDDEN">👻 Hidden (Ghost mode)</SelectItem>
-                           </SelectContent>
-                        </Select>
-                     </div>
-                  </CardContent>
-               </Card>
 
                <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
                   <CardHeader className="border-b border-slate-50 pb-6">

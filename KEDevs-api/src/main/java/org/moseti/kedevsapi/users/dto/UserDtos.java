@@ -32,6 +32,7 @@ public class UserDtos {
             @Schema(description = "Portfolio website URL", example = "https://janedoe.dev") String portfolioUrl,
             @Schema(description = "Public contact email", example = "jane.public@example.com") String publicEmail,
             @Schema(description = "Public contact phone", example = "+254712345678") String publicPhone,
+            @Schema(description = "Whether employers can contact the developer", example = "true") Boolean canEmployersReachOut,
             @Schema(description = "List of skills", example = "['Java', 'Spring Boot']") java.util.List<String> skills
     ) {}
 
@@ -50,7 +51,8 @@ public class UserDtos {
             @Schema(description = "GitHub profile URL", example = "https://github.com/janedoe") String githubUrl,
             @Schema(description = "Portfolio website URL", example = "https://janedoe.dev") String portfolioUrl,
             @Schema(description = "Public contact email", example = "jane.new@example.com") String publicEmail,
-            @Schema(description = "Public contact phone", example = "+254712345679") String publicPhone
+            @Schema(description = "Public contact phone", example = "+254712345679") String publicPhone,
+            @Schema(description = "Whether employers can contact the developer", example = "true") Boolean canEmployersReachOut
     ) {}
 
     public record AddSkillRequest(
@@ -183,6 +185,7 @@ public class UserDtos {
             String portfolioUrl,
             String publicEmail,
             String publicPhone,
+            boolean canEmployersReachOut,
             java.util.List<String> skills,
             java.util.List<String> languages,
             java.util.List<EducationResponse> education,

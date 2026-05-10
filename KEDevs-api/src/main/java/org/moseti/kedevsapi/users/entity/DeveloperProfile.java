@@ -71,4 +71,7 @@ public class DeveloperProfile extends BaseEntity {
     private String publicEmail;
 
     private String publicPhone;
+    
+    @Column(nullable = false)
+    private boolean canEmployersReachOut = true;
 }
