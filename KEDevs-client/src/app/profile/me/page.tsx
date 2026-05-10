@@ -1246,6 +1246,9 @@ export default function MyProfile() {
             <DialogTitle className="text-2xl font-black">
               Add {dialogOpen?.charAt(0).toUpperCase()}{dialogOpen?.slice(1)}
             </DialogTitle>
+            <DialogDescription className="sr-only">
+               Fill out the form to add a new {dialogOpen} to your profile.
+            </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-6 py-4">
@@ -1380,6 +1383,9 @@ export default function MyProfile() {
         <DialogContent className="sm:max-w-xl rounded-[2.5rem]">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black">Crop Profile Photo</DialogTitle>
+            <DialogDescription className="sr-only">
+               Adjust the crop area to set your profile picture.
+            </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-8 py-4">

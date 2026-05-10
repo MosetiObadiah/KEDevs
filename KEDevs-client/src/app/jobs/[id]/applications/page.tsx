@@ -40,6 +40,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -260,7 +261,7 @@ export default function ApplicationsInbox() {
                <>
                   <div className="bg-slate-900 p-10 text-white relative">
                      <div className="absolute top-0 right-0 w-48 h-48 bg-primary/20 rounded-full blur-[80px] -mr-24 -mt-24" />
-                     <DialogHeader className="relative z-10 flex flex-row items-center justify-between">
+                      <DialogHeader className="relative z-10 flex flex-row items-center justify-between">
                         <div className="space-y-4">
                            <div className="flex items-center gap-4">
                               <Avatar className="h-20 w-20 rounded-[1.5rem] border-4 border-white/10 shadow-2xl">
@@ -269,6 +270,9 @@ export default function ApplicationsInbox() {
                               </Avatar>
                               <div className="space-y-1">
                                  <DialogTitle className="text-3xl font-black text-white tracking-tight">{selectedApplicant.applicantName}</DialogTitle>
+                                 <DialogDescription className="sr-only">
+                                    Reviewing application from {selectedApplicant.applicantName} for the position.
+                                 </DialogDescription>
                                  <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest flex items-center gap-2">
                                     <Mail className="h-3 w-3" /> {selectedApplicant.applicantEmail}
                                  </p>

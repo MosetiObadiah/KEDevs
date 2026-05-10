@@ -117,7 +117,8 @@ public class JobDtos {
             LocalDateTime updatedAt,
             boolean hasApplied,
             VoteType currentUserVote,
-            Integer applicationCount
+            Integer applicationCount,
+            Role postedByRole
     ) {}
 
     public record JobSummaryResponse(
@@ -135,7 +136,8 @@ public class JobDtos {
             boolean isPeerSourced,
             String sourceUrl,
             List<String> tags,
-            LocalDateTime createdAt
+            LocalDateTime createdAt,
+            Role postedByRole
     ) {}
 
     public record JobApplicationResponse(

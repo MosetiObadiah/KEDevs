@@ -9,7 +9,11 @@ import {
   Users,
   MapPin,
   Clock,
-  Sparkles
+  Sparkles,
+  Mail,
+  Phone,
+  Bookmark,
+  ExternalLink
 } from 'lucide-react';
 import { Hero } from '@/components/home/Hero';
 import SpotlightSection from '@/components/home/SpotlightSection';
@@ -21,8 +25,17 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/context/AuthContext';
+import { cn } from '@/lib/utils';
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function HomePage() {
+  const { isLoggedIn, user } = useAuth();
   const [featuredJobs, setFeaturedJobs] = useState<JobSummary[]>([]);
   const [spotlightDevs, setSpotlightDevs] = useState<DeveloperSummary[]>([]);
   const [randomJob, setRandomJob] = useState<JobSummary | null>(null);
@@ -229,27 +242,97 @@ export default function HomePage() {
               ))
             ) : (
               spotlightDevs.map((dev) => (
-                <Card key={dev.id} className="text-center p-8 border-border/50 hover:shadow-xl hover:shadow-primary/5 transition-all">
-                  <Avatar className="h-24 w-24 mx-auto mb-6 border-4 border-muted shadow-sm">
-                    <AvatarImage src={dev.profilePhoto} />
-                    <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-black">
-                      {dev.firstName.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <h3 className="text-xl font-bold mb-1">{dev.firstName} {dev.lastName}</h3>
-                  <p className="text-sm font-semibold text-muted-foreground mb-6">{dev.currentLastRole}</p>
-                  <div className="flex flex-wrap justify-center gap-1.5 mb-8">
-                    {dev.skills.slice(0, 4).map(skill => (
-                      <Badge key={skill} variant="secondary" className="text-[10px] py-0 px-2 font-medium">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                  <Button variant="outline" className="w-full font-bold group" asChild>
-                    <Link href={`/developers/${dev.id}`}>
-                      View Full Profile <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                <Card key={dev.id} className="group border-border/50 hover:shadow-xl hover:shadow-primary/5 transition-all flex flex-col overflow-hidden">
+                  <CardContent className="p-8 text-center flex-1">
+                    <Link href={`/developers/${dev.id}`} className="inline-block relative mb-6">
+                      <Avatar className="h-20 w-20 border-4 border-muted group-hover:border-primary/20 transition-colors shadow-sm mx-auto">
+                        <AvatarImage src={dev.profilePhoto} />
+                        <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-black">
+                          {dev.firstName.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      {dev.isVerified && (
+                        <div className="absolute -bottom-1 right-[calc(50%-40px)] bg-background rounded-full p-0.5 shadow-sm">
+                          <CheckCircle2 className="h-5 w-5 text-primary fill-primary text-white" />
+                        </div>
+                      )}
                     </Link>
-                  </Button>
+                    
+                    <div className="mb-4">
+                      <Link href={`/developers/${dev.id}`}>
+                        <h3 className="text-xl font-bold group-hover:text-primary transition-colors mb-1">
+                          {dev.firstName} {dev.lastName}
+                        </h3>
+                      </Link>
+                      <p className="text-sm font-semibold text-muted-foreground">{dev.currentLastRole}</p>
+                    </div>
+
+                    <Badge 
+                      variant={dev.availabilityStatus === 'AVAILABLE' ? 'default' : 'secondary'}
+                      className={cn(
+                        "mb-6 text-[10px] uppercase font-black px-2 shadow-sm",
+                        dev.availabilityStatus === 'AVAILABLE' ? "bg-emerald-500 hover:bg-emerald-500" : ""
+                      )}
+                    >
+                      {dev.availabilityStatus.replace('_', ' ')}
+                    </Badge>
+                    
+                    {isLoggedIn && (user?.role === 'EMPLOYER' || user?.id === dev.id) && (
+                      <div className="flex justify-center gap-2 mb-6">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full border border-border/50">
+                                <Mail className="h-3.5 w-3.5" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Email</p></TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full border border-border/50">
+                                <ExternalLink className="h-3.5 w-3.5" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>LinkedIn Profile</p></TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full border border-border/50">
+                                <Phone className="h-3.5 w-3.5" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Phone</p></TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                    )}
+
+                    <div className="flex flex-wrap justify-center gap-1.5">
+                      {dev.skills.slice(0, 3).map(skill => (
+                        <Badge key={skill} variant="outline" className="text-[10px] py-0 px-2 font-medium bg-muted/30 border-muted">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+
+                  <CardFooter className="p-4 border-t border-border/50 bg-muted/10 flex justify-between items-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                    <div className="flex items-center gap-1.5 text-left">
+                      <MapPin className="h-3 w-3" />
+                      {dev.locationCity}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:text-primary">
+                        <Bookmark className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" className="h-8 px-3 font-bold group/btn" asChild>
+                        <Link href={`/developers/${dev.id}`}>
+                          View <ArrowRight className="ml-1.5 h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </CardFooter>
                 </Card>
               ))
             )}

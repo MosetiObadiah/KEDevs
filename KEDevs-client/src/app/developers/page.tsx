@@ -126,13 +126,7 @@ export default function DevelopersPage() {
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
       <div className="container mx-auto px-6 pt-8 pb-12">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
-          <div>
-            <Badge variant="outline" className="rounded-lg font-black tracking-widest text-[10px] uppercase bg-primary/10 text-primary border-none px-3 py-1 mb-2">
-              Talent Directory
-            </Badge>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Technical Talent</h1>
-          </div>
+        <div className="flex justify-end mb-8">
           <div className="flex items-center gap-3 print:hidden">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

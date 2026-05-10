@@ -3,29 +3,19 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import ReactMarkdown from 'react-markdown';
 import { 
   MapPin, 
   Briefcase, 
   Calendar as CalendarIcon, 
-  MoreVertical, 
-  Flag, 
-  Edit2, 
-  Trash2, 
-  XCircle, 
   ThumbsUp, 
   ThumbsDown, 
-  Send, 
-  EyeOff, 
-  AlertTriangle,
-  Building2,
-  ChevronLeft,
-  ShieldCheck,
+  Mail, 
+  ArrowLeft,
+  BarChart3,
   ExternalLink,
-  Zap,
-  Globe,
   Loader2,
-  Share2,
-  CheckCircle2
+  AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { jobService } from '@/services/jobService';
@@ -37,15 +27,8 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Card, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function JobDetailPage() {
@@ -99,16 +82,6 @@ export default function JobDetailPage() {
 
   const isPoster = user?.id === job?.postedById;
 
-  const handleFlagJob = async () => {
-    if (!id) return;
-    try {
-      await jobService.flagJob(id as string, 'Suspicious job listing');
-      toast.success('Job flagged for review.');
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to flag job.');
-    }
-  };
-
   const handleVote = async (type: 'UPVOTE' | 'DOWNVOTE') => {
     if (!isLoggedIn || !id) {
       toast.error('Please login to vote');
@@ -142,28 +115,42 @@ export default function JobDetailPage() {
     }
 
     try {
-      await jobService.voteJob(id as string, type);
+      const response = await jobService.voteJob(id as string, type);
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to register vote');
+      }
     } catch (err: any) {
       setIsUpvoted(originalUpvoted);
       setIsDownvoted(originalDownvoted);
       setUpvoteCount(originalCount);
-      toast.error('Failed to register vote');
+      toast.error(err.message || 'Failed to register vote');
     }
+  };
+
+  const formatQualification = (q: string) => {
+    if (!q) return 'Not Specified';
+    return q.split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ')
+            .replace('Bachelors', "Bachelor's Degree")
+            .replace('Masters', "Master's Degree")
+            .replace('Equivalent Experience', 'Equivalent Work Experience');
   };
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 pt-4 pb-12 animate-pulse">
-        <Skeleton className="h-12 w-3/4 mb-4 rounded-2xl" />
-        <Skeleton className="h-6 w-1/4 mb-6 rounded-xl" />
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-           <div className="lg:col-span-8 space-y-6">
-              <Skeleton className="h-[400px] w-full rounded-[2.5rem]" />
-              <Skeleton className="h-[200px] w-full rounded-[2.5rem]" />
-           </div>
-           <div className="lg:col-span-4 space-y-6">
-              <Skeleton className="h-[300px] w-full rounded-[2.5rem]" />
-           </div>
+      <div className="container mx-auto px-4 py-8 animate-pulse">
+        <Skeleton className="h-10 w-32 mb-8 rounded-xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-6">
+            <Skeleton className="h-12 w-3/4 rounded-xl" />
+            <Skeleton className="h-24 w-full rounded-xl" />
+            <Skeleton className="h-[400px] w-full rounded-xl" />
+          </div>
+          <div className="space-y-6">
+            <Skeleton className="h-32 w-full rounded-xl" />
+            <Skeleton className="h-48 w-full rounded-xl" />
+          </div>
         </div>
       </div>
     );
@@ -171,345 +158,222 @@ export default function JobDetailPage() {
 
   if (error || !job) {
     return (
-      <div className="container mx-auto px-4 pt-12 pb-20 text-center">
-        <div className="h-20 w-20 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-6">
-           <AlertTriangle className="h-10 w-10" />
-        </div>
-        <h2 className="text-3xl font-black mb-4">{error || 'Job not found'}</h2>
-        <Button variant="outline" className="rounded-2xl h-12 font-black px-8" asChild>
-           <Link href="/jobs">Back to Jobs Board</Link>
+      <div className="container mx-auto px-4 py-12 text-center">
+        <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
+        <h2 className="text-2xl font-bold mb-4">{error || 'Job not found'}</h2>
+        <Button asChild>
+          <Link href="/jobs">Back to Jobs</Link>
         </Button>
       </div>
     );
   }
 
-  const isExpired = job.applicationDeadline && new Date(job.applicationDeadline) < new Date();
-
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-20 pt-4">
-      <div className="container mx-auto px-4">
-        {/* Breadcrumb & Navigation */}
-        <div className="flex items-center justify-between mb-4">
-          <Button variant="ghost" className="rounded-xl font-black text-slate-500 hover:text-slate-900 group" asChild>
-            <Link href="/jobs">
-               <ChevronLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
-               Back to Directory
-            </Link>
-          </Button>
-          
-          <div className="flex gap-2">
-             <Button variant="outline" size="icon" className="rounded-xl border-slate-200 h-10 w-10">
-                <Share2 className="h-4 w-4" />
-             </Button>
-             {isLoggedIn && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" className="rounded-xl border-slate-200 h-10 w-10">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="rounded-2xl border-slate-100 shadow-2xl">
-                    {isPoster ? (
-                      <>
-                        <DropdownMenuItem className="rounded-xl font-bold gap-2">
-                          <Edit2 className="h-4 w-4" /> Edit Job
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="rounded-xl font-bold gap-2">
-                          <XCircle className="h-4 w-4" /> Close Job
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="rounded-xl font-bold gap-2 text-red-500">
-                          <Trash2 className="h-4 w-4" /> Delete Job
-                        </DropdownMenuItem>
-                      </>
-                    ) : (
-                      <DropdownMenuItem onClick={handleFlagJob} className="rounded-xl font-bold gap-2">
-                        <Flag className="h-4 w-4" /> Report Job
-                      </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-             )}
-          </div>
-        </div>
+    <div className="min-h-screen bg-background pb-20">
+      <div className="container mx-auto px-4 py-8">
+        {/* Back Button */}
+        <Link href="/jobs" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors font-medium">
+          <ArrowLeft className="w-4 h-4" />
+          Back to Jobs
+        </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-          {/* Main Job Info */}
-          <div className="lg:col-span-8 space-y-10">
-             <div className="space-y-6">
-                <div className="flex flex-wrap gap-3">
-                   <Badge className={cn(
-                      "rounded-lg font-black uppercase text-[10px] tracking-widest px-3 py-1",
-                      isExpired ? "bg-red-100 text-red-600 border-red-200" : "bg-emerald-100 text-emerald-600 border-emerald-200"
-                   )}>
-                      {isExpired ? 'EXPIRED' : (job.status === 'OPEN' ? 'ACCEPTING APPLICATIONS' : 'CLOSED')}
-                   </Badge>
-                   <Badge variant="outline" className="rounded-lg font-black uppercase text-[10px] tracking-widest px-3 py-1 bg-white border-slate-200">
-                      {job.jobType?.replace(/_/g, '-')}
-                   </Badge>
+        <div className="grid grid-cols-1 lg:grid-cols-10 gap-12">
+          {/* LEFT COLUMN (70%) */}
+          <div className="lg:col-span-7 space-y-10 min-w-0">
+            {/* 1. Job Header */}
+            <div className="space-y-4">
+              <h1 className="text-4xl font-bold text-foreground leading-tight break-words">
+                {job.title}
+              </h1>
+              
+              {/* Show company name for employer jobs, hide for peer/personal */}
+              {!job.isPeerSourced && job.postedByRole === 'EMPLOYER' && job.companyName && (
+                <p className="text-xl text-muted-foreground font-medium break-words">
+                  {job.companyName}
+                </p>
+              )}
+
+              <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-muted-foreground pt-2">
+                <span className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4" />
+                  {job.locationCity}, {job.locationCountry}
+                </span>
+                <span className="flex items-center gap-2">
+                  <Briefcase className="w-4 h-4" />
+                  {job.jobType?.replace(/_/g, ' ')} • {job.workType}
+                </span>
+                <span className="flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4" />
+                  {job.experienceLevel?.replace(/_/g, ' ')}
+                </span>
+              </div>
+            </div>
+
+            {/* 2. Job Description */}
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold">Job Description</h2>
+              <div className="space-y-2">
+                <h3 className="text-base font-medium text-foreground">About the Role</h3>
+                <div className="prose prose-sm prose-slate max-w-none text-muted-foreground leading-relaxed break-words">
+                  <ReactMarkdown>{job.description}</ReactMarkdown>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Requirements */}
+            <Card className="rounded-xl border shadow-none">
+              <CardContent className="p-6 space-y-6">
+                <h2 className="text-lg font-semibold">Requirements</h2>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide font-bold">Minimum Experience</p>
+                    <p className="text-base font-semibold text-foreground">
+                      {job.minExperienceYears || 0} Years
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide font-bold">Min Qualification</p>
+                    <p className="text-base font-semibold text-foreground truncate">
+                      {formatQualification(job.minQualification)}
+                    </p>
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                   <h1 className="text-4xl md:text-6xl font-black tracking-tight text-slate-900 leading-[1.1]">
-                      {job.title}
-                   </h1>
-                   <div className="flex items-center gap-4 pt-2">
-                      <div className="h-10 w-10 rounded-2xl bg-primary text-white flex items-center justify-center font-black text-lg shadow-lg shadow-primary/20">
-                         {(job.isPeerSourced && job.postedByName ? job.postedByName : job.companyName)?.charAt(0)}
-                      </div>
-                      {job.isPeerSourced && job.postedByName ? (
-                        <Link href={`/developers/${job.postedById}`} className="text-xl font-black text-primary hover:underline transition-all">
-                           {job.postedByName}
-                        </Link>
-                      ) : (
-                        <Link href={`/companies/${job.companyId}`} className="text-xl font-black text-primary hover:underline transition-all">
-                           {job.companyName}
-                        </Link>
-                      )}
-                      <ShieldCheck className="h-5 w-5 text-emerald-500 fill-emerald-50" />
-                   </div>
-                </div>
+                {job.tags && job.tags.length > 0 && (
+                  <div className="space-y-3">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide font-bold">Keywords</p>
+                    <div className="flex flex-wrap gap-2">
+                      {job.tags.map((tag: string) => (
+                        <Badge key={tag} variant="secondary" className="px-3 py-1 font-medium">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-                <div className="flex flex-wrap gap-8 py-6 px-8 rounded-[2.5rem] bg-white shadow-xl shadow-slate-200/40 border border-slate-100">
-                   <div className="space-y-1">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Location</p>
-                      <p className="font-bold text-slate-900 flex items-center gap-2">
-                         <MapPin className="h-4 w-4 text-primary" /> {job.locationCity}, {job.locationCountry}
-                      </p>
-                   </div>
-                   <Separator orientation="vertical" className="h-10 bg-slate-100 hidden md:block" />
-                   <div className="space-y-1">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Work Type</p>
-                      <p className="font-bold text-slate-900 flex items-center gap-2">
-                         <Globe className="h-4 w-4 text-primary" /> {job.workType}
-                      </p>
-                   </div>
-                   <Separator orientation="vertical" className="h-10 bg-slate-100 hidden md:block" />
-                   <div className="space-y-1">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Experience</p>
-                      <p className="font-bold text-slate-900 flex items-center gap-2">
-                         <Briefcase className="h-4 w-4 text-primary" /> {job.experienceLevel?.replace(/_/g, ' ')}
-                      </p>
-                   </div>
-                </div>
-             </div>
-
-             {/* Job Description Card */}
-             <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-slate-200/30 overflow-hidden">
-                <CardHeader className="bg-slate-900 p-8 text-white">
-                   <CardTitle className="text-2xl font-black uppercase tracking-tight">Job Description</CardTitle>
-                </CardHeader>
-                <CardContent className="p-10 space-y-12">
-                   <div className="prose prose-slate max-w-none">
-                      <h3 className="text-2xl font-black text-slate-900 mb-6">About the Role</h3>
-                      <p className="text-lg leading-relaxed text-slate-600 font-medium whitespace-pre-wrap">
-                         {job.description}
-                      </p>
-                   </div>
-
-                   <Separator className="bg-slate-100" />
-
-                   <div className="space-y-6">
-                      <h3 className="text-2xl font-black text-slate-900">Requirements</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                         <div className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 space-y-3">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Minimum Experience</p>
-                            <p className="text-xl font-black text-slate-900">{job.minExperienceYears} {job.minExperienceYears === 1 ? 'Year' : 'Years'}</p>
-                         </div>
-                         <div className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 space-y-3">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Min Qualification</p>
-                            <p className="text-xl font-black text-slate-900 truncate">
-                               {job.minQualification === 'BACHELORS' ? "Bachelor's Degree" : 
-                                job.minQualification === 'DIPLOMA' ? 'Diploma' : 
-                                job.minQualification === 'SELF_TAUGHT' ? 'Self-Taught' : job.minQualification}
-                            </p>
-                         </div>
-                      </div>
-                      {job.requirements && (
-                         <p className="text-lg leading-relaxed text-slate-600 font-medium whitespace-pre-wrap mt-4 p-6 rounded-[2rem] bg-slate-50/50 italic border-l-4 border-primary">
-                            {job.requirements}
-                         </p>
-                      )}
-                   </div>
-
-                   {job.tags && job.tags.length > 0 && (
-                      <div className="pt-4">
-                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Keywords</p>
-                         <div className="flex flex-wrap gap-2">
-                            {job.tags.map((tag: string) => (
-                               <Badge key={tag} className="h-10 px-5 rounded-2xl bg-slate-100 text-slate-900 font-black text-sm hover:bg-primary hover:text-white transition-all cursor-default">
-                                  #{tag}
-                               </Badge>
-                            ))}
-                         </div>
-                      </div>
-                   )}
-                </CardContent>
-             </Card>
-
-             {/* Forum Section */}
-             <Forum 
+            {/* 4. Forum Discussion */}
+            <div className="space-y-6 pt-4">
+              <h2 className="text-lg font-semibold">Forum Discussion</h2>
+              <Forum 
                 jobId={id as string} 
                 initialComments={comments} 
                 onRefresh={async () => {
-                   try {
-                      const response = await forumService.getJobComments(id as string);
-                      if (response.success) {
-                        const raw = response.data;
-                        setComments(Array.isArray(raw) ? raw : raw?.content || []);
-                      }
-                   } catch (err) {}
+                  try {
+                    const response = await forumService.getJobComments(id as string);
+                    if (response.success) {
+                      const raw = response.data;
+                      setComments(Array.isArray(raw) ? raw : raw?.content || []);
+                    }
+                  } catch (err) {}
                 }}
-             />
+              />
+            </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="lg:col-span-4 space-y-8 sticky top-24">
-             {/* Voting Card */}
-             <Card className="rounded-[2.5rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden bg-white">
-                <CardContent className="p-8 space-y-6">
-                   <div className="flex items-center justify-between">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Community Sentiment</p>
-                      <div className="flex items-center gap-1.5 text-primary font-black">
-                         <Zap className="h-4 w-4 fill-current" />
-                         <span>{upvoteCount} Upvotes</span>
-                      </div>
-                   </div>
-                   
-                   <div className="flex gap-4">
-                      <Button 
-                         variant={isUpvoted ? "default" : "outline"} 
-                         className={cn(
-                            "flex-1 h-16 rounded-[1.5rem] font-black transition-all gap-2",
-                            isUpvoted ? "bg-primary shadow-lg shadow-primary/20" : "border-slate-200 hover:border-primary/50"
-                         )}
-                         onClick={() => handleVote('UPVOTE')}
-                      >
-                         <ThumbsUp className={cn("h-5 w-5", isUpvoted && "fill-current")} />
-                         Upvote
-                      </Button>
-                      <Button 
-                         variant={isDownvoted ? "destructive" : "outline"} 
-                         className={cn(
-                            "flex-1 h-16 rounded-[1.5rem] font-black transition-all gap-2",
-                            isDownvoted ? "bg-red-500 shadow-lg shadow-red-500/20" : "border-slate-200 hover:border-red-200"
-                         )}
-                         onClick={() => handleVote('DOWNVOTE')}
-                      >
-                         <ThumbsDown className={cn("h-5 w-5", isDownvoted && "fill-current")} />
-                         Downvote
-                      </Button>
-                   </div>
-                </CardContent>
-             </Card>
+          {/* RIGHT COLUMN (30%) */}
+          <div className="lg:col-span-3 space-y-6">
+            {/* 5. Community Sentiment */}
+            <Card className="rounded-xl border shadow-none">
+              <CardContent className="p-5 space-y-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide font-bold">Community Sentiment</p>
+                <div className="flex items-center gap-3">
+                  <Button 
+                    variant={isUpvoted ? "default" : "outline"} 
+                    size="sm" 
+                    onClick={() => handleVote('UPVOTE')}
+                    className="flex-1"
+                  >
+                    <ThumbsUp className="w-4 h-4 mr-2" />
+                    {upvoteCount}
+                  </Button>
+                  <Button 
+                    variant={isDownvoted ? "default" : "outline"} 
+                    size="sm" 
+                    onClick={() => handleVote('DOWNVOTE')}
+                    className={cn("flex-1", isDownvoted && "bg-destructive text-destructive-foreground")}
+                  >
+                    <ThumbsDown className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
-             {/* Application Card */}
-             <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-primary/10 overflow-hidden bg-slate-900 text-white relative">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 blur-3xl pointer-events-none" />
-                <CardContent className="p-8 space-y-8 relative z-10">
-                   <div className="space-y-2">
-                      <h3 className="text-2xl font-black tracking-tight">Ready to Apply?</h3>
-                      <p className="text-sm font-medium text-slate-400 leading-relaxed">
-                         Submit your profile and documents directly to the employer.
-                      </p>
-                   </div>
+            {/* 6. Apply Section */}
+            <Card className="rounded-xl border shadow-none bg-card">
+              <CardContent className="p-6 space-y-4">
+                <h3 className="text-base font-semibold">Ready to Apply?</h3>
+                
+                {job.isPeerSourced ? (
+                  <Button size="lg" className="w-full font-bold" asChild>
+                    <Link href={job.sourceUrl || '#'} target="_blank">
+                      Apply on External Site
+                      <ExternalLink className="ml-2 w-4 h-4" />
+                    </Link>
+                  </Button>
+                ) : isPoster ? (
+                  <Badge variant="secondary" className="w-full py-3 justify-center text-sm font-semibold rounded-lg">
+                    You Posted This Job
+                  </Badge>
+                ) : job.hasApplied ? (
+                  <Button size="lg" className="w-full bg-emerald-600 hover:bg-emerald-700 font-bold" disabled>
+                    Application Sent
+                  </Button>
+                ) : (
+                  <Button size="lg" className="w-full font-bold" onClick={() => setApplyOpen(true)}>
+                    Apply Now
+                  </Button>
+                )}
 
-                   <div className="space-y-4">
-                      <div className="flex items-center gap-3">
-                         <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center text-primary">
-                            <CalendarIcon className="h-5 w-5" />
-                         </div>
-                         <div>
-                            <p className="text-[10px] font-black uppercase text-slate-500">Deadline</p>
-                            <p className="text-sm font-black text-white">
-                               {job.applicationDeadline ? new Date(job.applicationDeadline).toLocaleDateString(undefined, { dateStyle: 'long' }) : 'Flexible'}
-                            </p>
-                         </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                         <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center text-primary">
-                            <Send className="h-5 w-5" />
-                         </div>
-                         <div>
-                            <p className="text-[10px] font-black uppercase text-slate-500">Contact</p>
-                            <p className="text-sm font-black text-white truncate max-w-[200px]">{job.contactEmail}</p>
-                         </div>
-                      </div>
-                   </div>
+                <div className="pt-2 space-y-3">
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <CalendarIcon className="w-4 h-4 shrink-0" />
+                    <span>
+                      Deadline: {job.applicationDeadline ? new Date(job.applicationDeadline).toLocaleDateString(undefined, { dateStyle: 'long' }) : 'Flexible'}
+                    </span>
+                  </div>
+                  {job.contactEmail && (
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <Mail className="w-4 h-4 shrink-0" />
+                      <span className="truncate">{job.contactEmail}</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
-                   <div className="space-y-4">
-                      {job.isPeerSourced ? (
-                        <Button className="w-full h-16 rounded-[1.5rem] bg-primary hover:bg-primary/90 text-white font-black text-lg shadow-xl shadow-primary/20 transition-all active:scale-95" asChild>
-                           <Link href={job.sourceUrl || '#'} target="_blank">
-                              Apply on External Site <ExternalLink className="ml-2 h-5 w-5" />
-                           </Link>
-                        </Button>
-                      ) : isLoggedIn ? (
-                         isPoster ? (
-                            <Button variant="outline" className="w-full h-16 rounded-[1.5rem] border-white/20 bg-white/5 text-white font-black opacity-50 cursor-not-allowed">
-                               You Posted This Job
-                            </Button>
-                         ) : user?.role === 'DEVELOPER' && (
-                            job.hasApplied ? (
-                               <Button className="w-full h-16 rounded-[1.5rem] bg-emerald-500 text-white font-black text-lg cursor-default shadow-xl shadow-emerald-500/20">
-                                  <CheckCircle2 className="mr-2 h-5 w-5" /> Already Applied
-                               </Button>
-                            ) : (
-                               <Button 
-                                  className="w-full h-16 rounded-[1.5rem] bg-primary hover:bg-primary/90 text-white font-black text-lg shadow-xl shadow-primary/20 transition-all active:scale-95"
-                                  onClick={() => setApplyOpen(true)}
-                               >
-                                  Apply Now <Zap className="ml-2 h-5 w-5 fill-white" />
-                               </Button>
-                            )
-                         )
-                      ) : (
-                         <div className="space-y-4">
-                            <Button className="w-full h-16 rounded-[1.5rem] bg-primary hover:bg-primary/90 text-white font-black text-lg shadow-xl shadow-primary/20" asChild>
-                               <Link href="/register">Sign up to Apply</Link>
-                            </Button>
-                            <p className="text-center text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                               Requires registration to submit
-                            </p>
-                         </div>
-                      )}
-                   </div>
-                </CardContent>
-             </Card>
-
-             {/* Company / Poster Quick Links */}
-             <Card className="rounded-[2.5rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
-                <CardHeader className="border-b border-slate-50 pb-6">
-                   <CardTitle className="text-xl font-black">
-                     {job.isPeerSourced && job.postedByName ? 'Shared By' : 'Employer Info'}
-                   </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6 space-y-4">
-                   <div className="flex items-center gap-4">
-                      <Avatar className="h-12 w-12 rounded-2xl">
-                         <AvatarFallback className="bg-primary text-white font-black">
-                           {(job.isPeerSourced && job.postedByName ? job.postedByName : job.companyName)?.charAt(0)}
-                         </AvatarFallback>
+            {/* 7. Shared By (Peer-Sourced Only) */}
+            {(job.isPeerSourced || job.postedByRole !== 'EMPLOYER') && (
+              <Card className="rounded-xl border shadow-none">
+                <CardContent className="p-6 space-y-4">
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide font-bold">Shared By</p>
+                    <div className="flex items-center gap-3 py-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
+                          {job.postedByName?.charAt(0) || 'C'}
+                        </AvatarFallback>
                       </Avatar>
-                      <div className="flex-1 min-w-0">
-                         <p className="font-black text-slate-900 truncate">
-                           {job.isPeerSourced && job.postedByName ? job.postedByName : job.companyName}
-                         </p>
-                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                           {job.isPeerSourced && job.postedByName ? 'Community Member' : 'Verified Employer'}
-                         </p>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold">{job.postedByName || 'Community Member'}</span>
+                        <Badge variant="outline" className="w-fit text-[10px] h-4 border-blue-200 bg-blue-50 text-blue-700 font-bold uppercase tracking-tighter">
+                          Community Member
+                        </Badge>
                       </div>
-                   </div>
-                   {job.isPeerSourced && job.postedByName ? (
-                     <Button variant="outline" className="w-full h-12 rounded-xl border-slate-100 font-bold" asChild>
-                        <Link href={`/developers/${job.postedById}`}>View Developer Profile</Link>
-                     </Button>
-                   ) : (
-                     <Button variant="outline" className="w-full h-12 rounded-xl border-slate-100 font-bold" asChild>
-                        <Link href={`/companies/${job.companyId}`}>View Company Profile</Link>
-                     </Button>
-                   )}
+                    </div>
+                  </div>
+                  
+                  <Button variant="outline" size="sm" className="w-full font-semibold" asChild>
+                    <Link href={`/developers/${job.postedById}`}>
+                      View Developer Profile
+                    </Link>
+                  </Button>
                 </CardContent>
-             </Card>
+              </Card>
+            )}
           </div>
         </div>
       </div>
@@ -519,11 +383,9 @@ export default function JobDetailPage() {
         onClose={() => setApplyOpen(false)} 
         job={job} 
         onSuccess={() => {
-           setJob({ ...job, hasApplied: true });
-           toast.success('Application sent! Redirecting to your dashboard...', {
-              icon: '🚀'
-           });
-           setTimeout(() => router.push('/jobs/my-applications'), 2000);
+          setJob({ ...job, hasApplied: true });
+          toast.success('Application sent!');
+          setTimeout(() => router.push('/jobs/my-applications'), 2000);
         }} 
       />
     </div>

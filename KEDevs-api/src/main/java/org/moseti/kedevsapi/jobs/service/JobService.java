@@ -446,6 +446,10 @@ public class JobService {
                 .map(User::getFullName)
                 .orElse("Unknown");
 
+        Role postedByRole = userRepository.findById(job.getPostedById())
+                .map(User::getRole)
+                .orElse(Role.DEVELOPER);
+
         boolean hasApplied = false;
         VoteType currentUserVote = null;
         Integer applicationCount = null;
@@ -499,11 +503,16 @@ public class JobService {
                 job.getUpdatedAt(),
                 hasApplied,
                 currentUserVote,
-                applicationCount
+                applicationCount,
+                postedByRole
         );
     }
 
     private JobSummaryResponse toJobSummaryResponse(JobPost job) {
+        Role postedByRole = userRepository.findById(job.getPostedById())
+                .map(User::getRole)
+                .orElse(Role.DEVELOPER);
+
         List<String> tags = jobTagRepository.findByJobId(job.getId())
                 .stream().map(JobTag::getTag).toList();
 
@@ -522,7 +531,8 @@ public class JobService {
                 job.isPeerSourced(),
                 job.getSourceUrl(),
                 tags,
-                job.getCreatedAt()
+                job.getCreatedAt(),
+                postedByRole
         );
     }
 

@@ -27,6 +27,7 @@ export interface JobSummary {
   applicationDeadline?: string | null;
   postedById?: string;
   postedByName?: string;
+  postedByRole?: 'EMPLOYER' | 'DEVELOPER' | 'ADMIN';
 }
 
 export interface DeveloperSummary {

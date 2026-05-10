@@ -38,6 +38,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -154,6 +155,9 @@ export default function VerificationQueue() {
             <div className="bg-slate-900 p-8 text-white">
                <DialogHeader>
                   <DialogTitle className="text-2xl font-black uppercase tracking-tight">Identity Verification Review</DialogTitle>
+                  <DialogDescription className="sr-only">
+                     Detailed review of the applicant's identity documents and verification status.
+                  </DialogDescription>
                   <div className="flex items-center gap-4 mt-2">
                      <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Applicant: {selectedReq?.name}</p>
                      <Separator orientation="vertical" className="h-3 bg-slate-700" />

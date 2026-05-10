@@ -92,6 +92,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         { label: 'Jobs', href: '/jobs', icon: Briefcase },
         { label: 'Developers', href: '/developers', icon: Users },
         { label: 'Companies', href: '/companies', icon: Building2 },
+        { label: 'My Posts', href: '/jobs/my-posts', icon: ClipboardList },
         { label: 'My Applications', href: '/jobs/my-applications', icon: FileText },
         { label: 'Spotlight', href: '/spotlight', icon: Star },
         { label: 'Payments', href: '/payments', icon: CreditCard },

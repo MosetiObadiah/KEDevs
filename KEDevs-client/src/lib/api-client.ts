@@ -1,6 +1,6 @@
 // src/lib/api-client.ts
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -55,7 +55,7 @@ async function handleResponse<T>(response: Response, requestFn?: () => Promise<R
     if (typeof window !== 'undefined') {
       const hasSession = localStorage.getItem('user') || localStorage.getItem('token');
       const refreshToken = localStorage.getItem('refreshToken');
-      
+
       if (hasSession && refreshToken) {
         try {
           const refreshResponse = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
@@ -95,12 +95,12 @@ async function handleResponse<T>(response: Response, requestFn?: () => Promise<R
     const errorData = await response.json().catch(() => ({}));
     throw new Error(errorData?.message || `HTTP error! status: ${response.status}`);
   }
-  
+
   const data = await response.json();
   if (data && typeof data === 'object' && 'success' in data && data.success === false) {
     throw new Error(data.message || 'API reported a failure despite 200 status');
   }
-  
+
   return data;
 }
 

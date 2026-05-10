@@ -157,11 +157,13 @@ export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerifie
           <DialogTitle className="text-2xl font-black">
             {step === 'SELECT' ? 'Boost Your Visibility' : step === 'PAYING' ? 'Completing Payment' : 'Success!'}
           </DialogTitle>
-          {step === 'SELECT' && (
-            <DialogDescription className="font-medium">
-              Get featured on the public landing page and attract more employers.
-            </DialogDescription>
-          )}
+          <DialogDescription className="font-medium">
+            {step === 'SELECT' 
+              ? 'Get featured on the public landing page and attract more employers.' 
+              : step === 'PAYING' 
+                ? 'Complete your payment via M-Pesa to activate spotlight.' 
+                : 'Your spotlight slot has been successfully activated.'}
+          </DialogDescription>
         </DialogHeader>
         
         <div className="py-2">

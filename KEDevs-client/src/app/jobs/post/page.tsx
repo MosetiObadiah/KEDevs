@@ -191,6 +191,10 @@ export default function CreateJobPostPage() {
       if (!formState.experienceLevel) errors.experienceLevel = 'Experience level is required';
     } else if (key === 'location') {
       if (!formState.workType) errors.workType = 'Work type is required';
+    } else if (key === 'visibility') {
+      if (formState.isPeerSourced && !formState.sourceUrl.trim()) {
+        errors.sourceUrl = 'External source URL is required for peer listings';
+      }
     }
 
     return errors;
@@ -263,14 +267,17 @@ export default function CreateJobPostPage() {
   const currentStepKey = steps[activeStep].key;
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-20 pt-12">
-      <div className="container mx-auto px-4">
+    <div className="flex flex-col min-h-screen bg-muted/30">
+      <div className="container mx-auto px-6 pt-8 pb-12">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="mb-12">
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 mb-2">Post a Job</h1>
-            <p className="text-lg font-semibold text-slate-500">
-              Create a new job post and connect with qualified developers in Kenya.
+          <div className="flex flex-col justify-between items-start gap-2 mb-10">
+            <Badge variant="outline" className="rounded-lg font-black tracking-widest text-[10px] uppercase bg-primary/10 text-primary border-none px-3 py-1 mb-2">
+              Recruitment Hub
+            </Badge>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Post a Job</h1>
+            <p className="text-sm font-semibold text-slate-500">
+               Create a new job post and connect with qualified developers in Kenya.
             </p>
           </div>
 
@@ -306,7 +313,7 @@ export default function CreateJobPostPage() {
           </div>
 
           {/* Form Content */}
-          <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-primary/5 overflow-hidden">
+          <Card className="rounded-[2.5rem] border-border/50 shadow-xl shadow-primary/5 overflow-hidden">
             <CardHeader className="bg-slate-900 text-white p-8">
               <div className="flex items-center gap-4">
                  <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center">
@@ -607,21 +614,31 @@ export default function CreateJobPostPage() {
                         </div>
                         {formState.isPeerSourced && (
                            <div className="space-y-2">
-                              <Label className="font-bold text-xs">External Source URL</Label>
-                              <Input className="h-14 rounded-2xl border-slate-200 font-medium" placeholder="https://..." value={formState.sourceUrl} onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'sourceUrl', value: e.target.value })} />
+                              <Label className="font-bold text-xs flex items-center gap-1">
+                                 External Source URL <span className="text-red-500">*</span>
+                              </Label>
+                              <Input className="h-14 rounded-2xl border-slate-200 font-medium focus-visible:ring-primary/20" placeholder="https://..." value={formState.sourceUrl} onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'sourceUrl', value: e.target.value })} />
+                              <p className="text-[10px] font-medium text-slate-400">Must be a direct link to the original job post.</p>
                            </div>
                         )}
                      </div>
                   </div>
-                  <div className="p-6 rounded-[2rem] bg-blue-50 border border-blue-100 flex items-start gap-4">
-                     <Info className="h-6 w-6 text-blue-500 shrink-0 mt-1" />
-                     <div>
-                        <p className="text-sm font-black text-blue-900 mb-1">Peer-Sourcing Policy</p>
-                        <p className="text-xs font-medium text-blue-700 leading-relaxed">
-                           By posting this job, you agree that you have the right to share this information. External links will be verified by our moderators before going public.
-                        </p>
-                     </div>
-                  </div>
+                  {formState.isPeerSourced && (
+                    <div className="p-6 rounded-[2rem] bg-blue-50 border border-blue-100 flex items-start gap-4">
+                       <Info className="h-6 w-6 text-blue-500 shrink-0 mt-1" />
+                       <div>
+                          <p className="text-sm font-black text-blue-900 mb-3">Peer-Sourcing Policy</p>
+                          <div className="text-xs font-medium text-blue-700 leading-relaxed space-y-3">
+                             <p>This job is being shared from an external source. By posting:</p>
+                             <ul className="list-disc pl-4 space-y-2">
+                                <li>You confirm you have the right to share this opportunity.</li>
+                                <li>The link you provide will be publicly visible so developers can apply directly.</li>
+                                <li>Our moderators may review external links to ensure they lead to legitimate job postings.</li>
+                             </ul>
+                          </div>
+                       </div>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -644,8 +661,8 @@ export default function CreateJobPostPage() {
                   onClick={handleSubmit}
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Zap className="mr-2 h-5 w-5 fill-white" />}
-                  {isSubmitting ? 'Posting...' : 'Launch Job Post'}
+                  {isSubmitting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <CheckCircle2 className="mr-2 h-5 w-5" />}
+                  {isSubmitting ? 'Publishing...' : 'Publish Job Post'}
                 </Button>
               ) : (
                 <Button 

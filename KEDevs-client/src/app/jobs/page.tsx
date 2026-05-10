@@ -37,6 +37,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export default function JobsPage() {
   const { user, isLoggedIn } = useAuth();
@@ -109,10 +110,14 @@ export default function JobsPage() {
     setDownvotedJobs(prevDownvoted);
 
     try {
-      await jobService.voteJob(id, vote === 'UP' ? 'UPVOTE' : 'DOWNVOTE');
+      const response = await jobService.voteJob(id, vote === 'UP' ? 'UPVOTE' : 'DOWNVOTE');
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to register vote');
+      }
     } catch (err: any) {
       setUpvotedJobs(upvotedJobs);
       setDownvotedJobs(downvotedJobs);
+      toast.error(err.message || 'Failed to register vote');
       console.error(err);
     }
   };
@@ -124,13 +129,7 @@ export default function JobsPage() {
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
       <div className="container mx-auto px-6 pt-8 pb-12">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
-          <div>
-            <Badge variant="outline" className="rounded-lg font-black tracking-widest text-[10px] uppercase bg-primary/10 text-primary border-none px-3 py-1 mb-2">
-              Marketplace
-            </Badge>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Job Board</h1>
-          </div>
+        <div className="flex justify-end mb-8">
           {isLoggedIn && (
             <Button className="h-12 px-6 font-bold shadow-lg shadow-primary/20" asChild>
               <Link href="/jobs/post">
@@ -264,7 +263,7 @@ export default function JobsPage() {
                           
                           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground font-medium mb-6">
                             <span className="flex items-center gap-1.5 font-bold text-foreground/80">
-                              <Building2 className="h-4 w-4" /> {job.isPeerSourced && job.postedByName ? job.postedByName : job.companyName}
+                              <Building2 className="h-4 w-4" /> {job.isPeerSourced || job.postedByRole !== 'EMPLOYER' ? (job.postedByName || 'Community Member') : job.companyName}
                             </span>
                             <span className="flex items-center gap-1.5">
                               <MapPin className="h-4 w-4" /> {job.locationCity}, {job.locationCountry}

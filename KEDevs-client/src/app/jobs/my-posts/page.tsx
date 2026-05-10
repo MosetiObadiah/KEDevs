@@ -6,28 +6,26 @@ import {
   Plus, 
   Users, 
   Edit3, 
-  X, 
   Trash2, 
-  ChevronRight, 
   Calendar, 
   MapPin, 
   Loader2, 
   AlertCircle,
   Briefcase,
-  ExternalLink,
+  Building2,
   MoreVertical,
-  CheckCircle2,
   Lock,
-  Eye
+  Eye,
+  ArrowRight
 } from 'lucide-react';
 import { jobService } from '@/services/jobService';
+import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,20 +33,16 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-
-const statusConfig: Record<string, { label: string, color: string }> = {
-  'OPEN': { label: 'Active', color: 'bg-emerald-100 text-emerald-600' },
-  'UNDER_REVIEW': { label: 'In Review', color: 'bg-amber-100 text-amber-600' },
-  'CLOSED': { label: 'Closed', color: 'bg-slate-100 text-slate-500' },
-  'EXPIRED': { label: 'Expired', color: 'bg-red-100 text-red-600' },
-};
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function MyJobPosts() {
+  const { user, isLoggedIn } = useAuth();
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchMyPosts = async () => {
+    setLoading(true);
     try {
       const response = await jobService.getMyPosts();
       if (response.success) {
@@ -91,118 +85,154 @@ export default function MyJobPosts() {
     }
   };
 
+  const formatJobType = (type: string) => {
+    if (!type) return '';
+    return type.replace('_', '-').toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
+  };
+
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-20 flex flex-col items-center justify-center space-y-4">
-        <Loader2 className="h-10 w-10 text-emerald-500 animate-spin" />
-        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Accessing your listings...</p>
+      <div className="container mx-auto px-6 py-8">
+        <div className="flex justify-end mb-8">
+          <Skeleton className="h-12 w-32 rounded-xl" />
+        </div>
+        <div className="space-y-4">
+          {[1, 2, 3].map(i => (
+            <Card key={i} className="p-6 border-border/50">
+              <Skeleton className="h-32 w-full rounded-xl" />
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 pt-8 pb-12 max-w-5xl animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row md:items-center justify-end gap-8 mb-6">
-         <Button className="rounded-2xl h-14 px-8 font-black bg-slate-900 shadow-xl shadow-slate-900/10 gap-2" asChild>
+    <div className="flex flex-col min-h-screen bg-muted/30">
+      <div className="container mx-auto px-6 pt-8 pb-12">
+        {/* Actions Header - No Title as per request */}
+        <div className="flex justify-end mb-8">
+          <Button className="h-12 px-6 font-bold shadow-lg shadow-primary/20" asChild>
             <Link href="/jobs/post">
-               <Plus className="h-5 w-5" /> Post New Job
+              <Plus className="mr-2 h-5 w-5" /> Post New Job
             </Link>
-         </Button>
-      </div>
+          </Button>
+        </div>
 
-      {error && (
-         <div className="p-6 rounded-[2rem] bg-red-50 border border-red-100 flex gap-4 mb-8">
-            <AlertCircle className="h-6 w-6 text-red-500 shrink-0" />
-            <p className="text-sm font-medium text-red-700 leading-relaxed">{error}</p>
-         </div>
-      )}
+        {error && (
+          <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-xl mb-8 text-sm font-medium">
+            {error}
+          </div>
+        )}
 
-      {posts.length > 0 ? (
-        <div className="grid grid-cols-1 gap-4">
-          {posts.map((post) => {
-            const config = statusConfig[post.status] || { label: post.status, color: 'bg-slate-100 text-slate-600' };
-            
-            return (
-              <Card key={post.id} className="rounded-[2.5rem] border-none shadow-xl shadow-slate-200/40 overflow-hidden bg-white group hover:shadow-2xl transition-all duration-500">
-                <CardContent className="p-8">
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-                    <div className="flex items-start gap-6 flex-1">
-                       <div className="h-16 w-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 font-black group-hover:border-emerald-200 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
-                          <Briefcase className="h-8 w-8" />
-                       </div>
-                       <div className="space-y-2 flex-1 min-w-0">
-                          <div className="flex flex-wrap items-center gap-3">
-                             <Link href={`/jobs/${post.id}`} className="text-2xl font-black text-slate-900 hover:text-emerald-600 transition-colors truncate">
-                                {post.title}
-                             </Link>
-                             <Badge className={cn("rounded-lg font-black text-[9px] uppercase tracking-widest px-2 py-0.5 border-none", config.color)}>
-                                {config.label}
-                             </Badge>
-                          </div>
-                          <div className="flex flex-wrap items-center gap-6 text-sm font-bold text-slate-400">
-                             <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> {post.locationCity}, {post.locationCountry}</span>
-                             <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> {new Date(post.createdAt).toLocaleDateString()}</span>
-                             <span className="flex items-center gap-1.5 text-slate-900"><Users className="h-3.5 w-3.5" /> 12 Applicants</span>
-                          </div>
-                       </div>
+        <div className="max-w-4xl mx-auto space-y-4">
+          {posts.length > 0 ? (
+            posts.map((post) => (
+              <Card key={post.id} className="group border-border/50 hover:shadow-xl hover:shadow-primary/5 transition-all overflow-hidden bg-background">
+                <CardContent className="p-6">
+                  <div className="flex flex-col md:flex-row gap-6">
+                    {/* Job Content - Matching /jobs style */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Link href={`/jobs/${post.id}`}>
+                          <h3 className="text-xl font-bold group-hover:text-primary transition-colors truncate">
+                            {post.title}
+                          </h3>
+                        </Link>
+                        {(() => {
+                          const isExpired = post.applicationDeadline && new Date(post.applicationDeadline) < new Date();
+                          if (isExpired) return <Badge variant="destructive" className="text-[10px] uppercase">Expired</Badge>;
+                          if (post.status === 'OPEN') return <Badge className="bg-emerald-500 hover:bg-emerald-500 text-[10px] uppercase">Active</Badge>;
+                          return <Badge variant="secondary" className="text-[10px] uppercase">Closed</Badge>;
+                        })()}
+                      </div>
+                      
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground font-medium mb-6">
+                        <span className="flex items-center gap-1.5 font-bold text-foreground/80">
+                          <Building2 className="h-4 w-4" /> {post.isPeerSourced || post.postedByRole !== 'EMPLOYER' ? (post.postedByName || 'Community Member') : post.companyName}
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <MapPin className="h-4 w-4" /> {post.locationCity}, {post.locationCountry}
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <Calendar className="h-4 w-4" /> {new Date(post.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-muted-foreground/20 text-muted-foreground">
+                          {formatJobType(post.jobType)}
+                        </Badge>
+                        <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest bg-primary/10 text-primary border-none">
+                          {post.workType}
+                        </Badge>
+                        <span className="flex items-center gap-1.5 text-xs font-bold text-slate-900 ml-2">
+                           <Users className="h-3.5 w-3.5" /> 12 Applicants
+                        </span>
+                      </div>
                     </div>
-                    
-                    <div className="flex items-center gap-3">
-                       <Button variant="outline" className="rounded-2xl font-black h-12 px-6 gap-2 border-slate-100" asChild>
-                          <Link href={`/jobs/${post.id}/applications`}>
-                             <Users className="h-4 w-4 text-emerald-500" /> Manage Talent
+
+                    {/* Management Actions */}
+                    <div className="flex md:flex-col items-center md:items-end justify-between md:justify-center md:w-48 shrink-0 gap-4">
+                      <Button variant="outline" className="w-full font-bold group/btn h-11" asChild>
+                        <Link href={`/jobs/${post.id}/applications`}>
+                          Manage Talent
+                          <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
+                        </Link>
+                      </Button>
+
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-slate-100" asChild>
+                          <Link href={`/jobs/post?edit=${post.id}`}>
+                            <Edit3 className="h-4 w-4" />
                           </Link>
-                       </Button>
-                       
-                       <DropdownMenu>
+                        </Button>
+                        
+                        <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                             <Button variant="ghost" size="icon" className="h-12 w-12 rounded-2xl bg-slate-50">
-                                <MoreVertical className="h-5 w-5" />
-                             </Button>
+                            <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-slate-100">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="rounded-[2rem] p-2 border-slate-100 shadow-2xl min-w-[200px]">
-                             <DropdownMenuItem className="rounded-xl font-bold gap-3 py-3" asChild>
-                                <Link href={`/jobs/post?edit=${post.id}`}>
-                                   <Edit3 className="h-4 w-4" /> Edit Details
-                                </Link>
-                             </DropdownMenuItem>
-                             <DropdownMenuItem className="rounded-xl font-bold gap-3 py-3" asChild>
-                                <Link href={`/jobs/${post.id}`}>
-                                   <Eye className="h-4 w-4" /> Preview Live
-                                </Link>
-                             </DropdownMenuItem>
-                             <DropdownMenuSeparator className="bg-slate-50" />
-                             {post.status !== 'CLOSED' && (
-                                <DropdownMenuItem className="rounded-xl font-bold gap-3 py-3 text-amber-600" onClick={() => handleClosePost(post.id)}>
-                                   <Lock className="h-4 w-4" /> Close Listing
-                                </DropdownMenuItem>
-                             )}
-                             <DropdownMenuItem className="rounded-xl font-bold gap-3 py-3 text-red-500" onClick={() => handleDeletePost(post.id)}>
-                                <Trash2 className="h-4 w-4" /> Permanently Delete
-                             </DropdownMenuItem>
+                          <DropdownMenuContent align="end" className="rounded-xl p-2 border-slate-100 shadow-xl min-w-[180px]">
+                            <DropdownMenuItem className="rounded-lg font-bold gap-3" asChild>
+                              <Link href={`/jobs/${post.id}`}>
+                                <Eye className="h-4 w-4" /> Preview Live
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            {post.status !== 'CLOSED' && (
+                              <DropdownMenuItem className="rounded-lg font-bold gap-3 text-amber-600" onClick={() => handleClosePost(post.id)}>
+                                <Lock className="h-4 w-4" /> Close Listing
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem className="rounded-lg font-bold gap-3 text-destructive" onClick={() => handleDeletePost(post.id)}>
+                              <Trash2 className="h-4 w-4" /> Delete Post
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
-                       </DropdownMenu>
+                        </DropdownMenu>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            );
-          })}
+            ))
+          ) : (
+            <div className="py-20 text-center space-y-4 bg-background rounded-3xl border border-dashed border-muted">
+              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                <Briefcase className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold">No jobs posted yet</h3>
+                <p className="text-muted-foreground text-sm">Create your first listing to start connecting with talent.</p>
+              </div>
+              <Button asChild>
+                <Link href="/jobs/post">Post Your First Job</Link>
+              </Button>
+            </div>
+          )}
         </div>
-      ) : (
-        <Card className="rounded-[3rem] border-none shadow-2xl shadow-slate-200/50 p-12 text-center bg-white">
-           <div className="h-24 w-24 bg-emerald-50 text-emerald-500 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6">
-              <Plus className="h-12 w-12" />
-           </div>
-           <h3 className="text-2xl font-black text-slate-900 mb-2">Build Your Team</h3>
-           <p className="text-slate-500 font-medium max-w-sm mx-auto mb-8">
-              You haven't posted any jobs yet. Create your first listing to connect with top tech talent in Kenya.
-           </p>
-           <Button size="lg" className="rounded-2xl font-black h-14 px-10 bg-emerald-500 hover:bg-emerald-600 shadow-xl shadow-emerald-500/20" asChild>
-              <Link href="/jobs/post">Post Your First Job</Link>
-           </Button>
-        </Card>
-      )}
+      </div>
     </div>
   );
 }
