@@ -293,6 +293,30 @@ public class EmployerProfileService {
         return toResponse(profile);
     }
 
+    @Transactional
+    public UserDtos.EmployerProfileResponse uploadVerificationDocuments(
+            UUID userId,
+            MultipartFile incorporationCertificate,
+            MultipartFile kraPinCertificate,
+            MultipartFile businessPermit) {
+        EmployerProfile profile = getProfileEntityByUserId(userId);
+        String folder = "kedevs/employers/verification";
+
+        if (incorporationCertificate != null && !incorporationCertificate.isEmpty()) {
+            profile.setIncorporationCertificateUrl(fileUploadService.uploadFile(incorporationCertificate, folder));
+        }
+        if (kraPinCertificate != null && !kraPinCertificate.isEmpty()) {
+            profile.setKraPinCertificateUrl(fileUploadService.uploadFile(kraPinCertificate, folder));
+        }
+        if (businessPermit != null && !businessPermit.isEmpty()) {
+            profile.setBusinessPermitUrl(fileUploadService.uploadFile(businessPermit, folder));
+        }
+
+        profile = employerProfileRepository.save(profile);
+        log.info("Employer verification documents uploaded for userId={}", userId);
+        return toResponse(profile);
+    }
+
     @Transactional(readOnly = true)
     public Page<UserDtos.EmployerProfileResponse> getPublicProfiles(Pageable pageable) {
         return employerProfileRepository.findByIsApprovedTrue(pageable)
@@ -314,13 +338,16 @@ public class EmployerProfileService {
 
         return new UserDtos.EmployerProfileResponse(
                 profile.getId(), profile.getUserId(),
-                profile.getContactPersonName(), 
+                profile.getContactPersonName(),
                 profile.getContactEmail() != null ? profile.getContactEmail() : email,
                 profile.getCompanyName(),
                 profile.getCompanyWebsite(), profile.getIndustry(),
                 profile.getCompanySize(), profile.getLocationHQ(),
                 profile.getCompanyBio(), profile.getLogoUrl(),
                 profile.getLinkedinUrl(), profile.getTwitterUrl(),
+                profile.getIncorporationCertificateUrl(),
+                profile.getKraPinCertificateUrl(),
+                profile.getBusinessPermitUrl(),
                 profile.isApproved(), profile.isVerified(), profile.isProAccount(),
                 profile.getCreatedAt()
         );

@@ -15,11 +15,13 @@ import org.moseti.kedevsapi.users.repository.DeveloperProfileRepository;
 import org.moseti.kedevsapi.users.repository.UserRepository;
 import org.moseti.kedevsapi.users.service.EmployerProfileService;
 import org.moseti.kedevsapi.shared.service.FileUploadService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,6 +44,10 @@ public class JobService {
     private final FileUploadService fileUploadService;
     private final org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
     private final org.moseti.kedevsapi.auth.service.EmailService emailService;
+    private final WebClient.Builder webClientBuilder;
+
+    @Value("${app.api-base-url:http://localhost:8080}")
+    private String apiBaseUrl;
 
     @Transactional
     public JobPostResponse createJobPost(UUID userId, CreateJobPostRequest request) {
@@ -408,6 +414,46 @@ public class JobService {
         return toJobApplicationResponse(application);
     }
 
+    public byte[] getApplicationResume(UUID userId, UUID jobId, UUID applicationId) {
+        JobApplication application = jobApplicationRepository.findByJobIdAndId(jobId, applicationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
+
+        JobPost job = application.getJobPost();
+        if (!job.getPostedById().equals(userId) && !application.getApplicantId().equals(userId)) {
+            throw new ForbiddenException("Not authorized to download this file");
+        }
+
+        return downloadFromCloudinary(application.getResumeUrl());
+    }
+
+    public byte[] getApplicationCoverLetter(UUID userId, UUID jobId, UUID applicationId) {
+        JobApplication application = jobApplicationRepository.findByJobIdAndId(jobId, applicationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
+
+        if (application.getCoverLetterUrl() == null) {
+            throw new ResourceNotFoundException("Cover letter file not found");
+        }
+
+        JobPost job = application.getJobPost();
+        if (!job.getPostedById().equals(userId) && !application.getApplicantId().equals(userId)) {
+            throw new ForbiddenException("Not authorized to download this file");
+        }
+
+        return downloadFromCloudinary(application.getCoverLetterUrl());
+    }
+
+    private byte[] downloadFromCloudinary(String url) {
+        if (url == null || url.isBlank()) {
+            throw new BadRequestException("Invalid file URL");
+        }
+        return webClientBuilder.build()
+                .get()
+                .uri(url)
+                .retrieve()
+                .bodyToMono(byte[].class)
+                .block();
+    }
+
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public Page<JobApplicationResponse> getMyApplications(UUID userId, Pageable pageable) {
         return jobApplicationRepository.findByApplicantId(userId, pageable)
@@ -549,6 +595,13 @@ public class JobService {
                 .map(p -> p.getId())
                 .orElse(null);
 
+        String coverLetterUrl = application.getCoverLetterUrl() != null 
+                ? apiBaseUrl + "/api/v1/jobs/" + application.getJobPost().getId() + "/applications/" + application.getId() + "/cover-letter"
+                : null;
+        String resumeUrl = application.getResumeUrl() != null
+                ? apiBaseUrl + "/api/v1/jobs/" + application.getJobPost().getId() + "/applications/" + application.getId() + "/resume"
+                : null;
+
         return new JobApplicationResponse(
                 application.getId(),
                 application.getJobPost() != null ? application.getJobPost().getId() : null,
@@ -560,8 +613,8 @@ public class JobService {
                 applicantEmail,
                 applicantProfileImage,
                 application.getCoverLetter(),
-                application.getCoverLetterUrl(),
-                application.getResumeUrl(),
+                coverLetterUrl,
+                resumeUrl,
                 application.getStatus(),
                 application.getCreatedAt(),
                 application.getUpdatedAt()

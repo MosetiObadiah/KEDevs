@@ -183,6 +183,7 @@ export default function MyProfile() {
   const [newItem, setNewItem] = useState<any>({});
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [techInputValue, setTechInputValue] = useState('');
 
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -321,6 +322,7 @@ export default function MyProfile() {
     setNewItem({});
     setSelectedFile(null);
     setPreviewUrl(null);
+    setTechInputValue('');
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -643,7 +645,7 @@ export default function MyProfile() {
       />
 
       <Dialog open={!!dialogOpen} onOpenChange={(v) => !v && closeDialog()}>
-        <DialogContent className="sm:max-w-md rounded-[2.5rem]">
+        <DialogContent className="sm:max-w-md rounded-[2.5rem] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black">
               Add {dialogOpen?.charAt(0).toUpperCase()}{dialogOpen?.slice(1)}
@@ -666,13 +668,79 @@ export default function MyProfile() {
               <div className="space-y-4">
                 <div className="space-y-2"><Label className="font-bold">Project Title</Label><Input value={newItem.title || ''} onChange={(e) => setNewItem({ ...newItem, title: e.target.value })} className="rounded-xl" /></div>
                 <div className="space-y-2"><Label className="font-bold">Description</Label><Textarea value={newItem.description || ''} onChange={(e) => setNewItem({ ...newItem, description: e.target.value })} className="rounded-xl min-h-[100px]" /></div>
-                <div className="space-y-2"><Label className="font-bold">Tech Stack (comma separated)</Label><Input placeholder="React, Node.js" value={newItem.techStack || ''} onChange={(e) => setNewItem({ ...newItem, techStack: e.target.value })} className="rounded-xl" /></div>
+                <div className="space-y-2">
+                  <Label className="font-bold">Tech Stack</Label>
+                  <div className="flex flex-wrap gap-2 mb-2 min-h-8">
+                    {(newItem.techStack ? newItem.techStack.split(',').filter(Boolean) : []).map((tech: string, i: number) => (
+                      <Badge key={`${tech}-${i}`} className="bg-slate-100 hover:bg-slate-200 text-slate-900 border-none flex items-center gap-1.5 pl-3 pr-1.5 py-1 rounded-lg text-xs font-bold transition-colors">
+                        {tech.trim()}
+                        <button 
+                          type="button" 
+                          onClick={() => {
+                            const updated = newItem.techStack.split(',').filter((_: any, idx: number) => idx !== i).join(',');
+                            setNewItem({ ...newItem, techStack: updated });
+                          }} 
+                          className="rounded-md p-0.5 hover:bg-slate-300 transition-colors text-slate-500 hover:text-slate-900"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                  <Input 
+                    placeholder="Add technology... (Press Enter)" 
+                    value={techInputValue} 
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val.includes(',')) {
+                        const parts = val.split(',').map(p => p.trim()).filter(Boolean);
+                        if (parts.length > 1 || val.endsWith(',')) {
+                          const remainingText = val.endsWith(',') ? '' : parts.pop() || '';
+                          const oldTechs = newItem.techStack ? newItem.techStack.split(',').filter(Boolean) : [];
+                          const combined = [...oldTechs, ...parts].join(',');
+                          setNewItem({ ...newItem, techStack: combined });
+                          setTechInputValue(remainingText);
+                          return;
+                        }
+                      }
+                      setTechInputValue(val);
+                    }} 
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const val = techInputValue.trim();
+                        if (val) {
+                          const oldTechs = newItem.techStack ? newItem.techStack.split(',').filter(Boolean) : [];
+                          const combined = [...oldTechs, val].join(',');
+                          setNewItem({ ...newItem, techStack: combined });
+                          setTechInputValue('');
+                        }
+                      }
+                    }}
+                    className="rounded-xl" 
+                  />
+                </div>
                 <div className="space-y-2"><Label className="font-bold">Live URL</Label><Input value={newItem.projectUrl || ''} onChange={(e) => setNewItem({ ...newItem, projectUrl: e.target.value })} className="rounded-xl" /></div>
                 <div className="space-y-2"><Label className="font-bold">Source Code URL</Label><Input value={newItem.repoUrl || ''} onChange={(e) => setNewItem({ ...newItem, repoUrl: e.target.value })} className="rounded-xl" /></div>
                 <div className="space-y-2">
                   <Label className="font-bold">Screenshot (Required for featured)</Label>
                   <Input type="file" accept="image/*" onChange={handleFileChange} className="rounded-xl h-10 px-2 pt-1.5" />
-                  {previewUrl && <img src={previewUrl} className="mt-4 w-full h-32 object-cover rounded-2xl" />}
+                  {previewUrl && (
+                    <div className="mt-4 relative rounded-2xl overflow-hidden">
+                      <img src={previewUrl} className="w-full h-40 object-cover" />
+                      <button 
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedFile(null);
+                          setPreviewUrl(null);
+                        }} 
+                        className="absolute top-2 right-2 h-8 w-8 rounded-xl bg-black/60 hover:bg-red-600 text-white flex items-center justify-center transition-all backdrop-blur-md border border-white/10"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center space-x-2 pt-2"><Switch id="featured" checked={newItem.isFeatured || false} onCheckedChange={(v) => setNewItem({ ...newItem, isFeatured: v })} /><Label htmlFor="featured" className="font-bold text-sm">Feature this project</Label></div>
               </div>

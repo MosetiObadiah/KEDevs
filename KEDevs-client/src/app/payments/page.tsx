@@ -68,16 +68,28 @@ export default function PaymentsPage() {
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const [historyRes, availRes] = await Promise.all([
-          paymentService.getHistory(),
-          spotlightService.getAvailability(),
-        ]);
-        if (historyRes.success) setPaymentHistory(historyRes.data?.content || historyRes.data || []);
-        if (availRes.success) setAvailability(availRes.data);
+        // Payment history — this is the main data, let it fail loudly (propagates to outer catch)
+        const historyRes = await paymentService.getHistory();
+        if (historyRes.success) {
+          setPaymentHistory(historyRes.data?.content || historyRes.data || []);
+        }
 
+        // Spotlight availability — optional, don't block page if it fails
+        try {
+          const availRes = await spotlightService.getAvailability();
+          if (availRes.success) setAvailability(availRes.data);
+        } catch (availErr) {
+          console.log('Spotlight availability fetch skipped/failed');
+        }
+
+        // Spotlight status — optional, don't block the page if it fails
         if (isDev) {
-          const slRes = await spotlightService.getMyStatus();
-          if (slRes.success) setSpotlightStatus(slRes.data);
+          try {
+            const slRes = await spotlightService.getMyStatus();
+            if (slRes.success) setSpotlightStatus(slRes.data);
+          } catch (slErr) {
+            console.log('No spotlight status available');
+          }
         }
       } catch (err) {
         console.error('Failed to load payment data', err);

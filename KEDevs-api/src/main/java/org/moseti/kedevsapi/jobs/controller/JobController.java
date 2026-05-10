@@ -13,6 +13,9 @@ import org.moseti.kedevsapi.shared.enums.JobStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -232,5 +235,29 @@ public class JobController {
             @Valid @RequestBody UpdateApplicationStatusRequest request) {
         JobApplicationResponse response = jobService.updateApplicationStatus(getCurrentUserId(), id, appId, request);
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Application status updated", response));
+    }
+
+    @Operation(summary = "Download applicant resume", description = "Proxies file from Cloudinary with auth check.")
+    @GetMapping("/{id}/applications/{appId}/resume")
+    public ResponseEntity<Resource> downloadResume(
+            @PathVariable UUID id,
+            @PathVariable UUID appId) {
+        byte[] data = jobService.getApplicationResume(getCurrentUserId(), id, appId);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"resume_" + appId + ".pdf\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(new ByteArrayResource(data));
+    }
+
+    @Operation(summary = "Download applicant cover letter", description = "Proxies file from Cloudinary with auth check.")
+    @GetMapping("/{id}/applications/{appId}/cover-letter")
+    public ResponseEntity<Resource> downloadCoverLetter(
+            @PathVariable UUID id,
+            @PathVariable UUID appId) {
+        byte[] data = jobService.getApplicationCoverLetter(getCurrentUserId(), id, appId);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"cover_letter_" + appId + ".pdf\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(new ByteArrayResource(data));
     }
 }

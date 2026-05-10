@@ -48,6 +48,15 @@ public class EmployerProfile extends BaseEntity {
 
     private String twitterUrl;
 
+    @Column(name = "incorporation_certificate_url")
+    private String incorporationCertificateUrl;
+
+    @Column(name = "kra_pin_certificate_url")
+    private String kraPinCertificateUrl;
+
+    @Column(name = "business_permit_url")
+    private String businessPermitUrl;
+
     @Column(name = "is_approved", nullable = false)
     private boolean isApproved = false;
 

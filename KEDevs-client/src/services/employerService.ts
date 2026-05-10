@@ -20,6 +20,18 @@ export const employerService = {
     return apiClient.post<ApiResponse<any>>('/api/v1/employers/profile/logo', formData);
   },
 
+  async uploadVerificationDocuments(
+    incorporationCertificate: File,
+    kraPinCertificate: File,
+    businessPermit: File
+  ): Promise<ApiResponse<any>> {
+    const formData = new FormData();
+    formData.append('incorporationCertificate', incorporationCertificate);
+    formData.append('kraPinCertificate', kraPinCertificate);
+    formData.append('businessPermit', businessPermit);
+    return apiClient.post<ApiResponse<any>>('/api/v1/employers/profile/verification-documents', formData);
+  },
+
   async getSavedSearches(): Promise<ApiResponse<any>> {
     return apiClient.get<ApiResponse<any>>('/api/v1/employers/searches');
   },

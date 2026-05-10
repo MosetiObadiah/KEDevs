@@ -108,6 +108,26 @@ public class EmployerController {
                 employerProfileService.uploadLogo(userId, image)));
     }
 
+    @Operation(summary = "Upload company verification documents",
+               description = "Uploads Certificate of Incorporation/CR12, KRA PIN Certificate, and Single Business Permit to Cloudinary. Requires EMPLOYER role and an existing profile.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Verification documents uploaded successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid or missing file"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "404", description = "Employer profile not found")
+    })
+    @PostMapping(value = "/profile/verification-documents", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('EMPLOYER')")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.EmployerProfileResponse>> uploadVerificationDocuments(
+            Authentication authentication,
+            @RequestPart("incorporationCertificate") org.springframework.web.multipart.MultipartFile incorporationCertificate,
+            @RequestPart("kraPinCertificate") org.springframework.web.multipart.MultipartFile kraPinCertificate,
+            @RequestPart("businessPermit") org.springframework.web.multipart.MultipartFile businessPermit) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Verification documents uploaded",
+                employerProfileService.uploadVerificationDocuments(userId, incorporationCertificate, kraPinCertificate, businessPermit)));
+    }
+
     @Operation(summary = "Save a filter search (Pro)", description = "Requires EMPLOYER PRO status.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Search saved successfully"),

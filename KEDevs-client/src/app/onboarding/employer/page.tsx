@@ -5,14 +5,15 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
   Building2, 
-  Contact, 
-  LayoutDashboard, 
+  Contact,
   CheckCircle2, 
   Loader2, 
   ChevronRight, 
   ChevronLeft,
   Info,
   ShieldCheck,
+  FileText,
+  UploadCloud,
   Globe,
   X,
   Users,
@@ -24,7 +25,7 @@ import { useAuth } from '@/context/AuthContext';
 import { employerService } from '@/services/employerService';
 import { KENYA_COUNTIES, INDUSTRIES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
+import toast from 'react-hot-toast';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -45,7 +46,8 @@ import {
 const steps = [
   { label: 'Profile', icon: Building2 },
   { label: 'Contact', icon: Contact },
-  { label: 'Review', icon: Eye }
+  { label: 'Verification', icon: ShieldCheck },
+  { label: 'Review', icon: Eye },
 ];
 
 const COMPANY_SIZES = [
@@ -61,6 +63,11 @@ export default function EmployerOnboarding() {
   const [activeStep, setActiveStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+
+  // Verification document files (held in state until final submit)
+  const [incorporationFile, setIncorporationFile] = useState<File | null>(null);
+  const [kraPinFile, setKraPinFile] = useState<File | null>(null);
+  const [businessPermitFile, setBusinessPermitFile] = useState<File | null>(null);
 
   const [formData, setFormData] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -110,11 +117,17 @@ export default function EmployerOnboarding() {
           return;
         }
       }
+      if (activeStep === 2) {
+        if (!incorporationFile || !kraPinFile || !businessPermitFile) {
+          toast.error('Please upload all three verification documents');
+          return;
+        }
+      }
       setActiveStep((prev) => prev + 1);
       return;
     }
 
-    // Final submit
+    // Final submit (step 3 — Review)
     if (!agreedToTerms) {
       toast.error('Please agree to the Terms of Service');
       return;
@@ -122,6 +135,7 @@ export default function EmployerOnboarding() {
     setIsSubmitting(true);
 
     try {
+      // Step A: Create the profile
       const response = await employerService.createProfile({
         contactPersonName: formData.contactPersonName.trim(),
         companyName: formData.companyName.trim(),
@@ -137,6 +151,15 @@ export default function EmployerOnboarding() {
       });
 
       if (response.success) {
+        // Step B: Upload the verification documents
+        if (incorporationFile && kraPinFile && businessPermitFile) {
+          await employerService.uploadVerificationDocuments(
+            incorporationFile,
+            kraPinFile,
+            businessPermitFile
+          );
+        }
+
         completeOnboarding();
         localStorage.removeItem('employer_onboarding');
         toast.success('Profile submitted for approval!');
@@ -198,7 +221,8 @@ export default function EmployerOnboarding() {
                 <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center">
                    {activeStep === 0 && <Building2 className="h-6 w-6" />}
                    {activeStep === 1 && <Contact className="h-6 w-6" />}
-                   {activeStep === 2 && <Eye className="h-6 w-6" />}
+                   {activeStep === 2 && <ShieldCheck className="h-6 w-6" />}
+                   {activeStep === 3 && <Eye className="h-6 w-6" />}
                 </div>
                 <div>
                    <CardTitle className="text-2xl font-black uppercase tracking-tight">{steps[activeStep].label}</CardTitle>
@@ -336,6 +360,89 @@ export default function EmployerOnboarding() {
             )}
 
             {activeStep === 2 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="p-4 rounded-2xl bg-blue-50 border border-blue-100 flex gap-3">
+                  <Info className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
+                  <p className="text-xs font-medium text-blue-700 leading-relaxed">
+                    To verify your company operates legally in Kenya, we require three official documents. These are reviewed by our team and kept securely — they are never shared publicly.
+                  </p>
+                </div>
+
+                {/* Document 1: Certificate of Incorporation + CR12 */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Certificate of Incorporation / CR12</Label>
+                    <Badge className="text-[9px] bg-red-50 text-red-600 border-red-100 font-black">Required</Badge>
+                  </div>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    <strong>Why we collect this:</strong> The Certificate of Incorporation proves your company is legally registered with the Registrar of Companies in Kenya. The CR12 from eCitizen lists the current directors, confirming the people behind the account are genuinely linked to the company.
+                  </p>
+                  <label className={cn(
+                    "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-2xl cursor-pointer transition-colors",
+                    incorporationFile ? "border-emerald-400 bg-emerald-50" : "border-slate-200 bg-slate-50 hover:bg-slate-100"
+                  )}>
+                    <div className="flex flex-col items-center gap-2">
+                      {incorporationFile ? (
+                        <><CheckCircle2 className="h-6 w-6 text-emerald-500" /><span className="text-xs font-bold text-emerald-600">{incorporationFile.name}</span></>
+                      ) : (
+                        <><UploadCloud className="h-6 w-6 text-slate-400" /><span className="text-xs font-bold text-slate-500">Click to upload PDF, JPG, or PNG</span></>
+                      )}
+                    </div>
+                    <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => setIncorporationFile(e.target.files?.[0] || null)} />
+                  </label>
+                </div>
+
+                {/* Document 2: KRA PIN Certificate */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">KRA PIN Certificate</Label>
+                    <Badge className="text-[9px] bg-red-50 text-red-600 border-red-100 font-black">Required</Badge>
+                  </div>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    <strong>Why we collect this:</strong> The KRA PIN certificate proves your business is registered with the Kenya Revenue Authority for tax purposes. It is a fundamental indicator of a legitimately operating company in Kenya.
+                  </p>
+                  <label className={cn(
+                    "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-2xl cursor-pointer transition-colors",
+                    kraPinFile ? "border-emerald-400 bg-emerald-50" : "border-slate-200 bg-slate-50 hover:bg-slate-100"
+                  )}>
+                    <div className="flex flex-col items-center gap-2">
+                      {kraPinFile ? (
+                        <><CheckCircle2 className="h-6 w-6 text-emerald-500" /><span className="text-xs font-bold text-emerald-600">{kraPinFile.name}</span></>
+                      ) : (
+                        <><UploadCloud className="h-6 w-6 text-slate-400" /><span className="text-xs font-bold text-slate-500">Click to upload PDF, JPG, or PNG</span></>
+                      )}
+                    </div>
+                    <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => setKraPinFile(e.target.files?.[0] || null)} />
+                  </label>
+                </div>
+
+                {/* Document 3: Single Business Permit */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Single Business Permit / Trade Licence</Label>
+                    <Badge className="text-[9px] bg-red-50 text-red-600 border-red-100 font-black">Required</Badge>
+                  </div>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    <strong>Why we collect this:</strong> A Single Business Permit (or Trade Licence) issued by the county government confirms your company is legally allowed to operate from its physical premises. This is the final operational check that confirms your business is active and compliant.
+                  </p>
+                  <label className={cn(
+                    "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-2xl cursor-pointer transition-colors",
+                    businessPermitFile ? "border-emerald-400 bg-emerald-50" : "border-slate-200 bg-slate-50 hover:bg-slate-100"
+                  )}>
+                    <div className="flex flex-col items-center gap-2">
+                      {businessPermitFile ? (
+                        <><CheckCircle2 className="h-6 w-6 text-emerald-500" /><span className="text-xs font-bold text-emerald-600">{businessPermitFile.name}</span></>
+                      ) : (
+                        <><UploadCloud className="h-6 w-6 text-slate-400" /><span className="text-xs font-bold text-slate-500">Click to upload PDF, JPG, or PNG</span></>
+                      )}
+                    </div>
+                    <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => setBusinessPermitFile(e.target.files?.[0] || null)} />
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {activeStep === 3 && (
               <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div className="p-8 rounded-[2.5rem] bg-slate-900 text-white space-y-6 shadow-2xl shadow-slate-900/10">
                    <div className="flex justify-between items-start">
