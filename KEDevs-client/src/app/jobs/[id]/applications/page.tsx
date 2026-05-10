@@ -320,7 +320,7 @@ export default function ApplicationsInbox() {
                   </div>
 
                   <div className="p-10 space-y-10 overflow-y-auto no-scrollbar max-h-[60vh]">
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                     <div className="grid grid-cols-1 gap-10">
                         <div className="space-y-6">
                            <div className="space-y-4">
                               <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Application Documents</h4>
@@ -363,18 +363,7 @@ export default function ApplicationsInbox() {
                            </Button>
                         </div>
 
-                        <div className="space-y-6">
-                           <div className="flex items-center justify-between">
-                              <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Written Statement</h4>
-                              <Button variant="ghost" size="sm" className="h-8 rounded-lg px-2 text-[10px] font-black uppercase gap-2" onClick={() => handleCopy(selectedApplicant.coverLetter)}>
-                                 <Copy className="h-3 w-3" /> Copy
-                              </Button>
-                           </div>
-                           <div className="p-8 rounded-[2.5rem] bg-slate-50 border border-slate-100 min-h-[200px] max-h-[300px] overflow-y-auto no-scrollbar font-medium text-slate-600 leading-relaxed italic relative">
-                              <MessageSquare className="h-10 w-10 text-slate-200 absolute top-4 right-4 opacity-10" />
-                              {selectedApplicant.coverLetter || "The applicant didn't provide a written statement."}
-                           </div>
-                        </div>
+
                      </div>
 
                      {showMessageBox && (

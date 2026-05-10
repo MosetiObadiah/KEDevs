@@ -21,8 +21,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.reactive.function.client.WebClient;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -44,7 +42,6 @@ public class JobService {
     private final FileUploadService fileUploadService;
     private final org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
     private final org.moseti.kedevsapi.auth.service.EmailService emailService;
-    private final WebClient.Builder webClientBuilder;
 
     @Value("${app.api-base-url:http://localhost:8080}")
     private String apiBaseUrl;
@@ -414,6 +411,7 @@ public class JobService {
         return toJobApplicationResponse(application);
     }
 
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public byte[] getApplicationResume(UUID userId, UUID jobId, UUID applicationId) {
         JobApplication application = jobApplicationRepository.findByJobIdAndId(jobId, applicationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
@@ -426,6 +424,7 @@ public class JobService {
         return downloadFromCloudinary(application.getResumeUrl());
     }
 
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public byte[] getApplicationCoverLetter(UUID userId, UUID jobId, UUID applicationId) {
         JobApplication application = jobApplicationRepository.findByJobIdAndId(jobId, applicationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
@@ -446,12 +445,16 @@ public class JobService {
         if (url == null || url.isBlank()) {
             throw new BadRequestException("Invalid file URL");
         }
-        return webClientBuilder.build()
-                .get()
-                .uri(url)
-                .retrieve()
-                .bodyToMono(byte[].class)
-                .block();
+        try {
+            // Replace http:// with https:// if necessary or let Cloudinary handle it
+            java.net.URL fileUrl = new java.net.URI(url).toURL();
+            try (java.io.InputStream in = fileUrl.openStream()) {
+                return in.readAllBytes();
+            }
+        } catch (Exception e) {
+            log.error("Failed to download file from Cloudinary: {}", url, e);
+            throw new RuntimeException("Failed to download file from Cloudinary");
+        }
     }
 
     @org.springframework.transaction.annotation.Transactional(readOnly = true)

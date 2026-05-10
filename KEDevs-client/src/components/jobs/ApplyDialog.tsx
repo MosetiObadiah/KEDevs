@@ -87,11 +87,11 @@ export default function ApplyDialog({ open, onClose, job, onSuccess }: ApplyDial
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'resume' | 'cover') => {
     const file = e.target.files?.[0];
     if (file) {
-      const validTypes = ['.pdf', '.docx'];
+      const validTypes = ['.pdf'];
       const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
 
       if (!validTypes.includes(fileExtension)) {
-        toast.error(`Invalid file type for ${type}. Only PDF and DOCX are allowed.`);
+        toast.error(`Invalid file type for ${type}. Only PDF is allowed.`);
         return;
       }
 
@@ -235,7 +235,7 @@ export default function ApplyDialog({ open, onClose, job, onSuccess }: ApplyDial
                         "flex flex-col items-center justify-center p-8 rounded-[2rem] border-4 border-dashed cursor-pointer transition-all",
                         resume ? "border-primary bg-primary/5" : "border-slate-100 hover:border-primary/50"
                      )}>
-                        <input type="file" className="hidden" accept=".pdf,.docx" onChange={(e) => handleFileChange(e, 'resume')} />
+                        <input type="file" className="hidden" accept=".pdf" onChange={(e) => handleFileChange(e, 'resume')} />
                         {resume ? (
                            <div className="flex items-center gap-4">
                               <div className="h-12 w-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-primary">
@@ -249,7 +249,7 @@ export default function ApplyDialog({ open, onClose, job, onSuccess }: ApplyDial
                         ) : (
                            <div className="text-center space-y-2">
                               <CloudUpload className="h-10 w-10 text-slate-300 mx-auto" />
-                              <p className="font-black text-sm">Upload PDF or DOCX</p>
+                              <p className="font-black text-sm">Upload PDF</p>
                               <p className="text-[10px] font-bold text-slate-400">Maximum 5MB</p>
                            </div>
                         )}
@@ -262,7 +262,7 @@ export default function ApplyDialog({ open, onClose, job, onSuccess }: ApplyDial
                         "flex flex-col items-center justify-center p-8 rounded-[2rem] border-4 border-dashed cursor-pointer transition-all",
                         coverLetter ? "border-emerald-500 bg-emerald-50" : "border-slate-100 hover:border-emerald-500/50"
                      )}>
-                        <input type="file" className="hidden" accept=".pdf,.docx" onChange={(e) => handleFileChange(e, 'cover')} />
+                        <input type="file" className="hidden" accept=".pdf" onChange={(e) => handleFileChange(e, 'cover')} />
                         {coverLetter ? (
                            <div className="flex items-center gap-4">
                               <div className="h-12 w-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-emerald-500">
