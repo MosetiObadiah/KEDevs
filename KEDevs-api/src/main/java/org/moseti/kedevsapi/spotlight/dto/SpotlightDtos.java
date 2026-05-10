@@ -65,4 +65,15 @@ public class SpotlightDtos {
             double dayPriceKes,
             double weekPriceKes
     ) {}
+
+    public record PastSpotlightResponse(
+            UUID slotId,
+            UUID developerId,
+            String developerName,
+            String profilePhoto,
+            String currentLastRole,
+            SpotlightType type,
+            LocalDateTime startDate,
+            LocalDateTime endDate
+    ) {}
 }

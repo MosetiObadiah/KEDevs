@@ -13,20 +13,23 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  ArrowRight
+  ArrowRight,
+  Search,
+  FilterX
 } from 'lucide-react';
 import { jobService } from '@/services/jobService';
 import { cn } from '@/lib/utils';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
 
 const statusConfig: Record<string, { label: string, color: string, icon: any }> = {
-  'PENDING': { label: 'In Review', color: 'bg-amber-100 text-amber-600', icon: Clock },
-  'REVIEWED': { label: 'Processing', color: 'bg-blue-100 text-blue-600', icon: Loader2 },
-  'ACCEPTED': { label: 'Offered', color: 'bg-emerald-100 text-emerald-600', icon: CheckCircle2 },
+  'PENDING': { label: 'Applied', color: 'bg-amber-100 text-amber-600', icon: Clock },
+  'VIEWED': { label: 'Viewed', color: 'bg-blue-100 text-blue-600', icon: Loader2 },
+  'SHORTLISTED': { label: 'Shortlisted', color: 'bg-emerald-100 text-emerald-600', icon: CheckCircle2 },
   'REJECTED': { label: 'Closed', color: 'bg-red-100 text-red-600', icon: XCircle },
 };
 
@@ -34,6 +37,7 @@ export default function MyApplications() {
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -53,9 +57,21 @@ export default function MyApplications() {
     fetchApplications();
   }, []);
 
+  const filteredApps = applications.filter(app => 
+    app.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    app.companyName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const stats = {
+    total: applications.length,
+    pending: applications.filter(a => a.status === 'PENDING').length,
+    shortlisted: applications.filter(a => a.status === 'SHORTLISTED').length,
+    rejected: applications.filter(a => a.status === 'REJECTED').length,
+  };
+
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-20 flex flex-col items-center justify-center space-y-4">
+      <div className="flex flex-col min-h-screen bg-muted/30 items-center justify-center space-y-4">
         <Loader2 className="h-10 w-10 text-primary animate-spin" />
         <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Retrieving your history...</p>
       </div>
@@ -63,79 +79,159 @@ export default function MyApplications() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-20 max-w-4xl animate-in fade-in duration-700">
-      <div className="mb-12">
-         <Badge variant="outline" className="rounded-lg font-black tracking-widest text-[10px] uppercase bg-primary/5 text-primary border-primary/10 mb-4 px-3 py-1">
-            CAREER JOURNEY
-         </Badge>
-         <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">My Applications</h1>
-         <p className="text-slate-500 font-semibold mt-2">Track your progress with top Kenyan tech employers</p>
-      </div>
-
-      {error && (
-         <div className="p-6 rounded-[2rem] bg-red-50 border border-red-100 flex gap-4 mb-8">
-            <AlertCircle className="h-6 w-6 text-red-500 shrink-0" />
-            <p className="text-sm font-medium text-red-700 leading-relaxed">{error}</p>
-         </div>
-      )}
-
-      {applications.length > 0 ? (
-        <div className="space-y-4">
-          {applications.map((app) => {
-            const config = statusConfig[app.status] || { label: app.status, color: 'bg-slate-100 text-slate-600', icon: Clock };
-            const StatusIcon = config.icon;
-            
-            return (
-              <Link key={app.id} href={`/jobs/${app.jobId}`} className="block group">
-                <Card className="rounded-[2.5rem] border-none shadow-xl shadow-slate-200/40 overflow-hidden group-hover:shadow-2xl group-hover:translate-x-2 transition-all duration-500 bg-white">
-                  <CardContent className="p-8">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                      <div className="flex items-start gap-6">
-                         <div className="h-16 w-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 font-black group-hover:border-primary/20 group-hover:bg-primary/5 group-hover:text-primary transition-colors">
-                            {app.companyName?.charAt(0)}
-                         </div>
-                         <div className="space-y-1">
-                            <h3 className="text-xl font-black text-slate-900 group-hover:text-primary transition-colors">{app.jobTitle}</h3>
-                            <div className="flex items-center gap-3 text-sm font-bold text-slate-400">
-                               <span className="flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5" /> {app.companyName}</span>
-                               <span className="h-1 w-1 rounded-full bg-slate-200" />
-                               <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> {new Date(app.createdAt).toLocaleDateString()}</span>
-                            </div>
-                         </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between md:justify-end gap-6">
-                         <Badge className={cn("rounded-xl font-black text-[10px] uppercase tracking-widest px-4 py-2 border-none flex items-center gap-2", config.color)}>
-                            <StatusIcon className={cn("h-3 w-3", app.status === 'REVIEWED' && "animate-spin")} />
-                            {config.label}
-                         </Badge>
-                         <div className="h-10 w-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-primary group-hover:text-white transition-all duration-500">
-                            <ChevronRight className="h-5 w-5" />
-                         </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="text-center py-20 bg-white rounded-[3rem] shadow-2xl shadow-slate-200/50 flex flex-col items-center">
-           <div className="h-24 w-24 bg-slate-50 rounded-[2.5rem] flex items-center justify-center text-slate-200 mb-6">
-              <Inbox className="h-12 w-12" />
+    <div className="flex flex-col min-h-screen bg-muted/30">
+      <div className="container mx-auto px-6 py-12">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 space-y-4 md:space-y-0 print:hidden">
+           <div>
+              <Badge variant="secondary" className="bg-primary/10 text-primary border-none font-bold uppercase tracking-widest text-[10px]">Career Journey</Badge>
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+                My <span className="text-primary">Applications</span>
+              </h1>
+              <p className="text-muted-foreground">Track your progress with top Kenyan tech employers.</p>
            </div>
-           <h3 className="text-2xl font-black text-slate-900 mb-2">No Applications Yet</h3>
-           <p className="text-slate-500 font-medium mb-8 max-w-sm mx-auto">
-              Your dream job is waiting for you in our talent feed. Start applying to build your legacy.
-           </p>
-           <Button size="lg" className="rounded-2xl font-black h-14 px-10 shadow-xl shadow-primary/20" asChild>
+           
+           <Button variant="outline" className="font-bold border-primary/20 hover:bg-primary/5" asChild>
               <Link href="/jobs">
-                 Browse Opportunities <ArrowRight className="ml-2 h-5 w-5" />
+                 <Briefcase className="mr-2 h-4 w-4 text-primary" /> Browse More Jobs
               </Link>
            </Button>
         </div>
-      )}
+        
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Sidebar */}
+          <aside className="lg:col-span-1 space-y-8 print:hidden">
+            <Card className="border-border/50 shadow-sm sticky top-24">
+              <CardHeader className="pb-4">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Application Tracker</h3>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground uppercase">Search</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="Title or company..." 
+                      className="pl-10 text-sm border-border/50 focus-visible:ring-primary/20"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <Separator className="bg-border/50" />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 rounded-xl bg-muted/50 border border-border/50 text-center">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase mb-1">Total</p>
+                    <p className="text-xl font-bold">{stats.total}</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-amber-50 border border-amber-100 text-center text-amber-600">
+                    <p className="text-[10px] font-black uppercase mb-1">Pending</p>
+                    <p className="text-xl font-bold">{stats.pending}</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100 text-center text-emerald-600">
+                    <p className="text-[10px] font-black uppercase mb-1">Shortlisted</p>
+                    <p className="text-xl font-bold">{stats.shortlisted}</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-red-50 border border-red-100 text-center text-red-600">
+                    <p className="text-[10px] font-black uppercase mb-1">Closed</p>
+                    <p className="text-xl font-bold">{stats.rejected}</p>
+                  </div>
+                </div>
+
+                {searchTerm && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full text-xs font-bold text-muted-foreground"
+                    onClick={() => setSearchTerm('')}
+                  >
+                    <FilterX className="mr-2 h-3.5 w-3.5" /> Clear Search
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </aside>
+
+          {/* Main Content - Updated to List Layout */}
+          <main className="lg:col-span-3 print:col-span-full">
+            {error && (
+               <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-xl mb-6 text-sm font-medium">
+                  {error}
+               </div>
+            )}
+
+            <Card className="border-border/50 shadow-sm overflow-hidden bg-white">
+              <CardHeader className="border-b border-border/50 bg-muted/10 p-6">
+                <CardTitle className="text-xl font-bold">Applications Log</CardTitle>
+                <CardDescription className="text-xs font-medium text-muted-foreground">Comprehensive list of your active and past applications.</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                {filteredApps.length > 0 ? (
+                  <div className="divide-y divide-border/50">
+                    {filteredApps.map((app) => {
+                      const config = statusConfig[app.status] || { label: app.status, color: 'bg-slate-100 text-slate-600', icon: Clock };
+                      const StatusIcon = config.icon;
+                      
+                      return (
+                        <Link key={app.id} href={`/jobs/${app.jobId}`} className="block group">
+                          <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-muted/20 transition-colors">
+                            <div className="flex items-center gap-6">
+                               <div className="h-12 w-12 rounded-xl bg-muted border border-border/50 flex items-center justify-center text-muted-foreground font-black group-hover:border-primary/20 group-hover:bg-primary/5 group-hover:text-primary transition-colors shrink-0">
+                                  {app.companyName?.charAt(0)}
+                               </div>
+                               <div className="space-y-1">
+                                  <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors leading-tight">{app.jobTitle}</h3>
+                                  <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground">
+                                     <span className="flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5" /> {app.companyName}</span>
+                                     <span className="h-1 w-1 rounded-full bg-border" />
+                                     <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> {new Date(app.createdAt).toLocaleDateString()}</span>
+                                  </div>
+                               </div>
+                            </div>
+                            
+                            <div className="flex items-center justify-between md:justify-end gap-6">
+                               <Badge className={cn("rounded-lg font-black text-[9px] uppercase tracking-widest px-3 py-1.5 border-none flex items-center gap-2", config.color)}>
+                                  <StatusIcon className={cn("h-3 w-3", app.status === 'REVIEWED' && "animate-spin")} />
+                                  {config.label}
+                               </Badge>
+                               <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                                  <ChevronRight className="h-4 w-4" />
+                               </div>
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-24 flex flex-col items-center">
+                     <div className="h-20 w-20 bg-muted rounded-3xl flex items-center justify-center text-muted-foreground/30 mb-6">
+                        <Inbox className="h-10 w-10" />
+                     </div>
+                     <h3 className="text-xl font-bold text-foreground mb-2">No Applications Found</h3>
+                     <p className="text-muted-foreground text-sm font-medium mb-8 max-w-sm mx-auto">
+                        {searchTerm ? "No applications match your current search criteria." : "You haven't applied to any jobs yet. Start your journey today!"}
+                     </p>
+                     {!searchTerm && (
+                       <Button size="lg" className="rounded-xl font-bold h-12 px-8 shadow-xl shadow-primary/10" asChild>
+                          <Link href="/jobs">
+                             Explore Jobs <ArrowRight className="ml-2 h-4 w-4" />
+                          </Link>
+                       </Button>
+                     )}
+                  </div>
+                )}
+                
+                <div className="p-6 bg-muted/20 border-t border-border/50 flex items-center gap-3">
+                  <AlertCircle className="h-3.5 w-3.5 text-muted-foreground" />
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">Status updates are real-time. Contact employers directly for specific feedback.</p>
+                </div>
+              </CardContent>
+            </Card>
+          </main>
+        </div>
+      </div>
     </div>
   );
 }

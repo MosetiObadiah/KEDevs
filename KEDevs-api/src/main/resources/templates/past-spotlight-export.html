@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Past Spotlights Report</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #334155;
+            margin: 0;
+            padding: 40px;
+            font-size: 12px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .header h1 {
+            color: #0f172a;
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+        .header p {
+            color: #64748b;
+            margin: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 0.05em;
+        }
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>KEDevs-Connect</h1>
+        <p>Past Spotlights Report</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Developer Name</th>
+                <th>Role</th>
+                <th>Spotlight Type</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="s : ${spotlights}">
+                <td th:text="${s.developerName}"></td>
+                <td th:text="${s.currentLastRole}"></td>
+                <td th:text="${s.type}"></td>
+                <td th:text="${#temporals.format(s.startDate, 'dd MMM yyyy, HH:mm')}"></td>
+                <td th:text="${#temporals.format(s.endDate, 'dd MMM yyyy, HH:mm')}"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>Generated automatically by KEDevs-Connect Platform</p>
+    </div>
+</body>
+</html>

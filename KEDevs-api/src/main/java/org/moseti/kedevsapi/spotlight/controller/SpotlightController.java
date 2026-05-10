@@ -11,6 +11,10 @@ import org.moseti.kedevsapi.spotlight.dto.SpotlightDtos.*;
 import org.moseti.kedevsapi.spotlight.service.SpotlightService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -25,6 +29,8 @@ import java.util.UUID;
 public class SpotlightController {
 
     private final SpotlightService spotlightService;
+    private final org.moseti.kedevsapi.users.service.CsvExportService csvExportService;
+    private final org.moseti.kedevsapi.users.service.PdfExportService pdfExportService;
 
     @Operation(summary = "Get active Day and Week spotlight cards", security = {})
     @ApiResponses({
@@ -88,5 +94,36 @@ public class SpotlightController {
             @Valid @RequestBody AdminOverrideRequest request) {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Spotlight slot overridden",
                 spotlightService.adminOverride(slotId, request)));
+    }
+
+    @Operation(summary = "Get past spotlight history", security = {})
+    @GetMapping("/past")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<PastSpotlightResponse>>> getPastSpotlights(Pageable pageable) {
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Past spotlights fetched",
+                spotlightService.getPastSpotlights(pageable)));
+    }
+
+    @Operation(summary = "Export past spotlights", security = {})
+    @GetMapping("/past/export")
+    public ResponseEntity<Resource> exportPastSpotlights(@RequestParam String format) {
+        var data = spotlightService.getPastSpotlightsForExport();
+        byte[] file;
+        String fileName;
+        String contentType;
+
+        if ("csv".equalsIgnoreCase(format)) {
+            file = csvExportService.generatePastSpotlightCsv(data);
+            fileName = "past_spotlights.csv";
+            contentType = "text/csv";
+        } else {
+            file = pdfExportService.generatePastSpotlightPdf(data);
+            fileName = "past_spotlights.pdf";
+            contentType = "application/pdf";
+        }
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .contentType(MediaType.parseMediaType(contentType))
+                .body(new ByteArrayResource(file));
     }
 }

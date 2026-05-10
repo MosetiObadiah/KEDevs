@@ -136,6 +136,36 @@ public class SpotlightService {
                 });
     }
 
+    public Page<PastSpotlightResponse> getPastSpotlights(Pageable pageable) {
+        return spotlightSlotRepository.findAllByIsActiveFalseAndOverriddenByAdminFalseOrderByEndDateDesc(pageable)
+                .map(this::mapToPastSpotlightResponse);
+    }
+
+    public List<PastSpotlightResponse> getPastSpotlightsForExport() {
+        return spotlightSlotRepository.findAllByIsActiveFalseAndOverriddenByAdminFalseOrderByEndDateDesc()
+                .stream()
+                .map(this::mapToPastSpotlightResponse)
+                .toList();
+    }
+
+    private PastSpotlightResponse mapToPastSpotlightResponse(SpotlightSlot slot) {
+        DeveloperProfile profile = developerProfileRepository.findByUserId(slot.getDeveloperId()).orElse(null);
+        String developerName = userRepository.findById(slot.getDeveloperId())
+                .map(User::getFullName)
+                .orElse("Unknown Developer");
+
+        return new PastSpotlightResponse(
+                slot.getId(),
+                slot.getDeveloperId(),
+                developerName,
+                profile != null ? profile.getProfilePhoto() : null,
+                profile != null ? profile.getCurrentLastRole() : null,
+                slot.getType(),
+                slot.getStartDate(),
+                slot.getEndDate()
+        );
+    }
+
     public SpotlightSlotResponse getMySpotlightStatus(UUID developerId) {
         return spotlightSlotRepository.findByDeveloperIdAndIsActiveTrue(developerId)
                 .map(slot -> {

@@ -1,6 +1,6 @@
 package org.moseti.kedevsapi.shared.exception;
 
-import org.apache.coyote.BadRequestException;
+import lombok.extern.slf4j.Slf4j;
 import org.moseti.kedevsapi.auth.exception.AccountNotApprovedException;
 import org.moseti.kedevsapi.auth.exception.EmailAlreadyExistsException;
 import org.moseti.kedevsapi.auth.exception.EmailNotVerifiedException;
@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -81,6 +82,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneral(Exception ex) {
+        log.error("Unexpected error occurred", ex);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("An unexpected error occurred"));

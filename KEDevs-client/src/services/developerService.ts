@@ -136,6 +136,9 @@ export const developerService = {
 
   async updateAvailability(data: { availabilityStatus: string }): Promise<ApiResponse<any>> {
     return apiClient.patch<ApiResponse<any>>(`/api/v1/developers/profile/availability?status=${data.availabilityStatus}`, {});
+  },
+  async getPastSpotlights(page = 0, size = 10): Promise<ApiResponse<PaginatedResponse<any>>> {
+    return apiClient.get<ApiResponse<PaginatedResponse<any>>>(`/api/v1/spotlight/past?page=${page}&size=${size}`);
   }
 };
 

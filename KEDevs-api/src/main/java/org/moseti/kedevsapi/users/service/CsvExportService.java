@@ -3,6 +3,7 @@ package org.moseti.kedevsapi.users.service;
 import com.opencsv.CSVWriter;
 import lombok.extern.slf4j.Slf4j;
 import org.moseti.kedevsapi.users.dto.UserDtos.DeveloperSummaryResponse;
+import org.moseti.kedevsapi.spotlight.dto.SpotlightDtos.PastSpotlightResponse;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -45,6 +46,35 @@ public class CsvExportService {
         } catch (Exception e) {
             log.error("Failed to generate CSV export", e);
             throw new RuntimeException("Failed to generate CSV export", e);
+        }
+    }
+
+    public byte[] generatePastSpotlightCsv(List<PastSpotlightResponse> spotlights) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             OutputStreamWriter osw = new OutputStreamWriter(baos, StandardCharsets.UTF_8);
+             CSVWriter writer = new CSVWriter(osw)) {
+
+            // Header row
+            writer.writeNext(new String[]{
+                "Developer Name", "Role", "Spotlight Type", "Start Date", "End Date"
+            });
+
+            // Data rows
+            for (PastSpotlightResponse s : spotlights) {
+                writer.writeNext(new String[]{
+                        s.developerName() != null ? s.developerName() : "",
+                        s.currentLastRole() != null ? s.currentLastRole() : "",
+                        s.type() != null ? s.type().name() : "",
+                        s.startDate() != null ? s.startDate().toString() : "",
+                        s.endDate() != null ? s.endDate().toString() : ""
+                });
+            }
+
+            writer.flush();
+            return baos.toByteArray();
+        } catch (Exception e) {
+            log.error("Failed to generate Past Spotlights CSV export", e);
+            throw new RuntimeException("Failed to generate Past Spotlights CSV export", e);
         }
     }
 }

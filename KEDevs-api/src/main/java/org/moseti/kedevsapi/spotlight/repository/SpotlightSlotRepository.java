@@ -2,6 +2,8 @@ package org.moseti.kedevsapi.spotlight.repository;
 
 import org.moseti.kedevsapi.shared.enums.SpotlightType;
 import org.moseti.kedevsapi.spotlight.entity.SpotlightSlot;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -25,4 +27,8 @@ public interface SpotlightSlotRepository extends JpaRepository<SpotlightSlot, UU
     List<SpotlightSlot> findAllByIsActiveTrueAndEndDateBefore(LocalDateTime date);
 
     Optional<SpotlightSlot> findByPaymentId(UUID paymentId);
+
+    Page<SpotlightSlot> findAllByIsActiveFalseAndOverriddenByAdminFalseOrderByEndDateDesc(Pageable pageable);
+
+    List<SpotlightSlot> findAllByIsActiveFalseAndOverriddenByAdminFalseOrderByEndDateDesc();
 }
