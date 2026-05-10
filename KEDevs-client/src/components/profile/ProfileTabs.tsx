@@ -11,8 +11,12 @@ import {
   Award, 
   GraduationCap, 
   Trash2,
-  Code2
+  Code2,
+  MessageSquareQuote,
+  ThumbsUp
 } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -71,6 +75,17 @@ export function ProfileTabs({
           className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-4 text-sm font-bold uppercase tracking-widest text-muted-foreground data-[state=active]:text-primary"
         >
           OSS & Achievements
+        </TabsTrigger>
+        <TabsTrigger 
+          value="endorsements" 
+          className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-4 text-sm font-bold uppercase tracking-widest text-muted-foreground data-[state=active]:text-primary flex items-center gap-2"
+        >
+          Endorsements
+          {profile.endorsements?.length > 0 && (
+            <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-none h-5 w-5 flex items-center justify-center p-0 font-black text-[10px]">
+              {profile.endorsements.length}
+            </Badge>
+          )}
         </TabsTrigger>
       </TabsList>
       
@@ -402,6 +417,55 @@ export function ProfileTabs({
             )}
           </div>
         </section>
+      </TabsContent>
+
+      <TabsContent value="endorsements" className="space-y-6 animate-in fade-in duration-500">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-black flex items-center gap-2">
+            <div className="h-6 w-1.5 bg-primary rounded-full" />
+            Professional Endorsements
+          </h3>
+        </div>
+
+        {profile.endorsements?.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {profile.endorsements.map((endorsement: any) => (
+              <Card key={endorsement.id} className="relative bg-background rounded-[2rem] border-border/50 p-8 shadow-sm hover:shadow-md transition-all overflow-hidden group">
+                <div className="absolute -top-6 -right-6 h-24 w-24 bg-primary/5 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-500 flex items-center justify-center">
+                  <MessageSquareQuote className="h-10 w-10 text-primary/20" />
+                </div>
+                
+                <div className="relative space-y-6">
+                  <p className="text-base text-foreground font-medium leading-relaxed italic">
+                    "{endorsement.content}"
+                  </p>
+                  
+                  <div className="flex items-center gap-3 pt-4 border-t border-border/50">
+                    <Avatar className="h-10 w-10 rounded-full ring-2 ring-primary/10">
+                      <AvatarFallback className="bg-primary text-white font-black text-xs">
+                        {endorsement.authorName?.substring(0, 2).toUpperCase() || 'US'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-sm font-black text-foreground">{endorsement.authorName}</p>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase">
+                        {endorsement.createdAt ? formatDistanceToNow(new Date(endorsement.createdAt), { addSuffix: true }) : 'Recently'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="py-16 text-center border-4 border-dashed border-border/20 rounded-[3rem] bg-background/50">
+            <ThumbsUp className="h-16 w-16 text-muted/30 mx-auto mb-4" />
+            <p className="text-muted-foreground font-black text-lg">No endorsements yet.</p>
+            <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
+              Be the first to vouch for {profile.firstName}'s skills and character to boost their visibility.
+            </p>
+          </div>
+        )}
       </TabsContent>
     </Tabs>
   );

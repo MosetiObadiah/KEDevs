@@ -24,7 +24,8 @@ import {
   Trophy,
   Award,
   ArrowLeft,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Heart
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -42,6 +43,16 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function DeveloperProfilePage() {
   const { profileId } = useParams();
@@ -52,6 +63,11 @@ export default function DeveloperProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [isRequesting, setIsRequesting] = useState(false);
+  
+  // Endorsement modal state
+  const [isEndorseOpen, setIsEndorseOpen] = useState(false);
+  const [endorsementContent, setEndorsementContent] = useState('');
+  const [isSubmittingEndorsement, setIsSubmittingEndorsement] = useState(false);
 
   const fullName = dev ? (dev.fullName || `${dev.firstName || ''} ${dev.lastName || ''}`.trim() || dev.publicEmail || dev.email || 'Developer') : '';
 
@@ -101,12 +117,29 @@ export default function DeveloperProfilePage() {
 
   const handleEndorseDeveloper = async () => {
     if (!dev) return;
+    if (!endorsementContent.trim()) {
+      toast.error('Endorsement text is required.');
+      return;
+    }
+    setIsSubmittingEndorsement(true);
     try {
-      await developerService.endorseDeveloper(dev.id, { message: 'Strong recommendation from the KEDevs community.' });
-      toast.success('Developer endorsed successfully.');
-      setDev({ ...dev, endorsementCount: (dev.endorsementCount || 0) + 1 });
+      // Corrected property name from 'message' to 'content' to match UserDtos.CreateEndorsementRequest
+      const response = await developerService.endorseDeveloper(dev.id, { content: endorsementContent.trim() });
+      if (response.success) {
+        toast.success('Developer endorsed successfully!');
+        setDev({ 
+          ...dev, 
+          endorsementCount: (dev.endorsementCount || 0) + 1,
+          // Optionally push the new endorsement into the dev.endorsements list locally
+          endorsements: response.data ? [...(dev.endorsements || []), response.data] : dev.endorsements
+        });
+        setIsEndorseOpen(false);
+        setEndorsementContent('');
+      }
     } catch (err: any) {
-      toast.error('Failed to endorse developer.');
+      toast.error(err.message || 'Failed to endorse developer. You may have already endorsed them.');
+    } finally {
+      setIsSubmittingEndorsement(false);
     }
   };
 
@@ -181,12 +214,68 @@ export default function DeveloperProfilePage() {
               profile={dev}
               isLoggedIn={isLoggedIn}
               onContact={handleContactDeveloper}
-              onEndorse={handleEndorseDeveloper}
+              onEndorse={() => {
+                if (!isLoggedIn) {
+                  toast.error("Please sign in to endorse developers");
+                  router.push('/login');
+                  return;
+                }
+                setIsEndorseOpen(true);
+              }}
               isRequesting={isRequesting}
             />
           </div>
         </div>
       </div>
+
+      {/* Endorsement Modal */}
+      <Dialog open={isEndorseOpen} onOpenChange={setIsEndorseOpen}>
+        <DialogContent className="sm:max-w-[500px] rounded-[2rem] p-8">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-500">
+                <Heart className="h-6 w-6 fill-current" />
+              </div>
+              Endorse Developer
+            </DialogTitle>
+            <DialogDescription className="font-medium text-muted-foreground">
+              Write a brief recommendation for {fullName}. Endorsements highlight skills and build community credibility.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-6 space-y-4">
+            <div className="space-y-2">
+              <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground flex justify-between">
+                <span>Recommendation Content</span>
+                <span className={cn(endorsementContent.length > 200 ? "text-destructive" : "")}>
+                  {endorsementContent.length}/200
+                </span>
+              </Label>
+              <Textarea 
+                placeholder="e.g. Exceptionally skilled developer and amazing team player..." 
+                className="min-h-[120px] rounded-2xl border-border/50 resize-none font-medium text-base p-4 focus-visible:ring-rose-500/20"
+                value={endorsementContent}
+                onChange={(e) => setEndorsementContent(e.target.value.slice(0, 200))}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="sm:justify-end gap-3">
+            <Button variant="ghost" className="rounded-xl font-bold" onClick={() => setIsEndorseOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              className="rounded-xl font-black px-8 bg-slate-900 text-white hover:bg-slate-800" 
+              onClick={handleEndorseDeveloper}
+              disabled={isSubmittingEndorsement || !endorsementContent.trim()}
+            >
+              {isSubmittingEndorsement ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</>
+              ) : 'Submit Endorsement'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
