@@ -68,6 +68,9 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { toast } from 'sonner';
 import { cn, formatExperience } from '@/lib/utils';
+import { ProfileHeader } from '@/components/profile/ProfileHeader';
+import { ProfileTabs } from '@/components/profile/ProfileTabs';
+import { ProfileSidebar } from '@/components/profile/ProfileSidebar';
 
 const COMMON_SKILLS = [
   'React', 'Java', 'Docker', 'Node.js', 'Python', 'TypeScript', 'Spring Boot', 'AWS', 
@@ -476,8 +479,8 @@ export default function MyProfile() {
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
       <div className="container mx-auto px-6 pt-8 pb-12">
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-end items-center mb-6 space-y-4 md:space-y-0">
+        {/* Header Actions */}
+        <div className="flex justify-end items-center mb-6">
           <div className="flex gap-3">
             <Button 
               size="lg" 
@@ -489,7 +492,7 @@ export default function MyProfile() {
               disabled={isSaving}
             >
               {isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : (isEditing ? <Save className="mr-2 h-5 w-5" /> : <Edit2 className="mr-2 h-5 w-5" />)}
-              {isEditing ? 'Save Profile' : 'Manage Profile'}
+              {isEditing ? 'Save Profile' : 'Edit Profile'}
             </Button>
             {isEditing && (
               <Button 
@@ -504,29 +507,25 @@ export default function MyProfile() {
           </div>
         </div>
 
-        {/* Profile Header Card */}
-        <Card className="border-border/50 shadow-sm overflow-hidden bg-white rounded-3xl mb-12">
-          <div className="h-40 bg-gradient-to-r from-primary/80 to-primary/20 relative">
-             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
-          </div>
-          <CardContent className="pt-0 -mt-20 pb-8 px-8">
-            <div className="flex flex-col md:flex-row gap-8 items-start">
-              <div className="relative group">
-                <Avatar className="w-44 h-44 border-[6px] border-white shadow-2xl rounded-3xl bg-white overflow-hidden">
-                  <AvatarImage src={isEmployer ? profile.logoUrl : profile.profilePhoto} className="object-cover" />
-                  <AvatarFallback className="text-5xl font-black bg-primary text-white">
-                    {isEmployer ? (profile.companyName?.charAt(0) || <Building2 />) : (profile.firstName?.charAt(0) || <Users2 />)}
-                  </AvatarFallback>
-                </Avatar>
-                
-                <Label htmlFor="photo-upload" className="absolute bottom-3 right-3 h-10 w-10 bg-primary text-white rounded-xl flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 transition-transform z-20 border-4 border-white">
-                   <Camera className="h-5 w-5" />
-                   <input 
-                      id="photo-upload" 
-                      type="file" 
-                      className="hidden" 
-                      accept="image/*"
-                      onChange={(e) => {
+        {isEmployer ? (
+          /* Employer View */
+          <>
+            <Card className="border-border/50 shadow-sm overflow-hidden bg-white rounded-3xl mb-12">
+              <div className="h-40 bg-gradient-to-r from-primary/80 to-primary/20 relative">
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
+              </div>
+              <CardContent className="pt-0 -mt-20 pb-8 px-8">
+                <div className="flex flex-col md:flex-row gap-8 items-start">
+                  <div className="relative group">
+                    <Avatar className="w-44 h-44 border-[6px] border-white shadow-2xl rounded-3xl bg-white overflow-hidden">
+                      <AvatarImage src={profile.logoUrl} className="object-cover" />
+                      <AvatarFallback className="text-5xl font-black bg-primary text-white">
+                        {profile.companyName?.charAt(0) || <Building2 />}
+                      </AvatarFallback>
+                    </Avatar>
+                    <Label htmlFor="photo-upload" className="absolute bottom-3 right-3 h-10 w-10 bg-primary text-white rounded-xl flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 transition-transform z-20 border-4 border-white">
+                      <Camera className="h-5 w-5" />
+                      <input id="photo-upload" type="file" className="hidden" accept="image/*" onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
                           const reader = new FileReader();
@@ -538,699 +537,103 @@ export default function MyProfile() {
                           };
                           reader.readAsDataURL(file);
                         }
-                      }}
-                   />
-                </Label>
-              </div>
-
-              <div className="flex-1 pt-20 md:pt-24 space-y-4">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap mb-2">
-                       <Badge variant="outline" className="rounded-lg font-bold tracking-wider text-[10px] uppercase bg-primary/5 text-primary border-primary/20">
-                          {user?.role} NODE
-                       </Badge>
-                       {profile.isVerified && (
-                         <Badge className="bg-emerald-500 hover:bg-emerald-600 rounded-lg font-bold tracking-wider text-[10px] uppercase">
-                           VERIFIED
-                         </Badge>
-                       )}
+                      }} />
+                    </Label>
+                  </div>
+                  <div className="flex-1 pt-20 md:pt-24 space-y-4">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap mb-2">
+                          <Badge variant="outline" className="rounded-lg font-bold tracking-wider text-[10px] uppercase bg-primary/5 text-primary border-primary/20">EMPLOYER NODE</Badge>
+                          {profile.isVerified && <Badge className="bg-emerald-500 hover:bg-emerald-600 rounded-lg font-bold tracking-wider text-[10px] uppercase">VERIFIED</Badge>}
+                        </div>
+                        <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">{profile.companyName || 'My Company'}</h1>
+                        <p className="text-lg md:text-xl font-medium text-muted-foreground mt-1">{profile.industry || 'Industry not set'}</p>
+                      </div>
                     </div>
-                    
-                    <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">
-                       {isEmployer ? (profile.companyName || 'My Company') : `${profile.firstName} ${profile.lastName}`}
-                    </h1>
-                    
-                    <p className="text-lg md:text-xl font-medium text-muted-foreground mt-1 flex items-center gap-2">
-                       {isEmployer ? (profile.industry || 'Industry not set') : (profile.currentLastRole || 'Professional Architect')}
-                    </p>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
 
-                <div className="flex flex-wrap gap-x-8 gap-y-4 pt-4 border-t border-border/50">
-                  <div className="flex items-center gap-2 text-muted-foreground font-medium text-sm">
-                    <MapPin className="h-4 w-4 text-primary" />
-                    {isEmployer ? (profile.locationHQ || 'Location not set') : `${profile.locationCity || 'City'}, ${profile.locationCountry || 'Kenya'}`}
-                  </div>
-                  {isEmployer ? (
-                    <div className="flex items-center gap-2 text-muted-foreground font-medium text-sm">
-                      <Users2 className="h-4 w-4 text-primary" />
-                      {profile.companySize?.replace(/_/g, ' ') || 'Size not set'} Scale
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex items-center gap-2 text-muted-foreground font-medium text-sm">
-                        <Briefcase className="h-4 w-4 text-primary" />
-                        {formatExperience(profile.yearsOfExperience)} Experience
-                      </div>
-                      <div className="flex items-center gap-2 text-muted-foreground font-medium text-sm">
-                        <Zap className="h-4 w-4 text-primary" />
-                        {profile.preferredWorkType || 'REMOTE'}
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {isEmployer ? (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="lg:col-span-8 space-y-8">
-              <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
-                <CardHeader className="border-b border-slate-50 pb-6">
-                  <CardTitle className="text-2xl font-black flex items-center gap-2">
-                    <div className="h-8 w-2 bg-primary rounded-full" />
-                    Company Bio & Mission
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  {isEditing ? (
-                    <Textarea 
-                      className="min-h-[200px] rounded-2xl border-slate-200 font-medium text-lg focus-visible:ring-primary/20"
-                      value={profile.companyBio || ''} 
-                      onChange={(e) => setProfile({...profile, companyBio: e.target.value})}
-                      placeholder="Describe your company culture, mission, and what you're looking for in developers..."
-                    />
-                  ) : (
-                    <p className="text-lg leading-relaxed text-slate-600 font-medium whitespace-pre-wrap">
-                      {profile.companyBio || "Add a bio to tell developers about your company..."}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
-                <CardHeader className="border-b border-slate-50 pb-6">
-                  <CardTitle className="text-2xl font-black flex items-center gap-2">
-                    <div className="h-8 w-2 bg-primary rounded-full" />
-                    Point of Contact
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100 flex items-start gap-4">
-                         <div className="h-12 w-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-primary">
-                            <Users2 className="h-6 w-6" />
-                         </div>
-                         <div className="space-y-1">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Contact Person</Label>
-                            {isEditing ? (
-                              <Input 
-                                className="h-10 rounded-xl border-slate-200 font-bold"
-                                value={profile.contactPersonName || ''} 
-                                onChange={(e) => setProfile({...profile, contactPersonName: e.target.value})} 
-                              />
-                            ) : (
-                              <p className="text-lg font-black text-slate-900">{profile.contactPersonName || 'HR Manager'}</p>
-                            )}
-                         </div>
-                      </div>
-
-                      <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100 flex items-start gap-4">
-                         <div className="h-12 w-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-primary">
-                            <Mail className="h-6 w-6" />
-                         </div>
-                         <div className="space-y-1">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Contact Email</Label>
-                            {isEditing ? (
-                              <Input 
-                                className="h-10 rounded-xl border-slate-200 font-bold"
-                                value={profile.contactEmail || ''} 
-                                onChange={(e) => setProfile({...profile, contactEmail: e.target.value})} 
-                              />
-                            ) : (
-                              <p className="text-lg font-black text-slate-900 truncate">{profile.contactEmail || (user?.email ? `${user.email} (account)` : 'Not set')}</p>
-                            )}
-                         </div>
-                      </div>
-                   </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="lg:col-span-4 space-y-8">
-               <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
-                <CardHeader className="border-b border-slate-50 pb-6">
-                  <CardTitle className="text-xl font-black">Company Details</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6 space-y-6">
-                   {isEditing ? (
-                     <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label className="font-bold text-xs">Industry</Label>
-                          <Select 
-                            value={profile.industry || ''} 
-                            onValueChange={(v) => setProfile({ ...profile, industry: v })}
-                          >
-                            <SelectTrigger className="rounded-xl border-slate-200 h-12 font-bold">
-                              <SelectValue placeholder="Select industry" />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-xl border-slate-200">
-                              {INDUSTRIES.map(i => <SelectItem key={i} value={i}>{i}</SelectItem>)}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="font-bold text-xs">Company Size</Label>
-                          <Select 
-                            value={profile.companySize || ''} 
-                            onValueChange={(v) => setProfile({ ...profile, companySize: v })}
-                          >
-                            <SelectTrigger className="rounded-xl border-slate-200 h-12 font-bold">
-                              <SelectValue placeholder="Select size" />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-xl border-slate-200">
-                              <SelectItem value="ONE_TO_TEN">1-10 Employees</SelectItem>
-                              <SelectItem value="TEN_TO_FIFTY">11-50 Employees</SelectItem>
-                              <SelectItem value="FIFTY_TO_TWO_HUNDRED">51-200 Employees</SelectItem>
-                              <SelectItem value="TWO_HUNDRED_PLUS">200+ Employees</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="font-bold text-xs">Headquarters</Label>
-                          <Select 
-                            value={profile.locationHQ?.split(',')[0] || ''} 
-                            onValueChange={(v) => setProfile({ ...profile, locationHQ: `${v}, Kenya` })}
-                          >
-                            <SelectTrigger className="rounded-xl border-slate-200 h-12 font-bold">
-                              <SelectValue placeholder="Select county" />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-xl border-slate-200">
-                              {KENYA_COUNTIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                     </div>
-                   ) : (
-                     <div className="space-y-4">
-                        <div className="flex justify-between items-center py-1 border-b border-slate-50">
-                           <span className="text-slate-400 font-bold text-xs uppercase">Industry</span>
-                           <span className="text-slate-900 font-black">{profile.industry || '—'}</span>
-                        </div>
-                        <div className="flex justify-between items-center py-1 border-b border-slate-50">
-                           <span className="text-slate-400 font-bold text-xs uppercase">Size</span>
-                           <span className="text-slate-900 font-black">{profile.companySize?.replace(/_/g, ' ') || '—'}</span>
-                        </div>
-                        <div className="flex justify-between items-center py-1 border-b border-slate-50">
-                           <span className="text-slate-400 font-bold text-xs uppercase">HQ</span>
-                           <span className="text-slate-900 font-black">{profile.locationHQ || '—'}</span>
-                        </div>
-                     </div>
-                   )}
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
-                <CardHeader className="border-b border-slate-50 pb-6">
-                  <CardTitle className="text-xl font-black">Online Presence</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6 space-y-4">
-                   <div className="flex flex-col gap-3">
-                      {isEditing ? (
-                        <>
-                          <div className="space-y-1">
-                             <Label className="text-[10px] font-black uppercase text-slate-400">Website</Label>
-                             <Input className="h-10 rounded-xl" value={profile.companyWebsite || ''} onChange={(e) => setProfile({...profile, companyWebsite: e.target.value})} />
-                          </div>
-                          <div className="space-y-1">
-                             <Label className="text-[10px] font-black uppercase text-slate-400">LinkedIn</Label>
-                             <Input className="h-10 rounded-xl" value={profile.linkedinUrl || ''} onChange={(e) => setProfile({...profile, linkedinUrl: e.target.value})} />
-                          </div>
-                          <div className="space-y-1">
-                             <Label className="text-[10px] font-black uppercase text-slate-400">Twitter / X</Label>
-                             <Input className="h-10 rounded-xl" value={profile.twitterUrl || ''} onChange={(e) => setProfile({...profile, twitterUrl: e.target.value})} />
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <Button variant="outline" className="h-14 rounded-2xl border-slate-100 bg-slate-50/50 justify-start px-6 group" asChild>
-                             <Link href={profile.companyWebsite || '#'} target="_blank" className={cn(!profile.companyWebsite && "opacity-50 pointer-events-none")}>
-                                <div className="h-8 w-8 rounded-xl bg-white shadow-sm flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
-                                   <Globe className="h-4 w-4 text-primary" />
-                                </div>
-                                <span className="font-black text-slate-900">Official Website</span>
-                                <ExternalLink className="ml-auto h-4 w-4 text-slate-300" />
-                             </Link>
-                          </Button>
-                          <Button variant="outline" className="h-14 rounded-2xl border-slate-100 bg-slate-50/50 justify-start px-6 group" asChild>
-                             <Link href={profile.linkedinUrl || '#'} target="_blank" className={cn(!profile.linkedinUrl && "opacity-50 pointer-events-none")}>
-                                <div className="h-8 w-8 rounded-xl bg-white shadow-sm flex items-center justify-center mr-4 group-hover:scale-110 transition-transform text-[#0077b5]">
-                                   <ExternalLink className="h-4 w-4" />
-                                </div>
-                                <span className="font-black text-slate-900">LinkedIn Profile</span>
-                                <ExternalLink className="ml-auto h-4 w-4 text-slate-300" />
-                             </Link>
-                          </Button>
-                          <Button variant="outline" className="h-14 rounded-2xl border-slate-100 bg-slate-50/50 justify-start px-6 group" asChild>
-                             <Link href={profile.twitterUrl || '#'} target="_blank" className={cn(!profile.twitterUrl && "opacity-50 pointer-events-none")}>
-                                <div className="h-8 w-8 rounded-xl bg-white shadow-sm flex items-center justify-center mr-4 group-hover:scale-110 transition-transform text-slate-900">
-                                   <X className="h-4 w-4" />
-                                </div>
-                                <span className="font-black text-slate-900">X</span>
-                                <ExternalLink className="ml-auto h-4 w-4 text-slate-300" />
-                             </Link>
-                          </Button>
-                        </>
-                      )}
-                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        ) : (
-          /* DEVELOPER PROFILE VIEW */
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="lg:col-span-8">
-               <Tabs defaultValue="overview" className="space-y-8">
-                  <TabsList className="bg-white p-2 h-16 rounded-[1.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 flex gap-2 overflow-x-auto overflow-y-hidden no-scrollbar">
-                     <TabsTrigger value="overview" className="rounded-xl px-8 font-black text-slate-500 data-[state=active]:bg-primary data-[state=active]:text-white transition-all h-12">
-                        <Users2 className="h-4 w-4 mr-2" /> Overview
-                     </TabsTrigger>
-                     <TabsTrigger value="projects" className="rounded-xl px-8 font-black text-slate-500 data-[state=active]:bg-primary data-[state=active]:text-white transition-all h-12">
-                        <Code2 className="h-4 w-4 mr-2" /> Projects
-                     </TabsTrigger>
-                     <TabsTrigger value="experience" className="rounded-xl px-8 font-black text-slate-500 data-[state=active]:bg-primary data-[state=active]:text-white transition-all h-12">
-                        <GraduationCap className="h-4 w-4 mr-2" /> Experience
-                     </TabsTrigger>
-                     <TabsTrigger value="oss" className="rounded-xl px-8 font-black text-slate-500 data-[state=active]:bg-primary data-[state=active]:text-white transition-all h-12">
-                        <Globe className="h-4 w-4 mr-2" /> OSS & Achievements
-                     </TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="overview" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                     {/* Bio Card */}
-                     <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
-                        <CardHeader className="border-b border-slate-50 pb-6">
-                           <CardTitle className="text-2xl font-black flex items-center gap-2">
-                              <div className="h-8 w-2 bg-primary rounded-full" />
-                              Professional Story
-                           </CardTitle>
-                        </CardHeader>
-                        <CardContent className="pt-6">
-                           {isEditing ? (
-                              <div className="space-y-6">
-                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                       <Label className="font-bold text-xs uppercase tracking-wider text-muted-foreground">First Name</Label>
-                                       <Input value={profile.firstName || ''} onChange={(e) => setProfile({...profile, firstName: e.target.value})} className="h-12 rounded-xl border-border/50 font-bold" />
-                                    </div>
-                                    <div className="space-y-2">
-                                       <Label className="font-bold text-xs uppercase tracking-wider text-muted-foreground">Last Name</Label>
-                                       <Input value={profile.lastName || ''} onChange={(e) => setProfile({...profile, lastName: e.target.value})} className="h-12 rounded-xl border-border/50 font-bold" />
-                                    </div>
-                                 </div>
-                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                       <Label className="font-bold text-xs uppercase tracking-wider text-muted-foreground">Current / Desired Role</Label>
-                                       <Input value={profile.currentLastRole || ''} onChange={(e) => setProfile({...profile, currentLastRole: e.target.value})} className="h-12 rounded-xl border-border/50 font-bold" />
-                                    </div>
-                                    <div className="space-y-2">
-                                       <Label className="font-bold text-xs uppercase tracking-wider text-muted-foreground">Years of Experience</Label>
-                                       <Select 
-                                          value={profile.yearsOfExperience || ''} 
-                                          onValueChange={(v) => setProfile({ ...profile, yearsOfExperience: v })}
-                                       >
-                                          <SelectTrigger className="h-12 rounded-xl border-border/50 font-bold">
-                                             <SelectValue placeholder="Select experience" />
-                                          </SelectTrigger>
-                                          <SelectContent className="rounded-xl border-border/50">
-                                             <SelectItem value="ZERO_TO_ONE">Zero to one years of experience</SelectItem>
-                                             <SelectItem value="ONE_TO_THREE">One to three years of experience</SelectItem>
-                                             <SelectItem value="THREE_TO_FIVE">Three to five years of experience</SelectItem>
-                                             <SelectItem value="FIVE_TO_TEN">Five to ten years of experience</SelectItem>
-                                             <SelectItem value="TEN_PLUS">Ten plus years of experience</SelectItem>
-                                          </SelectContent>
-                                       </Select>
-                                    </div>
-                                 </div>
-                                 <div className="space-y-2">
-                                    <Label className="font-bold text-xs uppercase tracking-wider text-muted-foreground">Professional Story</Label>
-                                    <Textarea 
-                                       className="min-h-[200px] rounded-2xl border-border/50 font-medium text-lg focus-visible:ring-primary/20"
-                                       value={profile.bio || ''} 
-                                       onChange={(e) => setProfile({...profile, bio: e.target.value})}
-                                       placeholder="Tell your story, your stack, and what you're passionate about..."
-                                    />
-                                 </div>
-                              </div>
-                           ) : (
-                              <p className="text-lg leading-relaxed text-slate-600 font-medium whitespace-pre-wrap">
-                                 {profile.bio || "Add a bio to tell employers who you are..."}
-                              </p>
-                           )}
-                        </CardContent>
-                     </Card>
-
-                     {/* Skills Card */}
-                     <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
-                        <CardHeader className="border-b border-slate-50 pb-6 flex flex-row items-center justify-between">
-                           <CardTitle className="text-2xl font-black flex items-center gap-2">
-                              <div className="h-8 w-2 bg-primary rounded-full" />
-                              Technical Arsenal
-                           </CardTitle>
-                           <Button size="sm" className="rounded-xl font-bold h-10 px-4" onClick={() => openAddDialog('skill')}>
-                              <Plus className="h-4 w-4 mr-2" /> Add Skill
-                           </Button>
-                        </CardHeader>
-                        <CardContent className="pt-6">
-                           <div className="flex flex-wrap gap-3">
-                              {profile.skills.map((skill: string) => (
-                                 <Badge key={skill} className="h-10 px-4 rounded-xl bg-slate-50 border border-slate-100 text-slate-900 font-bold text-sm hover:bg-slate-100 transition-colors flex items-center gap-2">
-                                    {skill}
-                                    <button onClick={() => handleRemoveItem('skill', skill)} className="hover:text-red-500 transition-colors">
-                                       <X className="h-3.5 w-3.5" />
-                                    </button>
-                                 </Badge>
-                              ))}
-                              {profile.skills.length === 0 && (
-                                 <p className="text-slate-400 font-medium italic">No skills added yet.</p>
-                              )}
-                           </div>
-
-                           {profile.languages.length > 0 && (
-                             <div className="mt-10">
-                                <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Spoken Languages</h4>
-                                <div className="flex flex-wrap gap-2">
-                                   {profile.languages.map((lang: string) => (
-                                      <Badge key={lang} variant="outline" className="h-8 px-4 rounded-lg font-black text-[10px] uppercase border-slate-200">
-                                         {lang}
-                                         <button onClick={() => handleRemoveItem('language', lang)} className="ml-2 hover:text-red-500">
-                                            <X className="h-3 w-3" />
-                                         </button>
-                                      </Badge>
-                                   ))}
-                                </div>
-                             </div>
-                           )}
-                           <Button variant="ghost" size="sm" className="mt-4 font-black text-[10px] uppercase text-primary" onClick={() => openAddDialog('language')}>
-                              <Plus className="h-3.5 w-3.5 mr-1" /> Add Language
-                           </Button>
-                        </CardContent>
-                     </Card>
-                  </TabsContent>
-
-                  <TabsContent value="projects" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-black flex items-center gap-2">
-                           <div className="h-8 w-2 bg-primary rounded-full" />
-                           Portfolio Projects
-                        </h2>
-                        <Button className="rounded-2xl font-black h-12 shadow-xl shadow-primary/10 px-6" onClick={() => openAddDialog('project')}>
-                           <Plus className="h-5 w-5 mr-2" /> New Project
-                        </Button>
-                     </div>
-
-                     <div className="grid grid-cols-1 gap-8">
-                        {profile.projects.map((project: any) => (
-                           <Card key={project.id} className="rounded-[2.5rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden group">
-                              <div className="grid grid-cols-1 md:grid-cols-12">
-                                 <div className="md:col-span-5 relative overflow-hidden bg-slate-100">
-                                    {project.screenshotUrl ? (
-                                       <img src={project.screenshotUrl} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt={project.title} />
-                                    ) : (
-                                       <div className="h-64 flex items-center justify-center text-slate-300">
-                                          <Code2 className="h-20 w-20" />
-                                       </div>
-                                    )}
-                                    <div className="absolute top-4 left-4 flex flex-col gap-2">
-                                       {project.isFeatured && (
-                                          <Badge className="bg-emerald-500 rounded-lg font-black uppercase text-[10px] px-3 py-1 shadow-lg">Featured</Badge>
-                                       )}
-                                    </div>
-                                    <Label className="absolute bottom-4 left-4 h-10 w-10 bg-white/90 backdrop-blur rounded-xl flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 transition-transform opacity-0 group-hover:opacity-100">
-                                       <Upload className="h-4 w-4" />
-                                       <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload('project', project.id, e)} />
-                                    </Label>
-                                 </div>
-                                 <div className="md:col-span-7 p-8 space-y-6">
-                                    <div className="flex justify-between items-start">
-                                       <div className="space-y-1">
-                                          <h3 className="text-2xl font-black text-slate-900">{project.title}</h3>
-                                          <p className="text-slate-500 font-medium text-sm line-clamp-3">{project.description}</p>
-                                       </div>
-                                       <div className="flex gap-1">
-                                          <Button 
-                                             size="icon" 
-                                             variant="ghost" 
-                                             className={cn("rounded-xl h-10 w-10", project.isFeatured ? "text-yellow-500" : "text-slate-300")}
-                                             onClick={() => handleToggleFeatured(project.id, project.isFeatured)}
-                                          >
-                                             {project.isFeatured ? <Star className="h-5 w-5 fill-current" /> : <Star className="h-5 w-5" />}
-                                          </Button>
-                                          <Button size="icon" variant="ghost" className="rounded-xl h-10 w-10 text-red-400 hover:text-red-500 hover:bg-red-50" onClick={() => handleRemoveItem('project', project.id)}>
-                                             <Trash2 className="h-5 w-5" />
-                                          </Button>
-                                       </div>
-                                    </div>
-
-                                    <div className="flex flex-wrap gap-2">
-                                       {(Array.isArray(project.techStack) 
-                                         ? project.techStack 
-                                         : typeof project.techStack === 'string' 
-                                           ? project.techStack.split(',').filter(Boolean) 
-                                           : []
-                                       ).map((tech: string) => (
-                                          <Badge key={tech} variant="outline" className="rounded-lg text-[10px] font-bold uppercase border-slate-100 bg-slate-50/50">{tech.trim()}</Badge>
-                                       ))}
-                                    </div>
-
-                                    <div className="flex gap-3 pt-2">
-                                       {project.projectUrl && (
-                                          <Button size="sm" className="rounded-xl font-black h-10 px-5" asChild>
-                                             <Link href={project.projectUrl} target="_blank">Live Demo <ExternalLink className="ml-2 h-3.5 w-3.5" /></Link>
-                                          </Button>
-                                       )}
-                                       {project.repoUrl && (
-                                          <Button variant="outline" className="rounded-xl font-black h-10 border-slate-100 flex-1" asChild>
-                                             <Link href={project.repoUrl} target="_blank"><ExternalLink className="mr-2 h-4 w-4" /> Source</Link>
-                                          </Button>
-                                       )}
-                                    </div>
-                                 </div>
-                              </div>
-                           </Card>
-                        ))}
-                        {profile.projects.length === 0 && (
-                           <div className="py-20 text-center border-4 border-dashed border-slate-100 rounded-[3rem]">
-                              <Code2 className="h-16 w-16 text-slate-200 mx-auto mb-4" />
-                              <h3 className="text-xl font-black text-slate-400">Showcase your work</h3>
-                              <p className="text-slate-400 font-medium">Add projects to your profile to impress employers.</p>
-                           </div>
-                        )}
-                     </div>
-                  </TabsContent>
-
-                  <TabsContent value="experience" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                     <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
-                        <CardHeader className="border-b border-slate-50 pb-6 flex flex-row items-center justify-between">
-                           <CardTitle className="text-2xl font-black flex items-center gap-2">
-                              <div className="h-8 w-2 bg-primary rounded-full" />
-                              Education
-                           </CardTitle>
-                           <Button size="sm" variant="outline" className="rounded-xl font-bold h-10 px-4 border-slate-200" onClick={() => openAddDialog('education')}>
-                              <Plus className="h-4 w-4 mr-2" /> Add Education
-                           </Button>
-                        </CardHeader>
-                        <CardContent className="pt-6">
-                           <div className="space-y-6">
-                              {profile.education.map((edu: any) => (
-                                 <div key={edu.id} className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 flex gap-6 items-start">
-                                    <div className="h-14 w-14 rounded-2xl bg-white shadow-sm flex items-center justify-center text-primary shrink-0">
-                                       <GraduationCap className="h-7 w-7" />
-                                    </div>
-                                    <div className="flex-1 space-y-1">
-                                       <div className="flex justify-between">
-                                          <h4 className="text-xl font-black text-slate-900">{edu.institution}</h4>
-                                          <Button size="icon" variant="ghost" className="h-8 w-8 text-red-400" onClick={() => handleRemoveItem('education', edu.id)}>
-                                             <Trash2 className="h-4 w-4" />
-                                          </Button>
-                                       </div>
-                                       <p className="text-primary font-black text-sm">{edu.qualification} • {edu.fieldOfStudy}</p>
-                                       <p className="text-slate-400 font-bold text-xs uppercase tracking-wider">{edu.startYear} — {edu.yearCompleted}</p>
-                                    </div>
-                                 </div>
-                              ))}
-                              {profile.education.length === 0 && (
-                                 <p className="py-8 text-center text-slate-400 font-bold italic">No education history added yet.</p>
-                              )}
-                           </div>
-                        </CardContent>
-                     </Card>
-
-                     <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
-                        <CardHeader className="border-b border-slate-50 pb-6 flex flex-row items-center justify-between">
-                           <CardTitle className="text-2xl font-black flex items-center gap-2">
-                              <div className="h-8 w-2 bg-primary rounded-full" />
-                              Certifications
-                           </CardTitle>
-                           <Button size="sm" variant="outline" className="rounded-xl font-bold h-10 px-4 border-slate-200" onClick={() => openAddDialog('certification')}>
-                              <Plus className="h-4 w-4 mr-2" /> Add Certificate
-                           </Button>
-                        </CardHeader>
-                        <CardContent className="pt-6">
-                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {profile.certifications.map((c: any) => (
-                                 <div key={c.id} className="p-5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-4">
-                                    <div className="h-12 w-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
-                                       <Award className="h-6 w-6" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                       <h4 className="font-black text-slate-900 truncate">{c.name}</h4>
-                                       <p className="text-slate-500 font-bold text-[10px] uppercase">{c.issuedBy}</p>
-                                    </div>
-                                    <Button size="icon" variant="ghost" className="h-8 w-8 text-red-400" onClick={() => handleRemoveItem('certification', c.id)}>
-                                       <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                 </div>
-                              ))}
-                              {profile.certifications.length === 0 && (
-                                 <p className="col-span-full py-8 text-center text-slate-400 font-bold italic">No certifications added yet.</p>
-                              )}
-                           </div>
-                        </CardContent>
-                     </Card>
-                  </TabsContent>
-
-                  <TabsContent value="oss" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
-                           <CardHeader className="border-b border-slate-50 pb-6 flex flex-row items-center justify-between">
-                              <CardTitle className="text-xl font-black flex items-center gap-2">
-                                 OSS Work
-                              </CardTitle>
-                              <Button size="icon" variant="ghost" className="rounded-xl h-8 w-8 text-primary" onClick={() => openAddDialog('oss')}>
-                                 <Plus className="h-5 w-5" />
-                              </Button>
-                           </CardHeader>
-                           <CardContent className="pt-6 space-y-4">
-                              {profile.ossContributions.map((oss: any) => (
-                                 <div key={oss.id} className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
-                                    <div className="flex justify-between items-start">
-                                       <div>
-                                          <h4 className="font-black text-slate-900">{oss.projectName}</h4>
-                                          <p className="text-primary font-bold text-xs">{oss.role}</p>
-                                       </div>
-                                       <Button size="icon" variant="ghost" className="h-8 w-8 text-red-400" onClick={() => handleRemoveItem('oss', oss.id)}>
-                                          <Trash2 className="h-4 w-4" />
-                                       </Button>
-                                    </div>
-                                    <p className="text-slate-500 text-sm font-medium leading-relaxed">{oss.description}</p>
-                                    {oss.contributionUrl && (
-                                       <Link href={oss.contributionUrl} target="_blank" className="text-primary font-black text-xs inline-flex items-center hover:underline">
-                                          View Contribution <ExternalLink className="ml-1 h-3 w-3" />
-                                       </Link>
-                                    )}
-                                 </div>
-                              ))}
-                              {profile.ossContributions.length === 0 && (
-                                 <p className="py-8 text-center text-slate-400 font-bold italic">No OSS contributions listed.</p>
-                              )}
-                           </CardContent>
-                        </Card>
-
-                        <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
-                           <CardHeader className="border-b border-slate-50 pb-6 flex flex-row items-center justify-between">
-                              <CardTitle className="text-xl font-black flex items-center gap-2">
-                                 Achievements
-                              </CardTitle>
-                              <Button size="icon" variant="ghost" className="rounded-xl h-8 w-8 text-primary" onClick={() => openAddDialog('achievement')}>
-                                 <Plus className="h-5 w-5" />
-                              </Button>
-                           </CardHeader>
-                           <CardContent className="pt-6 space-y-4">
-                              {profile.achievements.map((ach: any) => (
-                                 <div key={ach.id} className="p-5 rounded-2xl bg-slate-50 border border-slate-100 flex gap-4">
-                                    <div className="h-10 w-10 rounded-xl bg-yellow-500/10 text-yellow-600 flex items-center justify-center shrink-0">
-                                       <Trophy className="h-5 w-5" />
-                                    </div>
-                                    <div className="flex-1 space-y-1">
-                                       <div className="flex justify-between items-start">
-                                          <h4 className="font-black text-slate-900">{ach.title}</h4>
-                                          <Button size="icon" variant="ghost" className="h-8 w-8 text-red-400" onClick={() => handleRemoveItem('achievement', ach.id)}>
-                                             <Trash2 className="h-4 w-4" />
-                                          </Button>
-                                       </div>
-                                       <p className="text-slate-400 font-bold text-[10px] uppercase tracking-wider">{ach.year}</p>
-                                       <p className="text-slate-500 text-sm font-medium">{ach.description}</p>
-                                    </div>
-                                 </div>
-                              ))}
-                              {profile.achievements.length === 0 && (
-                                 <p className="py-8 text-center text-slate-400 font-bold italic">No achievements added yet.</p>
-                              )}
-                           </CardContent>
-                        </Card>
-                     </div>
-                  </TabsContent>
-               </Tabs>
-            </div>
-
-            <div className="lg:col-span-4 space-y-8">
-               <SpotlightStatusCard status={spotlightStatus} onBuy={() => setBuySpotlightOpen(true)} />
-
-
-               <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <div className="lg:col-span-8 space-y-8">
+                <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
                   <CardHeader className="border-b border-slate-50 pb-6">
-                     <CardTitle className="text-xl font-black">Quick Actions</CardTitle>
+                    <CardTitle className="text-2xl font-black flex items-center gap-2">
+                      <div className="h-8 w-2 bg-primary rounded-full" />
+                      Company Bio & Mission
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-6 space-y-3">
-                     <Button variant="outline" className="w-full h-14 rounded-2xl border-slate-100 bg-slate-50/50 justify-start px-6 font-black text-slate-900 group" asChild>
-                        <Link href={`/developers/${profile.id || user?.id}`}>
-                           <Eye className="h-5 w-5 mr-4 text-primary group-hover:scale-110 transition-transform" /> 
-                           Preview Public View
-                        </Link>
-                     </Button>
-                     <Button variant="outline" className="w-full h-14 rounded-2xl border-slate-100 bg-slate-50/50 justify-start px-6 font-black text-slate-900 group" onClick={() => router.push('/verify')}>
-                        <ShieldCheck className="h-5 w-5 mr-4 text-emerald-500 group-hover:scale-110 transition-transform" /> 
-                        Verify Identity
-                     </Button>
+                  <CardContent className="pt-6">
+                    {isEditing ? (
+                      <Textarea 
+                        className="min-h-[200px] rounded-2xl border-slate-200 font-medium text-lg" 
+                        value={profile.companyBio || ''} 
+                        onChange={(e) => setProfile({...profile, companyBio: e.target.value})} 
+                        placeholder="Describe your company..." 
+                      />
+                    ) : (
+                      <p className="text-lg leading-relaxed text-slate-600 font-medium whitespace-pre-wrap">{profile.companyBio || "Add a bio..."}</p>
+                    )}
                   </CardContent>
-               </Card>
+                </Card>
+              </div>
+            </div>
+          </>
+        ) : (
+          /* Developer View (New Redesigned Structure) */
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            {/* Left Column (65%) */}
+            <div className="lg:col-span-2 space-y-10">
+              <ProfileHeader 
+                profile={profile} 
+                isOwner={true} 
+                isEditing={isEditing}
+                onUpdate={setProfile}
+                onPhotoSelect={(file) => {
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    setCropImageSrc(reader.result as string);
+                    setCrop({ x: 0, y: 0 });
+                    setZoom(1);
+                    setCropDialogOpen(true);
+                  };
+                  reader.readAsDataURL(file);
+                }}
+              />
+              
+              <ProfileTabs 
+                profile={profile} 
+                isOwner={true}
+                isEditing={isEditing}
+                onUpdate={setProfile}
+                onAddSkill={() => openAddDialog('skill')}
+                onAddProject={() => openAddDialog('project')}
+                onAddEducation={() => openAddDialog('education')}
+                onAddOSS={() => openAddDialog('oss')}
+                onAddAchievement={() => openAddDialog('achievement')}
+                onRemoveItem={handleRemoveItem}
+                onToggleFeatured={handleToggleFeatured}
+              />
+            </div>
 
-               {!isEmployer && (
-                 <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
-                    <CardHeader className="border-b border-slate-50 pb-6">
-                       <CardTitle className="text-xl font-black">Personal Links</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-6 space-y-3">
-                       {isEditing ? (
-                         <div className="space-y-4">
-                            <div className="space-y-1">
-                               <Label className="text-[10px] font-black uppercase text-slate-400">LinkedIn</Label>
-                               <Input className="h-10 rounded-xl" value={profile.linkedinUrl || ''} onChange={(e) => setProfile({...profile, linkedinUrl: e.target.value})} />
-                            </div>
-                            <div className="space-y-1">
-                               <Label className="text-[10px] font-black uppercase text-slate-400">Portfolio</Label>
-                               <Input className="h-10 rounded-xl" value={profile.portfolioUrl || ''} onChange={(e) => setProfile({...profile, portfolioUrl: e.target.value})} />
-                            </div>
-                         </div>
-                       ) : (
-                         <>
-                            <Button variant="outline" className="w-full h-14 rounded-2xl border-slate-100 bg-slate-50/50 justify-start px-6 font-black text-slate-900 group" asChild>
-                               <Link href={profile.linkedinUrl || '#'} target="_blank" className={cn(!profile.linkedinUrl && "opacity-50 pointer-events-none")}>
-                                  <ExternalLink className="h-5 w-5 mr-4 text-[#0077b5] group-hover:scale-110 transition-transform" /> 
-                                  LinkedIn
-                               </Link>
-                            </Button>
-                            <Button variant="outline" className="w-full h-14 rounded-2xl border-slate-100 bg-slate-50/50 justify-start px-6 font-black text-slate-900 group" asChild>
-                               <Link href={profile.portfolioUrl || '#'} target="_blank" className={cn(!profile.portfolioUrl && "opacity-50 pointer-events-none")}>
-                                  <Globe className="h-5 w-5 mr-4 text-primary group-hover:scale-110 transition-transform" /> 
-                                  Portfolio
-                               </Link>
-                            </Button>
-                         </>
-                       )}
-                    </CardContent>
-                 </Card>
-               )}
+            {/* Right Column (35%) */}
+            <div className="lg:col-span-1">
+              <ProfileSidebar 
+                profile={profile}
+                isEditing={isEditing}
+                onUpdate={setProfile}
+                onBuySpotlight={() => setBuySpotlightOpen(true)}
+                onPreviewPublic={() => router.push(`/developers/${profile.id}`)}
+                onVerifyIdentity={() => router.push('/verify')}
+              />
             </div>
           </div>
         )}
       </div>
 
+      {/* Dialogs & Overlays */}
       <BuySpotlightDialog 
         open={buySpotlightOpen} 
         onClose={() => setBuySpotlightOpen(false)} 
@@ -1239,216 +642,90 @@ export default function MyProfile() {
         hasFeaturedProject={profile.projects?.some((p: any) => p.isFeatured) || false}
       />
 
-      {/* Add Item Dialogs */}
       <Dialog open={!!dialogOpen} onOpenChange={(v) => !v && closeDialog()}>
         <DialogContent className="sm:max-w-md rounded-[2.5rem]">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black">
               Add {dialogOpen?.charAt(0).toUpperCase()}{dialogOpen?.slice(1)}
             </DialogTitle>
-            <DialogDescription className="sr-only">
-               Fill out the form to add a new {dialogOpen} to your profile.
-            </DialogDescription>
+            <DialogDescription className="sr-only">Form for adding profile items.</DialogDescription>
           </DialogHeader>
-          
           <div className="space-y-6 py-4">
             {dialogOpen === 'skill' && (
-               <div className="space-y-4">
-                  <div className="space-y-2">
-                     <Label className="font-bold">Skill Name</Label>
-                     <Input 
-                        placeholder="e.g. React, Java" 
-                        className="h-12 rounded-xl"
-                        value={newItem.skill || ''} 
-                        onChange={(e) => setNewItem({ ...newItem, skill: e.target.value })} 
-                     />
-                  </div>
-                  <div className="flex flex-wrap gap-2 pt-2">
-                     {COMMON_SKILLS.slice(0, 8).map(s => (
-                        <Badge 
-                           key={s} 
-                           variant="outline" 
-                           className="cursor-pointer hover:bg-primary hover:text-white transition-colors"
-                           onClick={() => setNewItem({ ...newItem, skill: s })}
-                        >
-                           {s}
-                        </Badge>
-                     ))}
-                  </div>
-               </div>
-            )}
-
-            {dialogOpen === 'language' && (
-               <div className="space-y-2">
-                  <Label className="font-bold">Language Name</Label>
-                  <Input 
-                     placeholder="e.g. Swahili, French" 
-                     className="h-12 rounded-xl"
-                     value={newItem.language || ''} 
-                     onChange={(e) => setNewItem({ ...newItem, language: e.target.value })} 
-                  />
-               </div>
-            )}
-
-            {dialogOpen === 'education' && (
               <div className="space-y-4">
-                <div className="space-y-2">
-                   <Label className="font-bold">Institution</Label>
-                   <Input value={newItem.institution || ''} onChange={(e) => setNewItem({ ...newItem, institution: e.target.value })} className="rounded-xl" />
-                </div>
-                <div className="space-y-2">
-                   <Label className="font-bold">Qualification</Label>
-                   <Input value={newItem.qualification || ''} onChange={(e) => setNewItem({ ...newItem, qualification: e.target.value })} className="rounded-xl" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                   <div className="space-y-2">
-                      <Label className="font-bold">Start Year</Label>
-                      <Input type="number" value={newItem.startYear || ''} onChange={(e) => setNewItem({ ...newItem, startYear: e.target.value })} className="rounded-xl" />
-                   </div>
-                   <div className="space-y-2">
-                      <Label className="font-bold">End Year</Label>
-                      <Input type="number" value={newItem.yearCompleted || ''} onChange={(e) => setNewItem({ ...newItem, yearCompleted: e.target.value })} className="rounded-xl" />
-                   </div>
+                <Label className="font-bold">Skill Name</Label>
+                <Input value={newItem.skill || ''} onChange={(e) => setNewItem({ ...newItem, skill: e.target.value })} className="h-12 rounded-xl" />
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {COMMON_SKILLS.slice(0, 8).map(s => (
+                    <Badge key={s} variant="outline" className="cursor-pointer hover:bg-primary hover:text-white transition-colors" onClick={() => setNewItem({ ...newItem, skill: s })}>{s}</Badge>
+                  ))}
                 </div>
               </div>
             )}
-
             {dialogOpen === 'project' && (
-               <div className="space-y-4">
-                  <div className="space-y-2">
-                     <Label className="font-bold">Project Title</Label>
-                     <Input value={newItem.title || ''} onChange={(e) => setNewItem({ ...newItem, title: e.target.value })} className="rounded-xl" />
-                  </div>
-                  <div className="space-y-2">
-                     <Label className="font-bold">Description</Label>
-                     <Textarea value={newItem.description || ''} onChange={(e) => setNewItem({ ...newItem, description: e.target.value })} className="rounded-xl min-h-[100px]" />
-                  </div>
-                  <div className="space-y-2">
-                     <Label className="font-bold">Tech Stack (comma separated)</Label>
-                     <Input placeholder="React, Node.js, AWS" value={newItem.techStack || ''} onChange={(e) => setNewItem({ ...newItem, techStack: e.target.value })} className="rounded-xl" />
-                  </div>
-                  <div className="space-y-2">
-                     <Label className="font-bold">Project Preview (Optional)</Label>
-                     <div className="flex items-center gap-4">
-                        <Button variant="outline" className="rounded-xl h-12 w-full font-bold relative" asChild>
-                           <label className="cursor-pointer">
-                              {selectedFile ? selectedFile.name : 'Choose Screenshot'}
-                              <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
-                           </label>
-                        </Button>
-                     </div>
-                     {previewUrl && <img src={previewUrl} className="mt-4 w-full h-32 object-cover rounded-2xl" />}
-                  </div>
-                  <div className="flex items-center space-x-2 pt-2">
-                    <Switch id="featured" checked={newItem.isFeatured || false} onCheckedChange={(v) => setNewItem({ ...newItem, isFeatured: v })} />
-                    <Label htmlFor="featured" className="font-bold text-sm">Feature this project</Label>
-                  </div>
-               </div>
+              <div className="space-y-4">
+                <div className="space-y-2"><Label className="font-bold">Project Title</Label><Input value={newItem.title || ''} onChange={(e) => setNewItem({ ...newItem, title: e.target.value })} className="rounded-xl" /></div>
+                <div className="space-y-2"><Label className="font-bold">Description</Label><Textarea value={newItem.description || ''} onChange={(e) => setNewItem({ ...newItem, description: e.target.value })} className="rounded-xl min-h-[100px]" /></div>
+                <div className="space-y-2"><Label className="font-bold">Tech Stack (comma separated)</Label><Input placeholder="React, Node.js" value={newItem.techStack || ''} onChange={(e) => setNewItem({ ...newItem, techStack: e.target.value })} className="rounded-xl" /></div>
+                <div className="space-y-2"><Label className="font-bold">Live URL</Label><Input value={newItem.projectUrl || ''} onChange={(e) => setNewItem({ ...newItem, projectUrl: e.target.value })} className="rounded-xl" /></div>
+                <div className="space-y-2"><Label className="font-bold">Source Code URL</Label><Input value={newItem.repoUrl || ''} onChange={(e) => setNewItem({ ...newItem, repoUrl: e.target.value })} className="rounded-xl" /></div>
+                <div className="space-y-2">
+                  <Label className="font-bold">Screenshot (Required for featured)</Label>
+                  <Input type="file" accept="image/*" onChange={handleFileChange} className="rounded-xl h-10 px-2 pt-1.5" />
+                  {previewUrl && <img src={previewUrl} className="mt-4 w-full h-32 object-cover rounded-2xl" />}
+                </div>
+                <div className="flex items-center space-x-2 pt-2"><Switch id="featured" checked={newItem.isFeatured || false} onCheckedChange={(v) => setNewItem({ ...newItem, isFeatured: v })} /><Label htmlFor="featured" className="font-bold text-sm">Feature this project</Label></div>
+              </div>
             )}
-
-            {/* Other dialogs for OSS, Achievement, Certification follow same pattern */}
+            {dialogOpen === 'education' && (
+              <div className="space-y-4">
+                <div className="space-y-2"><Label className="font-bold">Institution</Label><Input value={newItem.institution || ''} onChange={(e) => setNewItem({ ...newItem, institution: e.target.value })} className="rounded-xl" /></div>
+                <div className="space-y-2"><Label className="font-bold">Qualification</Label><Input value={newItem.qualification || ''} onChange={(e) => setNewItem({ ...newItem, qualification: e.target.value })} className="rounded-xl" /></div>
+                <div className="space-y-2"><Label className="font-bold">Field of Study</Label><Input value={newItem.fieldOfStudy || ''} onChange={(e) => setNewItem({ ...newItem, fieldOfStudy: e.target.value })} className="rounded-xl" /></div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2"><Label className="font-bold">Start Year</Label><Input type="number" value={newItem.startYear || ''} onChange={(e) => setNewItem({ ...newItem, startYear: e.target.value })} className="rounded-xl" /></div>
+                  <div className="space-y-2"><Label className="font-bold">End Year</Label><Input type="number" value={newItem.yearCompleted || ''} onChange={(e) => setNewItem({ ...newItem, yearCompleted: e.target.value })} className="rounded-xl" /></div>
+                </div>
+              </div>
+            )}
             {(dialogOpen === 'oss' || dialogOpen === 'achievement' || dialogOpen === 'certification') && (
-               <div className="space-y-4">
-                  <div className="space-y-2">
-                     <Label className="font-bold">Title / Project Name</Label>
-                     <Input 
-                        value={newItem.projectName || newItem.title || newItem.name || ''} 
-                        onChange={(e) => setNewItem({ ...newItem, [dialogOpen === 'oss' ? 'projectName' : dialogOpen === 'achievement' ? 'title' : 'name']: e.target.value })} 
-                        className="rounded-xl" 
-                     />
-                  </div>
-                  <div className="space-y-2">
-                     <Label className="font-bold">{dialogOpen === 'certification' ? 'Issued By' : 'Description'}</Label>
-                     <Textarea 
-                        value={newItem.description || newItem.issuedBy || ''} 
-                        onChange={(e) => setNewItem({ ...newItem, [dialogOpen === 'certification' ? 'issuedBy' : 'description']: e.target.value })} 
-                        className="rounded-xl min-h-[100px]" 
-                     />
-                  </div>
-               </div>
+              <div className="space-y-4">
+                <div className="space-y-2"><Label className="font-bold">Title</Label><Input value={newItem.projectName || newItem.title || newItem.name || ''} onChange={(e) => setNewItem({ ...newItem, [dialogOpen === 'oss' ? 'projectName' : dialogOpen === 'achievement' ? 'title' : 'name']: e.target.value })} className="rounded-xl" /></div>
+                <div className="space-y-2"><Label className="font-bold">{dialogOpen === 'certification' ? 'Issued By' : 'Description'}</Label><Textarea value={newItem.description || newItem.issuedBy || ''} onChange={(e) => setNewItem({ ...newItem, [dialogOpen === 'certification' ? 'issuedBy' : 'description']: e.target.value })} className="rounded-xl min-h-[100px]" /></div>
+                {dialogOpen === 'oss' && <div className="space-y-2"><Label className="font-bold">Contribution URL</Label><Input value={newItem.contributionUrl || ''} onChange={(e) => setNewItem({ ...newItem, contributionUrl: e.target.value })} className="rounded-xl" /></div>}
+              </div>
             )}
           </div>
-
           <DialogFooter className="pt-4 border-t border-slate-50 gap-3">
-             <Button variant="ghost" onClick={closeDialog} className="font-bold">Cancel</Button>
-             <Button className="font-black rounded-xl px-8 h-12 shadow-lg" onClick={() => handleAddItem(dialogOpen as string)} disabled={isSaving}>
-                {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Save Item'}
-             </Button>
+            <Button variant="ghost" onClick={closeDialog} className="font-bold">Cancel</Button>
+            <Button className="font-black rounded-xl px-8 h-12 shadow-lg" onClick={() => handleAddItem(dialogOpen as string)} disabled={isSaving}>{isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Save Item'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Image Crop Dialog */}
       <Dialog open={cropDialogOpen} onOpenChange={(v) => !v && setCropDialogOpen(false)}>
         <DialogContent className="sm:max-w-xl rounded-[2.5rem]">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-black">Crop Profile Photo</DialogTitle>
-            <DialogDescription className="sr-only">
-               Adjust the crop area to set your profile picture.
-            </DialogDescription>
-          </DialogHeader>
-          
+          <DialogHeader><DialogTitle className="text-2xl font-black">Crop Profile Photo</DialogTitle></DialogHeader>
           <div className="space-y-8 py-4">
-             <div className="relative w-full h-[400px] rounded-[2rem] overflow-hidden bg-slate-900 border-8 border-slate-100">
-                <Cropper
-                  image={cropImageSrc || ''}
-                  crop={crop}
-                  zoom={zoom}
-                  aspect={1}
-                  onCropChange={setCrop}
-                  onZoomChange={setZoom}
-                  onCropComplete={(_, pixels) => setCroppedAreaPixels(pixels)}
-                />
-             </div>
-             
-             <div className="space-y-4 px-2">
-                <div className="flex justify-between items-center">
-                   <Label className="font-black uppercase tracking-widest text-[10px] text-slate-400">Zoom Level</Label>
-                   <span className="font-black text-xs text-primary">{(zoom * 100).toFixed(0)}%</span>
-                </div>
-                <Slider 
-                   value={[zoom]} 
-                   min={1} 
-                   max={3} 
-                   step={0.1} 
-                   onValueChange={(val) => setZoom(val[0])} 
-                />
-             </div>
+            <div className="relative w-full h-[400px] rounded-[2rem] overflow-hidden bg-slate-900 border-8 border-slate-100">
+              <Cropper image={cropImageSrc || ''} crop={crop} zoom={zoom} aspect={1} onCropChange={setCrop} onZoomChange={setZoom} onCropComplete={(_, pixels) => setCroppedAreaPixels(pixels)} />
+            </div>
+            <div className="space-y-4 px-2">
+              <div className="flex justify-between items-center"><Label className="font-black uppercase tracking-widest text-[10px] text-slate-400">Zoom Level</Label><span className="font-black text-xs text-primary">{(zoom * 100).toFixed(0)}%</span></div>
+              <Slider value={[zoom]} min={1} max={3} step={0.1} onValueChange={(val) => setZoom(val[0])} />
+            </div>
           </div>
-
           <DialogFooter className="pt-4 border-t border-slate-50 gap-3">
-             <Button variant="ghost" onClick={() => setCropDialogOpen(false)} className="font-bold">Cancel</Button>
-             <Button 
-                className="font-black rounded-xl px-8 h-12 shadow-lg" 
-                disabled={isSaving}
-                onClick={async () => {
-                  try {
-                    setIsSaving(true);
-                    const croppedBlob = await getCroppedImg(cropImageSrc!, croppedAreaPixels);
-                    const file = new File([croppedBlob], 'profile.jpg', { type: 'image/jpeg' });
-                    
-                    let response;
-                    if (user?.role === 'EMPLOYER') {
-                      response = await employerService.uploadLogo(file);
-                    } else {
-                      response = await developerService.uploadProfilePhoto(file);
-                    }
-
-                    if (response.success) {
-                      setProfile(response.data);
-                      setCropDialogOpen(false);
-                      toast.success('Profile photo updated');
-                    }
-                  } catch (err) {
-                    console.error(err);
-                    toast.error('Failed to crop and upload photo.');
-                  } finally {
-                    setIsSaving(false);
-                  }
-                }}
-             >
-                {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Set Profile Photo'}
-             </Button>
+            <Button variant="ghost" onClick={() => setCropDialogOpen(false)} className="font-bold">Cancel</Button>
+            <Button className="font-black rounded-xl px-8 h-12 shadow-lg" disabled={isSaving} onClick={async () => {
+              try {
+                setIsSaving(true);
+                const croppedBlob = await getCroppedImg(cropImageSrc!, croppedAreaPixels);
+                const file = new File([croppedBlob], 'profile.jpg', { type: 'image/jpeg' });
+                const response = user?.role === 'EMPLOYER' ? await employerService.uploadLogo(file) : await developerService.uploadProfilePhoto(file);
+                if (response.success) { setProfile(response.data); setCropDialogOpen(false); toast.success('Profile photo updated'); }
+              } catch (err) { toast.error('Failed to update photo.'); } finally { setIsSaving(false); }
+            }}>{isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Set Profile Photo'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
