@@ -4,6 +4,7 @@ import com.opencsv.CSVWriter;
 import lombok.extern.slf4j.Slf4j;
 import org.moseti.kedevsapi.users.dto.UserDtos.DeveloperSummaryResponse;
 import org.moseti.kedevsapi.spotlight.dto.SpotlightDtos.PastSpotlightResponse;
+import org.moseti.kedevsapi.payments.entity.Payment;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -75,6 +76,38 @@ public class CsvExportService {
         } catch (Exception e) {
             log.error("Failed to generate Past Spotlights CSV export", e);
             throw new RuntimeException("Failed to generate Past Spotlights CSV export", e);
+        }
+    }
+
+    public byte[] generatePaymentCsv(List<Payment> payments) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             OutputStreamWriter osw = new OutputStreamWriter(baos, StandardCharsets.UTF_8);
+             CSVWriter writer = new CSVWriter(osw)) {
+
+            // Header row
+            writer.writeNext(new String[]{
+                "Transaction ID", "Service Type", "Amount", "Currency", "Status", "Receipt No", "Phone Number", "Paid At"
+            });
+
+            // Data rows
+            for (Payment p : payments) {
+                writer.writeNext(new String[]{
+                        p.getId() != null ? p.getId().toString() : "",
+                        p.getType() != null ? p.getType().name() : "",
+                        p.getAmount() != null ? p.getAmount().toString() : "0",
+                        p.getCurrency() != null ? p.getCurrency() : "KES",
+                        p.getStatus() != null ? p.getStatus().name() : "",
+                        p.getMpesaReceiptNo() != null ? p.getMpesaReceiptNo() : "—",
+                        p.getPhoneNumber() != null ? p.getPhoneNumber() : "",
+                        p.getPaidAt() != null ? p.getPaidAt().toString() : ""
+                });
+            }
+
+            writer.flush();
+            return baos.toByteArray();
+        } catch (Exception e) {
+            log.error("Failed to generate Payments CSV export", e);
+            throw new RuntimeException("Failed to generate Payments CSV export", e);
         }
     }
 }

@@ -18,7 +18,14 @@ import {
   Receipt,
   AlertCircle,
   PlusCircle,
-  ExternalLink
+  ExternalLink,
+  ShieldAlert,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  BarChart3,
+  TrendingUp,
+  AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { usePlatformSettings } from '@/hooks/usePlatformSettings';
@@ -39,6 +46,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Separator } from '@/components/ui/separator';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function PaymentsPage() {
   const { user } = useAuth();
@@ -47,19 +60,20 @@ export default function PaymentsPage() {
 
   const [paymentHistory, setPaymentHistory] = useState<any[]>([]);
   const [spotlightStatus, setSpotlightStatus] = useState<any>(null);
-  const [subscriptions, setSubscriptions] = useState<any>(null);
+  const [availability, setAvailability] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [confirming, setConfirming] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const [historyRes, subRes] = await Promise.all([
+        const [historyRes, availRes] = await Promise.all([
           paymentService.getHistory(),
-          paymentService.getSubscriptions(),
+          spotlightService.getAvailability(),
         ]);
         if (historyRes.success) setPaymentHistory(historyRes.data?.content || historyRes.data || []);
-        if (subRes.success) setSubscriptions(subRes.data);
+        if (availRes.success) setAvailability(availRes.data);
 
         if (isDev) {
           const slRes = await spotlightService.getMyStatus();
@@ -90,6 +104,37 @@ export default function PaymentsPage() {
     }
   };
 
+  const handleExport = async (format: 'csv' | 'pdf') => {
+    setIsExporting(true);
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${API_URL}/api/v1/payments/export?format=${format}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) throw new Error('Export failed');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `payment_history.${format}`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      toast.success(`Payment history exported as ${format.toUpperCase()}`);
+    } catch (err) {
+      console.error("Export failed", err);
+      toast.error('Failed to export payment history.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '—';
     return new Date(dateStr).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -105,6 +150,17 @@ export default function PaymentsPage() {
     return `${h}h ${m}m remaining`;
   };
 
+  const stats = {
+    total: paymentHistory.length,
+    pending: paymentHistory.filter(p => p.status === 'PENDING').length,
+    completed: paymentHistory.filter(p => p.status === 'COMPLETED').length,
+    failed: paymentHistory.filter(p => p.status === 'FAILED' || p.status === 'CANCELLED').length,
+    totalVolume: paymentHistory.filter(p => p.status === 'COMPLETED').reduce((acc, curr) => acc + (curr.amount || 0), 0)
+  };
+
+  // Check if any slot is available
+  const hasSpotlightAvailability = availability ? (availability.daySlotAvailable || availability.weekSlotAvailable) : false;
+
   if (loading) {
     return (
       <div className="flex flex-col min-h-screen bg-muted/30 items-center justify-center space-y-4">
@@ -119,12 +175,24 @@ export default function PaymentsPage() {
       <div className="container mx-auto px-6 py-12">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 space-y-6 md:space-y-0 print:hidden">
-           <div>
-              <Badge variant="secondary" className="bg-primary/10 text-primary border-none font-bold uppercase tracking-widest text-[10px]">Financial Ledger</Badge>
+           <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-3 mb-2">
+                 <Badge variant="secondary" className="bg-primary/10 text-primary border-none font-bold uppercase tracking-widest text-[10px]">Financial Ledger</Badge>
+                 {user?.isVerified && (
+                    <Badge className="bg-emerald-500/10 text-emerald-600 border-none font-black uppercase tracking-widest text-[9px] px-2 py-0.5 flex items-center gap-1">
+                       <CheckCircle2 className="h-3 w-3" /> Verified Profile
+                    </Badge>
+                 )}
+                 {spotlightStatus?.active && (
+                    <Badge className="bg-amber-500/10 text-amber-600 border-none font-black uppercase tracking-widest text-[9px] px-2 py-0.5 flex items-center gap-1">
+                       <Star className="h-3 w-3 fill-amber-600" /> Spotlight Active
+                    </Badge>
+                 )}
+              </div>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
                 Payments & <span className="text-primary">Billing</span>
               </h1>
-              <p className="text-muted-foreground">Monitor your ecosystem transactions and active service subscriptions.</p>
+              <p className="text-muted-foreground max-w-lg">Monitor your ecosystem transactions and active service subscriptions.</p>
            </div>
            
            <div className="flex flex-wrap gap-3">
@@ -135,153 +203,81 @@ export default function PaymentsPage() {
                    </Link>
                 </Button>
               )}
+              
               {isDev && !spotlightStatus?.active && (
-                <Button className="font-bold h-11 shadow-lg shadow-primary/20" asChild>
-                   <Link href="/profile/me?buySpotlight=true">
-                      <Star className="mr-2 h-4 w-4 fill-white" /> Purchase Spotlight
-                   </Link>
-                </Button>
+                <>
+                  {hasSpotlightAvailability ? (
+                    <Button className="font-bold h-11 shadow-lg shadow-primary/20" asChild>
+                       <Link href="/profile/me?buySpotlight=true">
+                          <Star className="mr-2 h-4 w-4 fill-white" /> Get Spotlight
+                       </Link>
+                    </Button>
+                  ) : (
+                    <Button variant="outline" disabled className="font-bold h-11 border-dashed opacity-70">
+                       <ShieldAlert className="mr-2 h-4 w-4" /> Spotlight Not Available
+                    </Button>
+                  )}
+                </>
               )}
            </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Sidebar - Status Cards */}
-          <aside className="lg:col-span-4 space-y-8 print:hidden">
-            {/* Verification Status */}
-            <Card className="border-border/50 shadow-sm">
-              <CardHeader className="pb-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Identity Protocol</h3>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border border-border/50">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "h-10 w-10 rounded-xl flex items-center justify-center",
-                      user?.isVerified ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-400"
-                    )}>
-                      <BadgeCheck className="h-5 w-5" />
+          {/* Main Content */}
+          <main className="lg:col-span-12 space-y-8">
+            
+            {spotlightStatus?.active && (
+              <Card className="border-border/50 shadow-sm bg-amber-50/30 border-amber-100">
+                  <CardContent className="p-6 flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                        <Clock className="h-6 w-6" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold">Verification</p>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Status</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-amber-600/70">Spotlight Time Remaining</p>
+                        <p className="text-xl font-bold text-amber-700">{formatTimeLeft(spotlightStatus.endDate)}</p>
                     </div>
-                  </div>
-                  <Badge className={cn(
-                    "rounded-lg font-black text-[9px] uppercase tracking-widest border-none px-2",
-                    user?.isVerified ? "bg-emerald-500 text-white" : "bg-muted text-muted-foreground"
-                  )}>
-                    {user?.isVerified ? 'VERIFIED' : 'PENDING'}
-                  </Badge>
-                </div>
-                
-                {!user?.isVerified && (
-                  <Button asChild variant="outline" className="w-full font-bold h-10 text-xs border-border/50">
-                    <Link href="/verify">Execute Verification <ArrowRight className="ml-2 h-3 w-3" /></Link>
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Spotlight Status */}
-            {isDev && (
-              <Card className="border-border/50 shadow-sm">
-                <CardHeader className="pb-4">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Visibility Status</h3>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border border-border/50">
-                    <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "h-10 w-10 rounded-xl flex items-center justify-center",
-                        spotlightStatus?.active ? "bg-amber-50 text-amber-500" : "bg-slate-100 text-slate-400"
-                      )}>
-                        <Star className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold">Spotlight Slot</p>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Profile Rank</p>
-                      </div>
-                    </div>
-                    <Badge className={cn(
-                      "rounded-lg font-black text-[9px] uppercase tracking-widest border-none px-2",
-                      spotlightStatus?.active ? "bg-amber-400 text-white" : "bg-muted text-muted-foreground"
-                    )}>
-                      {spotlightStatus?.active ? 'ACTIVE' : 'INACTIVE'}
-                    </Badge>
-                  </div>
-
-                  {spotlightStatus?.active && spotlightStatus?.endDate && (
-                    <div className="p-4 rounded-xl bg-amber-50 border border-amber-100/50">
-                       <p className="text-[10px] font-black uppercase tracking-widest text-amber-600/70 mb-1">Time Remaining</p>
-                       <p className="text-lg font-bold text-amber-700 tracking-tight">{formatTimeLeft(spotlightStatus.endDate)}</p>
-                    </div>
-                  )}
-
-                  {!spotlightStatus?.active && (
-                    <div className="space-y-2">
-                       <Button asChild className="w-full font-bold h-11 shadow-sm">
-                          <Link href="/profile/me?buySpotlight=true">Purchase Spotlight</Link>
-                       </Button>
-                       <Button 
-                          variant="ghost" 
-                          className="w-full font-bold text-xs text-primary h-10"
-                          onClick={handleConfirmSpotlight}
-                          disabled={confirming}
-                       >
-                          {confirming ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Zap className="h-3 w-3 mr-2" />}
-                          Confirm Pending Payment
-                       </Button>
-                    </div>
-                  )}
-                </CardContent>
+                  </CardContent>
               </Card>
             )}
 
-            {/* Membership Status */}
-            {subscriptions && (
-              <Card className="border-border/50 shadow-sm">
-                <CardHeader className="pb-4">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Membership Plan</h3>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border border-border/50">
-                    <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "h-10 w-10 rounded-xl flex items-center justify-center",
-                        subscriptions.annualMembershipActive ? "bg-indigo-50 text-indigo-600" : "bg-slate-100 text-slate-400"
-                      )}>
-                        <ShieldCheck className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold">Annual License</p>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Ecosystem Access</p>
-                      </div>
-                    </div>
-                    <Badge className={cn(
-                      "rounded-lg font-black text-[9px] uppercase tracking-widest border-none px-2",
-                      subscriptions.annualMembershipActive ? "bg-indigo-500 text-white" : "bg-muted text-muted-foreground"
-                    )}>
-                      {subscriptions.annualMembershipActive ? 'ACTIVE' : 'EXPIRED'}
-                    </Badge>
-                  </div>
-                  {subscriptions.membershipExpiresAt && (
-                    <p className="text-[10px] font-bold text-muted-foreground text-center">Expires on {formatDate(subscriptions.membershipExpiresAt)}</p>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-          </aside>
-
-          {/* Main Content - Transaction Ledger */}
-          <main className="lg:col-span-8">
             <Card className="border-border/50 shadow-sm overflow-hidden bg-white">
               <CardHeader className="border-b border-border/50 bg-muted/10 p-6 flex flex-row items-center justify-between">
                 <div>
                   <CardTitle className="text-xl font-bold">Transaction Ledger</CardTitle>
                   <CardDescription className="text-xs font-medium text-muted-foreground">Historical record of all platform activity.</CardDescription>
                 </div>
-                <History className="h-5 w-5 text-muted-foreground/30" />
+                <div className="flex items-center gap-4">
+                   {isDev && !spotlightStatus?.active && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/5 h-8"
+                        onClick={handleConfirmSpotlight}
+                        disabled={confirming}
+                      >
+                         {confirming ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Zap className="h-3 w-3 mr-2" />}
+                         Sync Payment
+                      </Button>
+                   )}
+                   
+                   <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                         <Button variant="outline" size="sm" className="font-bold gap-2 border-primary/20 hover:bg-primary/5 h-9" disabled={isExporting}>
+                            <Download className="h-4 w-4 text-primary" /> {isExporting ? 'Exporting...' : 'Export'}
+                         </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="rounded-xl border-border/50 shadow-xl">
+                         <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium py-2">
+                            <FileSpreadsheet className="mr-2 h-4 w-4 text-emerald-500" /> Download as CSV
+                         </DropdownMenuItem>
+                         <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium py-2">
+                            <FileText className="mr-2 h-4 w-4 text-primary" /> Download as PDF
+                         </DropdownMenuItem>
+                      </DropdownMenuContent>
+                   </DropdownMenu>
+
+                   <History className="h-5 w-5 text-muted-foreground/30" />
+                </div>
               </CardHeader>
               <CardContent className="p-0">
                 {paymentHistory.length === 0 ? (
@@ -322,8 +318,8 @@ export default function PaymentsPage() {
                             </TableCell>
                             <TableCell className="py-5 px-6 text-right">
                               <Badge className={cn(
-                                "rounded-lg font-black text-[9px] uppercase tracking-widest border-none px-2 py-0.5",
-                                row.status === 'COMPLETED' ? "bg-emerald-500 text-white" : row.status === 'PENDING' ? "bg-amber-500 text-white" : "bg-destructive text-white"
+                                "rounded-lg font-black text-[9px] uppercase tracking-widest border-none px-2 py-0.5 text-white",
+                                row.status === 'COMPLETED' ? "bg-emerald-500" : row.status === 'PENDING' ? "bg-amber-500" : "bg-destructive"
                               )}>
                                 {row.status}
                               </Badge>
@@ -339,6 +335,71 @@ export default function PaymentsPage() {
                   <AlertCircle className="h-3.5 w-3.5 text-muted-foreground" />
                   <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">All transactions are processed via secure encrypted channels</p>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Financial Overview Card below the Ledger */}
+            <Card className="border-border/50 shadow-sm bg-white overflow-hidden rounded-2xl">
+              <CardHeader className="p-6 pb-2">
+                 <div className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5 text-primary" />
+                    <CardTitle className="text-lg font-bold">Financial Overview</CardTitle>
+                 </div>
+                 <CardDescription className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Comprehensive payment statistics from the database</CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div className="space-y-1">
+                       <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Total Volume</p>
+                       <div className="flex items-baseline gap-1">
+                          <span className="text-2xl font-black text-foreground">KES {stats.totalVolume.toLocaleString()}</span>
+                          <TrendingUp className="h-3 w-3 text-emerald-500" />
+                       </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-4 border-l border-border/50 pl-6">
+                       <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground font-black">
+                          {stats.total}
+                       </div>
+                       <div>
+                          <p className="text-sm font-bold">Total Events</p>
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">All Statuses</p>
+                       </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 border-l border-border/50 pl-6">
+                       <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 font-black">
+                          {stats.completed}
+                       </div>
+                       <div>
+                          <p className="text-sm font-bold text-emerald-600">Approved</p>
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Completed</p>
+                       </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 border-l border-border/50 pl-6">
+                       <div className="h-10 w-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 font-black">
+                          {stats.pending}
+                       </div>
+                       <div>
+                          <p className="text-sm font-bold text-amber-600">Pending</p>
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Processing</p>
+                       </div>
+                    </div>
+                 </div>
+
+                 {stats.failed > 0 && (
+                   <div className="mt-8 p-4 rounded-xl bg-red-50 border border-red-100 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                         <AlertTriangle className="h-5 w-5 text-red-500" />
+                         <div>
+                            <p className="text-sm font-bold text-red-700">Failed Transactions Detected</p>
+                            <p className="text-xs text-red-600/70">{stats.failed} transaction(s) were cancelled or failed the protocol.</p>
+                         </div>
+                      </div>
+                      <Badge className="bg-red-500 text-white border-none font-black">{stats.failed}</Badge>
+                   </div>
+                 )}
               </CardContent>
             </Card>
           </main>

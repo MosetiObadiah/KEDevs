@@ -416,6 +416,10 @@ public class PaymentService {
                 ));
     }
 
+    public List<Payment> findByUserIdOrderByCreatedAtDesc(UUID userId) {
+        return paymentRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    }
+
     public SubscriptionStatusResponse getSubscriptionStatus(UUID userId) {
         Subscription memberSub = subscriptionRepository.findByUserIdAndTypeAndStatus(
                 userId, SubscriptionType.ANNUAL_MEMBERSHIP, SubscriptionStatus.ACTIVE).orElse(null);

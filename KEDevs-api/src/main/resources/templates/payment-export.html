@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Payment History Export</title>
+    <style>
+        body { font-family: 'Helvetica', 'Arial', sans-serif; color: #333; margin: 40px; }
+        .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+        .header h1 { margin: 0; color: #2563eb; }
+        .header p { color: #666; font-size: 14px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background-color: #f8fafc; color: #475569; font-weight: bold; text-align: left; padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 12px; text-transform: uppercase; }
+        td { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        .status-completed { background-color: #dcfce7; color: #166534; }
+        .status-pending { background-color: #fef9c3; color: #854d0e; }
+        .status-failed { background-color: #fee2e2; color: #991b1b; }
+        .amount { font-family: monospace; font-weight: bold; }
+        .footer { margin-top: 50px; text-align: center; color: #94a3b8; font-size: 10px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>KEDevs-Connect</h1>
+        <p>Transaction Ledger &amp; Financial History</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Service Type</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Receipt</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="payment : ${payments}">
+                <td th:text="${#temporals.format(payment.createdAt, 'dd MMM yyyy, HH:mm')}">Date</td>
+                <td th:text="${payment.type}">Type</td>
+                <td class="amount" th:text="${payment.currency + ' ' + payment.amount}">Amount</td>
+                <td>
+                    <span th:class="${'badge status-' + #strings.toLowerCase(payment.status)}" th:text="${payment.status}">Status</span>
+                </td>
+                <td th:text="${payment.mpesaReceiptNo != null ? payment.mpesaReceiptNo : '—'}">Receipt</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>&copy; 2026 KEDevs-Connect. All transactions are securely processed.</p>
+        <p>This is a system-generated document.</p>
+    </div>
+</body>
+</html>

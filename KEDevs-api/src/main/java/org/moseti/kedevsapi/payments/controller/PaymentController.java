@@ -8,10 +8,17 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.moseti.kedevsapi.payments.dto.PaymentDtos.*;
+import org.moseti.kedevsapi.payments.entity.Payment;
 import org.moseti.kedevsapi.payments.service.PaymentService;
+import org.moseti.kedevsapi.users.service.CsvExportService;
+import org.moseti.kedevsapi.users.service.PdfExportService;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,6 +35,8 @@ import java.util.UUID;
 public class PaymentController {
 
     private final PaymentService paymentService;
+    private final CsvExportService csvExportService;
+    private final PdfExportService pdfExportService;
 
     private UUID getCurrentUserId() {
         return (UUID) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
@@ -166,5 +175,31 @@ public class PaymentController {
     public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<SpotlightSlotConfirmResponse>> confirmSpotlight() {
         SpotlightSlotConfirmResponse response = paymentService.confirmSpotlight(getCurrentUserId());
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Spotlight activated", response));
+    }
+    @Operation(summary = "Export payment history")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "File exported successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    })
+    @GetMapping("/export")
+    public ResponseEntity<Resource> exportPayments(@RequestParam String format) {
+        UUID userId = getCurrentUserId();
+        List<Payment> payments = paymentService.findByUserIdOrderByCreatedAtDesc(userId);
+
+        if ("csv".equalsIgnoreCase(format)) {
+            byte[] csv = csvExportService.generatePaymentCsv(payments);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=payments.csv")
+                    .contentType(MediaType.parseMediaType("text/csv"))
+                    .body(new ByteArrayResource(csv));
+        } else if ("pdf".equalsIgnoreCase(format)) {
+            byte[] pdf = pdfExportService.generatePaymentPdf(payments);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=payments.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(new ByteArrayResource(pdf));
+        }
+
+        return ResponseEntity.badRequest().build();
     }
 }

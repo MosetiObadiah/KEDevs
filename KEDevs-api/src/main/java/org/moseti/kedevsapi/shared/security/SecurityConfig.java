@@ -35,6 +35,7 @@ public class SecurityConfig {
                         "/api/v1/developers/public/**",
                         "/api/v1/spotlight/current",
                         "/api/v1/spotlight/availability",
+                        "/api/v1/spotlight/past/**",
                         "/api/v1/payments/callback",
                         "/api/v1/payments/settings",
                         "/actuator/health",

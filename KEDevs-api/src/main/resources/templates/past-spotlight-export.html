@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
     <title>Past Spotlights Report</title>
@@ -73,11 +73,11 @@
         </thead>
         <tbody>
             <tr th:each="s : ${spotlights}">
-                <td th:text="${s.developerName}"></td>
-                <td th:text="${s.currentLastRole}"></td>
-                <td th:text="${s.type}"></td>
-                <td th:text="${#temporals.format(s.startDate, 'dd MMM yyyy, HH:mm')}"></td>
-                <td th:text="${#temporals.format(s.endDate, 'dd MMM yyyy, HH:mm')}"></td>
+                <td th:text="${s.developerName}">Developer</td>
+                <td th:text="${s.currentLastRole}">Role</td>
+                <td th:text="${s.type}">Type</td>
+                <td th:text="${#temporals.format(s.startDate, 'dd MMM yyyy, HH:mm')}">Start</td>
+                <td th:text="${#temporals.format(s.endDate, 'dd MMM yyyy, HH:mm')}">End</td>
             </tr>
         </tbody>
     </table>
