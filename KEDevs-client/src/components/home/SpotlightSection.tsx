@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 
 interface SpotlightSectionProps {
   dayDev: any;
+  weekDev: any;
   loading: boolean;
   hideTitle?: boolean;
 }

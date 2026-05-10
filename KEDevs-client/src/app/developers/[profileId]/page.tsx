@@ -62,7 +62,7 @@ export default function DeveloperProfilePage() {
           const data = response.data;
           
           // If the logged in user is viewing their own profile, redirect to private profile page
-          if (isLoggedIn && user && (data.userId === user.id || data.id === user.developerProfileId)) {
+          if (isLoggedIn && user && data.userId === user.id) {
             router.replace('/profile/me');
             return;
           }

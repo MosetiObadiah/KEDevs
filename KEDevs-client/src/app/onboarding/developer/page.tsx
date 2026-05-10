@@ -160,7 +160,7 @@ export default function DeveloperOnboarding() {
   };
 
   const removeSkill = (skill: string) => {
-    setFormData({ ...formData, skills: formData.skills.filter(s => s !== skill) });
+    setFormData({ ...formData, skills: formData.skills.filter((s: string) => s !== skill) });
   };
 
   if (!isLoggedIn || isOnboarded) return null;
@@ -290,7 +290,7 @@ export default function DeveloperOnboarding() {
                 <div className="space-y-4">
                   <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Your Arsenal (Skills)</Label>
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {formData.skills.map(skill => (
+                    {formData.skills.map((skill: string) => (
                       <Badge key={skill} className="h-10 px-4 rounded-xl bg-primary text-white font-black text-sm flex items-center gap-2 group">
                         {skill}
                         <button onClick={() => removeSkill(skill)}><X className="h-4 w-4" /></button>
@@ -314,7 +314,7 @@ export default function DeveloperOnboarding() {
                         }}
                      />
                      <div className="flex flex-wrap gap-2 pt-4">
-                        {skillsOptions.map(skill => (
+                        {skillsOptions.map((skill: string) => (
                            <button
                               key={skill}
                               type="button"

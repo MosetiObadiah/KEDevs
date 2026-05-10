@@ -63,8 +63,8 @@ export default function HomePage() {
                 skills: slot.featuredProjects && slot.featuredProjects.length > 0
                   ? (Array.isArray(slot.featuredProjects[0].techStack)
                       ? slot.featuredProjects[0].techStack
-                      : typeof slot.featuredProjects[0].techStack === 'string'
-                        ? slot.featuredProjects[0].techStack.split(',')
+                      : typeof (slot.featuredProjects[0].techStack as any) === 'string'
+                        ? (slot.featuredProjects[0].techStack as any).split(',')
                         : [])
                   : [],
                 availabilityStatus: 'AVAILABLE',

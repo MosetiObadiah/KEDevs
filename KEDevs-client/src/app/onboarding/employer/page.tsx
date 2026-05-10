@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -229,7 +229,7 @@ export default function EmployerOnboarding() {
                         <SelectValue placeholder="Select industry..." />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl max-h-[300px]">
-                        {INDUSTRIES.map(i => <SelectItem key={i} value={i} className="font-bold">{i}</SelectItem>)}
+                        {INDUSTRIES.map((i: string) => <SelectItem key={i} value={i} className="font-bold">{i}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
@@ -240,7 +240,7 @@ export default function EmployerOnboarding() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl">
-                        {COMPANY_SIZES.map(s => <SelectItem key={s.value} value={s.value} className="font-bold">{s.label}</SelectItem>)}
+                        {COMPANY_SIZES.map((s: { value: string; label: string }) => <SelectItem key={s.value} value={s.value} className="font-bold">{s.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
@@ -252,7 +252,7 @@ export default function EmployerOnboarding() {
                       <SelectValue placeholder="Select county..." />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl max-h-[300px]">
-                      {KENYA_COUNTIES.map(c => <SelectItem key={c} value={c} className="font-bold">{c}</SelectItem>)}
+                      {KENYA_COUNTIES.map((c: string) => <SelectItem key={c} value={c} className="font-bold">{c}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
