@@ -25,7 +25,8 @@ import {
   Award,
   ArrowLeft,
   Link as LinkIcon,
-  Heart
+  Heart,
+  Flag
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -68,6 +69,11 @@ export default function DeveloperProfilePage() {
   const [isEndorseOpen, setIsEndorseOpen] = useState(false);
   const [endorsementContent, setEndorsementContent] = useState('');
   const [isSubmittingEndorsement, setIsSubmittingEndorsement] = useState(false);
+
+  // Flag modal state
+  const [isFlagOpen, setIsFlagOpen] = useState(false);
+  const [flagContent, setFlagContent] = useState('');
+  const [isSubmittingFlag, setIsSubmittingFlag] = useState(false);
 
   const fullName = dev ? (dev.fullName || `${dev.firstName || ''} ${dev.lastName || ''}`.trim() || dev.publicEmail || dev.email || 'Developer') : '';
 
@@ -140,6 +146,27 @@ export default function DeveloperProfilePage() {
       toast.error(err.message || 'Failed to endorse developer. You may have already endorsed them.');
     } finally {
       setIsSubmittingEndorsement(false);
+    }
+  };
+
+  const handleFlagDeveloper = async () => {
+    if (!dev) return;
+    if (!flagContent.trim()) {
+      toast.error('Reason for reporting is required.');
+      return;
+    }
+    setIsSubmittingFlag(true);
+    try {
+      const response = await developerService.flagDeveloper(dev.id, flagContent.trim());
+      if (response.success) {
+        toast.success('Profile reported to moderation team.');
+        setIsFlagOpen(false);
+        setFlagContent('');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to report developer. You may have already flagged them.');
+    } finally {
+      setIsSubmittingFlag(false);
     }
   };
 
@@ -222,6 +249,14 @@ export default function DeveloperProfilePage() {
                 }
                 setIsEndorseOpen(true);
               }}
+              onFlag={() => {
+                if (!isLoggedIn) {
+                  toast.error("Please sign in to report profiles");
+                  router.push('/login');
+                  return;
+                }
+                setIsFlagOpen(true);
+              }}
               isRequesting={isRequesting}
             />
           </div>
@@ -272,6 +307,55 @@ export default function DeveloperProfilePage() {
               {isSubmittingEndorsement ? (
                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</>
               ) : 'Submit Endorsement'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Flag Modal */}
+      <Dialog open={isFlagOpen} onOpenChange={setIsFlagOpen}>
+        <DialogContent className="sm:max-w-[500px] rounded-[2rem] p-8">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center text-destructive">
+                <Flag className="h-6 w-6" />
+              </div>
+              Report Profile
+            </DialogTitle>
+            <DialogDescription className="font-medium text-muted-foreground">
+              Please describe why you are reporting this profile. Our moderation team will review this report.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-6 space-y-4">
+            <div className="space-y-2">
+              <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground flex justify-between">
+                <span>Reason for Reporting</span>
+                <span className={cn(flagContent.length > 500 ? "text-destructive" : "")}>
+                  {flagContent.length}/500
+                </span>
+              </Label>
+              <Textarea 
+                placeholder="e.g. Inappropriate content, spam, or fake profile..." 
+                className="min-h-[120px] rounded-2xl border-border/50 resize-none font-medium text-base p-4 focus-visible:ring-destructive/20"
+                value={flagContent}
+                onChange={(e) => setFlagContent(e.target.value.slice(0, 500))}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="sm:justify-end gap-3">
+            <Button variant="ghost" className="rounded-xl font-bold" onClick={() => setIsFlagOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              className="rounded-xl font-black px-8 bg-destructive text-destructive-foreground hover:bg-destructive/90" 
+              onClick={handleFlagDeveloper}
+              disabled={isSubmittingFlag || !flagContent.trim()}
+            >
+              {isSubmittingFlag ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</>
+              ) : 'Submit Report'}
             </Button>
           </DialogFooter>
         </DialogContent>

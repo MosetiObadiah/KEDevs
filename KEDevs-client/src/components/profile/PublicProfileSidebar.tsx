@@ -9,7 +9,8 @@ import {
   Globe, 
   ExternalLink,
   ChevronRight,
-  Users
+  Users,
+  Flag
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ interface PublicProfileSidebarProps {
   profile: any;
   onContact: () => void;
   onEndorse: () => void;
+  onFlag: () => void;
   isLoggedIn: boolean;
   isRequesting?: boolean;
 }
@@ -29,6 +31,7 @@ export function PublicProfileSidebar({
   profile, 
   onContact, 
   onEndorse, 
+  onFlag,
   isLoggedIn,
   isRequesting 
 }: PublicProfileSidebarProps) {
@@ -51,6 +54,14 @@ export function PublicProfileSidebar({
         >
           <ThumbsUp className="mr-2 h-5 w-5 text-primary" />
           Endorse Skills
+        </Button>
+        <Button 
+          variant="ghost" 
+          className="w-full h-10 rounded-xl font-bold text-muted-foreground hover:text-destructive hover:bg-destructive/10 text-xs"
+          onClick={onFlag}
+        >
+          <Flag className="mr-2 h-3.5 w-3.5" />
+          Report Profile
         </Button>
       </div>
 

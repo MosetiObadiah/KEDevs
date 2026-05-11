@@ -147,6 +147,10 @@ public class UserDtos {
             @NotBlank(message = "Message is required") @Schema(description = "Personalized message to the developer", example = "We love your profile and would like to chat about an open role.") String message
     ) {}
 
+    public record FlagUserRequest(
+            @NotBlank(message = "Reason is required") @Schema(description = "Reason for flagging the user", example = "Spam profile.") String reason
+    ) {}
+
     public record DeveloperFilterRequest(
             @Schema(description = "Filter by current availability") AvailabilityStatus availabilityStatus,
             @Schema(description = "Filter by years of experience") YearsOfExperience yearsOfExperience,

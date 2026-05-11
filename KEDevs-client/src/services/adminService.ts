@@ -83,16 +83,16 @@ export const adminService = {
     return apiClient.get<ApiResponse<PaginatedResponse<any>>>(`/api/v1/admin/flags/comments?page=${page}&size=${size}`);
   },
 
-  async reviewUserFlag(flagId: string, data: { action: string; reason?: string }): Promise<ApiResponse<any>> {
-    return apiClient.post<ApiResponse<any>>(`/api/v1/admin/flags/users/${flagId}/review`, data);
+  async reviewUserFlag(flagId: string, data: { outcome: string; notes?: string }): Promise<ApiResponse<any>> {
+    return apiClient.post<ApiResponse<any>>(`/api/v1/admin/flags/users/${flagId}/review`, { outcome: data.outcome, notes: data.notes || 'Reviewed by admin' });
   },
 
-  async reviewJobFlag(flagId: string, data: { action: string; reason?: string }): Promise<ApiResponse<any>> {
-    return apiClient.post<ApiResponse<any>>(`/api/v1/admin/flags/jobs/${flagId}/review`, data);
+  async reviewJobFlag(flagId: string, data: { outcome: string; notes?: string }): Promise<ApiResponse<any>> {
+    return apiClient.post<ApiResponse<any>>(`/api/v1/admin/flags/jobs/${flagId}/review`, { outcome: data.outcome, notes: data.notes || 'Reviewed by admin' });
   },
 
-  async reviewCommentFlag(flagId: string, data: { action: string; reason?: string }): Promise<ApiResponse<any>> {
-    return apiClient.post<ApiResponse<any>>(`/api/v1/admin/flags/comments/${flagId}/review`, data);
+  async reviewCommentFlag(flagId: string, data: { outcome: string; notes?: string }): Promise<ApiResponse<any>> {
+    return apiClient.post<ApiResponse<any>>(`/api/v1/admin/flags/comments/${flagId}/review`, { outcome: data.outcome, notes: data.notes || 'Reviewed by admin' });
   },
 
   async approveEmployer(profileId: string, data: { approved: boolean; reason?: string }): Promise<ApiResponse<any>> {

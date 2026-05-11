@@ -36,6 +36,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -52,6 +62,11 @@ export default function JobsPage() {
   const [sortBy, setSortBy] = useState('newest');
   const [upvotedJobs, setUpvotedJobs] = useState<Set<string>>(new Set());
   const [downvotedJobs, setDownvotedJobs] = useState<Set<string>>(new Set());
+
+  const [isFlagOpen, setIsFlagOpen] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [flagContent, setFlagContent] = useState('');
+  const [isSubmittingFlag, setIsSubmittingFlag] = useState(false);
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -121,6 +136,28 @@ export default function JobsPage() {
       setDownvotedJobs(downvotedJobs);
       toast.error(err.message || 'Failed to register vote');
       console.error(err);
+    }
+  };
+
+  const handleFlagJob = async () => {
+    if (!selectedJobId) return;
+    if (!flagContent.trim()) {
+      toast.error('Reason for reporting is required.');
+      return;
+    }
+    setIsSubmittingFlag(true);
+    try {
+      const response = await jobService.flagJob(selectedJobId, flagContent.trim());
+      if (response.success) {
+        toast.success('Job reported to moderation team.');
+        setIsFlagOpen(false);
+        setFlagContent('');
+        setSelectedJobId(null);
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to report job. You may have already flagged it.');
+    } finally {
+      setIsSubmittingFlag(false);
     }
   };
 
@@ -333,7 +370,16 @@ export default function JobsPage() {
                               </Tooltip>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:text-destructive hover:bg-destructive/10" disabled={!isLoggedIn}>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-9 w-9 rounded-full hover:text-destructive hover:bg-destructive/10" 
+                                    disabled={!isLoggedIn}
+                                    onClick={() => {
+                                      setSelectedJobId(job.id);
+                                      setIsFlagOpen(true);
+                                    }}
+                                  >
                                     <Flag className="h-4 w-4" />
                                   </Button>
                                 </TooltipTrigger>
@@ -367,6 +413,55 @@ export default function JobsPage() {
           </main>
         </div>
       </PageContainer>
+
+      {/* Flag Modal */}
+      <Dialog open={isFlagOpen} onOpenChange={setIsFlagOpen}>
+        <DialogContent className="sm:max-w-[500px] rounded-[2rem] p-8">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center text-destructive">
+                <Flag className="h-6 w-6" />
+              </div>
+              Report Job Listing
+            </DialogTitle>
+            <DialogDescription className="font-medium text-muted-foreground">
+              Please describe why you are reporting this job. Our moderation team will review this report.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-6 space-y-4">
+            <div className="space-y-2">
+              <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground flex justify-between">
+                <span>Reason for Reporting</span>
+                <span className={cn(flagContent.length > 500 ? "text-destructive" : "")}>
+                  {flagContent.length}/500
+                </span>
+              </Label>
+              <Textarea 
+                placeholder="e.g. Spam, fake job, offensive content..." 
+                className="min-h-[120px] rounded-2xl border-border/50 resize-none font-medium text-base p-4 focus-visible:ring-destructive/20"
+                value={flagContent}
+                onChange={(e) => setFlagContent(e.target.value.slice(0, 500))}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="sm:justify-end gap-3">
+            <Button variant="ghost" className="rounded-xl font-bold" onClick={() => setIsFlagOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              className="rounded-xl font-black px-8 bg-destructive text-destructive-foreground hover:bg-destructive/90" 
+              onClick={handleFlagJob}
+              disabled={isSubmittingFlag || !flagContent.trim()}
+            >
+              {isSubmittingFlag ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</>
+              ) : 'Submit Report'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

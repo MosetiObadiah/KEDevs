@@ -465,6 +465,22 @@ public class DeveloperController {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Developers retrieved", developerProfileService.getPublicDevelopers(pageable)));
     }
 
+    @Operation(summary = "Flag a developer profile", description = "Requires authenticated user.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Profile flagged successfully"),
+        @ApiResponse(responseCode = "400", description = "Cannot flag own profile or already flagged"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    })
+    @PostMapping("/{profileId}/flag")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> flagDeveloper(
+            Authentication authentication,
+            @PathVariable UUID profileId,
+            @Valid @RequestBody UserDtos.FlagUserRequest request) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        developerProfileService.flagDeveloper(userId, profileId, request);
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Developer profile flagged"));
+    }
+
     @Operation(summary = "Filter developers (Hiring Assist required)", description = "Requires EMPLOYER role.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Filtered developers retrieved successfully"),

@@ -128,6 +128,10 @@ export const developerService = {
     return apiClient.post<ApiResponse<any>>(`/api/v1/developers/${profileId}/endorsements`, data);
   },
 
+  async flagDeveloper(profileId: string, reason: string): Promise<ApiResponse<any>> {
+    return apiClient.post<ApiResponse<any>>(`/api/v1/developers/${profileId}/flag`, { reason });
+  },
+
   async filterDevelopers(data: any): Promise<ApiResponse<PaginatedResponse<DeveloperSummary>>> {
     return apiClient.post<ApiResponse<PaginatedResponse<DeveloperSummary>>>('/api/v1/developers/filter', data);
   },

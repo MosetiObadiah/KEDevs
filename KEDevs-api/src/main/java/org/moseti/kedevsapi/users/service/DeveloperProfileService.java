@@ -22,6 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.moseti.kedevsapi.notifications.service.NotificationService;
 import org.springframework.web.multipart.MultipartFile;
+import org.moseti.kedevsapi.payments.entity.UserFlag;
+import org.moseti.kedevsapi.shared.enums.UserFlagStatus;
+import org.moseti.kedevsapi.payments.repository.UserFlagRepository;
 
 import java.util.List;
 import java.util.UUID;
@@ -43,6 +46,7 @@ public class DeveloperProfileService {
     private final UserRepository userRepository;
     private final FileUploadService fileUploadService;
     private final NotificationService notificationService;
+    private final UserFlagRepository userFlagRepository;
 
     // ----------------------------------------------------------------
     // Profile CRUD
@@ -492,6 +496,46 @@ public class DeveloperProfileService {
         }
 
         return toEndorsementResponse(endorsement, authorUserId);
+    }
+
+    // ----------------------------------------------------------------
+    // Flagging
+    // ----------------------------------------------------------------
+
+    @Transactional
+    public void flagDeveloper(UUID flaggedById, UUID targetProfileId, UserDtos.FlagUserRequest request) {
+        DeveloperProfile targetProfile = profileRepository.findById(targetProfileId)
+                .orElseThrow(() -> new ProfileNotFoundException("Developer profile not found"));
+        
+        UUID targetUserId = targetProfile.getUserId();
+
+        if (targetUserId.equals(flaggedById)) {
+            throw new BadRequestException("You cannot flag your own profile");
+        }
+
+        if (userFlagRepository.existsByFlaggedUserIdAndFlaggedById(targetUserId, flaggedById)) {
+            throw new BadRequestException("You have already flagged this user");
+        }
+
+        UserFlag flag = new UserFlag();
+        flag.setFlaggedUserId(targetUserId);
+        flag.setFlaggedById(flaggedById);
+        flag.setReason(request.reason());
+        flag.setStatus(UserFlagStatus.PENDING);
+        userFlagRepository.save(flag);
+
+        // Notify Admins
+        List<User> admins = userRepository.findByRole(org.moseti.kedevsapi.shared.enums.Role.ADMIN);
+        String reporterName = userRepository.findById(flaggedById).map(User::getFullName).orElse("Unknown");
+        for (User admin : admins) {
+            notificationService.notify(
+                    admin.getId(),
+                    org.moseti.kedevsapi.shared.enums.NotificationCategory.FLAG,
+                    "User Profile Flagged",
+                    "A developer profile has been flagged by " + reporterName + ".",
+                    "{\"flaggedUserId\":\"" + targetUserId + "\"}"
+            );
+        }
     }
 
     // ----------------------------------------------------------------
