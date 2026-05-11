@@ -33,6 +33,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { LAYOUT, SPACING, TYPOGRAPHY } from '@/lib/constants';
 
 export default function HomePage() {
   const { isLoggedIn, user } = useAuth();
@@ -135,7 +136,7 @@ export default function HomePage() {
 
       {/* Featured Jobs Section */}
       <section className="bg-muted/30 py-20 md:py-32">
-        <div className="container mx-auto px-6">
+        <div className={cn(LAYOUT.maxWidth, "mx-auto", LAYOUT.padding)}>
           <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-12">
             <div className="space-y-4">
               <Badge variant="secondary" className="bg-primary/10 text-primary border-none font-bold uppercase tracking-widest text-[10px]">Opportunities</Badge>
@@ -153,7 +154,7 @@ export default function HomePage() {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3", SPACING.cards)}>
             {isLoadingJobs ? (
               [1, 2, 3].map((i) => (
                 <Card key={i} className="border-border/50">
@@ -216,7 +217,7 @@ export default function HomePage() {
 
       {/* Developer Directory Preview Section */}
       <section className="py-20 md:py-32 bg-background">
-        <div className="container mx-auto px-6">
+        <div className={cn(LAYOUT.maxWidth, "mx-auto", LAYOUT.padding)}>
           <div className="flex flex-col items-center text-center mb-16 space-y-4">
             <Badge variant="secondary" className="bg-primary/10 text-primary border-none font-bold uppercase tracking-widest text-[10px]">Talent Directory</Badge>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight">

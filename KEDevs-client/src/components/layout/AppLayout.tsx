@@ -23,7 +23,8 @@ import {
   LayoutDashboard,
   MessageSquare,
   ShieldCheck,
-  User
+  User,
+  Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -100,7 +101,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     : [
         { label: 'Browse Developers', href: '/developers', icon: Users },
         { label: 'Jobs', href: '/jobs', icon: Briefcase },
+        { label: 'Companies', href: '/companies', icon: Building2 },
         { label: 'My Job Posts', href: '/jobs/my-posts', icon: ClipboardList },
+        { label: 'Hiring Assist', href: '/hiring-assist', icon: Sparkles },
         { label: 'Spotlight', href: '/spotlight', icon: Star },
         { label: 'Payments', href: '/payments', icon: CreditCard },
       ];
@@ -124,8 +127,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                 isActive 
-                  ? "bg-accent text-accent-foreground" 
-                  : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+                  ? "bg-accent text-accent-foreground font-medium" 
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               )}
             >
               <link.icon className="h-4 w-4" />
@@ -216,6 +219,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   if (pathname.startsWith('/developers/')) return <h1 className="text-xl font-black tracking-tight text-primary">Talent Profile</h1>;
                   if (pathname.startsWith('/jobs/')) return <h1 className="text-xl font-black tracking-tight text-primary">Job Details</h1>;
                   if (pathname === '/verify') return <h1 className="text-xl font-black tracking-tight text-primary">Verification Center</h1>;
+                  if (pathname === '/hiring-assist') return <h1 className="text-xl font-black tracking-tight text-primary">Hiring Assist</h1>;
                   return null;
                })()}
             </div>

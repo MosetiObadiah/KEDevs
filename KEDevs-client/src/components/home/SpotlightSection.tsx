@@ -40,9 +40,6 @@ function EmptySpotlightCard({ type }: { type: string }) {
 
   return (
     <Card className="h-full min-h-[400px] border-2 border-dashed border-muted hover:border-primary/50 transition-colors bg-muted/20 flex flex-col items-center justify-center text-center p-8 relative">
-      <div className="absolute top-4 right-4">
-        <Badge variant="secondary" className="bg-background/50 backdrop-blur-sm border-none shadow-sm">{type}</Badge>
-      </div>
       <div className="w-16 h-16 rounded-full bg-background flex items-center justify-center shadow-sm mb-6">
         <Zap className="h-8 w-8 text-muted-foreground" />
       </div>
@@ -62,9 +59,6 @@ function SpotlightBigCard({ dev, type }: { dev: any, type: string }) {
 
   return (
     <Card className="h-full border-border shadow-xl shadow-primary/5 overflow-hidden group">
-      <div className="absolute top-4 right-4 z-10">
-        <Badge className="bg-primary hover:bg-primary border-none shadow-md">{type}</Badge>
-      </div>
       <div className="grid grid-cols-1 md:grid-cols-5 h-full">
         {/* Left: Dev Info */}
         <div className="md:col-span-2 p-8 bg-muted/30 flex flex-col items-center text-center">

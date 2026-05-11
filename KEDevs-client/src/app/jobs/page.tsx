@@ -38,6 +38,8 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { LAYOUT, SPACING, TYPOGRAPHY } from '@/lib/constants';
 
 export default function JobsPage() {
   const { user, isLoggedIn } = useAuth();
@@ -128,7 +130,7 @@ export default function JobsPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
-      <div className="container mx-auto px-6 pt-8 pb-12">
+      <PageContainer>
         <div className="flex justify-end mb-8">
           {isLoggedIn && (
             <Button className="h-12 px-6 font-bold shadow-lg shadow-primary/20" asChild>
@@ -139,7 +141,7 @@ export default function JobsPage() {
           )}
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className={cn("grid grid-cols-1 lg:grid-cols-4", SPACING.cards)}>
           {/* Filters Sidebar */}
           <aside className="lg:col-span-1 space-y-6">
             <Card className="border-border/50 shadow-sm sticky top-24">
@@ -231,14 +233,15 @@ export default function JobsPage() {
                   </Card>
                 ))
               ) : jobs.length === 0 ? (
-                <div className="py-20 text-center space-y-4 bg-background rounded-3xl border border-dashed border-muted">
-                  <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-                    <Briefcase className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold">No jobs found</h3>
-                    <p className="text-muted-foreground text-sm">Try adjusting your filters or search term.</p>
-                  </div>
+                <div className="flex flex-col items-center justify-center py-12 text-center bg-card rounded-xl border border-dashed border-border">
+                  <Briefcase className="w-12 h-12 text-muted-foreground/50 mb-4" />
+                  <h3 className={cn(TYPOGRAPHY.sectionHeading, "mb-2")}>No jobs found</h3>
+                  <p className={cn(TYPOGRAPHY.body, "mb-4")}>Try adjusting your filters or search term.</p>
+                  {(searchTerm || workType !== 'All') && (
+                    <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setWorkType('All'); }}>
+                      Reset Filters
+                    </Button>
+                  )}
                 </div>
               ) : (
                 jobs.map((job) => (
@@ -257,7 +260,7 @@ export default function JobsPage() {
                               const isExpired = job.applicationDeadline && new Date(job.applicationDeadline) < new Date();
                               if (isExpired) return <Badge variant="destructive" className="text-[10px] uppercase">Expired</Badge>;
                               if (job.status === 'OPEN') return <Badge className="bg-emerald-500 hover:bg-emerald-500 text-[10px] uppercase">Open</Badge>;
-                              return <Badge variant="secondary" className="text-[10px] uppercase">Closed</Badge>;
+                              return <Badge variant="destructive" className="text-[10px] uppercase">Closed</Badge>;
                             })()}
                           </div>
                           
@@ -363,7 +366,7 @@ export default function JobsPage() {
             </div>
           </main>
         </div>
-      </div>
+      </PageContainer>
     </div>
   );
 }

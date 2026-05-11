@@ -29,3 +29,24 @@ export const INDUSTRIES = [
   'Consulting',
   'Other'
 ].sort();
+
+export const LAYOUT = {
+  maxWidth: 'max-w-7xl',
+  padding: 'px-6',
+  verticalSpacing: 'py-8',
+} as const;
+
+export const SPACING = {
+  section: 'space-y-8',
+  cards: 'gap-6',
+  cardPadding: 'p-6',
+  formFields: 'space-y-4',
+} as const;
+
+export const TYPOGRAPHY = {
+  pageTitle: 'text-2xl font-bold',
+  sectionHeading: 'text-lg font-semibold',
+  cardTitle: 'text-base font-semibold',
+  body: 'text-sm text-muted-foreground',
+  caption: 'text-xs text-muted-foreground',
+} as const;
