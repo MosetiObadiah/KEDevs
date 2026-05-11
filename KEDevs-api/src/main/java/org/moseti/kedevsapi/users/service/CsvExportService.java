@@ -110,4 +110,32 @@ public class CsvExportService {
             throw new RuntimeException("Failed to generate Payments CSV export", e);
         }
     }
+
+    public byte[] generateVerificationCsv(List<org.moseti.kedevsapi.admin.dto.AdminDtos.VerificationRequestAdminResponse> requests) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             OutputStreamWriter osw = new OutputStreamWriter(baos, StandardCharsets.UTF_8);
+             com.opencsv.CSVWriter writer = new com.opencsv.CSVWriter(osw)) {
+
+            writer.writeNext(new String[]{
+                "Submission Date", "Applicant Name", "Account Type", "Primary Doc Present", "Supporting Cert Count", "Verification Status"
+            });
+
+            for (org.moseti.kedevsapi.admin.dto.AdminDtos.VerificationRequestAdminResponse r : requests) {
+                writer.writeNext(new String[]{
+                        r.createdAt() != null ? r.createdAt().toString() : "",
+                        r.userName() != null ? r.userName() : "",
+                        r.role() != null ? r.role().name() : "",
+                        r.idDocumentUrl() != null ? "YES" : "NO",
+                        String.valueOf(r.certificateUrls() != null ? r.certificateUrls().size() : 0),
+                        r.status() != null ? r.status() : ""
+                });
+            }
+
+            writer.flush();
+            return baos.toByteArray();
+        } catch (Exception e) {
+            log.error("Failed to generate Verification CSV export", e);
+            throw new RuntimeException("Failed to generate Verification CSV export", e);
+        }
+    }
 }

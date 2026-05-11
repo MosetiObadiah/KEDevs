@@ -18,6 +18,7 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import { forumService } from '@/services/forumService';
+import { adminService } from '@/services/adminService';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -48,8 +49,9 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false 
   const [submitting, setSubmitting] = useState(false);
 
   const isAuthor = user?.id === comment.authorId;
+  const isAdmin = user?.role === 'ADMIN';
   const canEdit = isAuthor && (new Date().getTime() - new Date(comment.createdAt).getTime()) < 15 * 60 * 1000;
-  const canDelete = isAuthor && (new Date().getTime() - new Date(comment.createdAt).getTime()) < 60 * 60 * 1000;
+  const canDelete = (isAuthor && (new Date().getTime() - new Date(comment.createdAt).getTime()) < 60 * 60 * 1000) || isAdmin;
 
   const handleVote = async (type: 'UPVOTE' | 'DOWNVOTE') => {
     if (!isLoggedIn) {
@@ -118,6 +120,32 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false 
     }
   };
 
+  const handleAdminHideToggle = async () => {
+    try {
+      if (comment.isHidden) {
+        await forumService.unhideComment(comment.id);
+        toast.success('Comment made visible');
+      } else {
+        await forumService.hideComment(comment.id);
+        toast.success('Comment hidden from general view');
+      }
+      onUpdate();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to toggle hide status');
+    }
+  };
+
+  const handleAdminWarn = async () => {
+    const reason = prompt('Reason for warning the user:');
+    if (!reason) return;
+    try {
+      await adminService.performUserAction(comment.authorId, 'WARN', reason);
+      toast.success('Formal warning issued to author');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to issue warning');
+    }
+  };
+
   return (
     <div className={cn(
       "group relative transition-all duration-300",
@@ -179,6 +207,11 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false 
                   <ShieldAlert className="h-2.5 w-2.5" /> Flagged
                 </Badge>
               )}
+              {comment.isHidden && (
+                <Badge variant="secondary" className="h-4 px-1 rounded text-[8px] flex gap-0.5 items-center bg-slate-200 text-slate-700">
+                  <X className="h-2.5 w-2.5" /> Hidden by Admin
+                </Badge>
+              )}
             </div>
 
             {isLoggedIn && (
@@ -199,10 +232,22 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false 
                       <Trash2 className="h-4 w-4" /> Delete
                     </DropdownMenuItem>
                   )}
-                  {!isAuthor && (
+                  {!isAuthor && !isAdmin && (
                     <DropdownMenuItem onClick={handleFlag} className="rounded-xl font-bold gap-2">
                       <Flag className="h-4 w-4" /> Report
                     </DropdownMenuItem>
+                  )}
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuItem onClick={handleAdminHideToggle} className="rounded-xl font-bold gap-2 text-amber-600">
+                        <ShieldAlert className="h-4 w-4" /> {comment.isHidden ? 'Unhide Comment' : 'Hide Comment'}
+                      </DropdownMenuItem>
+                      {comment.authorId && (
+                        <DropdownMenuItem onClick={handleAdminWarn} className="rounded-xl font-bold gap-2 text-orange-600">
+                          <Flag className="h-4 w-4" /> Warn Author
+                        </DropdownMenuItem>
+                      )}
+                    </>
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -230,9 +275,9 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false 
           ) : (
             <p className={cn(
               "text-sm leading-relaxed font-medium whitespace-pre-wrap",
-              comment.authorId === null ? "text-slate-400 italic" : "text-slate-600"
+              (comment.authorId === null || (comment.isHidden && !isAdmin)) ? "text-slate-400 italic" : "text-slate-600"
             )}>
-              {comment.content}
+              {(comment.isHidden && !isAdmin) ? '[This comment has been hidden by an administrator]' : comment.content}
             </p>
           )}
 

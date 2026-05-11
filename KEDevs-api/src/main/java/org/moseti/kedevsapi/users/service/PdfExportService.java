@@ -79,4 +79,24 @@ public class PdfExportService {
             throw new RuntimeException("Failed to generate Payment PDF export", e);
         }
     }
+
+    public byte[] generateVerificationPdf(List<org.moseti.kedevsapi.admin.dto.AdminDtos.VerificationRequestAdminResponse> requests) {
+        try {
+            Context context = new Context();
+            context.setVariable("requests", requests);
+
+            String html = templateEngine.process("verification-export", context);
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ITextRenderer renderer = new ITextRenderer();
+            renderer.setDocumentFromString(html);
+            renderer.layout();
+            renderer.createPDF(baos);
+
+            return baos.toByteArray();
+        } catch (Exception e) {
+            log.error("Failed to generate Verification PDF export", e);
+            throw new RuntimeException("Failed to generate Verification PDF export", e);
+        }
+    }
 }

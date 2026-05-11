@@ -33,6 +33,8 @@ import org.moseti.kedevsapi.users.entity.User;
 import org.moseti.kedevsapi.users.repository.DeveloperProfileRepository;
 import org.moseti.kedevsapi.users.repository.EmployerProfileRepository;
 import org.moseti.kedevsapi.users.repository.UserRepository;
+import org.moseti.kedevsapi.users.repository.VerificationRequestRepository;
+import org.moseti.kedevsapi.users.entity.VerificationRequest;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -68,10 +70,13 @@ public class AdminService {
     private final SubscriptionRepository subscriptionRepository;
     private final PlatformSettingRepository platformSettingRepository;
     private final JobApplicationRepository jobApplicationRepository;
+    private final VerificationRequestRepository verificationRequestRepository;
     private final SimpMessagingTemplate messagingTemplate;
     
     @Lazy private final NotificationService notificationService;
     @Lazy private final SpotlightService spotlightService;
+    private final org.moseti.kedevsapi.users.service.CsvExportService csvExportService;
+    private final org.moseti.kedevsapi.users.service.PdfExportService pdfExportService;
 
     // --- User Management ---
 
@@ -125,6 +130,156 @@ public class AdminService {
             "/queue/status",
             new WebSocketEvent<>("STATUS_UPDATE", Map.of("accountStatus", user.getAccountStatus(), "isApproved", profile.isApproved()))
         );
+    }
+
+    // --- Verification Requests Queue ---
+
+    @Transactional(readOnly = true)
+    public Page<VerificationRequestAdminResponse> getPendingVerificationRequests(Role role, Pageable pageable) {
+        List<VerificationRequestAdminResponse> combined = new java.util.ArrayList<>();
+
+        // 1. Always fetch Developers (unless strictly filtering for Employer)
+        if (role == null || role == Role.DEVELOPER) {
+            List<VerificationRequest> requests = role != null 
+                ? verificationRequestRepository.findByRoleAndStatus(role, VerificationStatus.UNDER_REVIEW, Pageable.unpaged()).getContent()
+                : verificationRequestRepository.findByStatus(VerificationStatus.UNDER_REVIEW, Pageable.unpaged()).getContent();
+            
+            combined.addAll(requests.stream().map(r -> {
+                String name = userRepository.findById(r.getUserId()).map(User::getFullName).orElse("Unknown");
+                return new VerificationRequestAdminResponse(
+                        r.getId(), r.getUserId(), name, r.getRole(),
+                        r.getStatus().name(), r.getIdDocumentUrl(), r.getPassportPhotoUrl(),
+                        r.getCertificateUrls() != null ? new java.util.ArrayList<>(r.getCertificateUrls()) : new java.util.ArrayList<>(),
+                        r.getCreatedAt()
+                );
+            }).toList());
+        }
+
+        // 2. Always fetch Employers (unless strictly filtering for Developer)
+        if (role == null || role == Role.EMPLOYER) {
+            List<VerificationRequestAdminResponse> employers = employerProfileRepository.findByIsApprovedFalse(Pageable.unpaged()).stream().map(p -> {
+                List<String> certs = new java.util.ArrayList<>();
+                if (p.getBusinessPermitUrl() != null) certs.add(p.getBusinessPermitUrl());
+                return new VerificationRequestAdminResponse(
+                        p.getId(), p.getUserId(), p.getCompanyName(), Role.EMPLOYER, "PENDING_APPROVAL",
+                        p.getIncorporationCertificateUrl(), p.getKraPinCertificateUrl(), certs, p.getCreatedAt()
+                );
+            }).toList();
+            combined.addAll(employers);
+        }
+
+        // 3. Sort aggregated results by created date descending
+        combined.sort((a, b) -> b.createdAt().compareTo(a.createdAt()));
+
+        // 4. Construct paginated response
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), combined.size());
+        if (start > combined.size()) return new org.springframework.data.domain.PageImpl<>(new java.util.ArrayList<>(), pageable, combined.size());
+        return new org.springframework.data.domain.PageImpl<>(combined.subList(start, end), pageable, combined.size());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<VerificationRequestAdminResponse> getVerificationHistory(Pageable pageable) {
+        List<VerificationRequestAdminResponse> combined = getAllUnifiedVerificationHistory();
+        
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), combined.size());
+        
+        if (start > combined.size()) {
+            return new org.springframework.data.domain.PageImpl<>(new java.util.ArrayList<>(), pageable, combined.size());
+        }
+        
+        return new org.springframework.data.domain.PageImpl<>(combined.subList(start, end), pageable, combined.size());
+    }
+
+    @Transactional(readOnly = true)
+    public byte[] generateVerificationExport(String format) {
+        List<VerificationRequestAdminResponse> allRequests = getAllUnifiedVerificationHistory();
+
+        if ("csv".equalsIgnoreCase(format)) {
+            return csvExportService.generateVerificationCsv(allRequests);
+        } else if ("pdf".equalsIgnoreCase(format)) {
+            return pdfExportService.generateVerificationPdf(allRequests);
+        }
+        throw new IllegalArgumentException("Unsupported format");
+    }
+
+    private List<VerificationRequestAdminResponse> getAllUnifiedVerificationHistory() {
+        // 1. Get ALL developers verification records
+        List<VerificationRequestAdminResponse> devHistory = verificationRequestRepository.findAll().stream().map(r -> {
+            String name = userRepository.findById(r.getUserId()).map(User::getFullName).orElse("Unknown");
+            return new VerificationRequestAdminResponse(
+                    r.getId(), r.getUserId(), name, r.getRole(),
+                    r.getStatus().name(), r.getIdDocumentUrl(), r.getPassportPhotoUrl(),
+                    r.getCertificateUrls() != null ? new java.util.ArrayList<>(r.getCertificateUrls()) : new java.util.ArrayList<>(),
+                    r.getCreatedAt()
+            );
+        }).collect(Collectors.toList());
+
+        // 2. Get ALL approved employer records (onboarded)
+        List<VerificationRequestAdminResponse> empHistory = employerProfileRepository.findByIsApprovedTrue(Pageable.unpaged()).stream().map(p -> {
+            String name = p.getCompanyName();
+            java.util.ArrayList<String> certs = new java.util.ArrayList<>();
+            if (p.getBusinessPermitUrl() != null) certs.add(p.getBusinessPermitUrl());
+            
+            return new VerificationRequestAdminResponse(
+                    p.getId(), // using profile ID as proxy ID
+                    p.getUserId(),
+                    name,
+                    Role.EMPLOYER,
+                    "APPROVED", // explicitly marked in history
+                    p.getIncorporationCertificateUrl(),
+                    p.getKraPinCertificateUrl(),
+                    certs,
+                    p.getCreatedAt()
+            );
+        }).collect(Collectors.toList());
+
+        // 3. Merge & Sort by date descending
+        List<VerificationRequestAdminResponse> combined = new java.util.ArrayList<>();
+        combined.addAll(devHistory);
+        combined.addAll(empHistory);
+        combined.sort((a, b) -> b.createdAt().compareTo(a.createdAt()));
+        
+        return combined;
+    }
+
+    @Transactional
+    public void reviewVerificationRequest(UUID adminId, UUID requestId, VerificationReviewRequest request) {
+        // Polymorphic Fallback: Try VerificationRequest first, then EmployerProfile.
+        var possibleVr = verificationRequestRepository.findById(requestId);
+        
+        if (possibleVr.isEmpty()) {
+            var possibleEmp = employerProfileRepository.findById(requestId);
+            if (possibleEmp.isPresent()) {
+                boolean approved = "APPROVED".equalsIgnoreCase(request.status());
+                approveEmployer(adminId, requestId, new ApproveEmployerRequest(approved, request.reason()));
+                return;
+            }
+            throw new ResourceNotFoundException("Verification request or profile not found for processing");
+        }
+
+        VerificationRequest vr = possibleVr.get();
+
+        boolean approved = "APPROVED".equalsIgnoreCase(request.status());
+        vr.setStatus(approved ? VerificationStatus.APPROVED : VerificationStatus.REJECTED);
+        vr.setReviewedById(adminId);
+        vr.setReviewedAt(LocalDateTime.now());
+        vr.setRejectionReason(request.reason());
+        verificationRequestRepository.save(vr);
+
+        User user = userRepository.findById(vr.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (approved) {
+            // Reuse badge perform method logic
+            performBadgeAction(adminId, vr.getUserId(), new BadgeActionRequest("GRANT", "Verified via document review"));
+            logAction(adminId, AdminActionTypes.APPROVE_VERIFICATION, "VERIFICATION", vr.getId(), request.reason(), "APPROVED");
+        } else {
+            logAction(adminId, AdminActionTypes.REJECT_VERIFICATION, "VERIFICATION", vr.getId(), request.reason(), "REJECTED");
+            notificationService.notify(vr.getUserId(), NotificationCategory.ADMIN, 
+                    "Verification Denied", 
+                    "Your identity documents were not accepted. Reason: " + request.reason(), null);
+        }
     }
 
     public Page<UserSummaryResponse> getAllUsers(Role role, AccountStatus status, Pageable pageable) {
@@ -454,6 +609,17 @@ public class AdminService {
                 .collect(Collectors.toList());
     }
 
+    public List<RevenueTrendResponse> getRevenueTrends(int days) {
+        LocalDateTime since = LocalDateTime.now().minusDays(days);
+        List<Object[]> trends = paymentRepository.getRevenueTrends(since);
+        return trends.stream()
+                .map(row -> new RevenueTrendResponse(
+                        row[0].toString(),
+                        (BigDecimal) row[1]
+                ))
+                .collect(Collectors.toList());
+    }
+
     public SubscriptionStatsResponse getSubscriptionStats() {
         return new SubscriptionStatsResponse(
                 subscriptionRepository.countByStatus(SubscriptionStatus.ACTIVE),
@@ -511,9 +677,27 @@ public class AdminService {
     }
 
     private UserSummaryResponse toUserSummary(User u) {
+        String avatarUrl = null;
+        UUID profileId = null;
+
+        if (u.getRole() == Role.DEVELOPER) {
+            var profileOpt = developerProfileRepository.findByUserId(u.getId());
+            if (profileOpt.isPresent()) {
+                avatarUrl = profileOpt.get().getProfilePhoto();
+                profileId = profileOpt.get().getId();
+            }
+        } else if (u.getRole() == Role.EMPLOYER) {
+            var profileOpt = employerProfileRepository.findByUserId(u.getId());
+            if (profileOpt.isPresent()) {
+                avatarUrl = profileOpt.get().getLogoUrl();
+                profileId = profileOpt.get().getId();
+            }
+        }
+
         return new UserSummaryResponse(u.getId(), u.getEmail(), u.getFullName(), u.getRole(),
                 u.getAccountStatus(), u.isEmailVerified(), u.getCreatedAt(),
-                u.getSubscriptionExpiresAt(), u.getGracePeriodEndsAt());
+                u.getSubscriptionExpiresAt(), u.getGracePeriodEndsAt(),
+                avatarUrl, profileId, u.getLastLoginAt());
     }
 
     private AdminActionResponse toAdminActionResponse(AdminAction a) {

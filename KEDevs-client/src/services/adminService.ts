@@ -18,6 +18,26 @@ export const adminService = {
     return apiClient.get<ApiResponse<any>>('/api/v1/admin/dashboard/revenue');
   },
 
+  async getDashboardRevenueTrends(days = 30): Promise<ApiResponse<any>> {
+    return apiClient.get<ApiResponse<any>>(`/api/v1/admin/dashboard/revenue/trends?days=${days}`);
+  },
+
+  async getVerificationRequests(role?: string, page = 0, size = 20): Promise<ApiResponse<PaginatedResponse<any>>> {
+    const q = new URLSearchParams();
+    if (role) q.append('role', role);
+    q.append('page', page.toString());
+    q.append('size', size.toString());
+    return apiClient.get<ApiResponse<PaginatedResponse<any>>>(`/api/v1/admin/verification/requests?${q.toString()}`);
+  },
+
+  async reviewVerificationRequest(requestId: string, data: { status: string; reason?: string }): Promise<ApiResponse<any>> {
+    return apiClient.post<ApiResponse<any>>(`/api/v1/admin/verification/requests/${requestId}/review`, data);
+  },
+
+  async getVerificationHistory(page = 0, size = 20): Promise<ApiResponse<PaginatedResponse<any>>> {
+    return apiClient.get<ApiResponse<PaginatedResponse<any>>>(`/api/v1/admin/verification/history?page=${page}&size=${size}`);
+  },
+
   async getDashboardForum(): Promise<ApiResponse<any>> {
     return apiClient.get<ApiResponse<any>>('/api/v1/admin/dashboard/forum');
   },

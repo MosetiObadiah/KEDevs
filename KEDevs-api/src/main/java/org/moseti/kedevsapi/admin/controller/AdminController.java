@@ -65,6 +65,15 @@ public class AdminController {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Revenue breakdown retrieved", adminService.getRevenueBreakdown()));
     }
 
+    @Operation(summary = "Admin: get revenue trends over time")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Revenue trends retrieved successfully")
+    })
+    @GetMapping("/dashboard/revenue/trends")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<List<RevenueTrendResponse>>> getRevenueTrends(@RequestParam(defaultValue = "30") int days) {
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Revenue trends retrieved", adminService.getRevenueTrends(days)));
+    }
+
     @Operation(summary = "Admin: get subscription stats")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Subscription stats retrieved successfully")
@@ -150,6 +159,60 @@ public class AdminController {
             @Valid @RequestBody ApproveEmployerRequest request) {
         adminService.approveEmployer(getCurrentAdminId(), profileId, request);
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Employer approval processed"));
+    }
+
+    @Operation(summary = "Admin: list verification documents awaiting review")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Pending verifications retrieved successfully")
+    })
+    @GetMapping("/verification/requests")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<VerificationRequestAdminResponse>>> getPendingVerifications(
+            @RequestParam(required = false) Role role,
+            @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Pending verifications retrieved", adminService.getPendingVerificationRequests(role, pageable)));
+    }
+
+    @Operation(summary = "Admin: approve or reject user verification documents")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Verification reviewed successfully"),
+        @ApiResponse(responseCode = "404", description = "Request not found")
+    })
+    @PostMapping("/verification/requests/{requestId}/review")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> reviewVerification(
+            @PathVariable UUID requestId,
+            @Valid @RequestBody VerificationReviewRequest request) {
+        adminService.reviewVerificationRequest(getCurrentAdminId(), requestId, request);
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Verification reviewed successfully"));
+    }
+
+    @Operation(summary = "Admin: retrieve complete verification lifecycle history")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "History load successful")
+    })
+    @GetMapping("/verification/history")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<VerificationRequestAdminResponse>>> getVerificationHistory(
+            @PageableDefault(size = 20, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Lifecycle history fetched", adminService.getVerificationHistory(pageable)));
+    }
+
+    @Operation(summary = "Admin: generate and stream physical validation report (CSV/PDF)")
+    @GetMapping("/verification/export")
+    public ResponseEntity<org.springframework.core.io.Resource> exportVerification(
+            @RequestParam String format) {
+        byte[] fileBytes = adminService.generateVerificationExport(format);
+        
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        String filename = "verification-report." + format.toLowerCase();
+        headers.add(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename);
+        
+        org.springframework.http.MediaType mediaType = "csv".equalsIgnoreCase(format) 
+                ? org.springframework.http.MediaType.parseMediaType("text/csv")
+                : org.springframework.http.MediaType.APPLICATION_PDF;
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(mediaType)
+                .body(new org.springframework.core.io.ByteArrayResource(fileBytes));
     }
 
     // --- Flagged Content ---

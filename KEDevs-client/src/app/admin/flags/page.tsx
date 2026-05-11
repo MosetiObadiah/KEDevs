@@ -88,21 +88,14 @@ export default function FlaggedContent() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-         <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-               <AlertOctagon className="h-8 w-8 text-red-500" /> Moderation Desk
-            </h1>
-            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">Review community reports and content flags</p>
-         </div>
-      </div>
+      <div className="h-4" />
 
-      <div className="p-6 rounded-[2.5rem] bg-amber-50 border-2 border-amber-100 flex gap-4 shadow-sm">
-         <AlertTriangle className="h-6 w-6 text-amber-500 shrink-0" />
+      <div className="p-4 rounded-xl bg-amber-50 border border-amber-100 flex gap-3">
+         <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
          <div className="space-y-1">
-            <p className="text-sm font-black text-amber-900 uppercase tracking-tight">Protocol Alert</p>
+            <p className="text-xs font-bold text-amber-900 uppercase tracking-tight">Protocol Alert</p>
             <p className="text-xs font-medium text-amber-700 leading-relaxed">
-               All moderation decisions are permanent and logged in the system audit trail. Verify the breach of community standards before taking punitive action.
+               All moderation decisions are permanent and logged in the system audit trail.
             </p>
          </div>
       </div>
@@ -120,7 +113,7 @@ export default function FlaggedContent() {
           </TabsTrigger>
         </TabsList>
 
-        <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-slate-200/40 overflow-hidden bg-white">
+        <Card className="border-border/50 shadow-sm overflow-hidden bg-card">
            <CardContent className="p-0">
               {isLoading ? (
                 <div className="py-20 flex flex-col items-center gap-4">

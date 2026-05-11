@@ -34,6 +34,9 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     @org.springframework.data.jpa.repository.Query("SELECT p.type, COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.status = 'COMPLETED' GROUP BY p.type")
     java.util.List<Object[]> getRevenueByType();
 
+    @org.springframework.data.jpa.repository.Query("SELECT CAST(p.createdAt AS DATE) as payDate, COALESCE(SUM(p.amount), 0) FROM Payment p WHERE p.status = 'COMPLETED' AND p.createdAt >= :since GROUP BY CAST(p.createdAt AS DATE) ORDER BY payDate ASC")
+    java.util.List<Object[]> getRevenueTrends(@org.springframework.data.repository.query.Param("since") java.time.LocalDateTime since);
+
     long countByStatus(PaymentStatus status);
 
     Optional<Payment> findFirstByUserIdAndTypeInAndStatusOrderByCreatedAtDesc(

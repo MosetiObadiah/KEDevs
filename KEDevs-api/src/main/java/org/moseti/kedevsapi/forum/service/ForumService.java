@@ -40,6 +40,7 @@ public class ForumService {
     private final JobPostRepository jobPostRepository;
     private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final org.moseti.kedevsapi.shared.service.SettingService settingService;
 
     private void pushForumEvent(UUID jobId, String type, Object data) {
         messagingTemplate.convertAndSend("/topic/forum/" + jobId, new WebSocketEvent<>(type, data));
@@ -124,8 +125,9 @@ public class ForumService {
             throw new ForbiddenException("Cannot edit a hidden comment");
         }
 
-        if (LocalDateTime.now().isAfter(comment.getCreatedAt().plusMinutes(Constants.EDIT_WINDOW_MINUTES))) {
-            throw new CommentEditWindowExpiredException("Edit window has expired. Comments can only be edited within 15 minutes of posting.");
+        int window = settingService.getCommentEditWindow();
+        if (LocalDateTime.now().isAfter(comment.getCreatedAt().plusMinutes(window))) {
+            throw new CommentEditWindowExpiredException("Edit window has expired. Comments can only be edited within " + window + " minutes of posting.");
         }
 
         comment.setContent(request.content());
@@ -138,8 +140,9 @@ public class ForumService {
         ForumComment comment = commentRepository.findByIdAndAuthorId(commentId, userId)
                 .orElseThrow(() -> new CommentNotFoundException("Comment not found or you are not the author"));
 
-        if (LocalDateTime.now().isAfter(comment.getCreatedAt().plusMinutes(Constants.DELETE_WINDOW_MINUTES))) {
-            throw new CommentDeleteWindowExpiredException("Delete window has expired. Comments can only be deleted within 60 minutes of posting.");
+        int window = settingService.getCommentDeleteWindow();
+        if (LocalDateTime.now().isAfter(comment.getCreatedAt().plusMinutes(window))) {
+            throw new CommentDeleteWindowExpiredException("Delete window has expired. Comments can only be deleted within " + window + " minutes of posting.");
         }
 
         comment.setContent("[deleted]");

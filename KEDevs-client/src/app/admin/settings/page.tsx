@@ -98,9 +98,9 @@ export default function PlatformSettings() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
          <div>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-               <Settings2 className="h-8 w-8 text-primary" /> Platform Core
+               <Settings2 className="h-8 w-8 text-primary" /> Platform Settings
             </h1>
-            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">Configure global parameters and business logic</p>
+            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">Manage runtime pricing, boundary conditions, and governance windows.</p>
          </div>
       </div>
 

@@ -13,4 +13,6 @@ public interface VerificationRequestRepository extends JpaRepository<Verificatio
     Optional<VerificationRequest> findByUserId(UUID userId);
     Optional<VerificationRequest> findByPaymentId(UUID paymentId);
     long countByStatus(VerificationStatus status);
+    org.springframework.data.domain.Page<VerificationRequest> findByStatus(VerificationStatus status, org.springframework.data.domain.Pageable pageable);
+    org.springframework.data.domain.Page<VerificationRequest> findByRoleAndStatus(org.moseti.kedevsapi.shared.enums.Role role, VerificationStatus status, org.springframework.data.domain.Pageable pageable);
 }

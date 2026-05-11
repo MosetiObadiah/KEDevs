@@ -24,7 +24,10 @@ import {
   MessageSquare,
   ShieldCheck,
   User,
-  Sparkles
+  Sparkles,
+  Flag,
+  BarChart3,
+  History
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,6 +53,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const isDev = user?.role === 'DEVELOPER';
   const isAdmin = user?.role === 'ADMIN';
+
+  // Prevent wrapping admin routes with global layout
+  if (pathname?.startsWith('/admin')) {
+    return <>{children}</>;
+  }
 
   const handleLogout = () => {
     logout();
@@ -88,7 +96,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   // Define sidebar links based on role
-  const sidebarLinks = isDev
+  const sidebarLinks = isAdmin
+    ? [
+        { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+        { label: 'User Management', href: '/admin/users', icon: Users },
+        { label: 'Verification Queue', href: '/admin/verification', icon: ShieldCheck },
+        { label: 'Flagged Content', href: '/admin/flags', icon: Flag },
+        { label: 'Spotlight', href: '/admin/spotlight', icon: Sparkles },
+        { label: 'Platform Reports', href: '/admin/reports', icon: BarChart3 },
+        { label: 'Audit Log', href: '/admin/audit', icon: History },
+        { label: 'Settings', href: '/admin/settings', icon: Settings },
+      ]
+    : isDev
     ? [
         { label: 'Jobs', href: '/jobs', icon: Briefcase },
         { label: 'Developers', href: '/developers', icon: Users },
@@ -107,10 +126,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         { label: 'Spotlight', href: '/spotlight', icon: Star },
         { label: 'Payments', href: '/payments', icon: CreditCard },
       ];
-
-  if (isAdmin) {
-    sidebarLinks.push({ label: 'Admin Panel', href: '/admin/dashboard', icon: ShieldCheck });
-  }
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-card">

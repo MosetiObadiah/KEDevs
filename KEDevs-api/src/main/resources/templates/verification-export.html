@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Identity Verification History</title>
+    <style>
+        body { font-family: 'Helvetica', 'Arial', sans-serif; color: #333; margin: 40px; }
+        .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+        .header h1 { margin: 0; color: #0f172a; font-weight: 900; letter-spacing: -0.5px; }
+        .header p { color: #64748b; font-size: 12px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; margin-top: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background-color: #f8fafc; color: #475569; font-weight: bold; text-align: left; padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 11px; text-transform: uppercase; }
+        td { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 12px; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; display: inline-block; }
+        .status-approved { background-color: #dcfce7; color: #166534; }
+        .status-under_review { background-color: #fef9c3; color: #854d0e; }
+        .status-rejected { background-color: #fee2e2; color: #991b1b; }
+        .footer { margin-top: 50px; text-align: center; color: #94a3b8; font-size: 10px; border-top: 1px solid #f1f5f9; padding-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>KEDevs Identity Audit</h1>
+        <p>Official Verification History Log</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Applicant</th>
+                <th>Classification</th>
+                <th>Artifacts</th>
+                <th>Final State</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="req : ${requests}">
+                <td th:text="${#temporals.format(req.createdAt, 'dd MMM yyyy')}">Date</td>
+                <td style="font-weight: bold;" th:text="${req.userName}">User Name</td>
+                <td th:text="${req.role}">Role</td>
+                <td th:text="${(req.idDocumentUrl != null ? 1 : 0) + (req.certificateUrls != null ? req.certificateUrls.size() : 0) + ' Files'}">0 Files</td>
+                <td>
+                    <span th:class="${'badge status-' + #strings.toLowerCase(req.status)}" th:text="${req.status}">Status</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <p>&copy; 2026 KEDevs-Connect. Secure Administrative Audit Retrieval.</p>
+        <p>Generation Timestamp: <span th:text="${#temporals.format(#temporals.createNow(), 'dd MMM yyyy, HH:mm')}">Now</span></p>
+    </div>
+</body>
+</html>

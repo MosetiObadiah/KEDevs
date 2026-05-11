@@ -38,6 +38,7 @@ public class EmployerProfileService {
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     private final FileUploadService fileUploadService;
+    private final org.moseti.kedevsapi.shared.service.SettingService settingService;
 
 
     // ----------------------------------------------------------------
@@ -188,9 +189,10 @@ public class EmployerProfileService {
         // Rate limit check
         LocalDateTime since = LocalDateTime.now().minusHours(24);
         long count = contactRequestRepository.countByEmployerIdAndCreatedAtAfter(employer.getId(), since);
-        if (count >= Constants.MAX_CONTACT_REQUESTS_PER_DAY) {
+        int limit = settingService.getContactLimit();
+        if (count >= limit) {
             throw new ContactRequestLimitExceededException(
-                    "Contact request limit of " + Constants.MAX_CONTACT_REQUESTS_PER_DAY + " per day exceeded"
+                    "Contact request limit of " + limit + " per day exceeded"
             );
         }
 

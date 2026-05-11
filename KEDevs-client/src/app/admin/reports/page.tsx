@@ -123,10 +123,10 @@ export default function PlatformReports() {
               {/* Summary Stats Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                  {[
-                    { label: 'Active Volume', value: '1,284', trend: '+12%', color: 'bg-emerald-50 text-emerald-600' },
-                    { label: 'System Health', value: '99.9%', trend: 'Stable', color: 'bg-blue-50 text-blue-600' },
-                    { label: 'Entity Growth', value: '+42', trend: 'High', color: 'bg-amber-50 text-amber-600' },
-                    { label: 'Risk Factor', value: '0.02%', trend: '-4%', color: 'bg-indigo-50 text-indigo-600' },
+                    { label: 'Active Volume', value: '---', trend: '0%', color: 'bg-emerald-50 text-emerald-600' },
+                    { label: 'System Health', value: '---', trend: 'Stable', color: 'bg-blue-50 text-blue-600' },
+                    { label: 'Entity Growth', value: '---', trend: 'High', color: 'bg-amber-50 text-amber-600' },
+                    { label: 'Risk Factor', value: '---', trend: '-4%', color: 'bg-indigo-50 text-indigo-600' },
                  ].map((stat, i) => (
                     <div key={i} className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 group hover:border-primary/20 transition-all">
                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">{stat.label}</p>
@@ -160,17 +160,12 @@ export default function PlatformReports() {
                           </TableRow>
                        </TableHeader>
                        <TableBody>
-                          {[1, 2, 3, 4, 5].map(i => (
-                             <TableRow key={i} className="border-slate-50 hover:bg-slate-50/30 transition-colors">
-                                <TableCell className="py-4 px-6 font-bold text-slate-600">2024-05-0{i}</TableCell>
-                                <TableCell className="py-4 px-6">
-                                   <Badge variant="outline" className="rounded-lg font-black text-[9px] uppercase tracking-widest bg-slate-50 border-slate-200">ACTIVE_ENTITIES</Badge>
-                                </TableCell>
-                                <TableCell className="py-4 px-6 font-black text-slate-900">{400 + (i * 12)}</TableCell>
-                                <TableCell className="py-4 px-6 text-right font-black text-emerald-500">+{8 + i}%</TableCell>
-                             </TableRow>
-                          ))}
-                       </TableBody>
+                           <TableRow>
+                              <TableCell colSpan={4} className="py-16 text-center">
+                                 <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No analytic records initialized in database</p>
+                              </TableCell>
+                           </TableRow>
+                        </TableBody>
                     </Table>
                  </div>
               </div>
@@ -183,7 +178,7 @@ export default function PlatformReports() {
                           <Sparkles className="h-5 w-5 text-amber-400" /> Automated Insight
                        </h4>
                        <p className="text-sm font-medium text-slate-400 max-w-md">
-                          Platform activity has increased by <span className="text-white font-bold">14%</span> compared to the previous cycle. Identity trust score is currently at an all-time high.
+                          Platform insights will populate here as event streams are collected. Identity trust score is currently at an all-time high.
                        </p>
                     </div>
                     <Button className="rounded-2xl h-14 px-8 font-black bg-white text-slate-900 hover:bg-slate-100 shadow-xl shadow-white/10">

@@ -14,5 +14,7 @@ public class AdminActionTypes {
     public static final String OVERRIDE_SPOTLIGHT = "OVERRIDE_SPOTLIGHT";
     public static final String GRANT_VERIFIED_BADGE = "GRANT_VERIFIED_BADGE";
     public static final String REVOKE_VERIFIED_BADGE = "REVOKE_VERIFIED_BADGE";
+    public static final String APPROVE_VERIFICATION = "APPROVE_VERIFICATION";
+    public static final String REJECT_VERIFICATION = "REJECT_VERIFICATION";
     public static final String UPDATE_PLATFORM_SETTING = "UPDATE_PLATFORM_SETTING";
 }

@@ -52,13 +52,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [collapsed, setCollapsed] = useState(false);
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full bg-slate-950 text-slate-300">
+    <div className="flex flex-col h-full bg-card border-r border-border text-foreground">
       <div className="p-6 flex items-center justify-between">
          <div className={cn("flex items-center gap-3 transition-all", collapsed && "opacity-0 invisible w-0")}>
             <div className="h-8 w-8 bg-primary rounded-xl flex items-center justify-center text-white font-black">K</div>
-            <span className="font-black text-xl tracking-tight text-white uppercase">Admin</span>
+            <span className="font-black text-xl tracking-tight uppercase">Admin</span>
          </div>
-         <button onClick={() => setCollapsed(!collapsed)} className="p-2 hover:bg-slate-900 rounded-xl transition-colors">
+         <button onClick={() => setCollapsed(!collapsed)} className="p-2 hover:bg-accent rounded-xl transition-colors">
             {collapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
          </button>
       </div>
@@ -72,23 +72,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               key={item.text} 
               href={item.path}
               className={cn(
-                "flex items-center gap-4 px-4 py-3 rounded-2xl transition-all duration-300 group",
+                "flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 group",
                 isActive 
-                  ? "bg-primary text-white shadow-lg shadow-primary/20" 
-                  : "hover:bg-slate-900 hover:text-white"
+                  ? "bg-accent text-accent-foreground font-medium" 
+                  : "text-muted-foreground hover:bg-accent hover:text-foreground"
               )}
             >
-              <Icon className={cn("h-5 w-5 shrink-0", isActive ? "text-white" : "text-slate-500 group-hover:text-primary")} />
-              {!collapsed && <span className="font-bold text-sm">{item.text}</span>}
+              <Icon className={cn("h-5 w-5 shrink-0", isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary")} />
+              {!collapsed && <span className="font-medium text-sm">{item.text}</span>}
             </Link>
           );
         })}
       </nav>
 
-      <div className="p-6 mt-auto">
+      <div className="p-6 mt-auto border-t border-border">
          <Button 
             variant="ghost" 
-            className="w-full justify-start gap-4 px-4 h-12 rounded-2xl text-red-400 hover:text-red-300 hover:bg-red-500/10 font-black"
+            className="w-full justify-start gap-4 px-4 h-12 rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10 font-bold"
             onClick={logout}
          >
             <LogOut className="h-5 w-5" />
@@ -99,11 +99,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   );
 
   return (
-    <div className="min-h-screen bg-slate-50/50 flex">
+    <div className="min-h-screen bg-muted/30 flex font-sans">
       {/* Desktop Sidebar */}
       <aside className={cn(
-        "hidden md:block transition-all duration-500 sticky top-0 h-screen z-50",
-        collapsed ? "w-24" : "w-[280px]"
+        "hidden md:block transition-all duration-300 sticky top-0 h-screen z-50",
+        collapsed ? "w-20" : "w-64"
       )}>
         <SidebarContent />
       </aside>
@@ -129,37 +129,34 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
          {/* Top Header */}
-         <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-40 px-8 flex items-center justify-between">
+         <header className="h-16 bg-card border-b border-border sticky top-0 z-40 px-6 flex items-center justify-between">
             <div className="flex items-center gap-4">
-               <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+               <h1 className="text-xl font-black text-primary tracking-tight">
                   {menuItems.find(item => item.path === pathname)?.text || 'Platform Control'}
                </h1>
             </div>
 
-            <div className="flex items-center gap-6">
-               <div className="hidden lg:flex items-center gap-2 px-4 h-10 bg-slate-100 rounded-xl text-slate-500 border border-transparent focus-within:border-primary/20 focus-within:bg-white transition-all">
-                  <Search className="h-4 w-4" />
-                  <input type="text" placeholder="Global search..." className="bg-transparent border-none outline-none text-xs font-bold w-48" />
-               </div>
+            <div className="flex items-center gap-4">
 
-               <div className="flex items-center gap-4">
-                  <Button variant="ghost" size="icon" className="rounded-xl relative">
+
+               <div className="flex items-center gap-3">
+                  <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full">
                      <Bell className="h-5 w-5" />
-                     <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full border-2 border-white" />
+                     <span className="absolute top-2 right-2 h-2 w-2 bg-primary rounded-full border-2 border-background" />
                   </Button>
                   
-                  <Separator orientation="vertical" className="h-6 bg-slate-200" />
+                  <Separator orientation="vertical" className="h-6 bg-border" />
                   
-                  <Button variant="outline" className="rounded-xl font-black gap-2 h-10 border-slate-200" asChild>
+                  <Button variant="outline" size="sm" className="font-bold gap-2 h-9 border-border hover:bg-muted" asChild>
                      <Link href="/">
                         <ExternalLink className="h-4 w-4" />
                         Live Site
                      </Link>
                   </Button>
 
-                  <Avatar className="h-10 w-10 rounded-xl border-2 border-primary/10">
+                  <Avatar className="h-9 w-9 border border-border">
                      <AvatarImage src={user?.avatarUrl} />
-                     <AvatarFallback className="bg-slate-900 text-white font-black text-xs uppercase">
+                     <AvatarFallback className="bg-primary text-primary-foreground font-bold text-xs uppercase">
                         {user?.fullName?.charAt(0)}
                      </AvatarFallback>
                   </Avatar>
@@ -167,8 +164,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
          </header>
 
-         <main className="p-8 animate-in fade-in duration-500">
-            {children}
+         <main className="flex-1 overflow-y-auto">
+            <div className="container mx-auto px-6 pt-8 pb-12 animate-in fade-in duration-500">
+              {children}
+            </div>
          </main>
       </div>
     </div>

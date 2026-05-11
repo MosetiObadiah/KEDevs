@@ -56,7 +56,23 @@ public class AdminDtos {
             @NotBlank @Schema(description = "Reason for override", example = "Content is inappropriate.") String reason
     ) {}
 
+    public record VerificationReviewRequest(
+            @NotBlank @Schema(description = "Outcome", allowableValues = {"APPROVED", "REJECTED"}, example = "APPROVED") String status,
+            @Schema(description = "Reason if rejected", example = "Documents blurry.") String reason
+    ) {}
+
     // Response DTOs
+    public record VerificationRequestAdminResponse(
+            UUID requestId,
+            UUID userId,
+            String userName,
+            Role role,
+            String status,
+            String idDocumentUrl,
+            String passportPhotoUrl,
+            List<String> certificateUrls,
+            LocalDateTime createdAt
+    ) {}
     public record AdminActionResponse(
             UUID id,
             UUID adminId,
@@ -77,7 +93,10 @@ public class AdminDtos {
             boolean isEmailVerified,
             LocalDateTime createdAt,
             LocalDateTime subscriptionExpiry,
-            LocalDateTime gracePeriodEndsAt
+            LocalDateTime gracePeriodEndsAt,
+            String avatarUrl,
+            UUID profileId,
+            LocalDateTime lastLoginAt
     ) {}
 
     public record PendingEmployerResponse(
@@ -142,6 +161,11 @@ public class AdminDtos {
             long totalSignups,
             long developerSignups,
             long employerSignups
+    ) {}
+
+    public record RevenueTrendResponse(
+            String date,
+            BigDecimal revenue
     ) {}
 
     public record SubscriptionStatsResponse(

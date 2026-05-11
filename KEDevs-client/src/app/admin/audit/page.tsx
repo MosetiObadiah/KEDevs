@@ -30,12 +30,7 @@ import {
 } from "@/components/ui/table";
 import { Separator } from '@/components/ui/separator';
 
-const mockLogs = [
-  { id: 'l1', admin: 'Admin User', action: 'Approved Employer', target: 'TechFlow Solutions', date: '2024-05-06 14:20:12', ip: '192.168.1.1' },
-  { id: 'l2', admin: 'Admin User', action: 'Update Setting', target: 'spotlight_day_fee: 100 -> 150', date: '2024-05-06 10:05:45', ip: '192.168.1.1' },
-  { id: 'l3', admin: 'Admin User', action: 'Suspended User', target: 'Troll123', date: '2024-05-05 16:45:30', ip: '192.168.1.1' },
-  { id: 'l4', admin: 'Admin User', action: 'Deleted Comment', target: 'Comment ID: 8942', date: '2024-05-05 09:12:11', ip: '192.168.1.1' },
-];
+const mockLogs: any[] = [];
 
 export default function AuditLog() {
   return (
@@ -85,7 +80,16 @@ export default function AuditLog() {
                      </TableRow>
                   </TableHeader>
                   <TableBody>
-                     {mockLogs.map((log) => (
+                     {mockLogs.length === 0 ? (
+                        <TableRow>
+                           <TableCell colSpan={5} className="py-16 text-center">
+                              <div className="flex flex-col items-center gap-2">
+                                 <Activity className="h-8 w-8 text-muted-foreground opacity-50" />
+                                 <p className="text-sm font-bold text-muted-foreground">No audit logs captured from environment.</p>
+                              </div>
+                           </TableCell>
+                        </TableRow>
+                     ) : mockLogs.map((log) => (
                         <TableRow key={log.id} className="border-slate-50 hover:bg-slate-50/50 transition-colors">
                            <TableCell className="py-5 px-8">
                               <div className="flex items-center gap-2 text-xs font-bold text-slate-500">

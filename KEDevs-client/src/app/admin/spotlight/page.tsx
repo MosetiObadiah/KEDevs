@@ -34,11 +34,7 @@ import {
 } from "@/components/ui/table";
 import { Separator } from '@/components/ui/separator';
 
-const mockSlots = [
-  { id: 's1', name: 'John Smith', role: 'DevOps Engineer', type: 'Week', status: 'Active', expires: '2024-05-15' },
-  { id: 's2', name: 'Jane Doe', role: 'Frontend Engineer', type: 'Day', status: 'Active', expires: '2024-05-08' },
-  { id: 's3', name: 'Alice W.', role: 'Product Designer', type: 'Day', status: 'Expired', expires: '2024-05-01' },
-];
+const mockSlots: any[] = [];
 
 export default function SpotlightManagement() {
   return (
@@ -63,8 +59,7 @@ export default function SpotlightManagement() {
                <CardDescription className="font-bold text-slate-400 uppercase text-[10px] tracking-widest">Active and historic premium placement</CardDescription>
             </div>
             <div className="flex gap-2">
-               <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[10px] uppercase tracking-widest px-3 py-1">2 Active</Badge>
-               <Badge className="bg-slate-100 text-slate-400 border-none font-black text-[10px] uppercase tracking-widest px-3 py-1">1 Expired</Badge>
+               <Badge className="bg-slate-100 text-slate-400 border-none font-black text-[10px] uppercase tracking-widest px-3 py-1">0 Active</Badge>
             </div>
          </CardHeader>
 
@@ -80,7 +75,13 @@ export default function SpotlightManagement() {
                   </TableRow>
                </TableHeader>
                <TableBody>
-                  {mockSlots.map((slot) => (
+                  {mockSlots.length === 0 ? (
+                     <TableRow>
+                        <TableCell colSpan={5} className="py-16 text-center">
+                           <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No active spotlight subscriptions</p>
+                        </TableCell>
+                     </TableRow>
+                  ) : mockSlots.map((slot) => (
                      <TableRow key={slot.id} className={cn(
                         "border-slate-50 transition-colors",
                         slot.status === 'Active' ? "bg-amber-50/20 hover:bg-amber-50/40" : "hover:bg-slate-50/50"
