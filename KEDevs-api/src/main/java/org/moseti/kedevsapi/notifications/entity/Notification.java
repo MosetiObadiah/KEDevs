@@ -6,7 +6,9 @@ import lombok.Setter;
 import org.moseti.kedevsapi.shared.entity.BaseEntity;
 import org.moseti.kedevsapi.shared.enums.NotificationCategory;
 
+import java.util.Map;
 import java.util.UUID;
+import org.moseti.kedevsapi.shared.converter.JsonbConverter;
 
 @Getter
 @Setter
@@ -30,6 +32,7 @@ public class Notification extends BaseEntity {
     @Column(name = "is_read", nullable = false)
     private boolean isRead = false;
 
-    @Column(columnDefinition = "jsonb")
-    private String metadata;
+    @Column(name = "metadata", columnDefinition = "jsonb")
+    @Convert(converter = JsonbConverter.class)
+    private Map<String, Object> metadata;
 }

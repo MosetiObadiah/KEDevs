@@ -13,6 +13,7 @@ import org.moseti.kedevsapi.shared.exception.ResourceNotFoundException;
 import org.moseti.kedevsapi.shared.service.FileUploadService;
 import org.moseti.kedevsapi.users.dto.VerificationDtos.*;
 import org.moseti.kedevsapi.users.entity.DeveloperProfile;
+import org.moseti.kedevsapi.users.entity.EmployerProfile;
 import org.moseti.kedevsapi.users.entity.User;
 import org.moseti.kedevsapi.users.entity.VerificationRequest;
 import org.moseti.kedevsapi.users.repository.*;
@@ -36,6 +37,7 @@ public class VerificationService {
     private final DeveloperSkillRepository skillRepository;
     private final DeveloperProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final EmployerProfileRepository employerProfileRepository;
     @Lazy private final PaymentService paymentService;
     private final FileUploadService fileUploadService;
     private final NotificationService notificationService;
@@ -50,14 +52,17 @@ public class VerificationService {
 
         VerificationStatus status = request != null ? request.getStatus() : VerificationStatus.NONE;
         
-        // If developer is already verified in profile, override the request status
+        // If profile is already marked verified, override the workflow status to APPROVED
         if (user.getRole() == Role.DEVELOPER) {
             boolean isProfileVerified = developerProfileRepository.findByUserId(userId)
                     .map(DeveloperProfile::isVerified)
                     .orElse(false);
-            if (isProfileVerified) {
-                status = VerificationStatus.APPROVED;
-            }
+            if (isProfileVerified) status = VerificationStatus.APPROVED;
+        } else if (user.getRole() == Role.EMPLOYER) {
+            boolean isProfileVerified = employerProfileRepository.findByUserId(userId)
+                    .map(EmployerProfile::isVerified)
+                    .orElse(false);
+            if (isProfileVerified) status = VerificationStatus.APPROVED;
         }
 
         return new VerificationStatusResponse(

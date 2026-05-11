@@ -16,6 +16,9 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
+import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
+
 interface SpotlightSectionProps {
   dayDev: any;
   weekDev: any;
@@ -24,6 +27,17 @@ interface SpotlightSectionProps {
 }
 
 function EmptySpotlightCard({ type }: { type: string }) {
+  const { user } = useAuth();
+
+  const handleClaim = (e: React.MouseEvent) => {
+    if (user?.role === 'EMPLOYER') {
+      e.preventDefault();
+      toast.error('Claiming spotlight spots is only available for developers.', {
+        description: 'Build your employer brand by posting quality job opportunities!'
+      });
+    }
+  };
+
   return (
     <Card className="h-full min-h-[400px] border-2 border-dashed border-muted hover:border-primary/50 transition-colors bg-muted/20 flex flex-col items-center justify-center text-center p-8 relative">
       <div className="absolute top-4 right-4">
@@ -36,7 +50,7 @@ function EmptySpotlightCard({ type }: { type: string }) {
       <p className="text-sm text-muted-foreground max-w-[260px] mb-8 leading-relaxed">
         This spotlight spot is currently vacant. Verified developers can claim it to boost their visibility.
       </p>
-      <Button variant="outline" className="font-semibold" asChild>
+      <Button variant="outline" className="font-semibold" asChild onClick={handleClaim}>
         <Link href="/profile/me?buySpotlight=true">Claim This Spot</Link>
       </Button>
     </Card>

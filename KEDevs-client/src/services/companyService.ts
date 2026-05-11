@@ -16,6 +16,7 @@ export interface CompanyProfile {
   linkedinUrl: string;
   twitterUrl: string;
   isApproved: boolean;
+  isVerified?: boolean;
   isProAccount: boolean;
   createdAt: string;
 }

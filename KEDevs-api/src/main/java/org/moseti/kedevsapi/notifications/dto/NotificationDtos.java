@@ -5,6 +5,7 @@ import org.moseti.kedevsapi.shared.enums.NotificationCategory;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.Map;
 
 public class NotificationDtos {
 
@@ -31,7 +32,7 @@ public class NotificationDtos {
             String title,
             String message,
             boolean isRead,
-            String metadata,
+            Map<String, Object> metadata,
             LocalDateTime createdAt
     ) {}
 

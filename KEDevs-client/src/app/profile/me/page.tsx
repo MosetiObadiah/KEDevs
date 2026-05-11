@@ -29,7 +29,8 @@ import {
   Loader2,
   X,
   ShieldCheck,
-  Briefcase
+  Briefcase,
+  BadgeCheck
 } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
@@ -510,79 +511,225 @@ export default function MyProfile() {
         </div>
 
         {isEmployer ? (
-          /* Employer View */
-          <>
-            <Card className="border-border/50 shadow-sm overflow-hidden bg-white rounded-3xl mb-12">
-              <div className="h-40 bg-gradient-to-r from-primary/80 to-primary/20 relative">
-                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
-              </div>
-              <CardContent className="pt-0 -mt-20 pb-8 px-8">
-                <div className="flex flex-col md:flex-row gap-8 items-start">
-                  <div className="relative group">
-                    <Avatar className="w-44 h-44 border-[6px] border-white shadow-2xl rounded-3xl bg-white overflow-hidden">
-                      <AvatarImage src={profile.logoUrl} className="object-cover" />
-                      <AvatarFallback className="text-5xl font-black bg-primary text-white">
-                        {profile.companyName?.charAt(0) || <Building2 />}
-                      </AvatarFallback>
-                    </Avatar>
-                    <Label htmlFor="photo-upload" className="absolute bottom-3 right-3 h-10 w-10 bg-primary text-white rounded-xl flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 transition-transform z-20 border-4 border-white">
-                      <Camera className="h-5 w-5" />
-                      <input id="photo-upload" type="file" className="hidden" accept="image/*" onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onload = () => {
-                            setCropImageSrc(reader.result as string);
-                            setCrop({ x: 0, y: 0 });
-                            setZoom(1);
-                            setCropDialogOpen(true);
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      }} />
-                    </Label>
-                  </div>
-                  <div className="flex-1 pt-20 md:pt-24 space-y-4">
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap mb-2">
-                          <Badge variant="outline" className="rounded-lg font-bold tracking-wider text-[10px] uppercase bg-primary/5 text-primary border-primary/20">EMPLOYER NODE</Badge>
-                          {profile.isVerified && <Badge className="bg-emerald-500 hover:bg-emerald-600 rounded-lg font-bold tracking-wider text-[10px] uppercase">VERIFIED</Badge>}
+          /* Employer Dashboard Redesigned */
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            {/* Left Column (65%): Company Identity & Bio */}
+            <div className="lg:col-span-2 space-y-10">
+              {/* Employer Identity Card */}
+              <div className={cn(
+                "flex flex-col md:flex-row items-start gap-8 bg-white p-8 rounded-[2.5rem] border shadow-xl shadow-slate-200/40 transition-all",
+                isEditing ? "border-primary/20" : "border-slate-100"
+              )}>
+                <div className="relative group">
+                  <Avatar className="w-32 h-32 rounded-[2.5rem] border-4 border-background shadow-xl overflow-hidden bg-white shrink-0">
+                    <AvatarImage src={profile.logoUrl} className="object-contain p-4" />
+                    <AvatarFallback className="bg-primary text-white text-4xl font-black">
+                      {profile.companyName?.charAt(0) || <Building2 className="w-10 h-10" />}
+                    </AvatarFallback>
+                  </Avatar>
+                  <Label htmlFor="employer-logo-upload" className="absolute bottom-2 right-2 h-10 w-10 bg-primary text-white rounded-xl flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 transition-transform z-20 border-4 border-white">
+                    <Camera className="h-5 w-5" />
+                    <input id="employer-logo-upload" type="file" className="hidden" accept="image/*" onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          setCropImageSrc(reader.result as string);
+                          setCrop({ x: 0, y: 0 });
+                          setZoom(1);
+                          setCropDialogOpen(true);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }} />
+                  </Label>
+                </div>
+
+                <div className="flex-1 space-y-6 w-full">
+                  {isEditing ? (
+                    <>
+                      <div className="space-y-1.5">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Company Name</Label>
+                        <Input 
+                          value={profile.companyName || ''} 
+                          onChange={(e) => setProfile({...profile, companyName: e.target.value})}
+                          className="h-12 rounded-xl border-slate-200 focus:border-primary font-bold"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Industry</Label>
+                          <Select value={profile.industry} onValueChange={(v) => setProfile({...profile, industry: v})}>
+                            <SelectTrigger className="h-12 rounded-xl border-slate-200">
+                              <SelectValue placeholder="Select industry" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-2xl">
+                              {INDUSTRIES.map(ind => (
+                                <SelectItem key={ind} value={ind}>{ind}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
-                        <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">{profile.companyName || 'My Company'}</h1>
-                        <p className="text-lg md:text-xl font-medium text-muted-foreground mt-1">{profile.industry || 'Industry not set'}</p>
+                        <div className="space-y-1.5">
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Location (HQ)</Label>
+                          <Input 
+                            value={profile.locationHQ || ''} 
+                            onChange={(e) => setProfile({...profile, locationHQ: e.target.value})}
+                            className="h-12 rounded-xl border-slate-200 focus:border-primary"
+                            placeholder="e.g. Nairobi, Kenya"
+                          />
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <h1 className="text-3xl md:text-4xl font-black text-foreground tracking-tight">
+                          {profile.companyName || 'Establish Company Name'}
+                        </h1>
+                        {profile.isVerified && (
+                          <Badge className="bg-emerald-500 hover:bg-emerald-600 rounded-lg font-bold tracking-wider text-[10px] uppercase h-6 px-2">
+                            <ShieldCheck className="w-3 h-3 mr-1" /> VERIFIED
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      <p className="text-xl font-medium text-muted-foreground">{profile.industry || 'Define Industry'}</p>
+                      
+                      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-bold text-muted-foreground uppercase tracking-wider pt-1">
+                        <span className="flex items-center gap-1.5">
+                          <MapPin className="w-4 h-4 text-primary" />
+                          {profile.locationHQ || 'Location unspecified'}
+                        </span>
+                        <span className="hidden md:block text-muted-foreground/30">•</span>
+                        <span className="flex items-center gap-1.5">
+                          <Users2 className="w-4 h-4 text-primary" />
+                          {profile.companySize?.replace(/_/g, ' ') || 'Team Size Unspecified'}
+                        </span>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              <div className="lg:col-span-8 space-y-8">
-                <Card className="rounded-[2rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden">
-                  <CardHeader className="border-b border-slate-50 pb-6">
-                    <CardTitle className="text-2xl font-black flex items-center gap-2">
-                      <div className="h-8 w-2 bg-primary rounded-full" />
-                      Company Bio & Mission
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    {isEditing ? (
+              {/* Company Bio Card */}
+              <Card className="rounded-[2.5rem] border-none shadow-xl shadow-slate-200/40 overflow-hidden bg-white">
+                <CardHeader className="px-10 pt-10 pb-4">
+                  <CardTitle className="text-2xl font-black flex items-center gap-3">
+                     <div className="h-7 w-1.5 bg-primary rounded-full" />
+                     Company Bio & Mission
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-10 pb-10">
+                  {isEditing ? (
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Company Story / Vision</Label>
                       <Textarea 
-                        className="min-h-[200px] rounded-2xl border-slate-200 font-medium text-lg" 
+                        className="min-h-[160px] rounded-2xl border-slate-200 font-medium text-base p-4 focus-visible:ring-primary/20 resize-none" 
                         value={profile.companyBio || ''} 
                         onChange={(e) => setProfile({...profile, companyBio: e.target.value})} 
-                        placeholder="Describe your company..." 
+                        placeholder="Summarize what your company does, your core values, and what developers love about working with you..." 
                       />
-                    ) : (
-                      <p className="text-lg leading-relaxed text-slate-600 font-medium whitespace-pre-wrap">{profile.companyBio || "Add a bio..."}</p>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
+                    </div>
+                  ) : (
+                    <p className="text-lg leading-relaxed text-slate-600 font-medium whitespace-pre-wrap">
+                      {profile.companyBio || 'No company biography provided yet. Click "Edit Profile" to tell developers your story.'}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
             </div>
-          </>
+
+            {/* Right Column (35%): Sidebar Actions / Metadata */}
+            <div className="lg:col-span-1 space-y-6">
+              <Card className="rounded-[2.5rem] border-none shadow-xl shadow-slate-200/40 overflow-hidden bg-white">
+                <CardContent className="p-8 space-y-8">
+                  
+                  {/* Quick Access Buttons */}
+                  <div className="space-y-4">
+                    <Button 
+                      className="w-full h-14 rounded-2xl font-black bg-slate-900 hover:bg-slate-800 text-white shadow-xl shadow-slate-900/20 gap-3"
+                      onClick={() => router.push(`/companies/${profile.id}`)}
+                    >
+                      <Eye className="h-5 w-5" /> Preview Public View
+                    </Button>
+                    {!profile.isVerified && (
+                      <Button 
+                        variant="outline"
+                        className="w-full h-14 rounded-2xl font-bold border-primary/20 hover:bg-primary/5 text-primary gap-3"
+                        onClick={() => router.push('/verify')}
+                      >
+                        <ShieldCheck className="h-5 w-5" /> Initiate Verification
+                      </Button>
+                    )}
+                  </div>
+
+                  <Separator className="bg-slate-100" />
+
+                  {/* Contact & Meta Details */}
+                  <div className="space-y-6">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Operational Meta</h3>
+                    
+                    <div className="space-y-4">
+                      {isEditing ? (
+                        <>
+                          <div className="space-y-1">
+                            <Label className="text-[10px] font-bold uppercase text-slate-500">Website URL</Label>
+                            <Input 
+                              value={profile.companyWebsite || ''} 
+                              onChange={(e) => setProfile({...profile, companyWebsite: e.target.value})}
+                              className="h-10 rounded-xl"
+                              placeholder="https://..."
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[10px] font-bold uppercase text-slate-500">Contact Email</Label>
+                            <Input 
+                              value={profile.contactEmail || ''} 
+                              onChange={(e) => setProfile({...profile, contactEmail: e.target.value})}
+                              className="h-10 rounded-xl"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[10px] font-bold uppercase text-slate-500">LinkedIn URL</Label>
+                            <Input 
+                              value={profile.linkedinUrl || ''} 
+                              onChange={(e) => setProfile({...profile, linkedinUrl: e.target.value})}
+                              className="h-10 rounded-xl"
+                            />
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center shrink-0 border border-slate-100">
+                              <Mail className="h-5 w-5" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Comm Node</p>
+                              <p className="font-bold text-slate-900 truncate">{profile.contactEmail || 'Not set'}</p>
+                            </div>
+                          </div>
+                          {profile.companyWebsite && (
+                            <div className="flex items-center gap-4">
+                              <div className="h-10 w-10 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center shrink-0 border border-slate-100">
+                                <Globe className="h-5 w-5" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Official Axis</p>
+                                <a href={profile.companyWebsite} target="_blank" className="font-bold text-primary hover:underline truncate block">{profile.companyWebsite}</a>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         ) : (
           /* Developer View (New Redesigned Structure) */
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">

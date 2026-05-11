@@ -21,6 +21,11 @@ import org.moseti.kedevsapi.shared.dto.WebSocketEvent;
 
 import java.util.UUID;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Map;
+import java.util.Collections;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -33,6 +38,8 @@ public class NotificationService {
     @Lazy
     private final EmailService emailService;
 
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
     @Async
     @Transactional
     public void notify(UUID userId, NotificationCategory category, String title, String message, String metadata) {
@@ -41,13 +48,22 @@ public class NotificationService {
             return;
         }
 
+        Map<String, Object> metadataMap = null;
+        if (metadata != null && !metadata.isBlank()) {
+            try {
+                metadataMap = objectMapper.readValue(metadata, new TypeReference<Map<String, Object>>() {});
+            } catch (Exception e) {
+                log.warn("Failed to parse metadata: {}", metadata, e);
+            }
+        }
+
         // 1. Save in-app notification
         Notification notification = new Notification();
         notification.setUserId(userId);
         notification.setCategory(category);
         notification.setTitle(title);
         notification.setMessage(message);
-        notification.setMetadata(metadata);
+        notification.setMetadata(metadataMap);
         notificationRepository.save(notification);
 
         log.info("In-app notification saved for user: {}", userId);
