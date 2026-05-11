@@ -11,7 +11,8 @@ import {
   MapPin, 
   FilterX,
   ChevronRight,
-  ArrowRight, ExternalLink, Printer, Download, FileSpreadsheet, FileText } from 'lucide-react';
+  ArrowRight, ExternalLink, Printer, Download, FileSpreadsheet, FileText, Briefcase,
+  BadgeCheck } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { developerService } from '@/services/developerService';
 import { DeveloperSummary } from '@/lib/types';
@@ -271,7 +272,7 @@ export default function DevelopersPage() {
                         </Avatar>
                         {dev.isVerified && (
                           <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-0.5 shadow-sm">
-                            <CheckCircle2 className="h-5 w-5 text-primary fill-primary text-white" />
+                            <BadgeCheck className="h-6 w-6 text-primary" />
                           </div>
                         )}
                       </Link>

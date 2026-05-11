@@ -15,7 +15,9 @@ import {
   Info,
   ShieldCheck,
   Plus,
-  X
+  X,
+  FileText,
+  CloudUpload
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { developerService } from '@/services/developerService';
@@ -41,7 +43,8 @@ import {
 const steps = [
   { label: 'Identity', icon: User },
   { label: 'Arsenal', icon: Code2 },
-  { label: 'Experience', icon: Briefcase }
+  { label: 'Experience', icon: Briefcase },
+  { label: 'Verification', icon: FileText }
 ];
 
 const skillsOptions = [
@@ -63,6 +66,8 @@ export default function DeveloperOnboarding() {
   const [activeStep, setActiveStep] = useState(0);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [govIdFile, setGovIdFile] = useState<File | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const [formData, setFormData] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -102,10 +107,10 @@ export default function DeveloperOnboarding() {
   useEffect(() => {
     if (!isLoggedIn) {
       router.push('/login');
-    } else if (isOnboarded) {
+    } else if (isOnboarded && !success) {
       router.push('/developers');
     }
-  }, [isLoggedIn, isOnboarded, router]);
+  }, [isLoggedIn, isOnboarded, success, router]);
 
   const handleNext = async () => {
     if (activeStep === steps.length - 1) {
@@ -134,10 +139,12 @@ export default function DeveloperOnboarding() {
         };
         const response = await developerService.createProfile(payload);
         if (response.success) {
-          completeOnboarding();
+          if (govIdFile) {
+            await developerService.uploadVerificationDocument(govIdFile);
+          }
           localStorage.removeItem('developer_onboarding');
-          toast.success('Welcome to KEDevs-Connect!');
-          router.push('/developers');
+          setSuccess(true);
+          completeOnboarding(); // called after success state is set to avoid redirect race
         }
       } catch (err: any) {
         toast.error(err.message || 'Failed to create profile');
@@ -163,7 +170,28 @@ export default function DeveloperOnboarding() {
     setFormData({ ...formData, skills: formData.skills.filter((s: string) => s !== skill) });
   };
 
-  if (!isLoggedIn || isOnboarded) return null;
+  if (!isLoggedIn) return null;
+
+  if (success) {
+    return (
+      <div className="min-h-screen bg-slate-50/50 flex flex-col items-center justify-center p-4">
+        <div className="text-center space-y-6 max-w-md animate-in zoom-in-95 duration-500">
+          <div className="h-24 w-24 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto border-4 border-emerald-100 shadow-xl">
+            <CheckCircle2 className="h-12 w-12" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-3xl font-black text-slate-900">Application Received!</h1>
+            <p className="text-slate-500 font-medium leading-relaxed">
+              Your profile is under review. Please wait 24 hours for the verification process to complete. You can still browse the platform in the meantime.
+            </p>
+          </div>
+          <Button className="rounded-2xl font-black h-14 w-full shadow-xl shadow-primary/20" asChild>
+            <Link href="/developers">Go to Talent Directory</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50/50 flex flex-col items-center justify-center p-4 py-20">
@@ -209,6 +237,7 @@ export default function DeveloperOnboarding() {
                    {activeStep === 0 && <User className="h-6 w-6" />}
                    {activeStep === 1 && <Code2 className="h-6 w-6" />}
                    {activeStep === 2 && <Briefcase className="h-6 w-6" />}
+                   {activeStep === 3 && <FileText className="h-6 w-6" />}
                 </div>
                 <div>
                    <CardTitle className="text-2xl font-black uppercase tracking-tight">{steps[activeStep].label}</CardTitle>
@@ -400,6 +429,65 @@ export default function DeveloperOnboarding() {
                 </div>
               </div>
             )}
+
+            {activeStep === 3 && (
+              <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+                 <div className="space-y-4">
+                    <div className="p-6 rounded-[2rem] bg-amber-50 border border-amber-100 flex items-start gap-4">
+                       <div className="h-10 w-10 rounded-2xl bg-white shadow-sm flex items-center justify-center text-amber-500 shrink-0">
+                          <Info className="h-5 w-5" />
+                       </div>
+                       <div>
+                          <p className="font-black text-amber-900 text-sm">Identity Verification</p>
+                          <p className="text-amber-700 font-medium text-xs mt-1 leading-relaxed">
+                             To ensure trust on our platform, we require a valid Government ID (National ID or Passport). Your documents are securely stored and never shared publicly.
+                          </p>
+                       </div>
+                    </div>
+
+                    <div className="space-y-2">
+                       <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Government ID (Required)</Label>
+                       <label className={cn(
+                          "flex flex-col items-center justify-center p-8 rounded-[2rem] border-4 border-dashed cursor-pointer transition-all",
+                          govIdFile ? "border-emerald-500 bg-emerald-50" : "border-slate-100 hover:border-primary/50"
+                       )}>
+                          <input 
+                             type="file" 
+                             className="hidden" 
+                             accept="image/*,.pdf" 
+                             onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                   if (file.size > 5 * 1024 * 1024) {
+                                      toast.error("File size exceeds 5MB limit");
+                                      return;
+                                   }
+                                   setGovIdFile(file);
+                                }
+                             }} 
+                          />
+                          {govIdFile ? (
+                             <div className="flex items-center gap-4">
+                                <div className="h-12 w-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-emerald-500">
+                                   <CheckCircle2 className="h-6 w-6" />
+                                </div>
+                                <div className="text-left">
+                                   <p className="font-black text-slate-900 truncate max-w-[200px]">{govIdFile.name}</p>
+                                   <p className="text-[10px] font-bold text-slate-400">{(govIdFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                                </div>
+                             </div>
+                          ) : (
+                             <div className="text-center space-y-2">
+                                <CloudUpload className="h-10 w-10 text-slate-300 mx-auto" />
+                                <p className="font-black text-sm">Upload Photo or PDF</p>
+                                <p className="text-[10px] font-bold text-slate-400">Maximum 5MB</p>
+                             </div>
+                          )}
+                       </label>
+                    </div>
+                 </div>
+              </div>
+            )}
           </CardContent>
 
           <CardFooter className="bg-slate-50 p-8 flex justify-between gap-4">
@@ -418,10 +506,10 @@ export default function DeveloperOnboarding() {
                 size="lg" 
                 className="rounded-2xl font-black h-14 px-10 shadow-xl shadow-primary/20 transition-all active:scale-95"
                 onClick={handleNext}
-                disabled={loading || !agreedToTerms}
+                disabled={loading || !agreedToTerms || !govIdFile}
               >
                 {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <ShieldCheck className="mr-2 h-5 w-5" />}
-                {loading ? 'Finalizing...' : 'Launch Profile'}
+                {loading ? 'Submitting...' : 'Submit Profile'}
               </Button>
             ) : (
               <Button 

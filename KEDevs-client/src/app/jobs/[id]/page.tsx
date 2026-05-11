@@ -30,6 +30,12 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Pencil } from 'lucide-react';
 
 export default function JobDetailPage() {
   const { id } = useParams();
@@ -43,6 +49,9 @@ export default function JobDetailPage() {
   const [isUpvoted, setIsUpvoted] = useState(false);
   const [isDownvoted, setIsDownvoted] = useState(false);
   const [upvoteCount, setUpvoteCount] = useState(0);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editForm, setEditForm] = useState<any>({});
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -81,6 +90,48 @@ export default function JobDetailPage() {
   }, [id]);
 
   const isPoster = user?.id === job?.postedById;
+
+  const handleEditJob = () => {
+    setEditForm({
+      title: job.title || '',
+      summary: job.summary || '',
+      description: job.description || '',
+      locationCity: job.locationCity || '',
+      locationCountry: job.locationCountry || '',
+      jobType: job.jobType || '',
+      workType: job.workType || '',
+      experienceLevel: job.experienceLevel || '',
+      minQualification: job.minQualification || '',
+      minExperienceYears: job.minExperienceYears ?? 0,
+      applicationDeadline: job.applicationDeadline || '',
+      contactEmail: job.contactEmail || '',
+      visibility: job.visibility || 'PUBLIC',
+      tags: (job.tags || []).join(', '),
+    });
+    setEditOpen(true);
+  };
+
+  const handleEditSubmit = async () => {
+    if (!job?.id) return;
+    setEditLoading(true);
+    try {
+      const payload = {
+        ...editForm,
+        minExperienceYears: Number(editForm.minExperienceYears),
+        tags: editForm.tags ? editForm.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : [],
+      };
+      const response = await jobService.updateJob(job.id, payload);
+      if (response.success) {
+        setJob({ ...job, ...response.data });
+        setEditOpen(false);
+        toast.success('Job updated successfully!');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update job');
+    } finally {
+      setEditLoading(false);
+    }
+  };
 
   const handleVote = async (type: 'UPVOTE' | 'DOWNVOTE') => {
     if (!isLoggedIn || !id) {
@@ -210,11 +261,11 @@ export default function JobDetailPage() {
             </div>
 
             {/* 2. Job Description */}
-            <div className="space-y-4">
+            <div className="space-y-4 min-w-0 overflow-hidden">
               <h2 className="text-lg font-semibold">Job Description</h2>
-              <div className="space-y-2">
+              <div className="space-y-2 min-w-0">
                 <h3 className="text-base font-medium text-foreground">About the Role</h3>
-                <div className="prose prose-sm prose-slate max-w-none text-muted-foreground leading-relaxed break-words">
+                <div className="prose prose-sm prose-slate max-w-none text-muted-foreground leading-relaxed [word-break:break-word] [overflow-wrap:anywhere] overflow-hidden">
                   <ReactMarkdown>{job.description}</ReactMarkdown>
                 </div>
               </div>
@@ -315,9 +366,14 @@ export default function JobDetailPage() {
                     </Link>
                   </Button>
                 ) : isPoster ? (
-                  <Badge variant="secondary" className="w-full py-3 justify-center text-sm font-semibold rounded-lg">
-                    You Posted This Job
-                  </Badge>
+                  <div className="space-y-2">
+                    <Badge variant="secondary" className="w-full py-3 justify-center text-sm font-semibold rounded-lg">
+                      You Posted This Job
+                    </Badge>
+                    <Button size="sm" variant="outline" className="w-full font-semibold" onClick={handleEditJob}>
+                      <Pencil className="w-3.5 h-3.5 mr-2" /> Edit Job
+                    </Button>
+                  </div>
                 ) : job.hasApplied ? (
                   <Button size="lg" className="w-full bg-emerald-600 hover:bg-emerald-700 font-bold" disabled>
                     Application Sent
@@ -388,6 +444,101 @@ export default function JobDetailPage() {
           setTimeout(() => router.push('/jobs/my-applications'), 2000);
         }} 
       />
+
+      {/* Edit Job Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="sm:max-w-[700px] rounded-[1.5rem] max-h-[90vh] overflow-y-auto p-8">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black">Edit Job Post</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-5 py-4">
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Job Title</Label>
+              <Input value={editForm.title || ''} onChange={e => setEditForm({...editForm, title: e.target.value})} className="h-12 rounded-xl" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Summary</Label>
+              <Input value={editForm.summary || ''} onChange={e => setEditForm({...editForm, summary: e.target.value})} className="h-12 rounded-xl" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Description (Markdown)</Label>
+              <Textarea value={editForm.description || ''} onChange={e => setEditForm({...editForm, description: e.target.value})} className="min-h-[140px] rounded-xl font-mono text-sm" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">City</Label>
+                <Input value={editForm.locationCity || ''} onChange={e => setEditForm({...editForm, locationCity: e.target.value})} className="h-12 rounded-xl" />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Country</Label>
+                <Input value={editForm.locationCountry || ''} onChange={e => setEditForm({...editForm, locationCountry: e.target.value})} className="h-12 rounded-xl" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Job Type</Label>
+                <Select value={editForm.jobType || ''} onValueChange={v => setEditForm({...editForm, jobType: v})}>
+                  <SelectTrigger className="h-12 rounded-xl"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {['FULL_TIME','PART_TIME','CONTRACT','INTERNSHIP','FREELANCE'].map(t => <SelectItem key={t} value={t}>{t.replace('_',' ')}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Work Type</Label>
+                <Select value={editForm.workType || ''} onValueChange={v => setEditForm({...editForm, workType: v})}>
+                  <SelectTrigger className="h-12 rounded-xl"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {['REMOTE','HYBRID','ONSITE'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Experience Level</Label>
+                <Select value={editForm.experienceLevel || ''} onValueChange={v => setEditForm({...editForm, experienceLevel: v})}>
+                  <SelectTrigger className="h-12 rounded-xl"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {['JUNIOR','MID_LEVEL','SENIOR','LEAD','PRINCIPAL'].map(t => <SelectItem key={t} value={t}>{t.replace('_',' ')}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Min Experience (Years)</Label>
+                <Input type="number" min={0} value={editForm.minExperienceYears ?? 0} onChange={e => setEditForm({...editForm, minExperienceYears: e.target.value})} className="h-12 rounded-xl" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Visibility</Label>
+                <Select value={editForm.visibility || 'PUBLIC'} onValueChange={v => setEditForm({...editForm, visibility: v})}>
+                  <SelectTrigger className="h-12 rounded-xl"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PUBLIC">Public</SelectItem>
+                    <SelectItem value="PRIVATE">Private</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Application Deadline</Label>
+                <Input type="date" value={editForm.applicationDeadline || ''} onChange={e => setEditForm({...editForm, applicationDeadline: e.target.value})} className="h-12 rounded-xl" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Tags (comma-separated)</Label>
+              <Input value={editForm.tags || ''} onChange={e => setEditForm({...editForm, tags: e.target.value})} className="h-12 rounded-xl" placeholder="e.g. react, typescript, remote" />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" className="rounded-xl font-bold" onClick={() => setEditOpen(false)}>Cancel</Button>
+            <Button className="rounded-xl font-black" onClick={handleEditSubmit} disabled={editLoading}>
+              {editLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

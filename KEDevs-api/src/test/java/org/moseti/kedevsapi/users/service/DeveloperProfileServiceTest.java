@@ -43,6 +43,8 @@ class DeveloperProfileServiceTest {
     @Mock private DeveloperProjectRepository projectRepository;
     @Mock private EndorsementRepository endorsementRepository;
     @Mock private UserRepository userRepository;
+    @Mock private org.moseti.kedevsapi.shared.service.FileUploadService fileUploadService;
+    @Mock private org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
 
     @InjectMocks
     private DeveloperProfileService developerProfileService;
@@ -252,8 +254,7 @@ class DeveloperProfileServiceTest {
     @Test
     void filterDevelopers_WithAvailabilityFilter() {
         Page<DeveloperProfile> page = new PageImpl<>(List.of(testProfile));
-        when(profileRepository.findByAvailabilityStatusAndProfileVisibility(
-                eq(AvailabilityStatus.AVAILABLE), eq(ProfileVisibility.PUBLIC), any(Pageable.class)))
+        when(profileRepository.findByProfileVisibility(eq(ProfileVisibility.PUBLIC), any(Pageable.class)))
                 .thenReturn(page);
         when(skillRepository.findByDeveloperId(any())).thenReturn(List.of());
 
@@ -273,6 +274,23 @@ class DeveloperProfileServiceTest {
         developerProfileService.updateVisibility(userId, ProfileVisibility.PRIVATE);
 
         assertEquals(ProfileVisibility.PRIVATE, testProfile.getProfileVisibility());
+        verify(profileRepository).save(testProfile);
+    }
+
+    @Test
+    void uploadVerificationDocument_Success() {
+        when(profileRepository.findByUserId(userId)).thenReturn(Optional.of(testProfile));
+        when(fileUploadService.uploadFile(any(), anyString())).thenReturn("http://cloud/gov-id.pdf");
+        when(profileRepository.save(any(DeveloperProfile.class))).thenReturn(testProfile);
+        stubSubRepoFinds(profileId);
+
+        org.springframework.web.multipart.MultipartFile mockFile = mock(org.springframework.web.multipart.MultipartFile.class);
+
+        UserDtos.DeveloperProfileResponse response = developerProfileService.uploadVerificationDocument(userId, mockFile);
+
+        assertNotNull(response);
+        assertEquals("http://cloud/gov-id.pdf", testProfile.getGovernmentIdUrl());
+        verify(fileUploadService).uploadFile(mockFile, "kedevs/developer-verification");
         verify(profileRepository).save(testProfile);
     }
 

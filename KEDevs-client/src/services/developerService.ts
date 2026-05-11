@@ -73,6 +73,12 @@ export const developerService = {
     return apiClient.post<ApiResponse<any>>('/api/v1/developers/profile/photo', formData);
   },
 
+  async uploadVerificationDocument(file: File): Promise<ApiResponse<any>> {
+    const formData = new FormData();
+    formData.append('document', file);
+    return apiClient.post<ApiResponse<any>>('/api/v1/developers/profile/verification-document', formData);
+  },
+
   async addOSS(data: any): Promise<ApiResponse<any>> {
     return apiClient.post<ApiResponse<any>>('/api/v1/developers/profile/oss', data);
   },

@@ -62,6 +62,9 @@ public class DeveloperProfile extends BaseEntity {
     @Column(nullable = false)
     private boolean isVerified = false;
 
+    @Column(name = "government_id_url")
+    private String governmentIdUrl;
+
     private String linkedinUrl;
 
     private String githubUrl;

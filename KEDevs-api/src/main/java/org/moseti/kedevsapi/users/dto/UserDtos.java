@@ -180,6 +180,7 @@ public class UserDtos {
             String locationCountry,
             ProfileVisibility profileVisibility,
             boolean isVerified,
+            String governmentIdUrl,
             String linkedinUrl,
             String githubUrl,
             String portfolioUrl,

@@ -140,6 +140,22 @@ public class DeveloperProfileService {
         return toFullResponse(profile);
     }
 
+    @Transactional
+    public UserDtos.DeveloperProfileResponse uploadVerificationDocument(UUID userId, MultipartFile document) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        
+        // Ensure the file is not too large or invalid (optional here, but handled by spring configs usually)
+        String url = fileUploadService.uploadFile(document, "kedevs/developer-verification");
+        
+        profile.setGovernmentIdUrl(url);
+        // Note: isVerified stays false until an admin reviews it and sets it to true
+        profile = profileRepository.save(profile);
+        
+        log.info("Developer verification document uploaded for userId={}", userId);
+        return toFullResponse(profile);
+    }
+
+
     // ----------------------------------------------------------------
     // Skills
     // ----------------------------------------------------------------
@@ -606,7 +622,7 @@ public class DeveloperProfileService {
                 profile.getNumberOfProjects(), profile.getAvailabilityStatus(),
                 profile.getPreferredWorkType(), profile.getLocationCity(),
                 profile.getLocationCountry(), profile.getProfileVisibility(),
-                profile.isVerified(), profile.getLinkedinUrl(),
+                profile.isVerified(), profile.getGovernmentIdUrl(), profile.getLinkedinUrl(),
                 profile.getGithubUrl(), profile.getPortfolioUrl(),
                 profile.getPublicEmail(), profile.getPublicPhone(),
                 profile.isCanEmployersReachOut(),

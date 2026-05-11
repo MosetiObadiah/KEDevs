@@ -129,6 +129,21 @@ public class DeveloperController {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Visibility updated"));
     }
 
+    @Operation(summary = "Upload verification document (Government ID)", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Document uploaded successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid file"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    })
+    @PostMapping(value = "/profile/verification-document", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.DeveloperProfileResponse>> uploadVerificationDocument(
+            Authentication authentication,
+            @RequestParam("document") MultipartFile document) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Verification document uploaded", developerProfileService.uploadVerificationDocument(userId, document)));
+    }
+
     @Operation(summary = "Add a skill", description = "Requires DEVELOPER role.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Skill added successfully"),
