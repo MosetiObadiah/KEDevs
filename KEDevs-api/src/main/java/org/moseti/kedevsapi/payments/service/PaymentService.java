@@ -231,46 +231,72 @@ public class PaymentService {
             return;
         }
 
-        // Idempotency check
-        if (payment.getStatus() == PaymentStatus.COMPLETED) {
-            log.info("Payment {} already completed, skipping callback processing", payment.getId());
+        // Idempotency: skip if already in a terminal state
+        if (payment.getStatus() == PaymentStatus.COMPLETED
+                || payment.getStatus() == PaymentStatus.FAILED
+                || payment.getStatus() == PaymentStatus.CANCELLED) {
+            log.info("Payment {} already processed ({}), skipping callback", payment.getId(), payment.getStatus());
             return;
         }
 
         if (stkCallback.resultCode() == 0) {
-            // Success — extract receipt number
-            String receiptNo = null;
+            // Success — extract all available metadata fields
             if (stkCallback.callbackMetadata() != null && stkCallback.callbackMetadata().item() != null) {
                 for (DarajaCallbackRequest.CallbackItem item : stkCallback.callbackMetadata().item()) {
-                    if ("MpesaReceiptNumber".equals(item.name())) {
-                        receiptNo = String.valueOf(item.value());
-                        break;
+                    if (item.value() == null) continue;
+                    switch (item.name()) {
+                        case "MpesaReceiptNumber" -> payment.setMpesaReceiptNo(item.value().toString());
+                        case "Amount" -> payment.setAmount(new java.math.BigDecimal(item.value().toString()));
+                        case "PhoneNumber" -> payment.setPhoneNumber(item.value().toString());
+                        case "TransactionDate" -> {
+                            try {
+                                payment.setPaidAt(parseMpesaDate(item.value().toString()));
+                            } catch (Exception e) {
+                                log.warn("Could not parse TransactionDate: {}", item.value());
+                                payment.setPaidAt(LocalDateTime.now());
+                            }
+                        }
                     }
                 }
             }
+            // Ensure paidAt is always set even if metadata was missing
+            if (payment.getPaidAt() == null) {
+                payment.setPaidAt(LocalDateTime.now());
+            }
             payment.setStatus(PaymentStatus.COMPLETED);
-            payment.setMpesaReceiptNo(receiptNo);
-            payment.setPaidAt(LocalDateTime.now());
             paymentRepository.save(payment);
             processSuccessfulPayment(payment);
-            
+
             messagingTemplate.convertAndSendToUser(
                 payment.getUserId().toString(),
                 "/queue/status",
                 new WebSocketEvent<>("PAYMENT_COMPLETED", Map.of("paymentId", payment.getId(), "type", payment.getType()))
             );
         } else {
-            log.warn("Payment {} failed with ResultCode {}: {}", payment.getId(),
-                    stkCallback.resultCode(), stkCallback.resultDesc());
-            payment.setStatus(PaymentStatus.FAILED);
+            // Distinguish user cancellation (1032) from other failures
+            int resultCode = stkCallback.resultCode();
+            String resultDesc = stkCallback.resultDesc() != null ? stkCallback.resultDesc() : "Payment failed";
+            PaymentStatus failStatus = (resultCode == 1032) ? PaymentStatus.CANCELLED : PaymentStatus.FAILED;
+
+            log.warn("Payment {} {} with ResultCode {}: {}",
+                    payment.getId(), failStatus, resultCode, resultDesc);
+
+            payment.setStatus(failStatus);
+            payment.setFailReason(resultDesc);
             paymentRepository.save(payment);
-            
+
             messagingTemplate.convertAndSendToUser(
                 payment.getUserId().toString(),
                 "/queue/status",
-                new WebSocketEvent<>("PAYMENT_FAILED", Map.of("paymentId", payment.getId(), "reason", stkCallback.resultDesc()))
+                new WebSocketEvent<>("PAYMENT_FAILED", Map.of("paymentId", payment.getId(), "reason", resultDesc))
             );
         }
+    }
+
+    private LocalDateTime parseMpesaDate(String mpesaDate) {
+        // Daraja TransactionDate format: yyyyMMddHHmmss  e.g. 20260512090300
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        return LocalDateTime.parse(mpesaDate, formatter);
     }
 
     private void processSuccessfulPayment(Payment payment) {
@@ -411,9 +437,22 @@ public class PaymentService {
         return paymentRepository.findByUserId(userId, pageable)
                 .map(p -> new PaymentResponse(
                         p.getId(), p.getType(), p.getAmount(), p.getCurrency(),
-                        p.getStatus(), p.getMpesaReceiptNo(), p.getPhoneNumber(),
-                        p.getPaidAt(), p.getCreatedAt()
+                        p.getStatus(), p.getMpesaReceiptNo(), p.getFailReason(),
+                        p.getPhoneNumber(), p.getPaidAt(), p.getCreatedAt()
                 ));
+    }
+
+    public Page<PaymentResponse> getAllPayments(int page, int size, PaymentStatus status) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+                page, size, org.springframework.data.domain.Sort.by("createdAt").descending());
+        Page<Payment> payments = (status != null)
+                ? paymentRepository.findByStatus(status, pageable)
+                : paymentRepository.findAll(pageable);
+        return payments.map(p -> new PaymentResponse(
+                p.getId(), p.getType(), p.getAmount(), p.getCurrency(),
+                p.getStatus(), p.getMpesaReceiptNo(), p.getFailReason(),
+                p.getPhoneNumber(), p.getPaidAt(), p.getCreatedAt()
+        ));
     }
 
     public List<Payment> findByUserIdOrderByCreatedAtDesc(UUID userId) {

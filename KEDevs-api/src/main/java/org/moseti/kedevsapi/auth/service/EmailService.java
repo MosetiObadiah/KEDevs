@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.MailAuthenticationException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -135,7 +136,11 @@ public class EmailService {
                     Best regards,
                     The KEDevs Team
                     """, jobTitle, reporterName, reason));
-            mailSender.send(message);
+            try {
+                mailSender.send(message);
+            } catch (MailAuthenticationException e) {
+                log.warn("Could not send admin email (dev email service limit reached): {}", e.getMessage());
+            }
         } catch (Exception e) {
             log.error("Failed to send job flagged email to: {}", to, e);
         }

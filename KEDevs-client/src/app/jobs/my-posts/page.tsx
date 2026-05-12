@@ -141,6 +141,7 @@ export default function MyJobPosts() {
                           </h3>
                         </Link>
                         {(() => {
+                          if (post.status === 'REMOVED') return <Badge variant="destructive" className="text-[10px] uppercase">Removed</Badge>;
                           const isExpired = post.applicationDeadline && new Date(post.applicationDeadline) < new Date();
                           if (isExpired) return <Badge variant="destructive" className="text-[10px] uppercase">Expired</Badge>;
                           if (post.status === 'OPEN') return <Badge className="bg-emerald-500 hover:bg-emerald-500 text-[10px] uppercase">Active</Badge>;
@@ -177,50 +178,59 @@ export default function MyJobPosts() {
 
                     {/* Management Actions */}
                     <div className="flex md:flex-col items-center md:items-end justify-between md:justify-center md:w-48 shrink-0 gap-4">
-                      {!post.isPeerSourced ? (
-                        <Button variant="outline" className="w-full font-bold group/btn h-11" asChild>
-                          <Link href={`/jobs/${post.id}/applications`}>
-                            Manage Talent
-                            <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
-                          </Link>
-                        </Button>
-                      ) : (
-                        <div className="w-full py-2 px-4 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                          <ExternalLink className="h-3 w-3" /> External Source
+                      {post.status === 'REMOVED' ? (
+                        <div className="w-full py-3 px-4 rounded-xl bg-destructive/10 border border-destructive/20 flex flex-col items-center justify-center gap-1 text-[10px] font-black uppercase tracking-widest text-destructive text-center">
+                          <AlertCircle className="h-4 w-4 mb-1" />
+                          Post Unavailable
                         </div>
-                      )}
-
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-slate-100" asChild>
-                          <Link href={`/jobs/post?edit=${post.id}`}>
-                            <Edit3 className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                        
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-slate-100">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="rounded-xl p-2 border-slate-100 shadow-xl min-w-[180px]">
-                            <DropdownMenuItem className="rounded-lg font-bold gap-3" asChild>
-                              <Link href={`/jobs/${post.id}`}>
-                                <Eye className="h-4 w-4" /> Preview Live
+                      ) : (
+                        <>
+                          {!post.isPeerSourced ? (
+                            <Button variant="outline" className="w-full font-bold group/btn h-11" asChild>
+                              <Link href={`/jobs/${post.id}/applications`}>
+                                Manage Talent
+                                <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
                               </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            {post.status !== 'CLOSED' && (
-                              <DropdownMenuItem className="rounded-lg font-bold gap-3 text-amber-600" onClick={() => handleClosePost(post.id)}>
-                                <Lock className="h-4 w-4" /> Close Listing
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuItem className="rounded-lg font-bold gap-3 text-destructive" onClick={() => handleDeletePost(post.id)}>
-                              <Trash2 className="h-4 w-4" /> Delete Post
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
+                            </Button>
+                          ) : (
+                            <div className="w-full py-2 px-4 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                              <ExternalLink className="h-3 w-3" /> External Source
+                            </div>
+                          )}
+
+                          <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-slate-100" asChild>
+                              <Link href={`/jobs/post?edit=${post.id}`}>
+                                <Edit3 className="h-4 w-4" />
+                              </Link>
+                            </Button>
+                            
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-slate-100">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="rounded-xl p-2 border-slate-100 shadow-xl min-w-[180px]">
+                                <DropdownMenuItem className="rounded-lg font-bold gap-3" asChild>
+                                  <Link href={`/jobs/${post.id}`}>
+                                    <Eye className="h-4 w-4" /> Preview Live
+                                  </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                {post.status !== 'CLOSED' && (
+                                  <DropdownMenuItem className="rounded-lg font-bold gap-3 text-amber-600" onClick={() => handleClosePost(post.id)}>
+                                    <Lock className="h-4 w-4" /> Close Listing
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem className="rounded-lg font-bold gap-3 text-destructive" onClick={() => handleDeletePost(post.id)}>
+                                  <Trash2 className="h-4 w-4" /> Delete Post
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </CardContent>

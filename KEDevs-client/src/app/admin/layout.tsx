@@ -41,7 +41,6 @@ const menuItems = [
   { text: 'Verification Queue', icon: ShieldCheck, path: '/admin/verification' },
   { text: 'Flagged Content', icon: Flag, path: '/admin/flags' },
   { text: 'Spotlight', icon: Sparkles, path: '/admin/spotlight' },
-  { text: 'Platform Reports', icon: BarChart3, path: '/admin/reports' },
   { text: 'Audit Log', icon: History, path: '/admin/audit' },
   { text: 'Settings', icon: Settings, path: '/admin/settings' },
 ];

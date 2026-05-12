@@ -68,7 +68,7 @@ export const adminService = {
   },
 
   async updateSetting(key: string, value: any): Promise<ApiResponse<any>> {
-    return apiClient.put<ApiResponse<any>>(`/api/v1/admin/settings/${key}`, { value });
+    return apiClient.put<ApiResponse<any>>(`/api/v1/admin/settings/${key}`, { settingValue: String(value) });
   },
 
   async getFlaggedUsers(page = 0, size = 20): Promise<ApiResponse<PaginatedResponse<any>>> {

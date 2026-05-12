@@ -74,7 +74,7 @@ public class SpotlightController {
         @ApiResponse(responseCode = "403", description = "Insufficient permissions")
     })
     @GetMapping("/admin/slots")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<SpotlightSlotResponse>>> getSlotHistory(Pageable pageable) {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Spotlight history fetched",
                 spotlightService.getSlotHistory(pageable)));
@@ -88,7 +88,7 @@ public class SpotlightController {
         @ApiResponse(responseCode = "404", description = "Spotlight slot not found")
     })
     @PatchMapping("/admin/slots/{slotId}/override")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<SpotlightSlotResponse>> adminOverride(
             @Parameter(description = "ID of the spotlight slot") @PathVariable UUID slotId,
             @Valid @RequestBody AdminOverrideRequest request) {

@@ -6,14 +6,28 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { JobSummary, DeveloperSummary } from '@/lib/types';
+import { JobSummary, DeveloperSummary, PublicStats } from '@/lib/types';
 
 interface HeroProps {
   randomJob?: JobSummary | null;
   randomDev?: DeveloperSummary | null;
+  stats?: PublicStats | null;
 }
 
-export const Hero = ({ randomJob, randomDev }: HeroProps) => {
+const formatCompact = (num: number): string => {
+  if (num >= 1000) {
+    return (Math.floor(num / 100) / 10).toFixed(1).replace('.0', '') + 'k+';
+  }
+  if (num >= 100) {
+    return (Math.floor(num / 50) * 50) + '+';
+  }
+  if (num >= 10) {
+    return (Math.floor(num / 10) * 10) + '+';
+  }
+  return num.toString();
+};
+
+export const Hero = ({ randomJob, randomDev, stats }: HeroProps) => {
   return (
     <section className="relative overflow-hidden bg-background py-12 md:py-24 lg:py-32">
       {/* Decorative background elements */}
@@ -48,9 +62,9 @@ export const Hero = ({ randomJob, randomDev }: HeroProps) => {
             {/* Stats */}
             <div className="flex gap-10 pt-10 border-t border-border">
               {[
-                { label: 'Developers', value: '2.5k+' },
-                { label: 'Companies', value: '150+' },
-                { label: 'Jobs Posted', value: '800+' },
+                { label: 'Developers', value: stats ? formatCompact(stats.developerCount) : '...' },
+                { label: 'Companies', value: stats ? formatCompact(stats.companyCount) : '...' },
+                { label: 'Jobs Posted', value: stats ? formatCompact(stats.jobCount) : '...' },
               ].map((stat) => (
                 <div key={stat.label}>
                   <p className="text-2xl font-bold text-foreground">{stat.value}</p>

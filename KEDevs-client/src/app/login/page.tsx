@@ -13,6 +13,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { useGoogleLogin } from '@react-oauth/google';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,12 +35,17 @@ export default function LoginPage() {
       try {
         await googleLogin(tokenResponse.access_token);
       } catch (err: any) {
-        setError(err.message || 'Google Login failed.');
+        const errorMessage = err.message || 'Google Login failed.';
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setLoading(false);
       }
     },
-    onError: () => setError('Google Login failed.')
+    onError: () => {
+      setError('Google Login failed.');
+      toast.error('Google Login failed.');
+    }
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,7 +55,9 @@ export default function LoginPage() {
     try {
       await login({ email, password });
     } catch (err: any) {
-      setError(err.message || 'Failed to login. Please check your credentials.');
+      const errorMessage = err.message || 'Failed to login. Please check your credentials.';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

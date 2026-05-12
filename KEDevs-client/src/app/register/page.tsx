@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   UserPlus, 
@@ -14,7 +14,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { authService } from '@/services/authService';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useGoogleLogin } from '@react-oauth/google';
 import { cn } from '@/lib/utils';
@@ -34,6 +34,14 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { googleLogin } = useAuth();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const urlRole = searchParams.get('role');
+    if (urlRole === 'EMPLOYER' || urlRole === 'DEVELOPER') {
+      setRole(urlRole as 'EMPLOYER' | 'DEVELOPER');
+    }
+  }, [searchParams]);
 
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {

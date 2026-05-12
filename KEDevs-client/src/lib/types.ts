@@ -99,4 +99,10 @@ export interface AuthResponse {
   isVerified: boolean;
 }
 
+export interface PublicStats {
+  developerCount: number;
+  companyCount: number;
+  jobCount: number;
+}
+
 

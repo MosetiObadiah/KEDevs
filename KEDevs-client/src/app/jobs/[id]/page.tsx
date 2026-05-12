@@ -66,7 +66,9 @@ export default function JobDetailPage() {
           setIsDownvoted(response.data.currentUserVote === 'DOWNVOTE');
         }
       } catch (err: any) {
-        setError('Failed to fetch job details.');
+        const msg = err.message || 'Job not found';
+        setError(msg);
+        toast.error(msg);
       } finally {
         setIsLoading(false);
       }

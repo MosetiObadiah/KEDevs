@@ -51,4 +51,8 @@ public class Payment extends BaseEntity {
 
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
+
+    @Column(name = "fail_reason", length = 500)
+    private String failReason;
 }
+

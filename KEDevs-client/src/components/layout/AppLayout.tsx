@@ -103,7 +103,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         { label: 'Verification Queue', href: '/admin/verification', icon: ShieldCheck },
         { label: 'Flagged Content', href: '/admin/flags', icon: Flag },
         { label: 'Spotlight', href: '/admin/spotlight', icon: Sparkles },
-        { label: 'Platform Reports', href: '/admin/reports', icon: BarChart3 },
         { label: 'Audit Log', href: '/admin/audit', icon: History },
         { label: 'Settings', href: '/admin/settings', icon: Settings },
       ]

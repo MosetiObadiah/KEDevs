@@ -13,7 +13,8 @@ import {
   Briefcase,
   FilterX,
   Plus,
-  Building2
+  Building2,
+  Loader2
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { jobService } from '@/services/jobService';
@@ -155,7 +156,7 @@ export default function JobsPage() {
         setSelectedJobId(null);
       }
     } catch (err: any) {
-      toast.error(err.message || 'Failed to report job. You may have already flagged it.');
+      toast.error(err.message || 'Failed to report job. You may not be able to flag this listing.');
     } finally {
       setIsSubmittingFlag(false);
     }

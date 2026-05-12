@@ -12,8 +12,11 @@ import org.moseti.kedevsapi.admin.service.AdminService;
 import org.moseti.kedevsapi.shared.enums.AccountStatus;
 import org.moseti.kedevsapi.shared.enums.CommentFlagStatus;
 import org.moseti.kedevsapi.shared.enums.FlagStatus;
+import org.moseti.kedevsapi.shared.enums.PaymentStatus;
 import org.moseti.kedevsapi.shared.enums.Role;
 import org.moseti.kedevsapi.shared.enums.UserFlagStatus;
+import org.moseti.kedevsapi.payments.service.PaymentService;
+import org.moseti.kedevsapi.payments.dto.PaymentDtos.PaymentResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -33,6 +36,7 @@ import java.util.UUID;
 public class AdminController {
 
     private final AdminService adminService;
+    private final PaymentService paymentService;
 
     // --- Dashboard & Analytics ---
 
@@ -325,6 +329,21 @@ public class AdminController {
             @Parameter(description = "Key of the setting") @PathVariable String key,
             @Valid @RequestBody UpdateSettingRequest request) {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Setting updated", adminService.updatePlatformSetting(getCurrentAdminId(), key, request)));
+    }
+
+    // --- Payments ---
+
+    @Operation(summary = "Admin: list all platform payments with optional status filter")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Payments retrieved successfully")
+    })
+    @GetMapping("/payments")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<org.springframework.data.domain.Page<PaymentResponse>>> getAllPayments(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) PaymentStatus status) {
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success(
+                "Payments retrieved", paymentService.getAllPayments(page, size, status)));
     }
 
     // --- Audit Log ---

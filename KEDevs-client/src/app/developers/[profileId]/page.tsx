@@ -240,7 +240,14 @@ export default function DeveloperProfilePage() {
             <PublicProfileSidebar 
               profile={dev}
               isLoggedIn={isLoggedIn}
-              onContact={handleContactDeveloper}
+              onContact={() => {
+                if (!isLoggedIn) {
+                  toast.error("Please sign in to contact developers");
+                  router.push('/login');
+                  return;
+                }
+                handleContactDeveloper();
+              }}
               onEndorse={() => {
                 if (!isLoggedIn) {
                   toast.error("Please sign in to endorse developers");

@@ -47,10 +47,12 @@ public class PaymentDtos {
             String currency,
             PaymentStatus status,
             String mpesaReceiptNo,
+            String failReason,
             String phoneNumber,
             LocalDateTime paidAt,
             LocalDateTime createdAt
     ) {}
+
 
     public record SubscriptionStatusResponse(
             boolean hasAnnualMembership,

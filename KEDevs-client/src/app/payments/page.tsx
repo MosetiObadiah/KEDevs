@@ -32,7 +32,7 @@ import { usePlatformSettings } from '@/hooks/usePlatformSettings';
 import { paymentService } from '@/services/paymentService';
 import { spotlightService } from '@/services/spotlightService';
 import { cn } from '@/lib/utils';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -292,6 +292,8 @@ export default function PaymentsPage() {
                           <TableHead className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground py-4 px-6">Timestamp</TableHead>
                           <TableHead className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground py-4 px-6">Service Type</TableHead>
                           <TableHead className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground py-4 px-6 text-center">Amount (KES)</TableHead>
+                          <TableHead className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground py-4 px-6">Phone</TableHead>
+                          <TableHead className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground py-4 px-6">Receipt / Note</TableHead>
                           <TableHead className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground py-4 px-6 text-right">Status</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -305,7 +307,7 @@ export default function PaymentsPage() {
                             </TableCell>
                             <TableCell className="py-5 px-6">
                               <span className="font-bold text-foreground text-sm tracking-tight">
-                                {row.type?.replace(/_/g, ' ').toUpperCase() || 'PLATFORM_SERVICE'}
+                                {row.type?.split('_').map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(' ') || 'Platform Service'}
                               </span>
                             </TableCell>
                             <TableCell className="py-5 px-6 text-center">
@@ -313,10 +315,31 @@ export default function PaymentsPage() {
                                 {Number(row.amount || 0).toLocaleString()}
                               </span>
                             </TableCell>
+                            <TableCell className="py-5 px-6">
+                              <span className="text-xs text-muted-foreground font-medium">
+                                {row.phoneNumber || '—'}
+                              </span>
+                            </TableCell>
+                            <TableCell className="py-5 px-6 max-w-[200px]">
+                              {row.status === 'COMPLETED' && row.mpesaReceiptNo ? (
+                                <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+                                  {row.mpesaReceiptNo}
+                                </span>
+                              ) : row.failReason ? (
+                                <span className="text-xs text-destructive/70 truncate block" title={row.failReason}>
+                                  {row.failReason}
+                                </span>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">—</span>
+                              )}
+                            </TableCell>
                             <TableCell className="py-5 px-6 text-right">
                               <Badge className={cn(
                                 "rounded-lg font-black text-[9px] uppercase tracking-widest border-none px-2 py-0.5 text-white",
-                                row.status === 'COMPLETED' ? "bg-emerald-500" : row.status === 'PENDING' ? "bg-amber-500" : "bg-destructive"
+                                row.status === 'COMPLETED' ? "bg-emerald-500" 
+                                  : row.status === 'PENDING' ? "bg-amber-500"
+                                  : row.status === 'CANCELLED' ? "bg-slate-400"
+                                  : "bg-destructive"
                               )}>
                                 {row.status}
                               </Badge>
@@ -327,7 +350,7 @@ export default function PaymentsPage() {
                     </Table>
                   </div>
                 )}
-                
+
                 <div className="p-6 bg-muted/20 border-t border-border/50 flex items-center gap-3">
                   <AlertCircle className="h-3.5 w-3.5 text-muted-foreground" />
                   <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">All transactions are processed via secure encrypted channels</p>

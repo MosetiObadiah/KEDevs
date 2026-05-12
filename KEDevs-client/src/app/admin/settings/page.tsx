@@ -53,7 +53,12 @@ export default function PlatformSettings() {
         const response = await adminService.getSettings();
         if (response.success) {
           const entries = Array.isArray(response.data)
-            ? response.data.map((item: any) => ({ key: item.key, label: item.label || item.key, value: String(item.value), unit: item.unit || '' }))
+            ? response.data.map((item: any) => ({ 
+                key: item.settingKey, 
+                label: item.description || item.settingKey.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()), 
+                value: String(item.settingValue), 
+                unit: (item.settingKey.includes('FEE') || item.settingKey.includes('BADGE')) ? 'KES' : '' 
+              }))
             : Object.entries(response.data || {}).map(([key, value]) => ({ key, label: key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()), value: String(value), unit: '' }));
           setSettings(entries);
         }

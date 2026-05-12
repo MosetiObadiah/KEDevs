@@ -19,6 +19,9 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletResponse;
+import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
@@ -31,6 +34,7 @@ public class SecurityConfig {
         private static final String[] PUBLIC_URLS = {
                         "/api/v1/auth/**",
                         "/api/v1/jobs/**",
+                        "/api/v1/stats/**",
                         "/api/v1/employers/public/**",
                         "/api/v1/developers/public/**",
                         "/api/v1/spotlight/current",
@@ -66,6 +70,26 @@ public class SecurityConfig {
                                                                 "/api/v1/forum/comments/{commentId}/replies")
                                                 .permitAll()
                                                 .anyRequest().authenticated())
+                                .exceptionHandling(ex -> ex
+                                                .authenticationEntryPoint((request, response, authException) -> {
+                                                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                                                        response.setContentType("application/json");
+                                                        response.getWriter().write(
+                                                                new ObjectMapper().writeValueAsString(
+                                                                        Map.of("success", false, "message", "Authentication required. Please log in.")
+                                                                )
+                                                        );
+                                                })
+                                                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                                                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                                                        response.setContentType("application/json");
+                                                        response.getWriter().write(
+                                                                new ObjectMapper().writeValueAsString(
+                                                                        Map.of("success", false, "message", "Access denied. You do not have permission to access this resource.")
+                                                                )
+                                                        );
+                                                })
+                                )
                                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
                 return http.build();
         }

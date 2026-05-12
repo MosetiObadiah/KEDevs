@@ -23,9 +23,6 @@ public class DarajaConfigCheck {
     public void init() {
         // This will print to your console immediately after the bean is initialized
         System.out.println("DEBUG: The callback URL is: " + callbackUrl);
-        System.out.println("DEBUG: The Cloudinary API Key is: " + cloudinaryApiKey);
-        System.out.println("DEBUG: The Cloudinary API Secret is: " + cloudinaryApiSecret);
-        System.out.println("DEBUG: The Cloudinary Cloud Name is: " + cloudinaryCloudName);
         
     }
 }

@@ -47,4 +47,6 @@ public interface JobPostRepository extends JpaRepository<JobPost, UUID> {
             Pageable pageable);
 
     Page<JobPost> findByStatusNotOrderByUpvoteCountDesc(JobStatus status, Pageable pageable);
+
+    long countByVisibilityAndStatus(JobVisibility visibility, JobStatus status);
 }

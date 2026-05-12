@@ -87,6 +87,8 @@ async function handleResponse<T>(response: Response, requestFn?: () => Promise<R
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('isOnboarded');
         window.location.href = '/login';
+        // Return a never-resolving promise — the page is navigating away
+        return new Promise(() => {}) as Promise<T>;
       }
     }
   }

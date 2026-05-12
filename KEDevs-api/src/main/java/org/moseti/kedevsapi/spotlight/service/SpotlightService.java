@@ -156,7 +156,7 @@ public class SpotlightService {
 
         return new PastSpotlightResponse(
                 slot.getId(),
-                slot.getDeveloperId(),
+                profile != null ? profile.getId() : slot.getDeveloperId(),
                 developerName,
                 profile != null ? profile.getProfilePhoto() : null,
                 profile != null ? profile.getCurrentLastRole() : null,
@@ -285,7 +285,7 @@ public class SpotlightService {
                 .toList();
 
         return new DeveloperSpotlightCard(
-                developerId,
+                profile.getId(),
                 developerName,
                 profile.getProfilePhoto(),
                 profile.getBio(),

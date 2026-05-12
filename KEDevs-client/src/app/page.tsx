@@ -19,7 +19,8 @@ import { Hero } from '@/components/home/Hero';
 import SpotlightSection from '@/components/home/SpotlightSection';
 import { jobService } from '@/services/jobService';
 import { developerService } from '@/services/developerService';
-import { JobSummary, DeveloperSummary } from '@/lib/types';
+import { statsService } from '@/services/statsService';
+import { JobSummary, DeveloperSummary, PublicStats } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -46,10 +47,16 @@ export default function HomePage() {
   const [dayDev, setDayDev] = useState<any>(null);
   const [weekDev, setWeekDev] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState<PublicStats | null>(null);
 
   useEffect(() => {
     const fetchLandingData = async () => {
       try {
+        // Fetch Stats
+        statsService.getPublicStats().then(res => {
+          if (res.success) setStats(res.data);
+        }).catch(console.error);
+
         // Fetch Jobs
         const jobsResponse = await jobService.getPublicJobs(0, 3);
         if (jobsResponse.success) {
@@ -132,7 +139,7 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col">
-      <Hero randomJob={randomJob} randomDev={randomDev} />
+      <Hero randomJob={randomJob} randomDev={randomDev} stats={stats} />
 
       {/* Featured Jobs Section */}
       <section className="bg-muted/30 py-20 md:py-32">
@@ -359,7 +366,7 @@ export default function HomePage() {
             Join hundreds of companies hiring top Kenyan developers every day. Post your first job for free.
           </p>
           <Button size="lg" variant="secondary" className="h-16 px-12 text-lg font-black rounded-2xl shadow-2xl shadow-black/20 group" asChild>
-            <Link href="/register">
+            <Link href="/register?role=EMPLOYER">
               Post a Job for Free <Sparkles className="ml-3 h-5 w-5 group-hover:scale-110 transition-transform" />
             </Link>
           </Button>

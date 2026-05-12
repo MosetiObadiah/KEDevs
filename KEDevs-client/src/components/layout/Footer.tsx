@@ -20,10 +20,15 @@ const Footer = () => {
           <div>
             <h3 className="text-sm font-semibold mb-4">Platform</h3>
             <ul className="space-y-2">
-              {['Browse Jobs', 'Developer Directory', 'Company Board', 'Success Stories'].map(item => (
-                <li key={item}>
-                  <Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                    {item}
+              {[
+                { label: 'Browse Jobs', href: '/jobs' },
+                { label: 'Developer Directory', href: '/developers' },
+                { label: 'Company Board', href: '/companies' },
+                { label: 'Success Stories', href: '/spotlight' }
+              ].map(item => (
+                <li key={item.label}>
+                  <Link href={item.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                    {item.label}
                   </Link>
                 </li>
               ))}
@@ -60,9 +65,13 @@ const Footer = () => {
             © {new Date().getFullYear()} KEDevs Connect. All rights reserved. Made in Nairobi.
           </p>
           <div className="flex gap-6">
-            {['Privacy Policy', 'Terms of Service', 'Cookie Policy'].map(item => (
-              <Link key={item} href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-                {item}
+            {[
+              { label: 'Privacy Policy', href: '/privacy' },
+              { label: 'Terms of Service', href: '/terms' },
+              { label: 'Cookie Policy', href: '#' }
+            ].map(item => (
+              <Link key={item.label} href={item.href} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                {item.label}
               </Link>
             ))}
           </div>

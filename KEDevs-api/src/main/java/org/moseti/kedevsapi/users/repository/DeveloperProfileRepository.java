@@ -25,4 +25,6 @@ public interface DeveloperProfileRepository extends JpaRepository<DeveloperProfi
             ProfileVisibility visibility,
             Pageable pageable
     );
+
+    long countByProfileVisibility(ProfileVisibility visibility);
 }
