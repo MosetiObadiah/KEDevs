@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: [
+    'monogamy-revoke-treble.ngrok-free.dev',
     '192.168.100.3',
     'monogamy-revoke-treble.ngrok-free.dev',
   ],
