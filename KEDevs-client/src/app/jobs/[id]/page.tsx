@@ -262,6 +262,17 @@ export default function JobDetailPage() {
               </div>
             </div>
 
+            {/* Flagged warning banner */}
+            {job.isFlagged && (
+              <div className="flex items-center gap-3 bg-destructive/10 border border-destructive/30 rounded-xl p-4">
+                <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+                <div>
+                  <p className="text-sm font-black text-destructive">This job is under moderation review</p>
+                  <p className="text-xs text-destructive/80 font-medium mt-0.5">Applications are temporarily disabled until the review is complete.</p>
+                </div>
+              </div>
+            )}
+
             {/* 2. Job Description */}
             <div className="space-y-4 min-w-0 overflow-hidden">
               <h2 className="text-lg font-semibold">Job Description</h2>
@@ -375,6 +386,14 @@ export default function JobDetailPage() {
                     <Button size="sm" variant="outline" className="w-full font-semibold" onClick={handleEditJob}>
                       <Pencil className="w-3.5 h-3.5 mr-2" /> Edit Job
                     </Button>
+                  </div>
+                ) : job.isFlagged ? (
+                  <div className="space-y-2">
+                    <Button size="lg" className="w-full font-bold bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/30" disabled>
+                      <AlertTriangle className="w-4 h-4 mr-2" />
+                      Under Review
+                    </Button>
+                    <p className="text-xs text-center text-muted-foreground font-medium">Applications disabled during moderation</p>
                   </div>
                 ) : job.hasApplied ? (
                   <Button size="lg" className="w-full bg-emerald-600 hover:bg-emerald-700 font-bold" disabled>

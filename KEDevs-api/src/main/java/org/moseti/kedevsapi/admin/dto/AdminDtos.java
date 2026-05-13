@@ -76,6 +76,7 @@ public class AdminDtos {
     public record AdminActionResponse(
             UUID id,
             UUID adminId,
+            String adminName,
             String actionType,
             String targetType,
             UUID targetId,

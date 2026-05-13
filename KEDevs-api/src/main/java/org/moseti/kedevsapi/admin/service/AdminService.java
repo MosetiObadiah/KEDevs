@@ -538,6 +538,20 @@ public class AdminService {
         return adminActionRepository.findAll(pageable).map(this::toAdminActionResponse);
     }
 
+    public Page<AdminActionResponse> getFilteredActionLog(String actionType, UUID actorId, Pageable pageable) {
+        if (actionType != null && actorId != null) {
+            // Compose: filter by both — fetch by actor then filter in memory (table is small)
+            return adminActionRepository.findByAdminId(actorId, pageable)
+                    .map(this::toAdminActionResponse)
+                    .map(r -> actionType.equalsIgnoreCase(r.actionType()) ? r : null);
+        } else if (actionType != null) {
+            return adminActionRepository.findByActionType(actionType, pageable).map(this::toAdminActionResponse);
+        } else if (actorId != null) {
+            return adminActionRepository.findByAdminId(actorId, pageable).map(this::toAdminActionResponse);
+        }
+        return adminActionRepository.findAll(pageable).map(this::toAdminActionResponse);
+    }
+
     // --- Analytics ---
 
     public AnalyticsSummaryResponse getAnalyticsSummary() {
@@ -701,7 +715,10 @@ public class AdminService {
     }
 
     private AdminActionResponse toAdminActionResponse(AdminAction a) {
-        return new AdminActionResponse(a.getId(), a.getAdminId(), a.getActionType(),
+        String adminName = userRepository.findById(a.getAdminId())
+                .map(User::getFullName)
+                .orElse("Unknown Admin");
+        return new AdminActionResponse(a.getId(), a.getAdminId(), adminName, a.getActionType(),
                 a.getTargetType(), a.getTargetId(), a.getNotes(), a.getOutcome(), a.getCreatedAt());
     }
 }

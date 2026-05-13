@@ -346,8 +346,6 @@ public class AdminController {
                 "Payments retrieved", paymentService.getAllPayments(page, size, status)));
     }
 
-    // --- Audit Log ---
-
     @Operation(summary = "Admin: view recent administrative actions")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Admin action log retrieved successfully")
@@ -355,6 +353,19 @@ public class AdminController {
     @GetMapping("/actions")
     public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<AdminActionResponse>>> getActionLog(@PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Admin action log retrieved", adminService.getAdminActionLog(pageable)));
+    }
+
+    @Operation(summary = "Admin: get filterable audit log of all administrative actions")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Audit log retrieved successfully")
+    })
+    @GetMapping("/audit")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<AdminActionResponse>>> getAuditLog(
+            @PageableDefault(size = 25, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable,
+            @RequestParam(required = false) String action,
+            @RequestParam(required = false) UUID actorId) {
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success(
+                "Audit log retrieved", adminService.getFilteredActionLog(action, actorId, pageable)));
     }
 
     private UUID getCurrentAdminId() {

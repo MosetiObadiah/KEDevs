@@ -50,6 +50,16 @@ export const adminService = {
     return apiClient.get<ApiResponse<any>>('/api/v1/admin/actions');
   },
 
+  async getAuditLog(params: { page?: number; size?: number; action?: string; actorId?: string } = {}): Promise<ApiResponse<PaginatedResponse<any>>> {
+    const q = new URLSearchParams();
+    q.append('page', String(params.page ?? 0));
+    q.append('size', String(params.size ?? 25));
+    q.append('sort', 'createdAt,desc');
+    if (params.action) q.append('action', params.action);
+    if (params.actorId) q.append('actorId', params.actorId);
+    return apiClient.get<ApiResponse<PaginatedResponse<any>>>(`/api/v1/admin/audit?${q.toString()}`);
+  },
+
   async getUsers(filters: Record<string, any> = {}): Promise<ApiResponse<PaginatedResponse<any>>> {
     const query = new URLSearchParams(Object.entries(filters).filter(([_, value]) => value != null) as any).toString();
     return apiClient.get<ApiResponse<PaginatedResponse<any>>>(`/api/v1/admin/users${query ? `?${query}` : ''}`);

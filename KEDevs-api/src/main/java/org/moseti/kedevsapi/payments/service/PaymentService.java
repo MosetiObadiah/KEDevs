@@ -231,23 +231,20 @@ public class PaymentService {
             return;
         }
 
-        // Idempotency: skip if already in a terminal state
-        if (payment.getStatus() == PaymentStatus.COMPLETED
-                || payment.getStatus() == PaymentStatus.FAILED
-                || payment.getStatus() == PaymentStatus.CANCELLED) {
+        // Idempotency: skip if already in a terminal state, UNLESS it's a manual confirmation we want to overwrite with Daraja real data
+        if ((payment.getStatus() == PaymentStatus.COMPLETED || payment.getStatus() == PaymentStatus.FAILED || payment.getStatus() == PaymentStatus.CANCELLED) 
+            && !payment.getMpesaReceiptNo().startsWith("MANUAL-")) {
             log.info("Payment {} already processed ({}), skipping callback", payment.getId(), payment.getStatus());
             return;
         }
 
         if (stkCallback.resultCode() == 0) {
-            // Success — extract all available metadata fields
             if (stkCallback.callbackMetadata() != null && stkCallback.callbackMetadata().item() != null) {
                 for (DarajaCallbackRequest.CallbackItem item : stkCallback.callbackMetadata().item()) {
                     if (item.value() == null) continue;
                     switch (item.name()) {
-                        case "MpesaReceiptNumber" -> payment.setMpesaReceiptNo(item.value().toString());
                         case "Amount" -> payment.setAmount(new java.math.BigDecimal(item.value().toString()));
-                        case "PhoneNumber" -> payment.setPhoneNumber(item.value().toString());
+                        case "MpesaReceiptNumber" -> payment.setMpesaReceiptNo(item.value().toString());
                         case "TransactionDate" -> {
                             try {
                                 payment.setPaidAt(parseMpesaDate(item.value().toString()));
@@ -256,12 +253,9 @@ public class PaymentService {
                                 payment.setPaidAt(LocalDateTime.now());
                             }
                         }
+                        case "PhoneNumber" -> payment.setPhoneNumber(item.value().toString());
                     }
                 }
-            }
-            // Ensure paidAt is always set even if metadata was missing
-            if (payment.getPaidAt() == null) {
-                payment.setPaidAt(LocalDateTime.now());
             }
             payment.setStatus(PaymentStatus.COMPLETED);
             paymentRepository.save(payment);

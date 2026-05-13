@@ -52,6 +52,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 export default function PaymentsPage() {
   const { user } = useAuth();
@@ -64,6 +71,7 @@ export default function PaymentsPage() {
   const [loading, setLoading] = useState(true);
   const [confirming, setConfirming] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<any>(null);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -299,7 +307,14 @@ export default function PaymentsPage() {
                       </TableHeader>
                       <TableBody>
                         {paymentHistory.map((row) => (
-                          <TableRow key={row.id} className="border-border/50 hover:bg-muted/20 transition-colors">
+                          <TableRow 
+                            key={row.id} 
+                            className={cn(
+                               "border-border/50 transition-colors",
+                               row.status === 'COMPLETED' ? "cursor-pointer hover:bg-muted/30" : "hover:bg-muted/20"
+                            )}
+                            onClick={() => { if (row.status === 'COMPLETED') setSelectedPayment(row); }}
+                          >
                             <TableCell className="py-5 px-6">
                               <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
                                 <Clock className="h-3 w-3" /> {formatDate(row.paidAt || row.createdAt)}
@@ -422,6 +437,56 @@ export default function PaymentsPage() {
                  )}
               </CardContent>
             </Card>
+
+            {/* Receipt Dialog */}
+            <Dialog open={!!selectedPayment} onOpenChange={(open) => !open && setSelectedPayment(null)}>
+              <DialogContent className="sm:max-w-[425px] rounded-[2rem]">
+                <DialogHeader className="text-center sm:text-center pb-4 border-b border-border/50">
+                  <div className="mx-auto w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
+                    <CheckCircle2 className="w-6 h-6" />
+                  </div>
+                  <DialogTitle className="font-black text-2xl text-slate-900">Payment Receipt</DialogTitle>
+                  <DialogDescription className="font-bold text-[10px] uppercase tracking-widest text-slate-500">
+                    Secure transaction record
+                  </DialogDescription>
+                </DialogHeader>
+                {selectedPayment && (
+                  <div className="space-y-4 py-4">
+                    <div className="flex justify-between items-center py-2 border-b border-dashed border-border/50">
+                      <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Receipt No</span>
+                      <span className="text-sm font-mono font-bold text-emerald-700">{selectedPayment.mpesaReceiptNo || '—'}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b border-dashed border-border/50">
+                      <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Date</span>
+                      <span className="text-sm font-bold text-slate-900">{formatDate(selectedPayment.paidAt || selectedPayment.createdAt)}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b border-dashed border-border/50">
+                      <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Service</span>
+                      <span className="text-sm font-bold text-slate-900">
+                        {selectedPayment.type?.split('_').map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(' ') || 'Platform Service'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b border-dashed border-border/50">
+                      <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Amount</span>
+                      <span className="text-sm font-black text-slate-900">KES {Number(selectedPayment.amount || 0).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b border-dashed border-border/50">
+                      <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Phone</span>
+                      <span className="text-sm font-medium text-slate-900">{selectedPayment.phoneNumber || '—'}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2">
+                      <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status</span>
+                      <Badge className="bg-emerald-500 text-white font-black text-[10px] uppercase tracking-widest border-none px-2 py-0.5">
+                        {selectedPayment.status}
+                      </Badge>
+                    </div>
+                  </div>
+                )}
+                <div className="text-center pt-2 pb-4">
+                  <p className="text-[10px] text-muted-foreground font-medium italic">Thank you for your business. For any queries, contact support.</p>
+                </div>
+              </DialogContent>
+            </Dialog>
           </main>
         </div>
       </div>

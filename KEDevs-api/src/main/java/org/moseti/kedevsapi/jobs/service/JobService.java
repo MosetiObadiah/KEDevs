@@ -315,6 +315,10 @@ public class JobService {
             throw new JobNotOpenException("Job is not open for applications");
         }
 
+        if (job.isFlagged()) {
+            throw new BadRequestException("This job is currently under review and cannot accept applications");
+        }
+
         if (job.getPostedById().equals(userId)) {
             throw new CannotApplyToOwnJobException("Cannot apply to your own job");
         }
@@ -577,6 +581,7 @@ public class JobService {
                 job.getVisibility(),
                 job.getStatus(),
                 job.getUpvoteCount(),
+                job.isFlagged(),
                 job.isPeerSourced(),
                 job.getSourceUrl(),
                 tags,

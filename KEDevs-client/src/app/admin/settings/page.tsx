@@ -100,14 +100,7 @@ export default function PlatformSettings() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-         <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-               <Settings2 className="h-8 w-8 text-primary" /> Platform Settings
-            </h1>
-            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">Manage runtime pricing, boundary conditions, and governance windows.</p>
-         </div>
-      </div>
+
 
       <div className="p-6 rounded-[2.5rem] bg-blue-50 border-2 border-blue-100 flex gap-4 shadow-sm">
          <Info className="h-6 w-6 text-blue-500 shrink-0" />

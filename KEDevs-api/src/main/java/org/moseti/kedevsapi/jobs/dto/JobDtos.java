@@ -133,6 +133,7 @@ public class JobDtos {
             JobVisibility visibility,
             JobStatus status,
             int upvoteCount,
+            boolean isFlagged,
             boolean isPeerSourced,
             String sourceUrl,
             List<String> tags,

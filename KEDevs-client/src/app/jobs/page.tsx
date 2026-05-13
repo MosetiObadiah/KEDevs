@@ -374,14 +374,24 @@ export default function JobsPage() {
                                   <Button 
                                     variant="ghost" 
                                     size="icon" 
-                                    className="h-9 w-9 rounded-full hover:text-destructive hover:bg-destructive/10" 
+                                    className={cn(
+                                      "h-9 w-9 rounded-full",
+                                      job.isFlagged 
+                                        ? "text-destructive bg-destructive/10" 
+                                        : "text-slate-400 hover:text-destructive hover:bg-destructive/10"
+                                    )}
                                     disabled={!isLoggedIn}
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      if (!isLoggedIn) {
+                                        toast.error("Please login to report jobs");
+                                        return;
+                                      }
                                       setSelectedJobId(job.id);
                                       setIsFlagOpen(true);
                                     }}
                                   >
-                                    <Flag className="h-4 w-4" />
+                                    <Flag className={cn("h-4 w-4", job.isFlagged && "fill-current")} />
                                   </Button>
                                 </TooltipTrigger>
                                 <TooltipContent><p>Report Job</p></TooltipContent>
