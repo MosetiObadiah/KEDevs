@@ -41,7 +41,7 @@ export const Hero = ({ randomJob, randomDev, stats }: HeroProps) => {
           {/* Left Content */}
           <div className="max-w-2xl">
             <Badge variant="secondary" className="mb-6 px-3 py-1 text-xs font-semibold tracking-wider uppercase bg-secondary/50 text-secondary-foreground border-none">
-              🇰🇪 Kenya's Tech Talent Hub
+              Kenya's Tech Talent Hub
             </Badge>
             <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-tight mb-6">
               Find Kenyan tech <span className="text-primary">talent</span> and <span className="text-primary">opportunity</span>.
@@ -58,7 +58,7 @@ export const Hero = ({ randomJob, randomDev, stats }: HeroProps) => {
                 <Link href="/register">Join the Community</Link>
               </Button>
             </div>
-            
+
             {/* Stats */}
             <div className="flex gap-10 pt-10 border-t border-border">
               {[

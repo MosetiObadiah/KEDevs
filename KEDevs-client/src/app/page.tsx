@@ -1,11 +1,11 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { 
-  ArrowRight, 
-  CheckCircle2, 
-  Briefcase, 
-  Building2, 
+import {
+  ArrowRight,
+  CheckCircle2,
+  Briefcase,
+  Building2,
   Users,
   MapPin,
   Clock,
@@ -28,7 +28,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
-import { 
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -67,7 +67,7 @@ export default function HomePage() {
         // Fetch Developers
         let devs: DeveloperSummary[] = [];
         const spotlightResponse = await developerService.getCurrentSpotlight();
-        
+
         if (spotlightResponse.success) {
           const { daySlot, weekSlot } = spotlightResponse.data;
           setDayDev(daySlot);
@@ -83,10 +83,10 @@ export default function HomePage() {
                 currentLastRole: slot.currentLastRole,
                 skills: slot.featuredProjects && slot.featuredProjects.length > 0
                   ? (Array.isArray(slot.featuredProjects[0].techStack)
-                      ? slot.featuredProjects[0].techStack
-                      : typeof (slot.featuredProjects[0].techStack as any) === 'string'
-                        ? (slot.featuredProjects[0].techStack as any).split(',')
-                        : [])
+                    ? slot.featuredProjects[0].techStack
+                    : typeof (slot.featuredProjects[0].techStack as any) === 'string'
+                      ? (slot.featuredProjects[0].techStack as any).split(',')
+                      : [])
                   : [],
                 availabilityStatus: 'AVAILABLE',
                 isVerified: slot.isVerified,
@@ -148,7 +148,7 @@ export default function HomePage() {
             <div className="space-y-4">
               <Badge variant="secondary" className="bg-primary/10 text-primary border-none font-bold uppercase tracking-widest text-[10px]">Opportunities</Badge>
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-                Spotlight <span className="text-primary">Jobs</span>
+                <span className="text-primary">Jobs</span>
               </h2>
               <p className="text-muted-foreground max-w-lg">
                 The most upvoted and newest jobs currently available for developers in Kenya.
@@ -228,7 +228,7 @@ export default function HomePage() {
           <div className="flex flex-col items-center text-center mb-16 space-y-4">
             <Badge variant="secondary" className="bg-primary/10 text-primary border-none font-bold uppercase tracking-widest text-[10px]">Talent Directory</Badge>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-              Top <span className="text-primary">Developers</span>
+              <span className="text-primary">Developers</span>
             </h2>
             <p className="text-muted-foreground max-w-lg">
               Connect with Kenya's most skilled engineers and designers.
@@ -265,7 +265,7 @@ export default function HomePage() {
                         </div>
                       )}
                     </Link>
-                    
+
                     <div className="mb-4">
                       <Link href={`/developers/${dev.id}`}>
                         <h3 className="text-xl font-bold group-hover:text-primary transition-colors mb-1">
@@ -275,7 +275,7 @@ export default function HomePage() {
                       <p className="text-sm font-semibold text-muted-foreground">{dev.currentLastRole}</p>
                     </div>
 
-                    <Badge 
+                    <Badge
                       variant={dev.availabilityStatus === 'AVAILABLE' ? 'default' : 'secondary'}
                       className={cn(
                         "mb-6 text-[10px] uppercase font-black px-2 shadow-sm",
@@ -284,7 +284,7 @@ export default function HomePage() {
                     >
                       {dev.availabilityStatus.replace('_', ' ')}
                     </Badge>
-                    
+
                     {isLoggedIn && (user?.role === 'EMPLOYER' || user?.id === dev.id) && (
                       <div className="flex justify-center gap-2 mb-6">
                         <TooltipProvider>
