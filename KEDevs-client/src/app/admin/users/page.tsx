@@ -73,7 +73,6 @@ export default function UserManagement() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [search, setSearch] = useState('');
   const [users, setUsers] = useState<any[]>([]);
-  const [pendingEmployers, setPendingEmployers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -87,16 +86,10 @@ export default function UserManagement() {
     setIsLoading(true);
     setError(null);
     try {
-      const [usersResponse, pendingResponse] = await Promise.all([
-        adminService.getUsers({ page: 0, size: 50 }),
-        adminService.getPendingEmployers(0, 50),
-      ]);
+      const usersResponse = await adminService.getUsers({ page: 0, size: 50 });
 
       if (usersResponse.success) {
         setUsers(usersResponse.data.content || []);
-      }
-      if (pendingResponse.success) {
-        setPendingEmployers(pendingResponse.data.content || []);
       }
     } catch (err: any) {
       setError('Failed to load user database.');
@@ -114,9 +107,10 @@ export default function UserManagement() {
     const matchesRole = filterRole === 'ALL' || u.role === filterRole;
     const matchesStatus = filterStatus === 'ALL' || u.accountStatus === filterStatus;
     
-    const userDate = new Date(u.createdAt).getTime();
-    const matchesAfter = !dateAfter || userDate >= new Date(dateAfter).getTime();
-    const matchesBefore = !dateBefore || userDate <= new Date(dateBefore).getTime() + 86400000; 
+    const uD = new Date(u.createdAt);
+    const userDateStr = `${uD.getFullYear()}-${String(uD.getMonth() + 1).padStart(2, '0')}-${String(uD.getDate()).padStart(2, '0')}`;
+    const matchesAfter = !dateAfter || userDateStr >= dateAfter;
+    const matchesBefore = !dateBefore || userDateStr <= dateBefore; 
     
     return matchesSearch && matchesRole && matchesStatus && matchesAfter && matchesBefore;
   });
@@ -143,25 +137,7 @@ export default function UserManagement() {
     document.body.removeChild(link);
   };
 
-  const handleApproveEmployer = async (profileId: string) => {
-    try {
-      await adminService.approveEmployer(profileId, { approved: true });
-      toast.success('Employer profile approved');
-      fetchUsers();
-    } catch (err: any) {
-      toast.error('Approval failed');
-    }
-  };
 
-  const handleRejectEmployer = async (profileId: string) => {
-    try {
-      await adminService.approveEmployer(profileId, { approved: false, reason: 'Does not meet criteria' });
-      toast.error('Employer profile rejected');
-      fetchUsers();
-    } catch (err: any) {
-      toast.error('Rejection failed');
-    }
-  };
 
   const handleUserAction = async (userId: string, action: string) => {
     try {
@@ -251,19 +227,7 @@ export default function UserManagement() {
       </div>
 
       <Tabs defaultValue="all" onValueChange={setTab} className="w-full">
-        <TabsList className="bg-slate-100/50 p-1 rounded-2xl h-14 mb-8">
-          <TabsTrigger value="all" className="rounded-xl px-8 font-black data-[state=active]:bg-white data-[state=active]:shadow-sm">
-             All Platform Users
-          </TabsTrigger>
-          <TabsTrigger value="pending" className="rounded-xl px-8 font-black data-[state=active]:bg-white data-[state=active]:shadow-sm relative">
-             Verification Requests
-             {pendingEmployers.length > 0 && (
-                <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-[10px] flex items-center justify-center rounded-full border-2 border-white animate-pulse">
-                   {pendingEmployers.length}
-                </span>
-             )}
-          </TabsTrigger>
-        </TabsList>
+
 
         <Card className="border-border/50 shadow-sm overflow-hidden bg-card">
            <CardContent className="p-0">
@@ -284,7 +248,7 @@ export default function UserManagement() {
                       </TableRow>
                    </TableHeader>
                    <TableBody>
-                      {(tab === 'all' ? filteredUsers : pendingEmployers).map((user) => (
+                      {filteredUsers.map((user) => (
                          <TableRow key={user.id} className="border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer group" onClick={() => setSelectedUser(user)}>
                             <TableCell className="py-4 px-8">
                                <div className="flex items-center gap-4">
@@ -304,7 +268,7 @@ export default function UserManagement() {
                                <Badge variant="outline" className={cn(
                                   "rounded-lg font-black text-[9px] uppercase tracking-widest border-none px-2 py-0.5",
                                   user.role === 'DEVELOPER' ? "bg-blue-50 text-blue-600" : "bg-emerald-50 text-emerald-600"
-                               )}>
+                                )}>
                                   {user.role}
                                </Badge>
                             </TableCell>
@@ -323,44 +287,33 @@ export default function UserManagement() {
                             <TableCell className="py-4 px-8">
                                <span className="text-xs font-bold text-slate-500">
                                   {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}
-                               </span>
+                                </span>
                             </TableCell>
                             <TableCell className="py-4 px-8 text-right" onClick={(e) => e.stopPropagation()}>
-                               {tab === 'pending' ? (
-                                  <div className="flex justify-end gap-2">
-                                     <Button size="sm" variant="outline" className="h-8 w-8 p-0 rounded-lg text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700" onClick={() => handleApproveEmployer(user.id)}>
-                                        <Check className="h-4 w-4" />
+                               <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                     <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl">
+                                        <MoreVertical className="h-4 w-4" />
                                      </Button>
-                                     <Button size="sm" variant="outline" className="h-8 w-8 p-0 rounded-lg text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => handleRejectEmployer(user.id)}>
-                                        <X className="h-4 w-4" />
-                                     </Button>
-                                  </div>
-                               ) : (
-                                  <DropdownMenu>
-                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl">
-                                           <MoreVertical className="h-4 w-4" />
-                                        </Button>
-                                     </DropdownMenuTrigger>
-                                     <DropdownMenuContent align="end" className="rounded-2xl border-slate-100 shadow-2xl">
-                                        <DropdownMenuItem className="rounded-xl font-bold gap-2">
-                                           <Eye className="h-4 w-4" /> View Full Profile
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="rounded-2xl border-slate-100 shadow-2xl">
+                                     <DropdownMenuItem className="rounded-xl font-bold gap-2">
+                                        <Eye className="h-4 w-4" /> View Full Profile
+                                     </DropdownMenuItem>
+                                     <DropdownMenuItem className="rounded-xl font-bold gap-2" onClick={() => handleUserAction(user.id, 'WARN')}>
+                                        <AlertTriangle className="h-4 w-4 text-amber-500" /> Send Warning
+                                     </DropdownMenuItem>
+                                     {user.accountStatus === 'ACTIVE' ? (
+                                        <DropdownMenuItem className="rounded-xl font-bold gap-2 text-red-500" onClick={() => handleUserAction(user.id, 'BAN')}>
+                                           <Ban className="h-4 w-4" /> Suspend Account
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem className="rounded-xl font-bold gap-2" onClick={() => handleUserAction(user.id, 'WARN')}>
-                                           <AlertTriangle className="h-4 w-4 text-amber-500" /> Send Warning
+                                     ) : (
+                                        <DropdownMenuItem className="rounded-xl font-bold gap-2 text-emerald-600" onClick={() => handleUserAction(user.id, 'REACTIVATE')}>
+                                           <CheckCircle2 className="h-4 w-4" /> Reactivate Account
                                         </DropdownMenuItem>
-                                        {user.accountStatus === 'ACTIVE' ? (
-                                           <DropdownMenuItem className="rounded-xl font-bold gap-2 text-red-500" onClick={() => handleUserAction(user.id, 'BAN')}>
-                                              <Ban className="h-4 w-4" /> Suspend Account
-                                           </DropdownMenuItem>
-                                        ) : (
-                                           <DropdownMenuItem className="rounded-xl font-bold gap-2 text-emerald-600" onClick={() => handleUserAction(user.id, 'REACTIVATE')}>
-                                              <CheckCircle2 className="h-4 w-4" /> Reactivate Account
-                                           </DropdownMenuItem>
-                                        )}
-                                     </DropdownMenuContent>
-                                  </DropdownMenu>
-                               )}
+                                     )}
+                                  </DropdownMenuContent>
+                               </DropdownMenu>
                             </TableCell>
                          </TableRow>
                       ))}

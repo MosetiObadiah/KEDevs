@@ -351,9 +351,15 @@ public class AdminService {
 
     // --- Flagged Content ---
 
-    public Page<FlaggedJobResponse> getFlaggedJobs(FlagStatus status, Pageable pageable) {
-        FlagStatus searchStatus = status != null ? status : FlagStatus.PENDING;
-        return jobFlagRepository.findByStatus(searchStatus, pageable)
+    public Page<FlaggedJobResponse> getFlaggedJobs(FlagStatus status, boolean history, Pageable pageable) {
+        Page<JobFlag> flagPage;
+        if (history) {
+            flagPage = jobFlagRepository.findByStatusNot(FlagStatus.PENDING, pageable);
+        } else {
+            FlagStatus searchStatus = status != null ? status : FlagStatus.PENDING;
+            flagPage = jobFlagRepository.findByStatus(searchStatus, pageable);
+        }
+        return flagPage
                 .map(f -> {
                     JobPost job = jobPostRepository.findById(f.getJobId()).orElse(null);
                     String jobTitle = job != null ? job.getTitle() : "Unknown Job";
@@ -401,9 +407,15 @@ public class AdminService {
         logAction(adminId, AdminActionTypes.REVIEW_JOB_FLAG, "JOB", job.getId(), request.notes(), outcome);
     }
 
-    public Page<FlaggedUserResponse> getFlaggedUsers(UserFlagStatus status, Pageable pageable) {
-        UserFlagStatus searchStatus = status != null ? status : UserFlagStatus.PENDING;
-        return userFlagRepository.findByStatus(searchStatus, pageable)
+    public Page<FlaggedUserResponse> getFlaggedUsers(UserFlagStatus status, boolean history, Pageable pageable) {
+        Page<UserFlag> flagPage;
+        if (history) {
+            flagPage = userFlagRepository.findByStatusNot(UserFlagStatus.PENDING, pageable);
+        } else {
+            UserFlagStatus searchStatus = status != null ? status : UserFlagStatus.PENDING;
+            flagPage = userFlagRepository.findByStatus(searchStatus, pageable);
+        }
+        return flagPage
                 .map(f -> {
                     User user = userRepository.findById(f.getFlaggedUserId()).orElse(null);
                     return new FlaggedUserResponse(f.getId(), f.getFlaggedUserId(),
@@ -440,9 +452,15 @@ public class AdminService {
         logAction(adminId, AdminActionTypes.REVIEW_USER_FLAG, "USER", flag.getFlaggedUserId(), request.notes(), outcome);
     }
 
-    public Page<FlaggedCommentResponse> getFlaggedComments(CommentFlagStatus status, Pageable pageable) {
-        CommentFlagStatus searchStatus = status != null ? status : CommentFlagStatus.PENDING;
-        return commentFlagRepository.findByStatus(searchStatus, pageable)
+    public Page<FlaggedCommentResponse> getFlaggedComments(CommentFlagStatus status, boolean history, Pageable pageable) {
+        Page<CommentFlag> flagPage;
+        if (history) {
+            flagPage = commentFlagRepository.findByStatusNot(CommentFlagStatus.PENDING, pageable);
+        } else {
+            CommentFlagStatus searchStatus = status != null ? status : CommentFlagStatus.PENDING;
+            flagPage = commentFlagRepository.findByStatus(searchStatus, pageable);
+        }
+        return flagPage
                 .map(f -> {
                     ForumComment comment = f.getComment();
                     return new FlaggedCommentResponse(f.getId(), comment.getId(),

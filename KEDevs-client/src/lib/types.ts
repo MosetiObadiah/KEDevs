@@ -28,6 +28,7 @@ export interface JobSummary {
   postedById?: string;
   postedByName?: string;
   postedByRole?: 'EMPLOYER' | 'DEVELOPER' | 'ADMIN';
+  isFlagged?: boolean;
 }
 
 export interface DeveloperSummary {

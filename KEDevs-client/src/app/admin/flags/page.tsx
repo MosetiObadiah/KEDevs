@@ -15,7 +15,8 @@ import {
   Loader2,
   Trash2,
   AlertTriangle,
-  History
+  History,
+  X
 } from 'lucide-react';
 import { adminService } from '@/services/adminService';
 import { cn } from '@/lib/utils';
@@ -45,16 +46,18 @@ export default function FlaggedContent() {
   const [flags, setFlags] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showProtocolAlert, setShowProtocolAlert] = useState(true);
+  const [viewHistory, setViewHistory] = useState(false);
 
-  const fetchFlags = async (currentTab: string) => {
+  const fetchFlags = async (currentTab: string, historyMode: boolean) => {
     setIsLoading(true);
     setError(null);
     try {
       const response = currentTab === 'jobs'
-        ? await adminService.getFlaggedJobs()
+        ? await adminService.getFlaggedJobs(0, 20, historyMode)
         : currentTab === 'users'
-          ? await adminService.getFlaggedUsers()
-          : await adminService.getFlaggedComments();
+          ? await adminService.getFlaggedUsers(0, 20, historyMode)
+          : await adminService.getFlaggedComments(0, 20, historyMode);
 
       if (response.success) {
         setFlags(response.data.content || []);
@@ -67,8 +70,8 @@ export default function FlaggedContent() {
   };
 
   useEffect(() => {
-    fetchFlags(tab);
-  }, [tab]);
+    fetchFlags(tab, viewHistory);
+  }, [tab, viewHistory]);
 
   const handleReview = async (flagId: string, outcome: string) => {
     try {
@@ -86,19 +89,46 @@ export default function FlaggedContent() {
     }
   };
 
+  const renderStatusBadge = (status: string) => {
+    const normalized = status?.toUpperCase() || '';
+    
+    let colorClass = "bg-slate-100 text-slate-700 border-slate-200";
+    if (normalized.includes('LEGITIMATE') || normalized.includes('KEPT') || normalized.includes('CLEARED')) {
+      colorClass = "bg-emerald-50 text-emerald-700 border-emerald-200";
+    } else if (normalized.includes('REMOVED') || normalized.includes('BANNED')) {
+      colorClass = "bg-red-50 text-red-700 border-red-200";
+    } else if (normalized.includes('WARNED') || normalized.includes('SUSPENDED')) {
+      colorClass = "bg-amber-50 text-amber-700 border-amber-200";
+    }
+    
+    return (
+      <Badge variant="outline" className={cn("rounded-xl font-black text-[10px] uppercase tracking-widest px-3 py-1 shadow-sm", colorClass)}>
+        {normalized.replace('REVIEWED_', '').replace('_', ' ')}
+      </Badge>
+    );
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       <div className="h-4" />
 
-      <div className="p-4 rounded-xl bg-amber-50 border border-amber-100 flex gap-3">
-         <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
-         <div className="space-y-1">
-            <p className="text-xs font-bold text-amber-900 uppercase tracking-tight">Protocol Alert</p>
-            <p className="text-xs font-medium text-amber-700 leading-relaxed">
-               All moderation decisions are permanent and logged in the system audit trail.
-            </p>
-         </div>
-      </div>
+      {showProtocolAlert && (
+        <div className="p-4 rounded-xl bg-amber-50 border border-amber-100 flex gap-3 relative group animate-in slide-in-from-top duration-300">
+           <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
+           <div className="space-y-1 pr-8">
+              <p className="text-xs font-bold text-amber-900 uppercase tracking-tight">Protocol Alert</p>
+              <p className="text-xs font-medium text-amber-700 leading-relaxed">
+                 All moderation decisions are permanent and logged in the system audit trail.
+              </p>
+           </div>
+           <button 
+             onClick={() => setShowProtocolAlert(false)} 
+             className="absolute top-3 right-3 p-1 rounded-lg hover:bg-amber-100 text-amber-700/70 hover:text-amber-900 transition-colors"
+           >
+             <X className="h-4 w-4" />
+           </button>
+        </div>
+      )}
 
       <Tabs defaultValue="jobs" onValueChange={setTab} className="w-full">
         <TabsList className="bg-slate-100/50 p-1 rounded-2xl h-14 mb-8 flex overflow-x-auto no-scrollbar">
@@ -112,6 +142,37 @@ export default function FlaggedContent() {
              <MessageSquare className="h-4 w-4" /> Community Talk
           </TabsTrigger>
         </TabsList>
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 px-1">
+           <h2 className="font-black text-xl text-slate-800 capitalize tracking-tight flex items-center gap-2">
+             {tab} Queue
+             {viewHistory && <Badge className="bg-slate-100 text-slate-500 border-none font-bold uppercase tracking-wider">Archive Mode</Badge>}
+           </h2>
+           <div className="flex items-center bg-slate-100/80 p-1 rounded-xl shadow-inner w-fit">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setViewHistory(false)}
+                className={cn(
+                  "rounded-lg px-4 font-bold text-xs h-8 transition-all", 
+                  !viewHistory ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900"
+                )}
+              >
+                Active Pending
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setViewHistory(true)}
+                className={cn(
+                  "rounded-lg px-4 font-bold text-xs h-8 transition-all", 
+                  viewHistory ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900"
+                )}
+              >
+                Reviewed History
+              </Button>
+           </div>
+        </div>
 
         <Card className="border-border/50 shadow-sm overflow-hidden bg-card">
            <CardContent className="p-0">
@@ -128,7 +189,7 @@ export default function FlaggedContent() {
                          <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-8">Violation Class</TableHead>
                          <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-8">Initiated By</TableHead>
                          <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-8">Timestamp</TableHead>
-                         <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-8 text-right">Moderation</TableHead>
+                         <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-8 text-right">{viewHistory ? 'Resolution' : 'Moderation'}</TableHead>
                       </TableRow>
                    </TableHeader>
                    <TableBody>
@@ -156,54 +217,60 @@ export default function FlaggedContent() {
                                {new Date(item.flagCreatedAt || item.createdAt || Date.now()).toLocaleDateString()}
                             </TableCell>
                             <TableCell className="py-5 px-8 text-right">
-                               <div className="flex justify-end gap-2">
-                                  <Button size="sm" variant="outline" className="h-9 w-9 p-0 rounded-xl border-slate-100 hover:bg-slate-50">
-                                     <Eye className="h-4 w-4 text-slate-400" />
-                                  </Button>
-                                  
-                                  {tab === 'jobs' && (
-                                    <>
-                                      <Button size="sm" variant="outline" title="Keep Job" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-emerald-600 hover:bg-emerald-50" onClick={() => handleReview(item.flagId, 'LEGITIMATE')}>
-                                         <Check className="h-4 w-4" />
-                                      </Button>
-                                      <Button size="sm" variant="outline" title="Warn User" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-amber-600 hover:bg-amber-50" onClick={() => handleReview(item.flagId, 'WARN')}>
-                                         <AlertOctagon className="h-4 w-4" />
-                                      </Button>
-                                      <Button size="sm" variant="outline" title="Remove Job" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-destructive hover:bg-destructive/10" onClick={() => handleReview(item.flagId, 'REMOVE')}>
-                                         <Trash2 className="h-4 w-4" />
-                                      </Button>
-                                    </>
-                                  )}
+                               {viewHistory ? (
+                                 <div className="flex justify-end animate-in fade-in duration-300">
+                                   {renderStatusBadge(item.status)}
+                                 </div>
+                               ) : (
+                                 <div className="flex justify-end gap-2">
+                                    <Button size="sm" variant="outline" className="h-9 w-9 p-0 rounded-xl border-slate-100 hover:bg-slate-50">
+                                       <Eye className="h-4 w-4 text-slate-400" />
+                                    </Button>
+                                    
+                                    {tab === 'jobs' && (
+                                      <>
+                                        <Button size="sm" variant="outline" title="Keep Job" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-emerald-600 hover:bg-emerald-50" onClick={() => handleReview(item.flagId, 'LEGITIMATE')}>
+                                           <Check className="h-4 w-4" />
+                                        </Button>
+                                        <Button size="sm" variant="outline" title="Warn User" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-amber-600 hover:bg-amber-50" onClick={() => handleReview(item.flagId, 'WARN')}>
+                                           <AlertOctagon className="h-4 w-4" />
+                                        </Button>
+                                        <Button size="sm" variant="outline" title="Remove Job" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-destructive hover:bg-destructive/10" onClick={() => handleReview(item.flagId, 'REMOVE')}>
+                                           <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </>
+                                    )}
 
-                                  {tab === 'users' && (
-                                    <>
-                                      <Button size="sm" variant="outline" title="Clear Flag" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-emerald-600 hover:bg-emerald-50" onClick={() => handleReview(item.flagId, 'CLEARED')}>
-                                         <Check className="h-4 w-4" />
-                                      </Button>
-                                      <Button size="sm" variant="outline" title="Warn User" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-amber-600 hover:bg-amber-50" onClick={() => handleReview(item.flagId, 'WARNED')}>
-                                         <AlertOctagon className="h-4 w-4" />
-                                      </Button>
-                                      <Button size="sm" variant="outline" title="Suspend User" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-orange-600 hover:bg-orange-50" onClick={() => handleReview(item.flagId, 'SUSPENDED')}>
-                                         <Clock className="h-4 w-4" />
-                                      </Button>
-                                      <Button size="sm" variant="outline" title="Ban User" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-destructive hover:bg-destructive/10" onClick={() => handleReview(item.flagId, 'BANNED')}>
-                                         <Gavel className="h-4 w-4" />
-                                      </Button>
-                                    </>
-                                  )}
+                                    {tab === 'users' && (
+                                      <>
+                                        <Button size="sm" variant="outline" title="Clear Flag" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-emerald-600 hover:bg-emerald-50" onClick={() => handleReview(item.flagId, 'CLEARED')}>
+                                           <Check className="h-4 w-4" />
+                                        </Button>
+                                        <Button size="sm" variant="outline" title="Warn User" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-amber-600 hover:bg-amber-50" onClick={() => handleReview(item.flagId, 'WARNED')}>
+                                           <AlertOctagon className="h-4 w-4" />
+                                        </Button>
+                                        <Button size="sm" variant="outline" title="Suspend User" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-orange-600 hover:bg-orange-50" onClick={() => handleReview(item.flagId, 'SUSPENDED')}>
+                                           <Clock className="h-4 w-4" />
+                                        </Button>
+                                        <Button size="sm" variant="outline" title="Ban User" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-destructive hover:bg-destructive/10" onClick={() => handleReview(item.flagId, 'BANNED')}>
+                                           <Gavel className="h-4 w-4" />
+                                        </Button>
+                                      </>
+                                    )}
 
-                                  {tab === 'comments' && (
-                                    <>
-                                      <Button size="sm" variant="outline" title="Keep Comment" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-emerald-600 hover:bg-emerald-50" onClick={() => handleReview(item.flagId, 'KEPT')}>
-                                         <Check className="h-4 w-4" />
-                                      </Button>
-                                      <Button size="sm" variant="outline" title="Remove Comment" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-destructive hover:bg-destructive/10" onClick={() => handleReview(item.flagId, 'REMOVED')}>
-                                         <Trash2 className="h-4 w-4" />
-                                      </Button>
-                                    </>
-                                  )}
-                               </div>
-                            </TableCell>
+                                    {tab === 'comments' && (
+                                      <>
+                                        <Button size="sm" variant="outline" title="Keep Comment" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-emerald-600 hover:bg-emerald-50" onClick={() => handleReview(item.flagId, 'KEPT')}>
+                                           <Check className="h-4 w-4" />
+                                        </Button>
+                                        <Button size="sm" variant="outline" title="Remove Comment" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-destructive hover:bg-destructive/10" onClick={() => handleReview(item.flagId, 'REMOVED')}>
+                                           <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </>
+                                    )}
+                                 </div>
+                               )}
+                             </TableCell>
                          </TableRow>
                       ))}
                       {flags.length === 0 && (
@@ -211,7 +278,9 @@ export default function FlaggedContent() {
                             <TableCell colSpan={5} className="py-20 text-center">
                                <div className="flex flex-col items-center gap-3">
                                   <History className="h-10 w-10 text-slate-200" />
-                                  <p className="font-black text-slate-400 uppercase tracking-widest text-xs">Clear for now. No pending flags found.</p>
+                                  <p className="font-black text-slate-400 uppercase tracking-widest text-xs">
+                                    {viewHistory ? 'No audited flag records found.' : 'Clear for now. No pending flags found.'}
+                                  </p>
                                </div>
                             </TableCell>
                          </TableRow>

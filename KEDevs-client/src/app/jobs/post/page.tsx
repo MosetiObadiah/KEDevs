@@ -566,6 +566,7 @@ export default function CreateJobPostPage() {
                                  mode="single"
                                  selected={formState.applicationDeadline ? new Date(formState.applicationDeadline) : undefined}
                                  onSelect={(date) => dispatch({ type: 'UPDATE_FIELD', field: 'applicationDeadline', value: date?.toISOString() })}
+                                 disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                                  className="rounded-2xl"
                               />
                            </PopoverContent>

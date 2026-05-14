@@ -8,35 +8,27 @@
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             color: #334155;
             margin: 0;
-            padding: 40px;
+            padding: 30px;
             font-size: 12px;
         }
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #e2e8f0;
+        .meta-bar {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 20px;
         }
-        .header h1 {
-            color: #0f172a;
-            margin: 0 0 10px 0;
-            font-size: 24px;
-        }
-        .header p {
-            color: #64748b;
-            margin: 0;
-        }
-        table {
+        table.data-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 10px;
         }
-        th, td {
+        table.data-table th, table.data-table td {
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid #e2e8f0;
         }
-        th {
+        table.data-table th {
             background-color: #f8fafc;
             color: #475569;
             font-weight: 600;
@@ -44,24 +36,50 @@
             font-size: 10px;
             letter-spacing: 0.05em;
         }
-        tr:nth-child(even) {
+        table.data-table tr:nth-child(even) {
             background-color: #f8fafc;
         }
         .footer {
             margin-top: 40px;
+            padding-top: 15px;
+            border-top: 2px solid #e2e8f0;
             text-align: center;
+        }
+        .footer-cta {
+            color: #0284c7;
+            font-weight: bold;
+            font-size: 13px;
+            margin: 0 0 4px 0;
+        }
+        .footer-sub {
             color: #94a3b8;
-            font-size: 10px;
+            font-size: 9px;
+            margin: 0;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>KEDevs-Connect</h1>
-        <p>Past Spotlights Report</p>
+    <!-- Branded Header -->
+    <table style="width: 100%; border: none; border-collapse: collapse; margin-bottom: 15px;">
+        <tr style="border: none;">
+            <td style="border: none; width: 60%; padding: 0; text-align: left; vertical-align: middle;">
+                <img th:if="${base64Logo != null and !base64Logo.isEmpty()}" th:src="${base64Logo}" style="max-height: 45px; display: inline-block; vertical-align: middle;" />
+                <span style="font-size: 22px; font-weight: bold; color: #0f172a; margin-left: 10px; display: inline-block; vertical-align: middle;" th:text="${companyName}">KEDevs</span>
+            </td>
+            <td style="border: none; width: 40%; padding: 0; text-align: right; vertical-align: middle; color: #64748b; font-size: 11px;">
+                <div>Export Date: <strong th:text="${dateOfExport}">2026-05-14</strong></div>
+                <div style="font-weight: bold; color: #0f172a; margin-top: 2px;">Spotlight History Log</div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Active Filters Metadata -->
+    <div class="meta-bar">
+        <span style="font-weight: bold; color: #475569; font-size: 10px; text-transform: uppercase;">Scope / Filter:</span>
+        <span style="color: #1e293b; font-size: 11px; margin-left: 5px;" th:text="${filterSummary}">None</span>
     </div>
 
-    <table>
+    <table class="data-table">
         <thead>
             <tr>
                 <th>Developer Name</th>
@@ -82,8 +100,10 @@
         </tbody>
     </table>
 
+    <!-- Branded Footer CTA -->
     <div class="footer">
-        <p>Generated automatically by KEDevs-Connect Platform</p>
+        <p class="footer-cta">Empowering Kenya's Tech Ecosystem. Join KEDevs today!</p>
+        <p class="footer-sub">&copy; 2026 KEDevs-Connect. System Generated Administrative Document.</p>
     </div>
 </body>
 </html>

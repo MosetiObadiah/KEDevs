@@ -81,16 +81,16 @@ export const adminService = {
     return apiClient.put<ApiResponse<any>>(`/api/v1/admin/settings/${key}`, { settingValue: String(value) });
   },
 
-  async getFlaggedUsers(page = 0, size = 20): Promise<ApiResponse<PaginatedResponse<any>>> {
-    return apiClient.get<ApiResponse<PaginatedResponse<any>>>(`/api/v1/admin/flags/users?page=${page}&size=${size}`);
+  async getFlaggedUsers(page = 0, size = 20, history?: boolean): Promise<ApiResponse<PaginatedResponse<any>>> {
+    return apiClient.get<ApiResponse<PaginatedResponse<any>>>(`/api/v1/admin/flags/users?page=${page}&size=${size}${history !== undefined ? `&history=${history}` : ''}`);
   },
 
-  async getFlaggedJobs(page = 0, size = 20): Promise<ApiResponse<PaginatedResponse<any>>> {
-    return apiClient.get<ApiResponse<PaginatedResponse<any>>>(`/api/v1/admin/flags/jobs?page=${page}&size=${size}`);
+  async getFlaggedJobs(page = 0, size = 20, history?: boolean): Promise<ApiResponse<PaginatedResponse<any>>> {
+    return apiClient.get<ApiResponse<PaginatedResponse<any>>>(`/api/v1/admin/flags/jobs?page=${page}&size=${size}${history !== undefined ? `&history=${history}` : ''}`);
   },
 
-  async getFlaggedComments(page = 0, size = 20): Promise<ApiResponse<PaginatedResponse<any>>> {
-    return apiClient.get<ApiResponse<PaginatedResponse<any>>>(`/api/v1/admin/flags/comments?page=${page}&size=${size}`);
+  async getFlaggedComments(page = 0, size = 20, history?: boolean): Promise<ApiResponse<PaginatedResponse<any>>> {
+    return apiClient.get<ApiResponse<PaginatedResponse<any>>>(`/api/v1/admin/flags/comments?page=${page}&size=${size}${history !== undefined ? `&history=${history}` : ''}`);
   },
 
   async reviewUserFlag(flagId: string, data: { outcome: string; notes?: string }): Promise<ApiResponse<any>> {

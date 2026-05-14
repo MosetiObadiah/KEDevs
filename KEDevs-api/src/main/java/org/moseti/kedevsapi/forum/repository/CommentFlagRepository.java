@@ -22,4 +22,5 @@ public interface CommentFlagRepository extends JpaRepository<CommentFlag, UUID> 
     int countByCommentIdAndStatus(UUID commentId, CommentFlagStatus status);
 
     long countByStatus(CommentFlagStatus status);
+    Page<CommentFlag> findByStatusNot(CommentFlagStatus status, Pageable pageable);
 }

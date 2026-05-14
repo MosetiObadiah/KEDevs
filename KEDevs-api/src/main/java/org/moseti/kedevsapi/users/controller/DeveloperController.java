@@ -522,7 +522,7 @@ public class DeveloperController {
         }
 
         if ("pdf".equalsIgnoreCase(format)) {
-            byte[] pdf = pdfExportService.generateDeveloperPdf(results);
+            byte[] pdf = pdfExportService.generateDeveloperPdf(results, request);
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=developers.pdf")
                     .contentType(MediaType.APPLICATION_PDF)

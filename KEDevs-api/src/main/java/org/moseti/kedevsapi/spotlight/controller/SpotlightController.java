@@ -91,9 +91,11 @@ public class SpotlightController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<SpotlightSlotResponse>> adminOverride(
             @Parameter(description = "ID of the spotlight slot") @PathVariable UUID slotId,
-            @Valid @RequestBody AdminOverrideRequest request) {
+            @Valid @RequestBody AdminOverrideRequest request,
+            Authentication authentication) {
+        UUID adminId = (UUID) authentication.getPrincipal();
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Spotlight slot overridden",
-                spotlightService.adminOverride(slotId, request)));
+                spotlightService.adminOverride(adminId, slotId, request)));
     }
 
     @Operation(summary = "Get past spotlight history", security = {})

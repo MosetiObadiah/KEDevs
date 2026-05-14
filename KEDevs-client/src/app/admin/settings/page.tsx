@@ -4,16 +4,15 @@ import React, { useEffect, useState } from 'react';
 import { 
   Settings2, 
   Save, 
-  RotateCcw, 
   Info, 
   ShieldCheck, 
   Zap, 
   Globe, 
-  Lock,
   Loader2,
   CheckCircle2,
   AlertCircle,
-  Wallet
+  Wallet,
+  X
 } from 'lucide-react';
 import { adminService } from '@/services/adminService';
 import { cn } from '@/lib/utils';
@@ -45,6 +44,7 @@ export default function PlatformSettings() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState<Record<string, boolean>>({});
+  const [showSecurityNotice, setShowSecurityNotice] = useState(true);
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -75,11 +75,25 @@ export default function PlatformSettings() {
     setSettings((prev) => prev.map((item) => item.key === key ? { ...item, value } : item));
   };
 
+  const isPriceSetting = (key: string) => {
+    const normalizedKey = key.toUpperCase();
+    return normalizedKey.includes('FEE') || normalizedKey.includes('BADGE');
+  };
+
   const handleSave = async (key: string) => {
+    const setting = settings.find((item) => item.key === key);
+    if (!setting) return;
+
+    if (isPriceSetting(key)) {
+      const val = parseFloat(setting.value);
+      if (isNaN(val) || val < 1) {
+        toast.error(`${setting.label} cannot be less than 1 KES`);
+        return;
+      }
+    }
+
     setSaving((prev) => ({ ...prev, [key]: true }));
     try {
-      const setting = settings.find((item) => item.key === key);
-      if (!setting) return;
       await adminService.updateSetting(key, setting.value);
       toast.success(`${setting.label} updated`);
     } catch (err: any) {
@@ -90,6 +104,16 @@ export default function PlatformSettings() {
   };
 
   const handleSaveAll = async () => {
+    for (const setting of settings) {
+      if (isPriceSetting(setting.key)) {
+        const val = parseFloat(setting.value);
+        if (isNaN(val) || val < 1) {
+          toast.error(`${setting.label} cannot be less than 1 KES`);
+          return;
+        }
+      }
+    }
+
     try {
       await Promise.all(settings.map((item) => adminService.updateSetting(item.key, item.value)));
       toast.success('All configurations synchronized');
@@ -102,26 +126,31 @@ export default function PlatformSettings() {
     <div className="space-y-8 animate-in fade-in duration-700">
 
 
-      <div className="p-6 rounded-[2.5rem] bg-blue-50 border-2 border-blue-100 flex gap-4 shadow-sm">
-         <Info className="h-6 w-6 text-blue-500 shrink-0" />
-         <div className="space-y-1">
-            <p className="text-sm font-black text-blue-900 uppercase tracking-tight">Security Notice</p>
-            <p className="text-xs font-medium text-blue-700 leading-relaxed">
-               Modifications to platform variables impact real-time transactions, fee structures, and visibility logic. Changes are auditable.
-            </p>
-         </div>
-      </div>
+      {showSecurityNotice && (
+        <div className="p-6 rounded-[2.5rem] bg-blue-50 border-2 border-blue-100 flex gap-4 shadow-sm relative animate-in slide-in-from-top duration-500">
+           <Info className="h-6 w-6 text-blue-500 shrink-0" />
+           <div className="space-y-1">
+              <p className="text-sm font-black text-blue-900 uppercase tracking-tight">Security Notice</p>
+              <p className="text-xs font-medium text-blue-700 leading-relaxed">
+                 Modifications to platform variables impact real-time transactions, fee structures, and visibility logic. Changes are auditable.
+              </p>
+           </div>
+           <button 
+             onClick={() => setShowSecurityNotice(false)} 
+             className="absolute top-3 right-3 p-1 rounded-lg hover:bg-blue-100 text-blue-700/70 hover:text-blue-900 transition-colors"
+           >
+             <X className="h-4 w-4" />
+           </button>
+        </div>
+      )}
 
       <Card className="rounded-[3rem] border-none shadow-2xl shadow-slate-200/40 overflow-hidden bg-white">
          <CardHeader className="p-10 pb-6 border-b border-slate-50">
             <div className="flex items-center justify-between">
                <div>
-                  <CardTitle className="text-2xl font-black">Configuration Matrix</CardTitle>
+                  <CardTitle className="text-2xl font-black">Configuration</CardTitle>
                   <CardDescription className="font-bold text-slate-400 uppercase text-[10px] tracking-widest">Master environment variables</CardDescription>
                </div>
-               <Badge className="bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest px-4 py-1.5 rounded-xl">
-                  LIVE_PROD_ENV
-               </Badge>
             </div>
          </CardHeader>
 
@@ -187,14 +216,8 @@ export default function PlatformSettings() {
                </Table>
             )}
 
-            <div className="p-10 bg-slate-50 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6">
-               <div className="flex items-center gap-3 text-xs font-bold text-slate-400">
-                  <Lock className="h-4 w-4" /> Platform logic is protected by multi-layer encryption.
-               </div>
+            <div className="p-10 bg-slate-50 border-t border-slate-100 flex flex-col md:flex-row items-center justify-end gap-6">
                <div className="flex gap-4 w-full md:w-auto">
-                  <Button variant="outline" className="flex-1 md:flex-none rounded-2xl h-14 px-8 font-black border-slate-200" onClick={() => window.location.reload()}>
-                     <RotateCcw className="h-4 w-4 mr-2" /> Revert State
-                  </Button>
                   <Button className="flex-1 md:flex-none rounded-2xl h-14 px-10 font-black bg-slate-900 shadow-xl shadow-slate-900/10" onClick={handleSaveAll}>
                      Apply Global Sync
                   </Button>

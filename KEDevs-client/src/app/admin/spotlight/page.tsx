@@ -88,11 +88,6 @@ export default function SpotlightManagement() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
-      <div className="flex flex-col md:flex-row md:items-center justify-end gap-6">
-         <Button className="rounded-xl font-black bg-slate-900 px-6 gap-2 h-12 shadow-xl shadow-slate-900/10">
-            <Plus className="h-4 w-4" /> Grant Manual Slot
-         </Button>
-      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="rounded-[2.5rem] border-none shadow-xl shadow-amber-500/10 bg-amber-50/50 relative overflow-hidden">

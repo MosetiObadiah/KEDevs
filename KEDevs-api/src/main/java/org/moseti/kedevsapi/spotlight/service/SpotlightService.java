@@ -25,6 +25,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.moseti.kedevsapi.admin.entity.AdminAction;
+import org.moseti.kedevsapi.admin.entity.AdminActionTypes;
+import org.moseti.kedevsapi.admin.repository.AdminActionRepository;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -37,6 +41,7 @@ public class SpotlightService {
     private final org.moseti.kedevsapi.payments.repository.PlatformSettingRepository platformSettingRepository;
     private final org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
     private final org.moseti.kedevsapi.auth.service.EmailService emailService;
+    private final AdminActionRepository adminActionRepository;
 
     public SlotAvailabilityResponse checkSlotAvailability() {
         boolean daySlotTaken = spotlightSlotRepository.existsByTypeAndIsActiveTrue(SpotlightType.DAY);
@@ -189,13 +194,23 @@ public class SpotlightService {
     }
 
     @Transactional
-    public SpotlightSlotResponse adminOverride(UUID slotId, AdminOverrideRequest request) {
+    public SpotlightSlotResponse adminOverride(UUID adminId, UUID slotId, AdminOverrideRequest request) {
         SpotlightSlot slot = spotlightSlotRepository.findById(slotId)
                 .orElseThrow(() -> new SpotlightSlotNotFoundException("Spotlight slot not found"));
 
         slot.setActive(false);
         slot.setOverriddenByAdmin(true);
         spotlightSlotRepository.save(slot);
+
+        // Audit log
+        AdminAction action = new AdminAction();
+        action.setAdminId(adminId);
+        action.setActionType(AdminActionTypes.OVERRIDE_SPOTLIGHT);
+        action.setTargetType("SPOTLIGHT_SLOT");
+        action.setTargetId(slot.getId());
+        action.setNotes(request.reason());
+        action.setOutcome("OVERRIDDEN");
+        adminActionRepository.save(action);
 
         User developer = userRepository.findById(slot.getDeveloperId()).orElse(null);
         if (developer != null) {

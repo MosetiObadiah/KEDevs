@@ -44,6 +44,10 @@ class SpotlightServiceTest {
     private org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
     @Mock
     private org.moseti.kedevsapi.auth.service.EmailService emailService;
+    @Mock
+    private org.moseti.kedevsapi.payments.repository.PlatformSettingRepository platformSettingRepository;
+    @Mock
+    private org.moseti.kedevsapi.admin.repository.AdminActionRepository adminActionRepository;
 
     @InjectMocks
     private SpotlightService spotlightService;
@@ -51,12 +55,14 @@ class SpotlightServiceTest {
     private UUID developerId;
     private UUID paymentId;
     private UUID slotId;
+    private UUID adminId;
 
     @BeforeEach
     void setUp() {
         developerId = UUID.randomUUID();
         paymentId = UUID.randomUUID();
         slotId = UUID.randomUUID();
+        adminId = UUID.randomUUID();
     }
 
     @Test
@@ -214,13 +220,14 @@ class SpotlightServiceTest {
         user.setEmail("dev@test.com");
         when(userRepository.findById(developerId)).thenReturn(Optional.of(user));
 
-        SpotlightSlotResponse res = spotlightService.adminOverride(slotId, new AdminOverrideRequest("Rules violation"));
+        SpotlightSlotResponse res = spotlightService.adminOverride(adminId, slotId, new AdminOverrideRequest("Rules violation"));
 
         assertFalse(res.isActive());
         assertTrue(res.overriddenByAdmin());
         verify(spotlightSlotRepository).save(slot);
         verify(notificationService).notify(any(), any(), any(), any(), any());
         verify(emailService).sendSpotlightOverriddenEmail(any(), any(), any());
+        verify(adminActionRepository).save(any());
     }
 
     @Test
@@ -228,7 +235,7 @@ class SpotlightServiceTest {
         when(spotlightSlotRepository.findById(slotId)).thenReturn(Optional.empty());
 
         assertThrows(SpotlightSlotNotFoundException.class, () -> 
-                spotlightService.adminOverride(slotId, new AdminOverrideRequest("Reason")));
+                spotlightService.adminOverride(adminId, slotId, new AdminOverrideRequest("Reason")));
     }
 
     @Test
@@ -270,6 +277,7 @@ class SpotlightServiceTest {
         when(spotlightSlotRepository.findByTypeAndIsActiveTrue(SpotlightType.WEEK)).thenReturn(Optional.empty());
 
         DeveloperProfile profile = new DeveloperProfile();
+        profile.setId(developerId);
         when(developerProfileRepository.findByUserId(developerId)).thenReturn(Optional.of(profile));
         
         User devUser = new User();
@@ -295,6 +303,7 @@ class SpotlightServiceTest {
         when(spotlightSlotRepository.findByTypeAndIsActiveTrue(SpotlightType.WEEK)).thenReturn(Optional.empty());
 
         DeveloperProfile profile = new DeveloperProfile();
+        profile.setId(developerId);
         when(developerProfileRepository.findByUserId(developerId)).thenReturn(Optional.of(profile));
         
         User devUser = new User();

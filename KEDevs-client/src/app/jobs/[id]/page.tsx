@@ -543,7 +543,7 @@ export default function JobDetailPage() {
               </div>
               <div className="space-y-1.5">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Application Deadline</Label>
-                <Input type="date" value={editForm.applicationDeadline || ''} onChange={e => setEditForm({...editForm, applicationDeadline: e.target.value})} className="h-12 rounded-xl" />
+                <Input type="date" min={new Date().toISOString().split('T')[0]} value={editForm.applicationDeadline || ''} onChange={e => setEditForm({...editForm, applicationDeadline: e.target.value})} className="h-12 rounded-xl" />
               </div>
             </div>
             <div className="space-y-1.5">

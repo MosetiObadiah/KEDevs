@@ -228,8 +228,9 @@ public class AdminController {
     @GetMapping("/flags/jobs")
     public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<FlaggedJobResponse>>> getFlaggedJobs(
             @Parameter(description = "Filter by flag status") @RequestParam(required = false) FlagStatus status,
+            @RequestParam(defaultValue = "false") boolean history,
             @PageableDefault Pageable pageable) {
-        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Flagged jobs retrieved", adminService.getFlaggedJobs(status, pageable)));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Flagged jobs retrieved", adminService.getFlaggedJobs(status, history, pageable)));
     }
 
     @Operation(summary = "Admin: review a job flag")
@@ -252,8 +253,9 @@ public class AdminController {
     @GetMapping("/flags/users")
     public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<FlaggedUserResponse>>> getFlaggedUsers(
             @Parameter(description = "Filter by user flag status") @RequestParam(required = false) UserFlagStatus status,
+            @RequestParam(defaultValue = "false") boolean history,
             @PageableDefault Pageable pageable) {
-        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Flagged users retrieved", adminService.getFlaggedUsers(status, pageable)));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Flagged users retrieved", adminService.getFlaggedUsers(status, history, pageable)));
     }
 
     @Operation(summary = "Admin: review a user flag")
@@ -276,8 +278,9 @@ public class AdminController {
     @GetMapping("/flags/comments")
     public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<FlaggedCommentResponse>>> getFlaggedComments(
             @Parameter(description = "Filter by comment flag status") @RequestParam(required = false) CommentFlagStatus status,
+            @RequestParam(defaultValue = "false") boolean history,
             @PageableDefault Pageable pageable) {
-        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Flagged comments retrieved", adminService.getFlaggedComments(status, pageable)));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Flagged comments retrieved", adminService.getFlaggedComments(status, history, pageable)));
     }
 
     @Operation(summary = "Admin: review a comment flag")

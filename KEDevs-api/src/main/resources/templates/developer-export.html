@@ -8,42 +8,86 @@
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             color: #333;
             margin: 20px;
+            font-size: 12px;
         }
         h1 {
             color: #0f172a;
             border-bottom: 2px solid #0ea5e9;
             padding-bottom: 10px;
+            margin-top: 0;
         }
-        table {
+        .meta-bar {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        table.data-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 10px;
         }
-        th, td {
+        table.data-table th, table.data-table td {
             border: 1px solid #cbd5e1;
             padding: 8px;
             text-align: left;
-            font-size: 12px;
+            font-size: 11px;
         }
-        th {
+        table.data-table th {
             background-color: #f8fafc;
             font-weight: bold;
             color: #475569;
+            text-transform: uppercase;
         }
-        tr:nth-child(even) {
+        table.data-table tr:nth-child(even) {
             background-color: #f1f5f9;
         }
         .skills {
             font-size: 10px;
             color: #64748b;
         }
+        .footer {
+            margin-top: 40px;
+            padding-top: 15px;
+            border-top: 2px solid #e2e8f0;
+            text-align: center;
+        }
+        .footer-cta {
+            color: #0284c7;
+            font-weight: bold;
+            font-size: 13px;
+            margin: 0 0 4px 0;
+        }
+        .footer-sub {
+            color: #94a3b8;
+            font-size: 9px;
+            margin: 0;
+        }
     </style>
 </head>
 <body>
-    <h1>KEDevs Talent Report</h1>
-    <p>Generated dynamically from active platform filters.</p>
+    <!-- Branded Header -->
+    <table style="width: 100%; border: none; border-collapse: collapse; margin-bottom: 15px;">
+        <tr style="border: none;">
+            <td style="border: none; width: 60%; padding: 0; text-align: left; vertical-align: middle;">
+                <img th:if="${base64Logo != null and !base64Logo.isEmpty()}" th:src="${base64Logo}" style="max-height: 45px; display: inline-block; vertical-align: middle;" />
+                <span style="font-size: 22px; font-weight: bold; color: #0f172a; margin-left: 10px; display: inline-block; vertical-align: middle;" th:text="${companyName}">KEDevs</span>
+            </td>
+            <td style="border: none; width: 40%; padding: 0; text-align: right; vertical-align: middle; color: #64748b; font-size: 11px;">
+                <div>Export Date: <strong th:text="${dateOfExport}">2026-05-14</strong></div>
+                <div style="font-weight: bold; color: #0ea5e9; margin-top: 2px;">Talent Database Report</div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Active Filters Metadata -->
+    <div class="meta-bar">
+        <span style="font-weight: bold; color: #475569; font-size: 10px; text-transform: uppercase;">Filters Applied:</span>
+        <span style="color: #1e293b; font-size: 11px; margin-left: 5px;" th:text="${filterSummary}">None</span>
+    </div>
     
-    <table>
+    <table class="data-table">
         <thead>
             <tr>
                 <th>Name</th>
@@ -70,5 +114,11 @@
             </tr>
         </tbody>
     </table>
+
+    <!-- Branded Footer CTA -->
+    <div class="footer">
+        <p class="footer-cta">Empowering Kenya's Tech Ecosystem. Join KEDevs today!</p>
+        <p class="footer-sub">&copy; 2026 KEDevs-Connect. System Generated Administrative Document.</p>
+    </div>
 </body>
 </html>
