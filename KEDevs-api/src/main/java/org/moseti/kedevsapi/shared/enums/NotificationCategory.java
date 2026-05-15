@@ -9,5 +9,7 @@ public enum NotificationCategory {
     ADMIN,
     ENDORSEMENT,
     SPOTLIGHT,
-    CONTACT
+    CONTACT,
+    PINNED_JOB,
+    EMPLOYER_VERIFICATION_PAYMENT_SUCCESS
 }

@@ -79,6 +79,16 @@ public class JobController {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Public jobs fetched", response));
     }
 
+    @Operation(summary = "List currently active pinned jobs for the featured section", security = {})
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Pinned jobs fetched successfully")
+    })
+    @GetMapping("/pinned")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<java.util.List<PinnedJobSummaryResponse>>> getPinnedJobs() {
+        java.util.List<PinnedJobSummaryResponse> response = jobService.getPinnedJobs();
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Pinned jobs fetched", response));
+    }
+
     @Operation(summary = "List own job posts", description = "Requires authenticated user.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "My job posts fetched successfully"),

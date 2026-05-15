@@ -16,13 +16,15 @@ import {
   UploadCloud,
   Globe,
   X,
-  Users,
-  MapPin,
-  Mail,
-  User,
-  Eye, ExternalLink } from 'lucide-react';
+  Eye, 
+  ExternalLink,
+  CreditCard,
+  Smartphone
+} from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { employerService } from '@/services/employerService';
+import { paymentService } from '@/services/paymentService';
+import { verificationService } from '@/services/verificationService';
 import { KENYA_COUNTIES, INDUSTRIES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
@@ -46,7 +48,8 @@ import {
 const steps = [
   { label: 'Profile', icon: Building2 },
   { label: 'Contact', icon: Contact },
-  { label: 'Verification', icon: ShieldCheck },
+  { label: 'Payment', icon: CreditCard },
+  { label: 'Documents', icon: ShieldCheck },
   { label: 'Review', icon: Eye },
 ];
 
@@ -65,9 +68,14 @@ export default function EmployerOnboarding() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Verification document files (held in state until final submit)
-  const [incorporationFile, setIncorporationFile] = useState<File | null>(null);
-  const [kraPinFile, setKraPinFile] = useState<File | null>(null);
   const [businessPermitFile, setBusinessPermitFile] = useState<File | null>(null);
+
+  // Payment state
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [isPaying, setIsPaying] = useState(false);
+  const [hasPaid, setHasPaid] = useState(false);
+  const [verificationFee, setVerificationFee] = useState('...');
+  const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
 
   const [formData, setFormData] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -103,6 +111,55 @@ export default function EmployerOnboarding() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
+  useEffect(() => {
+    const fetchFee = async () => {
+      try {
+        const response = await paymentService.getSettings();
+        if (response.success) {
+          const fee = response.data.find(s => s.settingKey === 'VERIFIED_BADGE_FEE')?.settingValue;
+          if (fee) setVerificationFee(fee);
+        }
+      } catch (err) {}
+    };
+    fetchFee();
+  }, []);
+
+  const checkPaymentStatus = async () => {
+    setIsVerifyingPayment(true);
+    try {
+      const response = await verificationService.getStatus();
+      if (response.success && (response.data.status === 'PENDING_DOCS' || response.data.status === 'UNDER_REVIEW' || response.data.status === 'APPROVED')) {
+        setHasPaid(true);
+        toast.success('Payment verified!');
+        setActiveStep(3); // Move to Documents
+      } else {
+        toast.error('Payment not found. Please ensure you have completed the M-Pesa transaction.');
+      }
+    } catch (err) {
+      toast.error('Failed to verify payment status.');
+    } finally {
+      setIsVerifyingPayment(false);
+    }
+  };
+
+  const handleInitiatePayment = async () => {
+    if (!phoneNumber || !phoneNumber.match(/^0[17]\d{8}$/)) {
+      toast.error('Invalid phone number format (Format: 07xxxxxxxx)');
+      return;
+    }
+    setIsPaying(true);
+    try {
+      const response = await verificationService.initiate(phoneNumber);
+      if (response.success) {
+        toast.success('STK Push sent to your phone!');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to initiate payment');
+    } finally {
+      setIsPaying(false);
+    }
+  };
+
   const handleNext = async () => {
     if (activeStep < steps.length - 1) {
       if (activeStep === 0) {
@@ -118,6 +175,12 @@ export default function EmployerOnboarding() {
         }
       }
       if (activeStep === 2) {
+        if (!hasPaid) {
+          toast.error('Please complete the verification payment first');
+          return;
+        }
+      }
+      if (activeStep === 3) {
         if (!incorporationFile || !kraPinFile || !businessPermitFile) {
           toast.error('Please upload all three verification documents');
           return;
@@ -221,8 +284,9 @@ export default function EmployerOnboarding() {
                 <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center">
                    {activeStep === 0 && <Building2 className="h-6 w-6" />}
                    {activeStep === 1 && <Contact className="h-6 w-6" />}
-                   {activeStep === 2 && <ShieldCheck className="h-6 w-6" />}
-                   {activeStep === 3 && <Eye className="h-6 w-6" />}
+                   {activeStep === 2 && <CreditCard className="h-6 w-6" />}
+                   {activeStep === 3 && <ShieldCheck className="h-6 w-6" />}
+                   {activeStep === 4 && <Eye className="h-6 w-6" />}
                 </div>
                 <div>
                    <CardTitle className="text-2xl font-black uppercase tracking-tight">{steps[activeStep].label}</CardTitle>
@@ -360,6 +424,75 @@ export default function EmployerOnboarding() {
             )}
 
             {activeStep === 2 && (
+              <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="text-center space-y-4">
+                  <div className="h-20 w-20 rounded-3xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 mx-auto">
+                    <ShieldCheck className="h-10 w-10" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-xl font-black">Verification Fee</h3>
+                    <p className="text-slate-500 font-medium">Kenya law requires business verification. This one-time fee covers document processing and background checks.</p>
+                  </div>
+                  <div className="py-4">
+                    <div className="text-4xl font-black text-slate-900">KES {verificationFee}</div>
+                    <Badge variant="secondary" className="mt-2 font-black uppercase text-[10px] tracking-widest bg-emerald-100 text-emerald-600">One-Time Lifetime Fee</Badge>
+                  </div>
+                </div>
+
+                {!hasPaid ? (
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">M-Pesa Phone Number</Label>
+                      <div className="relative">
+                        <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Input 
+                          placeholder="0712345678"
+                          value={phoneNumber}
+                          onChange={(e) => setPhoneNumber(e.target.value)}
+                          className="pl-11 h-14 rounded-2xl border-slate-200 font-bold"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Button 
+                        size="lg" 
+                        className="h-14 rounded-2xl font-black bg-emerald-500 hover:bg-emerald-600 shadow-xl shadow-emerald-500/20"
+                        onClick={handleInitiatePayment}
+                        disabled={isPaying}
+                      >
+                        {isPaying ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <CreditCard className="h-5 w-5 mr-2" />}
+                        Pay via M-Pesa
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="lg" 
+                        className="h-14 rounded-2xl font-black border-slate-200"
+                        onClick={checkPaymentStatus}
+                        disabled={isVerifyingPayment}
+                      >
+                        {isVerifyingPayment ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : 'I have paid'}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-8 rounded-[2rem] bg-emerald-50 border-2 border-emerald-100 text-center space-y-4">
+                    <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto" />
+                    <div className="space-y-1">
+                      <h4 className="text-lg font-black text-emerald-700">Payment Verified!</h4>
+                      <p className="text-emerald-600 font-medium text-sm">You have successfully unlocked the verification step.</p>
+                    </div>
+                    <Button 
+                      className="bg-emerald-500 hover:bg-emerald-600 font-black rounded-xl"
+                      onClick={() => setActiveStep(3)}
+                    >
+                      Continue to Documents
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeStep === 3 && (
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div className="p-4 rounded-2xl bg-blue-50 border border-blue-100 flex gap-3">
                   <Info className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
@@ -442,7 +575,7 @@ export default function EmployerOnboarding() {
               </div>
             )}
 
-            {activeStep === 3 && (
+            {activeStep === 4 && (
               <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div className="p-8 rounded-[2.5rem] bg-slate-900 text-white space-y-6 shadow-2xl shadow-slate-900/10">
                    <div className="flex justify-between items-start">

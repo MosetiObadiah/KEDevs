@@ -48,7 +48,7 @@ export default function VerificationFlow() {
    const [isSubmitting, setIsSubmitting] = useState(false);
    const [loading, setLoading] = useState(true);
    const [verifyStatus, setVerifyStatus] = useState<VerificationStatusResponse | null>(null);
-   const [phoneNumber, setPhoneNumber] = useState('254');
+   const [phoneNumber, setPhoneNumber] = useState('');
    const [isPollingPayment, setIsPollingPayment] = useState(false);
    const paymentPollRef = useRef<NodeJS.Timeout | null>(null);
    const paymentPollCountRef = useRef(0);
@@ -148,8 +148,8 @@ export default function VerificationFlow() {
    }, []);
 
    const handleInitiate = async () => {
-      if (!phoneNumber || phoneNumber.length < 12) {
-         toast.error('Invalid M-Pesa number (Format: 254...)');
+      if (!phoneNumber || !phoneNumber.match(/^0[17]\d{8}$/)) {
+         toast.error('Invalid M-Pesa number (Format: 07xxxxxxxx)');
          return;
       }
       setIsSubmitting(true);
@@ -231,9 +231,6 @@ export default function VerificationFlow() {
             {/* Header Section */}
             <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
                <div className="space-y-2">
-                  <Badge variant="outline" className="rounded-lg font-black tracking-widest text-[10px] uppercase bg-emerald-50 text-emerald-600 border-emerald-100 px-3 py-1">
-                     Trust Protocol
-                  </Badge>
                   <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">Identity Verification</h1>
                   <p className="text-muted-foreground font-semibold text-lg leading-relaxed">
                      Complete the verification sequence to earn your <span className="text-emerald-500 font-black italic">Verified Badge</span>.
@@ -319,21 +316,25 @@ export default function VerificationFlow() {
 
                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {verifyStatus && Object.entries(verifyStatus.profileCompleteness).map(([req, met]) => (
-                                       <div key={req} className={cn(
-                                          "p-5 rounded-2xl border transition-all flex items-center gap-4",
-                                          met ? "bg-emerald-50/30 border-emerald-100" : "bg-slate-50 border-slate-100"
-                                       )}>
+                                       <Link 
+                                          href="/profile/me" 
+                                          key={req} 
+                                          className={cn(
+                                             "p-5 rounded-2xl border transition-all flex items-center gap-4 group cursor-pointer",
+                                             met ? "bg-emerald-50/30 border-emerald-100" : "bg-slate-50 border-slate-100 hover:border-primary/30 hover:bg-white hover:shadow-lg hover:shadow-primary/5 active:scale-[0.98]"
+                                          )}
+                                       >
                                           <div className={cn(
-                                             "h-10 w-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm transition-colors",
-                                             met ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-400"
+                                             "h-10 w-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm transition-all duration-300",
+                                             met ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-400 group-hover:bg-primary group-hover:text-white group-hover:rotate-12"
                                           )}>
                                              {met ? <CheckCircle2 className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
                                           </div>
                                           <div className="flex flex-col">
-                                             <span className={cn("text-xs font-black uppercase tracking-widest", met ? "text-emerald-900" : "text-slate-400")}>{req}</span>
-                                             <span className="text-[10px] font-bold text-slate-400">{met ? 'Verified' : 'Action Required'}</span>
+                                             <span className={cn("text-xs font-black uppercase tracking-widest transition-colors", met ? "text-emerald-900" : "text-slate-400 group-hover:text-primary")}>{req}</span>
+                                             <span className="text-[10px] font-bold text-slate-400">{met ? 'Verified' : 'Click to fix'}</span>
                                           </div>
-                                       </div>
+                                       </Link>
                                     ))}
                                  </div>
 
@@ -361,7 +362,7 @@ export default function VerificationFlow() {
                                        <Input
                                           value={phoneNumber}
                                           onChange={(e) => setPhoneNumber(e.target.value)}
-                                          placeholder="2547XXXXXXXX"
+                                          placeholder="07xxxxxxxx"
                                           className="h-16 rounded-2xl bg-slate-50 border-none pl-12 font-black text-lg focus-visible:ring-primary/20"
                                        />
                                     </div>

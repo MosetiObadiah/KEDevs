@@ -88,8 +88,8 @@ export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerifie
   };
 
   const handleInitiate = async () => {
-    if (!phoneNumber.match(/^(254|0)(7|1)\d{8}$/)) {
-      setError('Please enter a valid M-Pesa phone number');
+    if (!phoneNumber.match(/^0[17]\d{8}$/)) {
+      setError('Please enter a valid M-Pesa phone number (Format: 07xxxxxxxx)');
       return;
     }
 
@@ -304,7 +304,7 @@ export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerifie
                   loading || 
                   fetchingAvailability ||
                   !availability ||
-                  !phoneNumber.match(/^(254|0)(7|1)\d{8}$/) ||
+                  !phoneNumber.match(/^0[17]\d{8}$/) ||
                   (type === 'DAY' && !availability?.daySlotAvailable) || 
                   (type === 'WEEK' && !availability?.weekSlotAvailable)
                 } 

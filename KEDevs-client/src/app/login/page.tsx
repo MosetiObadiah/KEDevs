@@ -58,7 +58,8 @@ export default function LoginPage() {
     try {
       await login({ email, password });
     } catch (err: any) {
-      const errorMessage = err.message || 'Failed to login. Please check your credentials.';
+      console.error('Login error:', err);
+      const errorMessage = err.message || 'Invalid email or password. Please try again.';
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {

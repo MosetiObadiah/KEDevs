@@ -15,13 +15,15 @@ import {
   BarChart3,
   ExternalLink,
   Loader2,
-  AlertTriangle
+  AlertTriangle,
+  Pin
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { jobService } from '@/services/jobService';
 import { forumService } from '@/services/forumService';
 import { developerService } from '@/services/developerService';
 import ApplyDialog from '@/components/jobs/ApplyDialog';
+import PinJobDialog from '@/components/jobs/PinJobDialog';
 import Forum from '@/components/forum/Forum';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -50,6 +52,7 @@ export default function JobDetailPage() {
   const [isUpvoted, setIsUpvoted] = useState(false);
   const [isDownvoted, setIsDownvoted] = useState(false);
   const [upvoteCount, setUpvoteCount] = useState(0);
+  const [pinOpen, setPinOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
   const [editForm, setEditForm] = useState<any>({});
@@ -277,6 +280,11 @@ export default function JobDetailPage() {
                   <BarChart3 className="w-4 h-4" />
                   {job.experienceLevel?.replace(/_/g, ' ')}
                 </span>
+                {job.isPinned && (
+                  <Badge className="bg-primary text-primary-foreground font-black text-[10px] tracking-widest uppercase py-1 px-3 shadow-sm flex items-center gap-1.5 rounded-full">
+                    <Pin className="h-3 w-3 fill-current" /> Pinned
+                  </Badge>
+                )}
               </div>
             </div>
 
@@ -402,9 +410,16 @@ export default function JobDetailPage() {
                       You Posted This Job
                     </Badge>
                     {job.status !== 'CLOSED' && job.status !== 'REMOVED' && (
-                      <Button size="sm" variant="outline" className="w-full font-semibold" onClick={handleEditJob}>
-                        <Pencil className="w-3.5 h-3.5 mr-2" /> Edit Job
-                      </Button>
+                      <div className="space-y-2">
+                        <Button size="sm" variant="outline" className="w-full font-semibold" onClick={handleEditJob}>
+                          <Pencil className="w-3.5 h-3.5 mr-2" /> Edit Job
+                        </Button>
+                        {!job.isPinned && (
+                          <Button size="sm" className="w-full font-black bg-primary/10 text-primary hover:bg-primary/20 border-primary/20" variant="outline" onClick={() => setPinOpen(true)}>
+                            <Pin className="w-3.5 h-3.5 mr-2" /> Pin This Job
+                          </Button>
+                        )}
+                      </div>
                     )}
                   </div>
                 ) : job.isFlagged ? (
@@ -495,6 +510,16 @@ export default function JobDetailPage() {
           toast.success('Application sent!');
           setTimeout(() => router.push('/jobs/my-applications'), 2000);
         }} 
+      />
+
+      <PinJobDialog
+        open={pinOpen}
+        onClose={() => setPinOpen(false)}
+        jobId={job.id}
+        jobTitle={job.title}
+        onSuccess={() => {
+          setJob({ ...job, isPinned: true });
+        }}
       />
 
       {/* Edit Job Dialog */}

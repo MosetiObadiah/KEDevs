@@ -1,7 +1,6 @@
 package org.moseti.kedevsapi.payments.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -42,40 +41,12 @@ public class PaymentController {
         return (UUID) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
     }
 
-    @Operation(summary = "Initiate M-Pesa STK push for annual membership")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "STK push initiated successfully"),
-        @ApiResponse(responseCode = "400", description = "User already has an active membership"),
-        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
-    })
-    @PostMapping("/annual-membership")
-    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<PaymentInitiationResponse>> initiateAnnualMembership(
-            @Valid @RequestBody InitiatePaymentRequest request) {
-        PaymentInitiationResponse response = paymentService.initiateAnnualMembership(
-                getCurrentUserId(), request.phoneNumber());
-        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("STK push initiated", response));
-    }
-
-    @Operation(summary = "Initiate M-Pesa STK push for Employer Pro", description = "Requires EMPLOYER role.")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "STK push initiated successfully"),
-        @ApiResponse(responseCode = "400", description = "Employer already has a Pro account"),
-        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
-        @ApiResponse(responseCode = "403", description = "Insufficient permissions")
-    })
-    @PostMapping("/pro-upgrade")
-    @PreAuthorize("hasRole('EMPLOYER')")
-    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<PaymentInitiationResponse>> initiateProUpgrade(
-            @Valid @RequestBody InitiatePaymentRequest request) {
-        PaymentInitiationResponse response = paymentService.initiateProUpgrade(
-                getCurrentUserId(), request.phoneNumber());
-        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("STK push initiated", response));
-    }
+    // ====================== Verified Badge ======================
 
     @Operation(summary = "Initiate M-Pesa STK push for verified badge")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "STK push initiated successfully"),
-        @ApiResponse(responseCode = "400", description = "Developer already verified"),
+        @ApiResponse(responseCode = "400", description = "User already verified"),
         @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
     })
     @PostMapping("/verified-badge")
@@ -85,6 +56,8 @@ public class PaymentController {
                 getCurrentUserId(), request.phoneNumber());
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("STK push initiated", response));
     }
+
+    // ====================== Spotlight ======================
 
     @Operation(summary = "Initiate M-Pesa STK push for Day or Week spotlight", description = "Requires DEVELOPER role.")
     @ApiResponses({
@@ -102,22 +75,54 @@ public class PaymentController {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("STK push initiated", response));
     }
 
-    @Operation(summary = "Initiate M-Pesa STK push for a search token pack (3 uses)", description = "Requires EMPLOYER role.")
+    @Operation(summary = "Manually confirm a pending spotlight payment",
+               description = "Finds the most recent pending spotlight payment and activates the slot. Dev use only.")
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "STK push initiated successfully"),
+        @ApiResponse(responseCode = "200", description = "Spotlight slot activated"),
+        @ApiResponse(responseCode = "400", description = "No pending spotlight payment found"),
         @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
         @ApiResponse(responseCode = "403", description = "Insufficient permissions")
     })
-    @PostMapping("/search-token")
-    @PreAuthorize("hasRole('EMPLOYER')")
-    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<PaymentInitiationResponse>> initiateSearchToken(
-            @Valid @RequestBody InitiatePaymentRequest request) {
-        PaymentInitiationResponse response = paymentService.initiateSearchToken(
-                getCurrentUserId(), request.phoneNumber());
+    @PostMapping("/confirm-spotlight")
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<SpotlightSlotConfirmResponse>> confirmSpotlight() {
+        SpotlightSlotConfirmResponse response = paymentService.confirmSpotlight(getCurrentUserId());
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Spotlight activated", response));
+    }
+
+    // ====================== Pinned Job ======================
+
+    @Operation(summary = "Initiate M-Pesa STK push to pin a job post")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "STK push initiated successfully"),
+        @ApiResponse(responseCode = "400", description = "Job already pinned, peer-sourced, or not owned by user"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "403", description = "Not the job owner")
+    })
+    @PostMapping("/pinned-job")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<PaymentInitiationResponse>> initiatePinnedJob(
+            @Valid @RequestBody InitiatePinnedJobRequest request) {
+        PaymentInitiationResponse response = paymentService.initiatePinnedJob(
+                getCurrentUserId(), request.jobId(), request.durationType(), request.phoneNumber());
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("STK push initiated", response));
     }
 
-    @Operation(summary = "Daraja M-Pesa payment webhook", 
+    @Operation(summary = "Manually confirm a pending pinned-job payment",
+               description = "Dev use only — activates pinned status without a real M-Pesa callback.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Pinned job activated"),
+        @ApiResponse(responseCode = "400", description = "No pending pinned job payment found"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    })
+    @PostMapping("/confirm-pinned-job")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> confirmPinnedJob() {
+        paymentService.confirmPinnedJob(getCurrentUserId());
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Pinned job activated"));
+    }
+
+    // ====================== Daraja Callback ======================
+
+    @Operation(summary = "Daraja M-Pesa payment webhook",
                description = "Called by Safaricom only. Idempotent — safe to retry.",
                security = {})
     @ApiResponses({
@@ -129,6 +134,8 @@ public class PaymentController {
         paymentService.handleCallback(callback);
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Callback processed"));
     }
+
+    // ====================== Query ======================
 
     @Operation(summary = "Get own payment history")
     @ApiResponses({
@@ -142,17 +149,6 @@ public class PaymentController {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Payment history fetched", response));
     }
 
-    @Operation(summary = "Get own active subscriptions")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Subscription status fetched successfully"),
-        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
-    })
-    @GetMapping("/subscriptions")
-    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<SubscriptionStatusResponse>> getSubscriptionStatus() {
-        SubscriptionStatusResponse response = paymentService.getSubscriptionStatus(getCurrentUserId());
-        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Subscription status fetched", response));
-    }
-
     @Operation(summary = "Get platform pricing settings", security = {})
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Platform settings fetched successfully")
@@ -162,20 +158,7 @@ public class PaymentController {
         List<PlatformSettingResponse> settings = paymentService.getPlatformSettings();
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Platform settings fetched", settings));
     }
-    @Operation(summary = "Manually confirm a pending spotlight payment",
-               description = "Finds the most recent pending spotlight payment for the current user and activates the slot. Use this if the M-Pesa callback did not arrive (e.g., in local development). Requires DEVELOPER role.")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Spotlight slot activated"),
-        @ApiResponse(responseCode = "400", description = "No pending spotlight payment found"),
-        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
-        @ApiResponse(responseCode = "403", description = "Insufficient permissions")
-    })
-    @PostMapping("/confirm-spotlight")
-    @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<SpotlightSlotConfirmResponse>> confirmSpotlight() {
-        SpotlightSlotConfirmResponse response = paymentService.confirmSpotlight(getCurrentUserId());
-        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Spotlight activated", response));
-    }
+
     @Operation(summary = "Export payment history")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "File exported successfully"),

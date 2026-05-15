@@ -2,10 +2,10 @@ package org.moseti.kedevsapi.payments.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.moseti.kedevsapi.jobs.entity.JobPost;
+import org.moseti.kedevsapi.jobs.repository.JobPostRepository;
 import org.moseti.kedevsapi.payments.dto.PaymentDtos.*;
 import org.moseti.kedevsapi.payments.entity.Payment;
-import org.moseti.kedevsapi.payments.entity.SearchToken;
-import org.moseti.kedevsapi.payments.entity.Subscription;
 import org.moseti.kedevsapi.payments.exception.*;
 import org.moseti.kedevsapi.payments.repository.*;
 import org.moseti.kedevsapi.shared.enums.*;
@@ -13,26 +13,25 @@ import org.moseti.kedevsapi.shared.exception.BadRequestException;
 import org.moseti.kedevsapi.shared.exception.ForbiddenException;
 import org.moseti.kedevsapi.shared.util.Constants;
 import org.moseti.kedevsapi.users.entity.User;
+import org.moseti.kedevsapi.users.entity.VerificationRequest;
 import org.moseti.kedevsapi.users.repository.DeveloperProfileRepository;
 import org.moseti.kedevsapi.users.repository.EmployerProfileRepository;
 import org.moseti.kedevsapi.users.repository.UserRepository;
-import org.moseti.kedevsapi.spotlight.service.SpotlightService;
 import org.moseti.kedevsapi.users.repository.VerificationRequestRepository;
-import org.moseti.kedevsapi.users.entity.VerificationRequest;
 import org.moseti.kedevsapi.spotlight.entity.SpotlightSlot;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
+import org.moseti.kedevsapi.spotlight.service.SpotlightService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.moseti.kedevsapi.shared.dto.WebSocketEvent;
-import java.util.Map;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -42,8 +41,6 @@ public class PaymentService {
 
     private final DarajaService darajaService;
     private final PaymentRepository paymentRepository;
-    private final SubscriptionRepository subscriptionRepository;
-    private final SearchTokenRepository searchTokenRepository;
     private final PlatformSettingRepository platformSettingRepository;
     private final UserRepository userRepository;
     private final DeveloperProfileRepository developerProfileRepository;
@@ -52,6 +49,7 @@ public class PaymentService {
     private final org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
     private final org.moseti.kedevsapi.auth.service.EmailService emailService;
     private final VerificationRequestRepository verificationRequestRepository;
+    private final JobPostRepository jobPostRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
     // ====================== Helper ======================
@@ -64,15 +62,13 @@ public class PaymentService {
 
     private BigDecimal getDefaultFallback(String key) {
         return switch (key) {
-            case "ANNUAL_FEE_DEVELOPER" -> BigDecimal.valueOf(Constants.DEFAULT_DEVELOPER_ANNUAL_FEE);
-            case "ANNUAL_FEE_EMPLOYER" -> BigDecimal.valueOf(Constants.DEFAULT_EMPLOYER_ANNUAL_FEE);
-            case "EMPLOYER_PRO_ANNUAL_FEE" -> BigDecimal.valueOf(Constants.DEFAULT_EMPLOYER_PRO_ANNUAL_FEE);
             case "VERIFIED_BADGE_DEVELOPER" -> BigDecimal.valueOf(Constants.DEFAULT_VERIFIED_BADGE_DEVELOPER);
-            case "VERIFIED_BADGE_EMPLOYER" -> BigDecimal.valueOf(Constants.DEFAULT_VERIFIED_BADGE_EMPLOYER);
-            case "SPOTLIGHT_DAY_FEE" -> BigDecimal.valueOf(Constants.DEFAULT_SPOTLIGHT_DAY_FEE);
-            case "SPOTLIGHT_WEEK_FEE" -> BigDecimal.valueOf(Constants.DEFAULT_SPOTLIGHT_WEEK_FEE);
-            case "SEARCH_TOKEN_FEE" -> BigDecimal.valueOf(Constants.DEFAULT_SEARCH_TOKEN_FEE);
-            case "SEARCH_TOKEN_USES" -> BigDecimal.valueOf(Constants.DEFAULT_SEARCH_TOKEN_USES);
+            case "VERIFIED_BADGE_EMPLOYER"  -> BigDecimal.valueOf(Constants.DEFAULT_VERIFIED_BADGE_EMPLOYER);
+            case "SPOTLIGHT_DAY_FEE"        -> BigDecimal.valueOf(Constants.DEFAULT_SPOTLIGHT_DAY_FEE);
+            case "SPOTLIGHT_WEEK_FEE"       -> BigDecimal.valueOf(Constants.DEFAULT_SPOTLIGHT_WEEK_FEE);
+            case "PINNED_JOB_DAY_FEE"       -> BigDecimal.valueOf(Constants.DEFAULT_PINNED_JOB_DAY_FEE);
+            case "PINNED_JOB_3DAYS_FEE"     -> BigDecimal.valueOf(Constants.DEFAULT_PINNED_JOB_3DAYS_FEE);
+            case "PINNED_JOB_7DAYS_FEE"     -> BigDecimal.valueOf(Constants.DEFAULT_PINNED_JOB_7DAYS_FEE);
             default -> BigDecimal.ZERO;
         };
     }
@@ -96,48 +92,6 @@ public class PaymentService {
     }
 
     // ====================== Initiation Methods ======================
-
-    @Transactional
-    public PaymentInitiationResponse initiateAnnualMembership(UUID userId, String phoneNumber) {
-        User user = getUser(userId);
-        if (subscriptionRepository.existsByUserIdAndTypeAndStatus(
-                userId, SubscriptionType.ANNUAL_MEMBERSHIP, SubscriptionStatus.ACTIVE)) {
-            throw new AlreadySubscribedException("You already have an active membership");
-        }
-        String feeKey = user.getRole() == Role.DEVELOPER ? "ANNUAL_FEE_DEVELOPER" : "ANNUAL_FEE_EMPLOYER";
-        BigDecimal amount = getSettingValue(feeKey);
-
-        StkPushResponse stkResponse = darajaService.initiateSTKPush(
-                phoneNumber, amount, "KEDevsMembr", "Annual Membership");
-
-        buildAndSavePayment(userId, PaymentType.ANNUAL_MEMBERSHIP, amount,
-                phoneNumber, stkResponse.checkoutRequestId(), null);
-
-        return new PaymentInitiationResponse(stkResponse.checkoutRequestId(),
-                "STK push sent. Enter your M-Pesa PIN to complete payment.", amount);
-    }
-
-    @Transactional
-    public PaymentInitiationResponse initiateProUpgrade(UUID userId, String phoneNumber) {
-        User user = getUser(userId);
-        if (user.getRole() != Role.EMPLOYER) {
-            throw new ForbiddenException("Only employers can upgrade to Pro");
-        }
-        if (subscriptionRepository.existsByUserIdAndTypeAndStatus(
-                userId, SubscriptionType.EMPLOYER_PRO, SubscriptionStatus.ACTIVE)) {
-            throw new AlreadySubscribedException("You already have an active Pro subscription");
-        }
-
-        BigDecimal amount = getSettingValue("EMPLOYER_PRO_ANNUAL_FEE");
-        StkPushResponse stkResponse = darajaService.initiateSTKPush(
-                phoneNumber, amount, "KEDevsProUpgr", "Employer Pro");
-
-        buildAndSavePayment(userId, PaymentType.EMPLOYER_PRO, amount,
-                phoneNumber, stkResponse.checkoutRequestId(), null);
-
-        return new PaymentInitiationResponse(stkResponse.checkoutRequestId(),
-                "STK push sent. Enter your M-Pesa PIN to complete payment.", amount);
-    }
 
     @Transactional
     public PaymentInitiationResponse initiateVerifiedBadge(UUID userId, String phoneNumber) {
@@ -174,40 +128,119 @@ public class PaymentService {
         if (user.getRole() != Role.DEVELOPER) {
             throw new ForbiddenException("Only developers can purchase spotlight slots");
         }
-        
-        if (spotlightService.checkSlotAvailability().daySlotAvailable() == false && spotlightType == SpotlightType.DAY) {
+
+        if (!spotlightService.checkSlotAvailability().daySlotAvailable() && spotlightType == SpotlightType.DAY) {
             throw new SpotlightSlotTakenException("A developer is currently featured in this spotlight. Please try again later.");
         }
-        if (spotlightService.checkSlotAvailability().weekSlotAvailable() == false && spotlightType == SpotlightType.WEEK) {
+        if (!spotlightService.checkSlotAvailability().weekSlotAvailable() && spotlightType == SpotlightType.WEEK) {
             throw new SpotlightSlotTakenException("A developer is currently featured in this spotlight. Please try again later.");
         }
 
         String feeKey = spotlightType == SpotlightType.DAY ? "SPOTLIGHT_DAY_FEE" : "SPOTLIGHT_WEEK_FEE";
         BigDecimal amount = getSettingValue(feeKey);
         PaymentType type = spotlightType == SpotlightType.DAY ? PaymentType.SPOTLIGHT_DAY : PaymentType.SPOTLIGHT_WEEK;
+
         StkPushResponse stkResponse = darajaService.initiateSTKPush(
                 phoneNumber, amount, "KEDevsSpotlt", "Spotlight " + spotlightType.name());
 
-        buildAndSavePayment(userId, type, amount, phoneNumber,
+        Payment payment = buildAndSavePayment(userId, type, amount, phoneNumber,
                 stkResponse.checkoutRequestId(), "{\"spotlightType\":\"" + spotlightType.name() + "\"}");
+
+        // Create the slot INACTIVE — it will be activated only after Daraja confirms payment
+        spotlightService.createInactiveSlot(userId, payment.getId(), spotlightType);
 
         return new PaymentInitiationResponse(stkResponse.checkoutRequestId(),
                 "STK push sent. Enter your M-Pesa PIN to complete payment.", amount);
     }
 
     @Transactional
-    public PaymentInitiationResponse initiateSearchToken(UUID employerId, String phoneNumber) {
-        User user = getUser(employerId);
-        if (user.getRole() != Role.EMPLOYER) {
-            throw new ForbiddenException("Only employers can purchase search tokens");
+    public PaymentInitiationResponse initiatePinnedJob(UUID userId, UUID jobId, String durationType) {
+        getUser(userId);
+
+        JobPost job = jobPostRepository.findById(jobId)
+                .orElseThrow(() -> new BadRequestException("Job post not found: " + jobId));
+
+        if (!job.getPostedById().equals(userId)) {
+            throw new ForbiddenException("You can only pin your own job posts");
+        }
+        if (job.isPeerSourced()) {
+            throw new BadRequestException("Peer-sourced job posts cannot be pinned");
+        }
+        if (job.isPinned()) {
+            throw new BadRequestException("This job is already pinned until " + job.getPinnedUntil());
         }
 
-        BigDecimal amount = getSettingValue("SEARCH_TOKEN_FEE");
-        StkPushResponse stkResponse = darajaService.initiateSTKPush(
-                phoneNumber, amount, "KEDevsSrchTkn", "Search Token");
+        String feeKey;
+        PaymentType type;
+        switch (durationType.toUpperCase()) {
+            case "DAY" -> {
+                feeKey = "PINNED_JOB_DAY_FEE";
+                type = PaymentType.PINNED_JOB_DAY;
+            }
+            case "3DAYS" -> {
+                feeKey = "PINNED_JOB_3DAYS_FEE";
+                type = PaymentType.PINNED_JOB_3DAYS;
+            }
+            case "7DAYS" -> {
+                feeKey = "PINNED_JOB_7DAYS_FEE";
+                type = PaymentType.PINNED_JOB_7DAYS;
+            }
+            default -> throw new BadRequestException("Invalid duration type. Use: DAY, 3DAYS, or 7DAYS");
+        }
 
-        buildAndSavePayment(employerId, PaymentType.SEARCH_TOKEN, amount,
-                phoneNumber, stkResponse.checkoutRequestId(), "{\"type\":\"searchToken\"}");
+        BigDecimal amount = getSettingValue(feeKey);
+
+        StkPushResponse stkResponse = darajaService.initiateSTKPush(
+                phoneNumber(userId), amount, "KEDevsPinJob", "Pinned Job " + durationType);
+
+        buildAndSavePayment(userId, type, amount, phoneNumber(userId),
+                stkResponse.checkoutRequestId(), "{\"jobId\":\"" + jobId + "\",\"durationType\":\"" + durationType + "\"}");
+
+        return new PaymentInitiationResponse(stkResponse.checkoutRequestId(),
+                "STK push sent. Enter your M-Pesa PIN to complete payment.", amount);
+    }
+
+    @Transactional
+    public PaymentInitiationResponse initiatePinnedJob(UUID userId, UUID jobId, String durationType, String phoneNumber) {
+        getUser(userId);
+
+        JobPost job = jobPostRepository.findById(jobId)
+                .orElseThrow(() -> new BadRequestException("Job post not found: " + jobId));
+
+        if (!job.getPostedById().equals(userId)) {
+            throw new ForbiddenException("You can only pin your own job posts");
+        }
+        if (job.isPeerSourced()) {
+            throw new BadRequestException("Peer-sourced job posts cannot be pinned");
+        }
+        if (job.isPinned()) {
+            throw new BadRequestException("This job is already pinned until " + job.getPinnedUntil());
+        }
+
+        String feeKey;
+        PaymentType type;
+        switch (durationType.toUpperCase()) {
+            case "DAY" -> {
+                feeKey = "PINNED_JOB_DAY_FEE";
+                type = PaymentType.PINNED_JOB_DAY;
+            }
+            case "3DAYS" -> {
+                feeKey = "PINNED_JOB_3DAYS_FEE";
+                type = PaymentType.PINNED_JOB_3DAYS;
+            }
+            case "7DAYS" -> {
+                feeKey = "PINNED_JOB_7DAYS_FEE";
+                type = PaymentType.PINNED_JOB_7DAYS;
+            }
+            default -> throw new BadRequestException("Invalid duration type. Use: DAY, 3DAYS, or 7DAYS");
+        }
+
+        BigDecimal amount = getSettingValue(feeKey);
+        StkPushResponse stkResponse = darajaService.initiateSTKPush(
+                phoneNumber, amount, "KEDevsPinJob", "Pinned Job " + durationType);
+
+        buildAndSavePayment(userId, type, amount, phoneNumber,
+                stkResponse.checkoutRequestId(), "{\"jobId\":\"" + jobId + "\",\"durationType\":\"" + durationType + "\"}");
 
         return new PaymentInitiationResponse(stkResponse.checkoutRequestId(),
                 "STK push sent. Enter your M-Pesa PIN to complete payment.", amount);
@@ -231,9 +264,9 @@ public class PaymentService {
             return;
         }
 
-        // Idempotency: skip if already in a terminal state, UNLESS it's a manual confirmation we want to overwrite with Daraja real data
-        if ((payment.getStatus() == PaymentStatus.COMPLETED || payment.getStatus() == PaymentStatus.FAILED || payment.getStatus() == PaymentStatus.CANCELLED) 
-            && !payment.getMpesaReceiptNo().startsWith("MANUAL-")) {
+        // Idempotency: skip if already in a terminal state (except manual-confirmed payments)
+        if ((payment.getStatus() == PaymentStatus.COMPLETED || payment.getStatus() == PaymentStatus.FAILED || payment.getStatus() == PaymentStatus.CANCELLED)
+            && payment.getMpesaReceiptNo() != null && !payment.getMpesaReceiptNo().startsWith("MANUAL-")) {
             log.info("Payment {} already processed ({}), skipping callback", payment.getId(), payment.getStatus());
             return;
         }
@@ -243,9 +276,9 @@ public class PaymentService {
                 for (DarajaCallbackRequest.CallbackItem item : stkCallback.callbackMetadata().item()) {
                     if (item.value() == null) continue;
                     switch (item.name()) {
-                        case "Amount" -> payment.setAmount(new java.math.BigDecimal(item.value().toString()));
-                        case "MpesaReceiptNumber" -> payment.setMpesaReceiptNo(item.value().toString());
-                        case "TransactionDate" -> {
+                        case "Amount"            -> payment.setAmount(new java.math.BigDecimal(item.value().toString()));
+                        case "MpesaReceiptNumber"-> payment.setMpesaReceiptNo(item.value().toString());
+                        case "TransactionDate"   -> {
                             try {
                                 payment.setPaidAt(parseMpesaDate(item.value().toString()));
                             } catch (Exception e) {
@@ -253,7 +286,7 @@ public class PaymentService {
                                 payment.setPaidAt(LocalDateTime.now());
                             }
                         }
-                        case "PhoneNumber" -> payment.setPhoneNumber(item.value().toString());
+                        case "PhoneNumber"       -> payment.setPhoneNumber(item.value().toString());
                     }
                 }
             }
@@ -264,137 +297,62 @@ public class PaymentService {
             messagingTemplate.convertAndSendToUser(
                 payment.getUserId().toString(),
                 "/queue/status",
-                new WebSocketEvent<>("PAYMENT_COMPLETED", Map.of("paymentId", payment.getId(), "type", payment.getType()))
+                new WebSocketEvent<>("PAYMENT_COMPLETED", Map.of(
+                    "paymentId", payment.getId(),
+                    "type", payment.getType()
+                ))
             );
         } else {
-            // Distinguish user cancellation (1032) from other failures
             int resultCode = stkCallback.resultCode();
             String resultDesc = stkCallback.resultDesc() != null ? stkCallback.resultDesc() : "Payment failed";
+            // ResultCode 1032 = user cancelled; all others are failures
             PaymentStatus failStatus = (resultCode == 1032) ? PaymentStatus.CANCELLED : PaymentStatus.FAILED;
 
-            log.warn("Payment {} {} with ResultCode {}: {}",
-                    payment.getId(), failStatus, resultCode, resultDesc);
+            log.warn("Payment {} {} with ResultCode {}: {}", payment.getId(), failStatus, resultCode, resultDesc);
 
             payment.setStatus(failStatus);
             payment.setFailReason(resultDesc);
             paymentRepository.save(payment);
 
+            // Clean up inactive spotlight slot (only on definitive FAILED or CANCELLED, not retries)
+            if (payment.getType() == PaymentType.SPOTLIGHT_DAY || payment.getType() == PaymentType.SPOTLIGHT_WEEK) {
+                spotlightService.deleteInactiveSlotByPaymentId(payment.getId());
+            }
+
             messagingTemplate.convertAndSendToUser(
                 payment.getUserId().toString(),
                 "/queue/status",
-                new WebSocketEvent<>("PAYMENT_FAILED", Map.of("paymentId", payment.getId(), "reason", resultDesc))
+                new WebSocketEvent<>("PAYMENT_FAILED", Map.of(
+                    "paymentId", payment.getId(),
+                    "type", payment.getType(),
+                    "reason", resultDesc
+                ))
             );
         }
     }
 
     private LocalDateTime parseMpesaDate(String mpesaDate) {
-        // Daraja TransactionDate format: yyyyMMddHHmmss  e.g. 20260512090300
         java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         return LocalDateTime.parse(mpesaDate, formatter);
     }
 
     private void processSuccessfulPayment(Payment payment) {
         switch (payment.getType()) {
-            case ANNUAL_MEMBERSHIP -> {
-                LocalDateTime now = LocalDateTime.now();
-
-                // Create or renew subscription
-                Subscription sub = subscriptionRepository
-                        .findByUserIdAndTypeAndStatus(payment.getUserId(),
-                                SubscriptionType.ANNUAL_MEMBERSHIP, SubscriptionStatus.ACTIVE)
-                        .orElse(null);
-
-                LocalDateTime startDate;
-                LocalDateTime endDate;
-
-                if (sub != null) {
-                    startDate = sub.getEndDate();
-                    endDate = sub.getEndDate().plusYears(1);
-                } else {
-                    sub = new Subscription();
-                    startDate = now;
-                    endDate = now.plusYears(1);
-                }
-
-                sub.setUserId(payment.getUserId());
-                sub.setType(SubscriptionType.ANNUAL_MEMBERSHIP);
-                sub.setStatus(SubscriptionStatus.ACTIVE);
-                sub.setStartDate(startDate);
-                sub.setEndDate(endDate);
-                sub.setAmountPaid(payment.getAmount());
-                sub.setMpesaReceiptNo(payment.getMpesaReceiptNo());
-                sub.setPaymentId(payment.getId());
-                subscriptionRepository.save(sub);
-
-                // Update user subscription expiry
-                userRepository.findById(payment.getUserId()).ifPresent(user -> {
-                    user.setSubscriptionExpiresAt(endDate);
-                    user.setSubscriptionActive(true);
-                    userRepository.save(user);
-                });
-                User user = userRepository.findById(payment.getUserId()).orElse(null);
-                if (user != null) {
-                    notificationService.notify(
-                            payment.getUserId(),
-                            org.moseti.kedevsapi.shared.enums.NotificationCategory.PAYMENT,
-                            "Payment Confirmed",
-                            "Your annual membership payment of KES " + payment.getAmount() + " has been confirmed.",
-                            "{\"receiptNo\":\"" + payment.getMpesaReceiptNo() + "\"}"
-                    );
-                    emailService.sendPaymentConfirmationEmail(user.getEmail(), user.getFullName(), "Annual Membership", payment.getAmount(), payment.getMpesaReceiptNo());
-                }
-                messagingTemplate.convertAndSendToUser(
-                    payment.getUserId().toString(),
-                    "/queue/status",
-                    new WebSocketEvent<>("STATUS_UPDATE", Map.of("membershipActive", true, "subscriptionExpiresAt", endDate))
-                );
-            }
-            case EMPLOYER_PRO -> {
-                LocalDateTime now = LocalDateTime.now();
-                Subscription sub = new Subscription();
-                sub.setUserId(payment.getUserId());
-                sub.setType(SubscriptionType.EMPLOYER_PRO);
-                sub.setStatus(SubscriptionStatus.ACTIVE);
-                sub.setStartDate(now);
-                sub.setEndDate(now.plusYears(1));
-                sub.setAmountPaid(payment.getAmount());
-                sub.setMpesaReceiptNo(payment.getMpesaReceiptNo());
-                sub.setPaymentId(payment.getId());
-                subscriptionRepository.save(sub);
-
-                employerProfileRepository.findByUserId(payment.getUserId()).ifPresent(profile -> {
-                    profile.setProAccount(true);
-                    employerProfileRepository.save(profile);
-                });
-                User user = userRepository.findById(payment.getUserId()).orElse(null);
-                if (user != null) {
-                    notificationService.notify(
-                            payment.getUserId(),
-                            org.moseti.kedevsapi.shared.enums.NotificationCategory.PAYMENT,
-                            "Employer Pro Activated",
-                            "Your employer pro upgrade payment of KES " + payment.getAmount() + " has been confirmed.",
-                            "{\"receiptNo\":\"" + payment.getMpesaReceiptNo() + "\"}"
-                    );
-                    emailService.sendPaymentConfirmationEmail(user.getEmail(), user.getFullName(), "Employer Pro Upgrade", payment.getAmount(), payment.getMpesaReceiptNo());
-                }
-                messagingTemplate.convertAndSendToUser(
-                    payment.getUserId().toString(),
-                    "/queue/status",
-                    new WebSocketEvent<>("STATUS_UPDATE", Map.of("isProAccount", true))
-                );
-            }
             case VERIFIED_BADGE -> {
                 verificationRequestRepository.findByUserId(payment.getUserId()).ifPresent(request -> {
                     request.setStatus(VerificationStatus.PENDING_DOCS);
                     request.setPaymentId(payment.getId());
                     verificationRequestRepository.save(request);
                 });
-                
+
                 User user = userRepository.findById(payment.getUserId()).orElse(null);
                 if (user != null) {
+                    NotificationCategory category = user.getRole() == Role.EMPLOYER
+                            ? NotificationCategory.EMPLOYER_VERIFICATION_PAYMENT_SUCCESS
+                            : NotificationCategory.PAYMENT;
                     notificationService.notify(
                             payment.getUserId(),
-                            org.moseti.kedevsapi.shared.enums.NotificationCategory.PAYMENT,
+                            category,
                             "Payment Confirmed",
                             "Your verification payment of KES " + payment.getAmount() + " has been confirmed. Please upload your documents to continue.",
                             "{\"receiptNo\":\"" + payment.getMpesaReceiptNo() + "\"}"
@@ -408,21 +366,148 @@ public class PaymentService {
                 );
             }
             case SPOTLIGHT_DAY, SPOTLIGHT_WEEK -> {
-                UUID developerId = payment.getUserId();
-                SpotlightType type = payment.getType() == PaymentType.SPOTLIGHT_DAY
-                        ? SpotlightType.DAY : SpotlightType.WEEK;
-                spotlightService.activateSpotlight(developerId, payment.getId(), type);
+                // Activate the pre-created inactive slot
+                spotlightService.activateExistingSlot(payment.getId());
+
+                User user = userRepository.findById(payment.getUserId()).orElse(null);
+                if (user != null) {
+                    SpotlightType spotlightType = payment.getType() == PaymentType.SPOTLIGHT_DAY
+                            ? SpotlightType.DAY : SpotlightType.WEEK;
+                    notificationService.notify(
+                            payment.getUserId(),
+                            NotificationCategory.SPOTLIGHT,
+                            "Spotlight Activated!",
+                            "Your " + spotlightType.name() + " spotlight is now live.",
+                            null
+                    );
+                    emailService.sendPaymentConfirmationEmail(user.getEmail(), user.getFullName(),
+                            "Spotlight " + spotlightType.name(), payment.getAmount(), payment.getMpesaReceiptNo());
+                }
             }
-            case SEARCH_TOKEN -> {
-                SearchToken token = new SearchToken();
-                token.setEmployerId(payment.getUserId());
-                token.setTotalUses(getSettingValue("SEARCH_TOKEN_USES").intValue());
-                token.setUsedCount(0);
-                token.setPaymentId(payment.getId());
-                searchTokenRepository.save(token);
+            case PINNED_JOB_DAY, PINNED_JOB_3DAYS, PINNED_JOB_7DAYS -> {
+                activatePinnedJob(payment);
             }
-            default -> log.warn("Unhandled payment type: {}", payment.getType());
+            default -> log.warn("Unhandled payment type in processSuccessfulPayment: {}", payment.getType());
         }
+    }
+
+    private void activatePinnedJob(Payment payment) {
+        if (payment.getMetadata() == null) {
+            log.warn("Missing metadata on pinned job payment {}", payment.getId());
+            return;
+        }
+
+        // Parse jobId from metadata JSON: {"jobId":"<uuid>","durationType":"<str>"}
+        String meta = payment.getMetadata();
+        String jobIdStr = null;
+        try {
+            int start = meta.indexOf("\"jobId\":\"") + 9;
+            int end = meta.indexOf("\"", start);
+            jobIdStr = meta.substring(start, end);
+        } catch (Exception e) {
+            log.error("Could not parse jobId from pinned job payment metadata: {}", meta);
+            return;
+        }
+
+        JobPost job = jobPostRepository.findById(UUID.fromString(jobIdStr)).orElse(null);
+        if (job == null) {
+            log.warn("Job not found for pinned job payment {}", payment.getId());
+            return;
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime pinnedUntil = switch (payment.getType()) {
+            case PINNED_JOB_DAY   -> now.plusDays(1);
+            case PINNED_JOB_3DAYS -> now.plusDays(3);
+            case PINNED_JOB_7DAYS -> now.plusDays(7);
+            default               -> now.plusDays(1);
+        };
+
+        job.setPinned(true);
+        job.setPinnedUntil(pinnedUntil);
+        job.setPinnedPaymentId(payment.getId());
+        jobPostRepository.save(job);
+
+        User user = userRepository.findById(payment.getUserId()).orElse(null);
+        if (user != null) {
+            String dateStr = pinnedUntil.toLocalDate().toString();
+            notificationService.notify(
+                    payment.getUserId(),
+                    NotificationCategory.PINNED_JOB,
+                    "Job Pinned",
+                    "Your job '" + job.getTitle() + "' is now pinned until " + dateStr + ".",
+                    "{\"jobId\":\"" + job.getId() + "\"}"
+            );
+            emailService.sendPaymentConfirmationEmail(user.getEmail(), user.getFullName(),
+                    "Pinned Job Post", payment.getAmount(), payment.getMpesaReceiptNo());
+        }
+
+        messagingTemplate.convertAndSendToUser(
+            payment.getUserId().toString(),
+            "/queue/status",
+            new WebSocketEvent<>("STATUS_UPDATE", Map.of(
+                "jobId", job.getId(),
+                "isPinned", true,
+                "pinnedUntil", pinnedUntil.toString()
+            ))
+        );
+    }
+
+    // ====================== Dev Utility ======================
+
+    /**
+     * Manually confirm a pending spotlight payment.
+     * Used in development when Daraja callback URL isn't publicly reachable.
+     */
+    @Transactional
+    public SpotlightSlotConfirmResponse confirmSpotlight(UUID userId) {
+        Payment payment = paymentRepository.findFirstByUserIdAndTypeInAndStatusOrderByCreatedAtDesc(
+                userId,
+                List.of(PaymentType.SPOTLIGHT_DAY, PaymentType.SPOTLIGHT_WEEK),
+                PaymentStatus.PENDING
+        ).orElseThrow(() -> new BadRequestException(
+                "No pending spotlight payment found. Please initiate a new payment."));
+
+        payment.setStatus(PaymentStatus.COMPLETED);
+        payment.setPaidAt(LocalDateTime.now());
+        payment.setMpesaReceiptNo("MANUAL-" + System.currentTimeMillis());
+        paymentRepository.save(payment);
+
+        SpotlightType type = payment.getType() == PaymentType.SPOTLIGHT_DAY
+                ? SpotlightType.DAY : SpotlightType.WEEK;
+        @SuppressWarnings("deprecation")
+        SpotlightSlot slot = spotlightService.activateSpotlight(userId, payment.getId(), type);
+
+        notificationService.notify(
+                userId,
+                NotificationCategory.SPOTLIGHT,
+                "Spotlight Activated!",
+                "Your " + type.name() + " spotlight is now live.",
+                null
+        );
+
+        return new SpotlightSlotConfirmResponse(slot.getId(), type, slot.getEndDate());
+    }
+
+    /**
+     * Manually confirm a pending pinned-job payment.
+     * Used in development when Daraja callback URL isn't publicly reachable.
+     */
+    @Transactional
+    public void confirmPinnedJob(UUID userId) {
+        Payment payment = paymentRepository.findFirstByUserIdAndTypeInAndStatusOrderByCreatedAtDesc(
+                userId,
+                List.of(PaymentType.PINNED_JOB_DAY, PaymentType.PINNED_JOB_3DAYS, PaymentType.PINNED_JOB_7DAYS),
+                PaymentStatus.PENDING
+        ).orElseThrow(() -> new BadRequestException(
+                "No pending pinned job payment found. Please initiate a new payment."));
+
+        payment.setStatus(PaymentStatus.COMPLETED);
+        payment.setPaidAt(LocalDateTime.now());
+        payment.setMpesaReceiptNo("MANUAL-" + System.currentTimeMillis());
+        paymentRepository.save(payment);
+
+        activatePinnedJob(payment);
     }
 
     // ====================== Query Methods ======================
@@ -453,50 +538,6 @@ public class PaymentService {
         return paymentRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
-    public SubscriptionStatusResponse getSubscriptionStatus(UUID userId) {
-        Subscription memberSub = subscriptionRepository.findByUserIdAndTypeAndStatus(
-                userId, SubscriptionType.ANNUAL_MEMBERSHIP, SubscriptionStatus.ACTIVE).orElse(null);
-        Subscription proSub = subscriptionRepository.findByUserIdAndTypeAndStatus(
-                userId, SubscriptionType.EMPLOYER_PRO, SubscriptionStatus.ACTIVE).orElse(null);
-        int tokensRemaining = searchTokenRepository.countByEmployerIdAndUsedCountLessThanTotalUses(userId);
-
-        return new SubscriptionStatusResponse(
-                memberSub != null,
-                memberSub != null ? memberSub.getEndDate() : null,
-                proSub != null,
-                proSub != null ? proSub.getEndDate() : null,
-                tokensRemaining
-        );
-    }
-
-    public boolean hasActiveAnnualMembership(UUID userId) {
-        return subscriptionRepository.findByUserIdAndTypeAndStatus(
-                userId, SubscriptionType.ANNUAL_MEMBERSHIP, SubscriptionStatus.ACTIVE)
-                .map(s -> s.getEndDate().isAfter(LocalDateTime.now()))
-                .orElse(false);
-    }
-
-    public boolean hasActivePro(UUID userId) {
-        return subscriptionRepository.existsByUserIdAndTypeAndStatus(
-                userId, SubscriptionType.EMPLOYER_PRO, SubscriptionStatus.ACTIVE);
-    }
-
-    @Transactional
-    public void consumeSearchToken(UUID employerId) {
-        List<SearchToken> tokens = searchTokenRepository.findByEmployerIdAndUsedCountLessThanTotalUses(employerId);
-        if (tokens.isEmpty()) {
-            throw new InsufficientSearchTokensException("No search tokens available. Purchase a search token to continue.");
-        }
-        SearchToken token = tokens.get(0);
-        token.setUsedCount(token.getUsedCount() + 1);
-        searchTokenRepository.save(token);
-    }
-
-    public boolean canUseFilterTool(UUID employerId) {
-        return hasActivePro(employerId) ||
-                searchTokenRepository.countByEmployerIdAndUsedCountLessThanTotalUses(employerId) > 0;
-    }
-
     public List<PlatformSettingResponse> getPlatformSettings() {
         return platformSettingRepository.findAll().stream()
                 .map(s -> new PlatformSettingResponse(s.getSettingKey(), s.getSettingValue(), s.getDescription()))
@@ -504,40 +545,18 @@ public class PaymentService {
     }
 
     /**
-     * Manually confirm a pending spotlight payment for the current user.
-     * Useful in development when the Daraja callback URL isn't publicly reachable.
-     * In production, the STK push callback handles this automatically.
+     * Returns true if the given user has a COMPLETED VERIFIED_BADGE payment.
+     * Used to gate employer document uploads during onboarding.
      */
-    @Transactional
-    public SpotlightSlotConfirmResponse confirmSpotlight(UUID userId) {
-        // Find the most recent pending spotlight payment for this user
-        Payment payment = paymentRepository.findFirstByUserIdAndTypeInAndStatusOrderByCreatedAtDesc(
-                userId,
-                List.of(PaymentType.SPOTLIGHT_DAY, PaymentType.SPOTLIGHT_WEEK),
-                PaymentStatus.PENDING
-        ).orElseThrow(() -> new BadRequestException(
-                "No pending spotlight payment found. Please initiate a new payment."));
+    public boolean hasCompletedVerifiedBadgePayment(UUID userId) {
+        return paymentRepository.existsByUserIdAndTypeAndStatus(
+                userId, PaymentType.VERIFIED_BADGE, PaymentStatus.COMPLETED);
+    }
 
-        // Mark it as completed
-        payment.setStatus(PaymentStatus.COMPLETED);
-        payment.setPaidAt(LocalDateTime.now());
-        payment.setMpesaReceiptNo("MANUAL-" + System.currentTimeMillis());
-        paymentRepository.save(payment);
+    // ====================== Private Helpers ======================
 
-        // Activate the slot
-        SpotlightType type = payment.getType() == PaymentType.SPOTLIGHT_DAY
-                ? SpotlightType.DAY : SpotlightType.WEEK;
-        SpotlightSlot slot = spotlightService.activateSpotlight(userId, payment.getId(), type);
-
-        // Notify user
-        notificationService.notify(
-                userId,
-                org.moseti.kedevsapi.shared.enums.NotificationCategory.SPOTLIGHT,
-                "Spotlight Activated!",
-                "Your " + type.name() + " spotlight is now live.",
-                null
-        );
-
-        return new SpotlightSlotConfirmResponse(slot.getId(), type, slot.getEndDate());
+    /** Fallback — returns an empty string when phone number is not in scope. */
+    private String phoneNumber(UUID userId) {
+        return "";
     }
 }

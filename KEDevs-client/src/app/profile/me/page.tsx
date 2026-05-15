@@ -223,7 +223,10 @@ export default function MyProfile() {
         ? await employerService.getMyProfile()
         : await developerService.getMyProfile();
       if (response.success) {
-        setProfile(response.data);
+        setProfile({
+          ...response.data,
+          preferredWorkType: response.data.preferredWorkType || 'REMOTE'
+        });
       }
     } catch (err: any) {
       console.error(err);

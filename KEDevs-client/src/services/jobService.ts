@@ -8,6 +8,10 @@ export const jobService = {
       `/api/v1/jobs/public?page=${page}&size=${size}`
     );
   },
+
+  async getPinnedJobs(): Promise<ApiResponse<any[]>> {
+    return apiClient.get<ApiResponse<any[]>>('/api/v1/jobs/pinned');
+  },
   
   async getJobs(params: any): Promise<ApiResponse<PaginatedResponse<JobSummary>>> {
     const urlParams = new URLSearchParams();

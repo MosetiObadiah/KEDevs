@@ -78,22 +78,26 @@ public class SpotlightService {
         );
     }
 
+    /**
+     * Creates a spotlight slot as INACTIVE during payment initiation.
+     * The slot will only become active after Daraja confirms payment success.
+     */
     @Transactional
-    public SpotlightSlot activateSpotlight(UUID developerId, UUID paymentId, SpotlightType type) {
-        // Idempotency check
+    public SpotlightSlot createInactiveSlot(UUID developerId, UUID paymentId, SpotlightType type) {
+        // Idempotency check – do not create duplicate slots for the same payment
         SpotlightSlot existingSlot = spotlightSlotRepository.findByPaymentId(paymentId).orElse(null);
         if (existingSlot != null) {
             return existingSlot;
         }
 
-        // Check if developer already has active slot of same type
+        // Check if developer already has an ACTIVE slot of the same type
         if (spotlightSlotRepository.findByDeveloperIdAndTypeAndIsActiveTrue(developerId, type).isPresent()) {
             throw new SpotlightAlreadyActiveException("You already have an active spotlight slot of this type");
         }
 
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime endDate = type == SpotlightType.DAY 
-                ? now.plusHours(Constants.SPOTLIGHT_DAY_DURATION_HOURS) 
+        LocalDateTime endDate = type == SpotlightType.DAY
+                ? now.plusHours(Constants.SPOTLIGHT_DAY_DURATION_HOURS)
                 : now.plusDays(Constants.SPOTLIGHT_WEEK_DURATION_DAYS);
 
         SpotlightSlot slot = new SpotlightSlot();
@@ -102,8 +106,52 @@ public class SpotlightService {
         slot.setStartDate(now);
         slot.setEndDate(endDate);
         slot.setPaymentId(paymentId);
-        slot.setActive(true);
+        slot.setActive(false); // inactive until payment confirmed
+        slot.setOverriddenByAdmin(false);
 
+        return spotlightSlotRepository.save(slot);
+    }
+
+    /**
+     * Activates an existing (inactive) spotlight slot once Daraja confirms payment success.
+     * Called from PaymentService.processSuccessfulPayment().
+     */
+    @Transactional
+    public SpotlightSlot activateExistingSlot(UUID paymentId) {
+        SpotlightSlot slot = spotlightSlotRepository.findByPaymentId(paymentId)
+                .orElseThrow(() -> new RuntimeException("Spotlight slot not found for payment " + paymentId));
+        slot.setActive(true);
+        return spotlightSlotRepository.save(slot);
+    }
+
+    /**
+     * Deletes an inactive spotlight slot when a payment fails or is cancelled.
+     * Only removes INACTIVE slots – never removes admin-overridden or active slots.
+     * Called from PaymentService.handleCallback() on FAILED/CANCELLED status.
+     */
+    @Transactional
+    public void deleteInactiveSlotByPaymentId(UUID paymentId) {
+        spotlightSlotRepository.findByPaymentId(paymentId).ifPresent(slot -> {
+            if (!slot.isActive() && !slot.isOverriddenByAdmin()) {
+                spotlightSlotRepository.delete(slot);
+                log.info("Deleted inactive spotlight slot for failed payment {}", paymentId);
+            }
+        });
+    }
+
+    /**
+     * @deprecated Use createInactiveSlot() + activateExistingSlot() instead.
+     * Kept for the confirmSpotlight() dev-only flow which handles both steps atomically.
+     */
+    @Deprecated
+    @Transactional
+    public SpotlightSlot activateSpotlight(UUID developerId, UUID paymentId, SpotlightType type) {
+        // For the manual confirm path: create slot if absent, then immediately activate
+        SpotlightSlot slot = spotlightSlotRepository.findByPaymentId(paymentId).orElse(null);
+        if (slot == null) {
+            slot = createInactiveSlot(developerId, paymentId, type);
+        }
+        slot.setActive(true);
         return spotlightSlotRepository.save(slot);
     }
 

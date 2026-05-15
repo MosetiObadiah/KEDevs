@@ -185,7 +185,7 @@ export default function ContactPage() {
                  { 
                     icon: Phone, 
                     label: 'Phone', 
-                    value: '+254 (0) 700 000 000', 
+                    value: '0700000000', 
                     color: 'text-emerald-500',
                     bg: 'bg-emerald-50'
                  },

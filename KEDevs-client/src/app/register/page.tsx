@@ -20,6 +20,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useGoogleLogin } from '@react-oauth/google';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -55,7 +56,9 @@ export default function RegisterPage() {
       try {
         await googleLogin(tokenResponse.access_token, role);
       } catch (err: any) {
-        setError(err.message || 'Google Sign Up failed.');
+        const errorMessage = err.message || 'Google Sign Up failed.';
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -68,7 +71,9 @@ export default function RegisterPage() {
     setError(null);
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match. Please re-type.');
+      const msg = 'Passwords do not match. Please re-type.';
+      setError(msg);
+      toast.error(msg);
       return;
     }
 
@@ -76,10 +81,13 @@ export default function RegisterPage() {
     try {
       const response = await authService.register({ fullName, email, password, role });
       if (response.success) {
+        toast.success('Account created! Please verify your email.');
         router.push(`/verify-email/${response.data.userId}`);
       }
     } catch (err: any) {
-      setError(err.message || 'Registration failed. Email might already be taken.');
+      const errorMessage = err.message || 'Registration failed. Email might already be taken.';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -158,7 +166,13 @@ export default function RegisterPage() {
                       placeholder="Jane Doe" 
                       className="pl-11 h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
                       value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        // Allow only letters, spaces, hyphens, and apostrophes
+                        if (/^[a-zA-Z\s\-']*$/.test(val)) {
+                          setFullName(val);
+                        }
+                      }}
                       required
                     />
                   </div>
@@ -208,7 +222,10 @@ export default function RegisterPage() {
                     <Input 
                       type={showConfirmPassword ? "text" : "password"} 
                       placeholder="••••••••"
-                      className="pl-11 pr-12 h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
+                      className={cn(
+                        "pl-11 pr-12 h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20",
+                        confirmPassword && password !== confirmPassword && "border-red-500 focus-visible:ring-red-500/20"
+                      )}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required
@@ -221,6 +238,11 @@ export default function RegisterPage() {
                       {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
+                  {confirmPassword && password !== confirmPassword && (
+                    <p className="text-[10px] font-black text-red-500 uppercase tracking-widest px-1 animate-in fade-in slide-in-from-top-1">
+                      Passwords must match
+                    </p>
+                  )}
                 </div>
               </div>
 

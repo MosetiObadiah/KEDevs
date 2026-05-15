@@ -49,7 +49,8 @@ public class DeveloperProfile extends BaseEntity {
     private AvailabilityStatus availabilityStatus = AvailabilityStatus.NOT_AVAILABLE;
 
     @Enumerated(EnumType.STRING)
-    private WorkType preferredWorkType;
+    @Column(nullable = false)
+    private WorkType preferredWorkType = WorkType.REMOTE;
 
     private String locationCity;
 

@@ -624,7 +624,9 @@ public class JobService {
                 hasApplied,
                 currentUserVote,
                 applicationCount,
-                postedByRole
+                postedByRole,
+                job.isPinned(),
+                job.getPinnedUntil()
         );
     }
 
@@ -670,7 +672,7 @@ public class JobService {
                 .map(p -> p.getId())
                 .orElse(null);
 
-        String coverLetterUrl = application.getCoverLetterUrl() != null 
+        String coverLetterUrl = application.getCoverLetterUrl() != null
                 ? apiBaseUrl + "/api/v1/jobs/" + application.getJobPost().getId() + "/applications/" + application.getId() + "/cover-letter"
                 : null;
         String resumeUrl = application.getResumeUrl() != null
@@ -694,5 +696,28 @@ public class JobService {
                 application.getCreatedAt(),
                 application.getUpdatedAt()
         );
+    }
+
+    /**
+     * Returns up to 3 currently active pinned jobs for the /jobs page featured row.
+     * Only OPEN jobs with a future pinnedUntil are included.
+     */
+    public List<PinnedJobSummaryResponse> getPinnedJobs() {
+        return jobPostRepository
+                .findByIsPinnedTrueAndPinnedUntilAfterOrderByPinnedUntilDesc(java.time.LocalDateTime.now())
+                .stream()
+                .filter(job -> job.getStatus() == JobStatus.OPEN)
+                .limit(3)
+                .map(job -> new PinnedJobSummaryResponse(
+                        job.getId(),
+                        job.getTitle(),
+                        job.getCompanyName(),
+                        job.getLocationCity(),
+                        job.getLocationCountry(),
+                        job.getWorkType(),
+                        job.getJobType(),
+                        job.getPinnedUntil()
+                ))
+                .toList();
     }
 }

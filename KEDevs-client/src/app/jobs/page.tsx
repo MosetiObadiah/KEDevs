@@ -18,7 +18,10 @@ import {
   Loader2,
   Download,
   FileSpreadsheet,
-  FileText
+  FileText,
+  Pin,
+  TrendingUp,
+  Clock
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -104,7 +107,9 @@ function JobsPageContent() {
   const searchParams = useSearchParams();
   
   const [jobs, setJobs] = useState<JobSummary[]>([]);
+  const [pinnedJobs, setPinnedJobs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPinnedLoading, setIsPinnedLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   const searchTerm = searchParams.get('search') || '';
@@ -127,6 +132,19 @@ function JobsPageContent() {
   const [isSubmittingFlag, setIsSubmittingFlag] = useState(false);
 
   useEffect(() => {
+    const fetchPinnedJobs = async () => {
+      try {
+        const response = await jobService.getPinnedJobs();
+        if (response.success) {
+          setPinnedJobs(response.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch pinned jobs', err);
+      } finally {
+        setIsPinnedLoading(false);
+      }
+    };
+
     const fetchJobs = async () => {
       setIsLoading(true);
       setError(null);
@@ -159,6 +177,7 @@ function JobsPageContent() {
       }
     };
 
+    fetchPinnedJobs();
     const timer = setTimeout(() => {
       fetchJobs();
     }, 500);
@@ -447,6 +466,54 @@ function JobsPageContent() {
             {error && (
               <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-xl mb-6 text-sm font-medium">
                 {error}
+              </div>
+            )}
+
+            {/* Pinned Jobs Row */}
+            {!searchTerm && pinnedJobs.length > 0 && (
+              <div className="space-y-4 mb-8">
+                <div className="flex items-center gap-2 px-1">
+                  <div className="bg-primary/10 p-2 rounded-lg">
+                    <TrendingUp className="h-5 w-5 text-primary" />
+                  </div>
+                  <h2 className="text-lg font-black uppercase tracking-tight text-foreground">Featured Listings</h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {pinnedJobs.map((pJob) => (
+                    <Card key={pJob.id} className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/[0.03] to-transparent hover:shadow-xl hover:shadow-primary/10 transition-all group">
+                      <div className="absolute top-0 right-0 p-3">
+                         <Badge className="bg-primary text-primary-foreground font-black text-[10px] tracking-widest uppercase py-1 px-2 shadow-sm flex items-center gap-1">
+                           <Pin className="h-3 w-3 fill-current" /> Pinned
+                         </Badge>
+                      </div>
+                      <CardHeader className="pb-2">
+                        <Link href={`/jobs/${pJob.id}`}>
+                          <h3 className="font-black text-lg group-hover:text-primary transition-colors line-clamp-1 pr-12">{pJob.title}</h3>
+                        </Link>
+                        <p className="text-xs font-bold text-muted-foreground line-clamp-1">{pJob.companyName}</p>
+                      </CardHeader>
+                      <CardContent className="pb-3 text-xs space-y-2">
+                        <div className="flex items-center gap-2 text-muted-foreground font-medium">
+                           <MapPin className="h-3.5 w-3.5" /> {pJob.locationCity}
+                        </div>
+                        <div className="flex items-center gap-2">
+                           <Badge variant="secondary" className="text-[9px] uppercase tracking-wider font-black py-0.5">{pJob.workType}</Badge>
+                           <Badge variant="outline" className="text-[9px] uppercase tracking-wider font-black py-0.5 border-primary/20 text-primary">{pJob.jobType}</Badge>
+                        </div>
+                      </CardContent>
+                      <CardFooter className="pt-0 flex justify-between items-center border-t border-primary/10 mt-2 bg-primary/[0.02]">
+                        <span className="text-[10px] font-bold text-muted-foreground flex items-center gap-1 mt-2">
+                           <Clock className="h-3 w-3" /> Expires soon
+                        </span>
+                        <Link href={`/jobs/${pJob.id}`} className="mt-2">
+                           <Button size="sm" variant="ghost" className="h-7 text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10">
+                              View <ArrowRight className="ml-1 h-3 w-3" />
+                           </Button>
+                        </Link>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </div>
               </div>
             )}
             

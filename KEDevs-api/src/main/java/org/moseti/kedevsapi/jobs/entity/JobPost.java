@@ -13,6 +13,7 @@ import org.moseti.kedevsapi.shared.enums.WorkType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -90,4 +91,13 @@ public class JobPost extends BaseEntity {
 
     @Column(name = "is_flagged")
     private boolean isFlagged = false;
+
+    @Column(name = "is_pinned", nullable = false)
+    private boolean isPinned = false;
+
+    @Column(name = "pinned_until")
+    private LocalDateTime pinnedUntil;
+
+    @Column(name = "pinned_payment_id")
+    private UUID pinnedPaymentId;
 }

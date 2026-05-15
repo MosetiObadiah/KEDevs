@@ -120,7 +120,9 @@ public class JobDtos {
             boolean hasApplied,
             VoteType currentUserVote,
             Integer applicationCount,
-            Role postedByRole
+            Role postedByRole,
+            boolean isPinned,
+            LocalDateTime pinnedUntil
     ) {}
 
     public record JobSummaryResponse(
@@ -168,5 +170,17 @@ public class JobDtos {
             String reason,
             FlagStatus status,
             LocalDateTime createdAt
+    ) {}
+
+    /** Lightweight card DTO used for the pinned jobs row on the /jobs page. */
+    public record PinnedJobSummaryResponse(
+            UUID id,
+            String title,
+            String companyName,
+            String locationCity,
+            String locationCountry,
+            WorkType workType,
+            JobType jobType,
+            LocalDateTime pinnedUntil
     ) {}
 }

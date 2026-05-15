@@ -50,4 +50,18 @@ public interface JobPostRepository extends JpaRepository<JobPost, UUID>, JpaSpec
     Page<JobPost> findByStatusNotOrderByUpvoteCountDesc(JobStatus status, Pageable pageable);
 
     long countByVisibilityAndStatus(JobVisibility visibility, JobStatus status);
+
+    /** Returns currently active pinned jobs (pinnedUntil in the future), most recently pinned first. */
+    java.util.List<JobPost> findByIsPinnedTrueAndPinnedUntilAfterOrderByPinnedUntilDesc(
+            java.time.LocalDateTime now);
+
+    /** Used by the expiry scheduler via a bulk JPQL update — avoids loading individual entities. */
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("UPDATE JobPost j SET j.isPinned = false, j.pinnedUntil = null, j.pinnedPaymentId = null " +
+           "WHERE j.isPinned = true AND j.pinnedUntil < :now")
+    int unpinExpiredJobs(@Param("now") java.time.LocalDateTime now);
+
+    /** Finds expired pinned jobs whose owner needs a notification (isPinned still true, pinnedUntil past). */
+    @Query("SELECT j FROM JobPost j WHERE j.isPinned = true AND j.pinnedUntil < :now")
+    java.util.List<JobPost> findExpiredPinnedJobs(@Param("now") java.time.LocalDateTime now);
 }

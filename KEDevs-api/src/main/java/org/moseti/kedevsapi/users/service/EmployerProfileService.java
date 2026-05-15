@@ -21,6 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.moseti.kedevsapi.payments.entity.UserFlag;
 import org.moseti.kedevsapi.payments.repository.UserFlagRepository;
+import org.moseti.kedevsapi.payments.service.PaymentService;
+import org.moseti.kedevsapi.shared.enums.VerificationStatus;
+import org.springframework.context.annotation.Lazy;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -42,6 +45,8 @@ public class EmployerProfileService {
     private final FileUploadService fileUploadService;
     private final org.moseti.kedevsapi.shared.service.SettingService settingService;
     private final UserFlagRepository userFlagRepository;
+    private final VerificationRequestRepository verificationRequestRepository;
+    @Lazy private final PaymentService paymentService;
 
 
     // ----------------------------------------------------------------
@@ -314,6 +319,20 @@ public class EmployerProfileService {
             MultipartFile incorporationCertificate,
             MultipartFile kraPinCertificate,
             MultipartFile businessPermit) {
+        
+        // 1. Check if user has paid for the verified badge
+        if (!paymentService.hasCompletedVerifiedBadgePayment(userId)) {
+            throw new BadRequestException("Verification payment required before uploading documents.");
+        }
+
+        // 2. Check verification request status
+        VerificationRequest request = verificationRequestRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Verification request not found."));
+        
+        if (request.getStatus() != VerificationStatus.PENDING_DOCS && request.getStatus() != VerificationStatus.REJECTED) {
+            throw new BadRequestException("Invalid state for document upload: " + request.getStatus());
+        }
+
         EmployerProfile profile = getProfileEntityByUserId(userId);
         String folder = "kedevs/employers/verification";
 
@@ -328,7 +347,12 @@ public class EmployerProfileService {
         }
 
         profile = employerProfileRepository.save(profile);
-        log.info("Employer verification documents uploaded for userId={}", userId);
+        
+        // 3. Update verification request status to UNDER_REVIEW
+        request.setStatus(VerificationStatus.UNDER_REVIEW);
+        verificationRequestRepository.save(request);
+
+        log.info("Employer verification documents uploaded and status set to UNDER_REVIEW for userId={}", userId);
         return toResponse(profile);
     }
 

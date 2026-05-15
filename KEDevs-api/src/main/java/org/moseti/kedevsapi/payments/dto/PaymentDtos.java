@@ -34,6 +34,19 @@ public class PaymentDtos {
             SpotlightType spotlightType
     ) {}
 
+    public record InitiatePinnedJobRequest(
+            @NotBlank(message = "Phone number is required")
+            @Pattern(regexp = "^(\\+?254|0)[17]\\d{8}$", message = "Invalid Kenyan phone number format")
+            @Schema(description = "M-Pesa phone number", example = "254712345678")
+            String phoneNumber,
+            @NotNull(message = "Job ID is required")
+            @Schema(description = "UUID of the job post to pin")
+            UUID jobId,
+            @NotBlank(message = "Duration type is required")
+            @Schema(description = "Pin duration", allowableValues = {"DAY", "3DAYS", "7DAYS"}, example = "3DAYS")
+            String durationType
+    ) {}
+
     public record PaymentInitiationResponse(
             String checkoutRequestId,
             String message,

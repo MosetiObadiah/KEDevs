@@ -44,4 +44,6 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
             java.util.List<PaymentType> types,
             PaymentStatus status
     );
+
+    boolean existsByUserIdAndTypeAndStatus(UUID userId, PaymentType type, PaymentStatus status);
 }
