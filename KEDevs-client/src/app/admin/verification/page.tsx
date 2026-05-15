@@ -20,7 +20,11 @@ import {
   ArrowRight,
   Download,
   History,
-  FileBarChart2
+  FileBarChart2,
+  Trash2,
+  CheckCircle,
+  XCircle,
+  Info
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -56,6 +60,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Textarea } from '@/components/ui/textarea';
 
 import { adminService } from '@/services/adminService';
 
@@ -71,6 +76,8 @@ export default function VerificationQueue() {
   const [isExporting, setIsExporting] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
 
   const fetchRequests = async () => {
     setIsLoading(true);
@@ -128,15 +135,18 @@ export default function VerificationQueue() {
   };
 
   const handleReject = async () => {
-     if (!selectedReq) return;
-     const reason = prompt('Reason for rejection:');
-     if (reason === null) return;
+     if (!selectedReq || !rejectionReason.trim()) return;
      setProcessing(true);
      try {
-        const res = await adminService.reviewVerificationRequest(selectedReq.requestId, { status: 'REJECTED', reason: reason || 'Documents insufficient' });
+        const res = await adminService.reviewVerificationRequest(selectedReq.requestId, { 
+           status: 'REJECTED', 
+           reason: rejectionReason 
+        });
         if (res.success) {
            toast.error('Identity verification rejected');
+           setIsRejectDialogOpen(false);
            setIsPreviewOpen(false);
+           setRejectionReason('');
            fetchRequests();
            fetchHistory();
         }
@@ -426,7 +436,7 @@ export default function VerificationQueue() {
                <DialogHeader className="text-left space-y-1">
                   <div className="flex items-center gap-3">
                      <ShieldCheck className="h-6 w-6 text-primary fill-primary/20" />
-                     <DialogTitle className="text-2xl font-black uppercase tracking-tight">Identity Intelligence Hub</DialogTitle>
+                     <DialogTitle className="text-2xl font-black uppercase tracking-tight">Review Hub</DialogTitle>
                   </div>
                   <DialogDescription className="sr-only">Detailed verification analysis workbench.</DialogDescription>
                   <div className="flex items-center gap-4 mt-2">
@@ -472,6 +482,17 @@ export default function VerificationQueue() {
                                  <span className={cn("text-[9px] font-bold uppercase tracking-widest", previewUrl === selectedReq.idDocumentUrl ? "text-white/70" : "text-slate-400")}>Mandatory Artifact</span>
                               </div>
                            </div>
+                           <Button
+                              variant="ghost"
+                              size="icon"
+                              className={cn("h-8 w-8 rounded-lg", previewUrl === selectedReq.idDocumentUrl ? "text-white hover:bg-white/10" : "text-slate-400 hover:bg-slate-100")}
+                              onClick={(e) => {
+                                 e.stopPropagation();
+                                 window.open(selectedReq.idDocumentUrl, '_blank');
+                              }}
+                           >
+                              <Download className="h-4 w-4" />
+                           </Button>
                         </button>
                      )}
 
@@ -494,6 +515,17 @@ export default function VerificationQueue() {
                                  <span className={cn("text-[9px] font-bold uppercase tracking-widest", previewUrl === selectedReq.passportPhotoUrl ? "text-white/70" : "text-slate-400")}>Authenticity Key</span>
                               </div>
                            </div>
+                           <Button
+                              variant="ghost"
+                              size="icon"
+                              className={cn("h-8 w-8 rounded-lg", previewUrl === selectedReq.passportPhotoUrl ? "text-white hover:bg-white/10" : "text-slate-400 hover:bg-slate-100")}
+                              onClick={(e) => {
+                                 e.stopPropagation();
+                                 window.open(selectedReq.passportPhotoUrl, '_blank');
+                              }}
+                           >
+                              <Download className="h-4 w-4" />
+                           </Button>
                         </button>
                      )}
 
@@ -517,19 +549,21 @@ export default function VerificationQueue() {
                                  <span className={cn("text-[9px] font-bold uppercase tracking-widest", previewUrl === cert ? "text-white/70" : "text-slate-400")}>Supporting Clause</span>
                               </div>
                            </div>
+                           <Button
+                              variant="ghost"
+                              size="icon"
+                              className={cn("h-8 w-8 rounded-lg", previewUrl === cert ? "text-white hover:bg-white/10" : "text-slate-400 hover:bg-slate-100")}
+                              onClick={(e) => {
+                                 e.stopPropagation();
+                                 window.open(cert, '_blank');
+                              }}
+                           >
+                              <Download className="h-4 w-4" />
+                           </Button>
                         </button>
                      ))}
                   </div>
 
-                  <div className="mt-auto p-6 rounded-[2rem] bg-blue-50/50 border border-blue-100 flex flex-col gap-3">
-                     <div className="flex items-center gap-2 text-blue-600">
-                        <ShieldAlert className="h-4 w-4" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Verification Guard</span>
-                     </div>
-                     <p className="text-xs font-medium text-blue-700/80 leading-relaxed">
-                        Compare generated timestamps, watermarks and identification nomenclature stringency prior to definitive authorization.
-                     </p>
-                  </div>
                </div>
 
                {/* Right Pane */}
@@ -565,10 +599,10 @@ export default function VerificationQueue() {
                   </Badge>
                </div>
                <div className="flex gap-4">
-                  {selectedReq?.status === 'UNDER_REVIEW' || selectedReq?.status === 'PENDING' ? (
+                  {selectedReq?.status !== 'APPROVED' ? (
                      <>
-                        <Button variant="ghost" className="rounded-2xl font-black h-14 px-10 text-red-500 hover:bg-red-50 transition-all border border-transparent hover:border-red-100 gap-2" onClick={handleReject} disabled={processing}>
-                           {processing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <X className="h-5 w-5" />} Deny Access
+                        <Button variant="ghost" className="rounded-2xl font-black h-14 px-10 text-red-500 hover:bg-red-50 transition-all border border-transparent hover:border-red-100 gap-2" onClick={() => setIsRejectDialogOpen(true)} disabled={processing}>
+                           {processing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <X className="h-5 w-5" />} Deny Verification
                         </Button>
                         <Button className="rounded-2xl font-black h-14 px-12 shadow-2xl shadow-primary/30 gap-2 bg-slate-900 hover:bg-slate-800 transition-all" onClick={handleApprove} disabled={processing}>
                            {processing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Check className="h-5 w-5" />} Validate & Grant Credentials
@@ -581,6 +615,52 @@ export default function VerificationQueue() {
                   )}
                </div>
             </div>
+         </DialogContent>
+      </Dialog>
+
+      {/* REJECTION REASON DIALOG */}
+      <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
+         <DialogContent className="sm:max-w-[500px] rounded-[2.5rem] p-8 border-none shadow-3xl">
+            <DialogHeader className="text-center sm:text-center pb-4">
+               <div className="mx-auto w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4">
+                  <XCircle className="w-6 h-6" />
+               </div>
+               <DialogTitle className="font-black text-2xl text-slate-900 tracking-tight uppercase">Deny Verification</DialogTitle>
+               <DialogDescription className="font-bold text-xs text-slate-500 uppercase tracking-widest mt-2">
+                  Please provide a detailed administrative reason
+               </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-6 py-4">
+               <div className="space-y-3">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rejection Reason</label>
+                  <Textarea 
+                     placeholder="e.g. Identity document watermarks are missing or inconsistent with registration data..."
+                     className="min-h-[120px] rounded-2xl border-slate-200 focus:ring-red-500/10 focus:border-red-500 resize-none font-medium text-sm p-5"
+                     value={rejectionReason}
+                     onChange={(e) => setRejectionReason(e.target.value)}
+                  />
+                  <div className="flex items-center gap-2 p-4 bg-amber-50 rounded-xl border border-amber-100/50">
+                     <Info className="h-4 w-4 text-amber-600 shrink-0" />
+                     <p className="text-[10px] font-bold text-amber-700 leading-relaxed uppercase tracking-tight">
+                        This reason will be transmitted to {selectedReq?.userName} as an official platform notification.
+                     </p>
+                  </div>
+               </div>
+            </div>
+
+            <DialogFooter className="sm:justify-center gap-3 pt-4">
+               <Button variant="ghost" className="rounded-xl font-black h-12 px-6 text-slate-400 hover:text-slate-900" onClick={() => setIsRejectDialogOpen(false)}>
+                  Cancel
+               </Button>
+               <Button 
+                  className="rounded-xl font-black h-12 px-8 bg-red-600 hover:bg-red-700 text-white shadow-xl shadow-red-600/20"
+                  onClick={handleReject}
+                  disabled={processing || !rejectionReason.trim()}
+               >
+                  {processing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : 'Confirm Rejection'}
+               </Button>
+            </DialogFooter>
          </DialogContent>
       </Dialog>
     </div>

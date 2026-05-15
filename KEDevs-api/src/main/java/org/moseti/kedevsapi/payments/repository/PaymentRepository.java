@@ -39,10 +39,10 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
 
     long countByStatus(PaymentStatus status);
 
-    Optional<Payment> findFirstByUserIdAndTypeInAndStatusOrderByCreatedAtDesc(
+    Optional<Payment> findFirstByUserIdAndTypeInAndStatusInOrderByCreatedAtDesc(
             UUID userId,
             java.util.List<PaymentType> types,
-            PaymentStatus status
+            java.util.List<PaymentStatus> statuses
     );
 
     boolean existsByUserIdAndTypeAndStatus(UUID userId, PaymentType type, PaymentStatus status);

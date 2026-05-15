@@ -177,9 +177,22 @@ public class VerificationService {
 
         request.setStatus(VerificationStatus.UNDER_REVIEW);
         verificationRequestRepository.save(request);
+
+        // Fetch the user to get their name for the admin notification
+        User user = userRepository.findById(userId).orElse(null);
+        String userName = user != null ? (user.getFirstName() + " " + user.getLastName()) : "A user";
+
+        // Notify all admins about the new verification request
+        List<User> admins = userRepository.findByRole(Role.ADMIN);
+        for (User admin : admins) {
+            notificationService.notify(admin.getId(), NotificationCategory.ADMIN,
+                    "New Verification Request",
+                    userName + " has submitted documents for verification. Please review the request in the admin dashboard.",
+                    "{\"userId\":\"" + userId + "\",\"requestId\":\"" + request.getId() + "\"}");
+        }
         
         notificationService.notify(userId, NotificationCategory.ADMIN, 
                 "Documents Submitted", 
-                "Your verification documents have been received and are under review. Expected outcome in 2-5 business days.", null);
+                "Your verification documents have been received and are under review. Expected outcome in 24 to 48 hours.", null);
     }
 }

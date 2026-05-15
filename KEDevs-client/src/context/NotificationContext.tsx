@@ -76,10 +76,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           const notification = payload.data || payload;
           
           setUnreadCount(prev => prev + 1);
-          
-          toast(notification.title || 'New Notification', {
-            description: notification.message || 'You received an update on KEDevs.',
-          });
+          // Toast disabled per user request to keep notifications silent until inbox is visited
         } catch (err) {
           console.error('Error parsing websocket message:', err);
         }

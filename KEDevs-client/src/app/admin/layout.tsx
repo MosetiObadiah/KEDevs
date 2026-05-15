@@ -22,6 +22,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
+import { useNotification } from '@/context/NotificationContext';
+import NotificationPopover from '@/components/notifications/NotificationPopover';
 
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -48,6 +50,7 @@ const menuItems = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const { unreadCount, refreshUnreadCount } = useNotification();
   const [collapsed, setCollapsed] = useState(false);
 
   const SidebarContent = () => (
@@ -139,10 +142,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
 
                <div className="flex items-center gap-3">
-                  <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full">
-                     <Bell className="h-5 w-5" />
-                     <span className="absolute top-2 right-2 h-2 w-2 bg-primary rounded-full border-2 border-background" />
-                  </Button>
+                  <NotificationPopover unreadCount={unreadCount} onMarkAllAsRead={refreshUnreadCount}>
+                     <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full">
+                        <Bell className="h-5 w-5" />
+                     </Button>
+                  </NotificationPopover>
                   
                   <Separator orientation="vertical" className="h-6 bg-border" />
                   

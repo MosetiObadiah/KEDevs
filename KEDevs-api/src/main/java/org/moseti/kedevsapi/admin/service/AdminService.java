@@ -260,6 +260,7 @@ public class AdminService {
         }
 
         VerificationRequest vr = possibleVr.get();
+        VerificationStatus oldStatus = vr.getStatus();
 
         boolean approved = "APPROVED".equalsIgnoreCase(request.status());
         vr.setStatus(approved ? VerificationStatus.APPROVED : VerificationStatus.REJECTED);
@@ -273,6 +274,13 @@ public class AdminService {
         if (approved) {
             // Reuse badge perform method logic
             performBadgeAction(adminId, vr.getUserId(), new BadgeActionRequest("GRANT", "Verified via document review"));
+            
+            if (oldStatus == VerificationStatus.REJECTED) {
+                notificationService.notify(vr.getUserId(), NotificationCategory.ADMIN,
+                        "Account Re-reviewed",
+                        "The administration has re-reviewed your documents and your account has been verified.", null);
+            }
+            
             logAction(adminId, AdminActionTypes.APPROVE_VERIFICATION, "VERIFICATION", vr.getId(), request.reason(), "APPROVED");
         } else {
             logAction(adminId, AdminActionTypes.REJECT_VERIFICATION, "VERIFICATION", vr.getId(), request.reason(), "REJECTED");

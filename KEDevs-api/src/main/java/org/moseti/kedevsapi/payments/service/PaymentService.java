@@ -42,6 +42,7 @@ public class PaymentService {
     private final DarajaService darajaService;
     private final PaymentRepository paymentRepository;
     private final PlatformSettingRepository platformSettingRepository;
+    private final org.moseti.kedevsapi.spotlight.repository.SpotlightSlotRepository spotlightSlotRepository;
     private final UserRepository userRepository;
     private final DeveloperProfileRepository developerProfileRepository;
     private final EmployerProfileRepository employerProfileRepository;
@@ -314,6 +315,15 @@ public class PaymentService {
             payment.setFailReason(resultDesc);
             paymentRepository.save(payment);
 
+            // If this was a verification payment, update the VerificationRequest so the poller can stop
+            if (payment.getType() == PaymentType.VERIFIED_BADGE) {
+                verificationRequestRepository.findByUserId(payment.getUserId()).ifPresent(req -> {
+                    req.setStatus(VerificationStatus.REJECTED);
+                    req.setRejectionReason(resultCode == 1032 ? "Payment cancelled by user" : resultDesc);
+                    verificationRequestRepository.save(req);
+                });
+            }
+
             // Clean up inactive spotlight slot (only on definitive FAILED or CANCELLED, not retries)
             if (payment.getType() == PaymentType.SPOTLIGHT_DAY || payment.getType() == PaymentType.SPOTLIGHT_WEEK) {
                 spotlightService.deleteInactiveSlotByPaymentId(payment.getId());
@@ -461,30 +471,51 @@ public class PaymentService {
      */
     @Transactional
     public SpotlightSlotConfirmResponse confirmSpotlight(UUID userId) {
-        Payment payment = paymentRepository.findFirstByUserIdAndTypeInAndStatusOrderByCreatedAtDesc(
+        Payment payment = paymentRepository.findFirstByUserIdAndTypeInAndStatusInOrderByCreatedAtDesc(
                 userId,
                 List.of(PaymentType.SPOTLIGHT_DAY, PaymentType.SPOTLIGHT_WEEK),
-                PaymentStatus.PENDING
+                List.of(PaymentStatus.COMPLETED, PaymentStatus.PENDING, PaymentStatus.FAILED, PaymentStatus.CANCELLED)
         ).orElseThrow(() -> new BadRequestException(
-                "No pending spotlight payment found. Please initiate a new payment."));
+                "No spotlight payment record found."));
+
+        if (payment.getStatus() == PaymentStatus.PENDING) {
+            throw new BadRequestException("Payment is still processing. Please wait for the M-Pesa confirmation.");
+        }
+        
+        if (payment.getStatus() == PaymentStatus.FAILED || payment.getStatus() == PaymentStatus.CANCELLED) {
+            throw new BadRequestException("Payment was not successful (" + payment.getStatus() + "). Reason: " + payment.getFailReason());
+        }
+
+        SpotlightSlot slot = spotlightSlotRepository.findByPaymentId(payment.getId()).orElse(null);
+        if (slot == null || !slot.isActive()) {
+            // If payment is completed but slot is not active for some reason, try to activate it
+            SpotlightType type = payment.getType() == PaymentType.SPOTLIGHT_DAY ? SpotlightType.DAY : SpotlightType.WEEK;
+            slot = spotlightService.activateSpotlight(userId, payment.getId(), type);
+        }
+
+        return new SpotlightSlotConfirmResponse(slot.getId(), slot.getType(), slot.getEndDate());
+    }
+
+    /**
+     * Administrative override to manually activate a spotlight slot.
+     */
+    @Transactional
+    public SpotlightSlotConfirmResponse adminConfirmSpotlight(UUID userId) {
+        Payment payment = paymentRepository.findFirstByUserIdAndTypeInAndStatusInOrderByCreatedAtDesc(
+                userId,
+                List.of(PaymentType.SPOTLIGHT_DAY, PaymentType.SPOTLIGHT_WEEK),
+                List.of(PaymentStatus.PENDING)
+        ).orElseThrow(() -> new BadRequestException(
+                "No pending spotlight payment found for manual override."));
 
         payment.setStatus(PaymentStatus.COMPLETED);
         payment.setPaidAt(LocalDateTime.now());
-        payment.setMpesaReceiptNo("MANUAL-" + System.currentTimeMillis());
+        payment.setMpesaReceiptNo("MANUAL-ADMIN-" + System.currentTimeMillis());
         paymentRepository.save(payment);
 
         SpotlightType type = payment.getType() == PaymentType.SPOTLIGHT_DAY
                 ? SpotlightType.DAY : SpotlightType.WEEK;
-        @SuppressWarnings("deprecation")
         SpotlightSlot slot = spotlightService.activateSpotlight(userId, payment.getId(), type);
-
-        notificationService.notify(
-                userId,
-                NotificationCategory.SPOTLIGHT,
-                "Spotlight Activated!",
-                "Your " + type.name() + " spotlight is now live.",
-                null
-        );
 
         return new SpotlightSlotConfirmResponse(slot.getId(), type, slot.getEndDate());
     }
@@ -495,10 +526,10 @@ public class PaymentService {
      */
     @Transactional
     public void confirmPinnedJob(UUID userId) {
-        Payment payment = paymentRepository.findFirstByUserIdAndTypeInAndStatusOrderByCreatedAtDesc(
+        Payment payment = paymentRepository.findFirstByUserIdAndTypeInAndStatusInOrderByCreatedAtDesc(
                 userId,
                 List.of(PaymentType.PINNED_JOB_DAY, PaymentType.PINNED_JOB_3DAYS, PaymentType.PINNED_JOB_7DAYS),
-                PaymentStatus.PENDING
+                List.of(PaymentStatus.PENDING)
         ).orElseThrow(() -> new BadRequestException(
                 "No pending pinned job payment found. Please initiate a new payment."));
 

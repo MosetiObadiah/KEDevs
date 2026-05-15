@@ -12,6 +12,7 @@ import {
 import { paymentService } from '@/services/paymentService';
 import { spotlightService } from '@/services/spotlightService';
 import { usePlatformSettings } from '@/hooks/usePlatformSettings';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -55,8 +56,16 @@ export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerifie
             setStep('SUCCESS');
             onSuccess();
           }
-        } catch (err) {
-          // Not confirmed yet
+        } catch (err: any) {
+          // If the error message indicates a terminal failure, show a toast and go back to select
+          const msg = err.message || '';
+          if (msg.includes('FAILED') || msg.includes('CANCELLED') || msg.includes('not successful')) {
+            toast.error('Payment Failed', {
+              description: msg || 'Your M-Pesa transaction was not successful.'
+            });
+            setStep('SELECT');
+            setError(msg);
+          }
         }
       }, 5000);
     }
@@ -257,25 +266,6 @@ export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerifie
                   Check your phone for the M-Pesa PIN prompt. Once you enter your PIN, the spotlight will activate automatically.
                 </p>
               </div>
-              <Button 
-                variant="outline" 
-                className="font-bold h-11 px-6 rounded-xl border-border/50 group"
-                onClick={async () => { 
-                  try {
-                    const response = await paymentService.confirmSpotlight();
-                    if (response.success) {
-                      setStep('SUCCESS');
-                      onSuccess();
-                    } else {
-                      setError('Payment not yet confirmed. Please wait a moment.');
-                    }
-                  } catch (err: any) {
-                    setError(err.message || 'Payment not yet confirmed.');
-                  }
-                }}
-              >
-                I Have Paid — Confirm Now <CheckCircle2 className="ml-2 h-4 w-4 group-hover:text-emerald-500 transition-colors" />
-              </Button>
             </div>
           )}
 

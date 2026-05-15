@@ -20,7 +20,8 @@ import {
    XCircle,
    FileText,
    BadgeCheck,
-   Zap
+   Zap,
+   X
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { verificationService, VerificationStatus, VerificationStatusResponse } from '@/services/verificationService';
@@ -37,8 +38,8 @@ import { Separator } from '@/components/ui/separator';
 const steps = [
    { id: 0, label: 'Eligibility', icon: UserCheck },
    { id: 1, label: 'Transaction', icon: Wallet },
-   { id: 2, label: 'Documentation', icon: FileUp },
-   { id: 3, label: 'Protocol Review', icon: Clock },
+   { id: 2, label: 'Uploads', icon: FileUp },
+   { id: 3, label: 'Review', icon: Clock },
 ];
 
 export default function VerificationFlow() {
@@ -73,17 +74,22 @@ export default function VerificationFlow() {
    const certRef = useRef<HTMLInputElement>(null);
 
    const fetchStatus = async () => {
+      setLoading(true);
       try {
          const response = await verificationService.getStatus();
          if (response.success) {
             setVerifyStatus(response.data);
+            if (response.data.status === VerificationStatus.REJECTED) {
+               toast.error(response.data.rejectionReason || 'Previous verification attempt was rejected.');
+            }
             const status = response.data.status;
             if (status === VerificationStatus.PENDING_PAYMENT && activeStep < 1) setActiveStep(1);
             else if (status === VerificationStatus.PENDING_DOCS && activeStep < 2) setActiveStep(2);
-            else if ((status === VerificationStatus.UNDER_REVIEW || status === VerificationStatus.APPROVED || status === VerificationStatus.REJECTED) && activeStep < 3) setActiveStep(3);
+            else if ((status === VerificationStatus.UNDER_REVIEW || status === VerificationStatus.APPROVED) && activeStep < 3) setActiveStep(3);
          }
       } catch (err) {
          console.error('Failed to fetch verification status', err);
+         toast.error('Identity protocol synchronization failed');
       } finally {
          setLoading(false);
       }
@@ -112,6 +118,14 @@ export default function VerificationFlow() {
                   setActiveStep(2);
                   return;
                }
+
+               if (status === VerificationStatus.REJECTED) {
+                  clearInterval(paymentPollRef.current!);
+                  paymentPollRef.current = null;
+                  setIsPollingPayment(false);
+                  toast.error(response.data.rejectionReason || 'Payment was rejected or cancelled.');
+                  return;
+               }
             }
          } catch (err) {
             console.error('Payment poll error', err);
@@ -136,10 +150,13 @@ export default function VerificationFlow() {
          const status = verifyStatus.status;
          if (status === VerificationStatus.PENDING_PAYMENT && activeStep < 1) setActiveStep(1);
          else if (status === VerificationStatus.PENDING_DOCS && activeStep === 1) {
-            toast.success('Payment confirmed');
+            toast.success('Payment confirmed! Welcome to Documents Uploading.');
             setActiveStep(2);
          }
-         else if ((status === VerificationStatus.UNDER_REVIEW || status === VerificationStatus.APPROVED || status === VerificationStatus.REJECTED) && activeStep < 3) setActiveStep(3);
+         else if (status === VerificationStatus.REJECTED) {
+            if (activeStep !== 1) setActiveStep(1);
+         }
+         else if ((status === VerificationStatus.UNDER_REVIEW || status === VerificationStatus.APPROVED) && activeStep < 3) setActiveStep(3);
       }
    }, [verifyStatus?.status]);
 
@@ -167,8 +184,8 @@ export default function VerificationFlow() {
    };
 
    const handleSubmitDocuments = async () => {
-      if (!idFile || !passportFile) {
-         toast.error('Identity document and passport photo are mandatory');
+      if (!idFile || !passportFile || certFiles.length === 0) {
+         toast.error('ID, Passport photo and at least one certificate are mandatory');
          return;
       }
       setIsSubmitting(true);
@@ -199,7 +216,6 @@ export default function VerificationFlow() {
       );
    }
 
-   // Prevent re-verification if already approved/verified
    if (verifyStatus?.status === VerificationStatus.APPROVED) {
       return (
          <div className="min-h-screen bg-muted/30 pb-20 pt-12 animate-in fade-in duration-700">
@@ -228,7 +244,6 @@ export default function VerificationFlow() {
    return (
       <div className="min-h-screen bg-muted/30 pb-20 pt-12 animate-in fade-in duration-700">
          <div className="container mx-auto px-6 max-w-6xl">
-            {/* Header Section */}
             <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
                <div className="space-y-2">
                   <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">Identity Verification</h1>
@@ -238,28 +253,7 @@ export default function VerificationFlow() {
                </div>
             </div>
 
-            {verifyStatus?.status === VerificationStatus.REJECTED ? (
-               <Card className="rounded-[2.5rem] border-none shadow-xl shadow-red-500/5 overflow-hidden bg-white">
-                  <CardContent className="p-16 text-center space-y-8">
-                     <div className="h-24 w-24 bg-red-50 rounded-[2rem] flex items-center justify-center mx-auto">
-                        <XCircle className="h-12 w-12 text-red-500" />
-                     </div>
-                     <div className="space-y-2">
-                        <h2 className="text-3xl font-black text-slate-900">Verification Rejected</h2>
-                        <p className="text-slate-500 font-medium">Protocol violation or document inconsistency detected.</p>
-                     </div>
-                     <div className="p-8 rounded-[2rem] bg-red-50 border border-red-100 text-left">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-red-400 mb-2">Administrative Reason</p>
-                        <p className="font-bold text-red-900 leading-relaxed">{verifyStatus.rejectionReason || 'Documents did not meet our compliance requirements.'}</p>
-                     </div>
-                     <Button className="h-14 rounded-2xl font-black bg-slate-900 px-10 shadow-xl" onClick={() => setActiveStep(0)}>
-                        Re-initiate Protocol
-                     </Button>
-                  </CardContent>
-               </Card>
-            ) : (
-               <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                  {/* Sidebar: Progress */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                   <div className="lg:col-span-1 order-2 lg:order-1 space-y-6">
                      <Card className="rounded-[2.5rem] border-none shadow-xl shadow-slate-200/50 bg-white sticky top-24 overflow-hidden">
                         <CardHeader className="pb-4 pt-8 px-8">
@@ -300,7 +294,6 @@ export default function VerificationFlow() {
 
                   </div>
 
-                  {/* Main Content Area */}
                   <div className="lg:col-span-2 order-1 lg:order-2 space-y-10">
                      <Card className="rounded-[2.5rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden bg-white">
                         <CardContent className="p-10 md:p-14">
@@ -369,7 +362,7 @@ export default function VerificationFlow() {
                                     <Button
                                        className="w-full h-16 rounded-[2rem] bg-slate-900 text-white font-black text-lg shadow-xl shadow-slate-900/10 gap-3"
                                        onClick={handleInitiate}
-                                       disabled={isSubmitting || isPollingPayment || (verifyStatus?.status !== VerificationStatus.NONE && verifyStatus?.status !== VerificationStatus.PENDING_PAYMENT)}
+                                       disabled={isSubmitting || isPollingPayment || (verifyStatus?.status !== VerificationStatus.NONE && verifyStatus?.status !== VerificationStatus.PENDING_PAYMENT && verifyStatus?.status !== VerificationStatus.REJECTED)}
                                     >
                                        {isSubmitting ? <Loader2 className="h-6 w-6 animate-spin" /> : <Zap className="h-6 w-6" />}
                                        {verifyStatus?.status === VerificationStatus.PENDING_DOCS ? 'Payment Confirmed' : 'Authorize STK Push'}
@@ -385,7 +378,6 @@ export default function VerificationFlow() {
                                        </div>
                                     )}
 
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Encrypted M-Pesa Direct Interface</p>
                                  </div>
                               </div>
                            )}
@@ -395,7 +387,7 @@ export default function VerificationFlow() {
                                  <div className="space-y-4">
                                     <h3 className="text-2xl font-black flex items-center gap-2">
                                        <div className="h-6 w-1.5 bg-primary rounded-full" />
-                                       Phase 03: Digital Vault Upload
+                                       Documents Uploading
                                     </h3>
                                     <p className="text-muted-foreground font-medium italic leading-relaxed">Please transmit high-fidelity copies of your identification artifacts.</p>
                                  </div>
@@ -403,46 +395,74 @@ export default function VerificationFlow() {
                                  <div className="space-y-6">
                                     <input type="file" hidden ref={idRef} onChange={(e) => { const file = e.target.files?.[0] || null; if (validateFile(file)) setIdFile(file); }} />
                                     <div
-                                       onClick={() => idRef.current?.click()}
+                                       onClick={() => idFile ? setIdFile(null) : idRef.current?.click()}
                                        className={cn(
-                                          "p-8 rounded-[2.5rem] border-2 border-dashed flex flex-col items-center justify-center gap-4 cursor-pointer transition-all",
-                                          idFile ? "bg-emerald-50/50 border-emerald-500/30" : "bg-slate-50 border-slate-100 hover:border-primary/30"
+                                          "p-8 rounded-[2.5rem] border-2 border-dashed flex flex-col items-center justify-center gap-4 cursor-pointer transition-all group relative",
+                                          idFile ? "bg-emerald-50/50 border-emerald-500/30 hover:border-red-200" : "bg-slate-50 border-slate-100 hover:border-primary/30"
                                        )}
                                     >
-                                       <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center", idFile ? "bg-emerald-500 text-white" : "bg-white text-slate-400")}>
-                                          {idFile ? <FileCheck className="h-6 w-6" /> : <FileText className="h-6 w-6" />}
+                                       <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center transition-colors", idFile ? "bg-emerald-500 text-white group-hover:bg-red-500" : "bg-white text-slate-400")}>
+                                          {idFile ? <X className="h-6 w-6" /> : <FileText className="h-6 w-6" />}
                                        </div>
                                        <div className="text-center">
                                           <p className="font-black text-slate-900">{idFile ? idFile.name : 'National ID / Passport Archive'}</p>
-                                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">PNG, JPEG, WEBP or PDF (Max 10MB)</p>
+                                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">
+                                             {idFile ? 'Click to remove' : 'PNG, JPEG, WEBP or PDF (Max 10MB)'}
+                                          </p>
                                        </div>
                                     </div>
 
                                     <input type="file" hidden ref={passportRef} onChange={(e) => { const file = e.target.files?.[0] || null; if (validateFile(file)) setPassportFile(file); }} />
                                     <div
-                                       onClick={() => passportRef.current?.click()}
+                                       onClick={() => passportFile ? setPassportFile(null) : passportRef.current?.click()}
                                        className={cn(
-                                          "p-8 rounded-[2.5rem] border-2 border-dashed flex flex-col items-center justify-center gap-4 cursor-pointer transition-all",
-                                          passportFile ? "bg-emerald-50/50 border-emerald-500/30" : "bg-slate-50 border-slate-100 hover:border-primary/30"
+                                          "p-8 rounded-[2.5rem] border-2 border-dashed flex flex-col items-center justify-center gap-4 cursor-pointer transition-all group relative",
+                                          passportFile ? "bg-emerald-50/50 border-emerald-500/30 hover:border-red-200" : "bg-slate-50 border-slate-100 hover:border-primary/30"
                                        )}
                                     >
-                                       <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center", passportFile ? "bg-emerald-500 text-white" : "bg-white text-slate-400")}>
-                                          {passportFile ? <FileCheck className="h-6 w-6" /> : <ShieldCheck className="h-6 w-6" />}
+                                       <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center transition-colors", passportFile ? "bg-emerald-500 text-white group-hover:bg-red-500" : "bg-slate-400")}>
+                                          {passportFile ? <X className="h-6 w-6" /> : <ShieldCheck className="h-6 w-6" />}
                                        </div>
                                        <div className="text-center">
-                                          <p className="font-black text-slate-900">{passportFile ? passportFile.name : 'Live Passport Identity Photo'}</p>
-                                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">Images only (PNG, JPEG, WEBP)</p>
+                                          <p className="font-black text-slate-900">{passportFile ? passportFile.name : 'Passport Photo'}</p>
+                                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">
+                                             {passportFile ? 'Click to remove' : 'Images only (PNG, JPEG, WEBP)'}
+                                          </p>
                                        </div>
                                     </div>
 
-                                    <input type="file" hidden multiple ref={certRef} onChange={(e) => { const files = Array.from(e.target.files || []); const validFiles = files.filter(validateFile); setCertFiles(prev => [...prev, ...validFiles]); }} />
-                                    <div
-                                       onClick={() => certRef.current?.click()}
-                                       className="p-6 rounded-2xl bg-slate-50 border border-slate-100 border-dashed text-center cursor-pointer hover:bg-slate-100 transition-all"
-                                    >
-                                       <p className="text-xs font-black text-slate-500 uppercase tracking-widest">
-                                          {certFiles.length > 0 ? `${certFiles.length} Certificates Integrated` : 'Supplemental Professional Certs (Optional)'}
-                                       </p>
+                                    <div className="space-y-3">
+                                       {certFiles.length > 0 && (
+                                          <div className="space-y-2">
+                                             {certFiles.map((file, idx) => (
+                                                <div key={idx} className="flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-100 shadow-sm animate-in fade-in slide-in-from-top-1 duration-200">
+                                                   <div className="flex items-center gap-3 overflow-hidden">
+                                                      <div className="h-8 w-8 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400">
+                                                         <FileText className="h-4 w-4" />
+                                                      </div>
+                                                      <span className="text-xs font-bold text-slate-600 truncate">{file.name}</span>
+                                                   </div>
+                                                   <button
+                                                      type="button"
+                                                      onClick={() => setCertFiles(prev => prev.filter((_, i) => i !== idx))}
+                                                      className="h-8 w-8 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                   >
+                                                      <X className="h-4 w-4" />
+                                                   </button>
+                                                </div>
+                                             ))}
+                                          </div>
+                                       )}
+
+                                       <input type="file" hidden multiple ref={certRef} onChange={(e) => { const files = Array.from(e.target.files || []); const validFiles = files.filter(validateFile); setCertFiles(prev => [...prev, ...validFiles]); e.target.value = ''; }} />
+                                       <div
+                                          onClick={() => certRef.current?.click()}
+                                          className="p-6 rounded-2xl bg-slate-50 border border-slate-100 border-dashed text-center cursor-pointer hover:bg-slate-100 transition-all"
+                                       >
+                                          <p className="text-xs font-black text-slate-500 uppercase tracking-widest">
+                                             {certFiles.length > 0 ? `${certFiles.length} Certificate${certFiles.length === 1 ? '' : 's'} Added` : 'Professional Certificates (Required)'}
+                                          </p>
+                                       </div>
                                     </div>
                                  </div>
                               </div>
@@ -463,12 +483,12 @@ export default function VerificationFlow() {
                                  <div className="space-y-4 max-w-lg mx-auto">
                                     <h3 className="text-3xl font-black flex items-center justify-center gap-2">
                                        <div className="h-6 w-1.5 bg-primary rounded-full" />
-                                       {(verifyStatus?.status as string) === VerificationStatus.APPROVED ? 'Protocol Success' : 'Review Sequence Active'}
+                                       {(verifyStatus?.status as string) === VerificationStatus.APPROVED ? 'Protocol Success' : 'Under Review'}
                                     </h3>
                                     <p className="text-muted-foreground font-medium italic leading-relaxed">
                                        {(verifyStatus?.status as string) === VerificationStatus.APPROVED
                                           ? 'Congratulations. Your identity is verified across the KEDevs ecosystem. You now possess priority trust status.'
-                                          : 'Your artifacts have been securely stored. Our compliance team will audit your submission within 2-5 business days.'}
+                                          : 'The admin will review your request in 24 to 48 hrs'}
                                     </p>
                                  </div>
 
@@ -512,14 +532,13 @@ export default function VerificationFlow() {
                                     disabled={
                                        isSubmitting ||
                                        isPollingPayment ||
-                                       // Step 0: proceed blocked if profile not eligible
                                        (activeStep === 0 && !verifyStatus?.isEligible) ||
-                                       // Step 1: proceed blocked only if payment is NOT yet confirmed (status is still PENDING_PAYMENT or NONE)
-                                       (activeStep === 1 && verifyStatus?.status !== VerificationStatus.PENDING_DOCS)
+                                       (activeStep === 1 && verifyStatus?.status !== VerificationStatus.PENDING_DOCS) ||
+                                       (activeStep === 2 && (!idFile || !passportFile || certFiles.length === 0))
                                     }
                                  >
                                     {isSubmitting ? <Loader2 className="h-6 w-6 animate-spin mr-2" /> : activeStep === 2 ? <ShieldCheck className="h-6 w-6 mr-2" /> : null}
-                                    {activeStep === 2 ? 'Initiate Audit' : 'Proceed'}
+                                    {activeStep === 2 ? 'Get Verified' : 'Proceed'}
                                     {activeStep < 2 && <ArrowRight className="ml-2 h-6 w-6 transition-transform group-hover:translate-x-1" />}
                                  </Button>
                               </div>
@@ -528,8 +547,7 @@ export default function VerificationFlow() {
                      </Card>
                   </div>
                </div>
-            )}
-         </div>
+            </div>
       </div>
    );
 }

@@ -364,12 +364,28 @@ start_backend() {
     tail_log "$BACKEND_LOG" "backend"
 }
 
-start_frontend() {
-    # Kill tracked frontend process
-    [ -n "$FRONTEND_PID" ] && kill "$FRONTEND_PID" 2>/dev/null && sleep 1
+kill_nextjs() {
+    # 1. Kill our tracked PID
+    [ -n "$FRONTEND_PID" ] && kill "$FRONTEND_PID" 2>/dev/null
 
-    # Also kill any stray Next.js dev server that may have survived (e.g. from a previous run)
-    # This is what causes "port 3000 in use" and Next.js falling back to 3001
+    # 2. Kill any next-server process running from this project directory
+    pkill -f "next-server" 2>/dev/null
+    pkill -f "next dev" 2>/dev/null
+    pkill -f "${FRONTEND_DIR}" 2>/dev/null
+
+    # 3. Read the PID from Next.js's own lockfile and kill it
+    local lockfile="$FRONTEND_DIR/.next/dev/locks/server.lock"
+    if [ -f "$lockfile" ]; then
+        local lock_pid
+        lock_pid=$(cat "$lockfile" 2>/dev/null | tr -d '[:space:]')
+        if [ -n "$lock_pid" ] && kill -0 "$lock_pid" 2>/dev/null; then
+            echo "${FE_LABEL}[Frontend]${NC} ${YELLOW}Killing Next.js lockfile PID $lock_pid${NC}"
+            kill -9 "$lock_pid" 2>/dev/null
+        fi
+        rm -f "$lockfile" 2>/dev/null
+    fi
+
+    # 4. Kill anything still on port 3000, skipping browsers
     local stray
     stray=$(lsof -ti:3000 2>/dev/null)
     for pid in $stray; do
@@ -379,10 +395,16 @@ start_frontend() {
             echo "${YELLOW}⚠  Skipping PID $pid ($name) on port 3000 — looks like a browser.${NC}"
             continue
         fi
-        echo "${FE_LABEL}[Frontend]${NC} ${YELLOW}Killing stray process on :3000 — PID $pid ($name)${NC}"
+        echo "${FE_LABEL}[Frontend]${NC} ${YELLOW}Killing stray PID $pid ($name) on :3000${NC}"
         kill -9 "$pid" 2>/dev/null
     done
-    sleep 0.5
+
+    sleep 1
+}
+
+start_frontend() {
+    kill_nextjs
+    FRONTEND_PID=""
 
     > "$FRONTEND_LOG"
     echo "${FE_LABEL}[Frontend]${NC} ${GREEN}Starting Next.js...${NC}"

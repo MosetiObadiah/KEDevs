@@ -2,15 +2,15 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { 
-  BadgeCheck, 
-  Zap, 
-  History, 
-  Clock, 
-  CheckCircle2, 
-  XCircle, 
-  Wallet, 
-  CreditCard, 
+import {
+  BadgeCheck,
+  Zap,
+  History,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Wallet,
+  CreditCard,
   ArrowRight,
   ShieldCheck,
   Star,
@@ -31,8 +31,10 @@ import { useAuth } from '@/context/AuthContext';
 import { usePlatformSettings } from '@/hooks/usePlatformSettings';
 import { paymentService } from '@/services/paymentService';
 import { spotlightService } from '@/services/spotlightService';
+import { developerService } from '@/services/developerService';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import BuySpotlightDialog from '@/components/profile/BuySpotlightDialog';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -71,6 +73,8 @@ export default function PaymentsPage() {
   const [loading, setLoading] = useState(true);
   const [confirming, setConfirming] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [buySpotlightOpen, setBuySpotlightOpen] = useState(false);
+  const [devProfile, setDevProfile] = useState<any>(null);
   const [selectedPayment, setSelectedPayment] = useState<any>(null);
 
   useEffect(() => {
@@ -98,6 +102,13 @@ export default function PaymentsPage() {
           } catch (slErr) {
             console.log('No spotlight status available');
           }
+
+          try {
+            const devRes = await developerService.getMyProfile();
+            if (devRes.success) setDevProfile(devRes.data);
+          } catch (devErr) {
+            console.log('Failed to fetch developer profile');
+          }
         }
       } catch (err) {
         console.error('Failed to load payment data', err);
@@ -108,37 +119,22 @@ export default function PaymentsPage() {
     fetchAll();
   }, [isDev]);
 
-  const handleConfirmSpotlight = async () => {
-    setConfirming(true);
-    try {
-      const res = await paymentService.confirmSpotlight();
-      if (res.success) {
-        toast.success('Spotlight activated!');
-        const slRes = await spotlightService.getMyStatus();
-        if (slRes.success) setSpotlightStatus(slRes.data);
-      }
-    } catch (err: any) {
-      toast.error('No pending spotlight payment found.');
-    } finally {
-      setConfirming(false);
-    }
-  };
 
   const handleExport = async (format: 'csv' | 'pdf') => {
     setIsExporting(true);
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
       const token = localStorage.getItem('token');
-      
+
       const response = await fetch(`${API_URL}/api/v1/payments/export?format=${format}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       if (!response.ok) throw new Error('Export failed');
-      
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -201,47 +197,48 @@ export default function PaymentsPage() {
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Ledger history</h1>
           </div>
           <div className="flex flex-wrap gap-3 print:hidden">
-              {!user?.isVerified && (
-                <Button variant="outline" className="font-bold border-primary/20 hover:bg-primary/5 h-11" asChild>
-                   <Link href="/verify">
-                      <BadgeCheck className="mr-2 h-4 w-4 text-primary" /> Begin Verification
-                   </Link>
-                </Button>
-              )}
-              
-              {isDev && !spotlightStatus?.active && (
-                <>
-                  {hasSpotlightAvailability ? (
-                    <Button className="font-bold h-11 shadow-lg shadow-primary/20" asChild>
-                       <Link href="/profile/me?buySpotlight=true">
-                          <Star className="mr-2 h-4 w-4 fill-white" /> Get Spotlight
-                       </Link>
-                    </Button>
-                  ) : (
-                    <Button variant="outline" disabled className="font-bold h-11 border-dashed opacity-70">
-                       <ShieldAlert className="mr-2 h-4 w-4" /> Spotlight Not Available
-                    </Button>
-                  )}
-                </>
-              )}
+            {!user?.isVerified && (
+              <Button variant="outline" className="font-bold border-primary/20 hover:bg-primary/5 h-11" asChild>
+                <Link href="/verify">
+                  <BadgeCheck className="mr-2 h-4 w-4 text-primary" /> Begin Verification
+                </Link>
+              </Button>
+            )}
+
+            {isDev && !spotlightStatus?.active && (
+              <>
+                {hasSpotlightAvailability ? (
+                  <Button 
+                    className="font-bold h-11 shadow-lg shadow-primary/20" 
+                    onClick={() => setBuySpotlightOpen(true)}
+                  >
+                    <Star className="mr-2 h-4 w-4 fill-white" /> Get Spotlight
+                  </Button>
+                ) : (
+                  <Button variant="outline" disabled className="font-bold h-11 border-dashed opacity-70">
+                    <ShieldAlert className="mr-2 h-4 w-4" /> Spotlight Not Available
+                  </Button>
+                )}
+              </>
+            )}
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Main Content */}
           <main className="lg:col-span-12 space-y-8">
-            
+
             {spotlightStatus?.active && (
               <Card className="border-border/50 shadow-sm bg-amber-50/30 border-amber-100">
-                  <CardContent className="p-6 flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
-                        <Clock className="h-6 w-6" />
-                    </div>
-                    <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-amber-600/70">Spotlight Time Remaining</p>
-                        <p className="text-xl font-bold text-amber-700">{formatTimeLeft(spotlightStatus.endDate)}</p>
-                    </div>
-                  </CardContent>
+                <CardContent className="p-6 flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                    <Star className="h-6 w-6 fill-amber-500" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-amber-600/70">Spotlight Time Remaining</p>
+                    <p className="text-xl font-bold text-amber-700">{formatTimeLeft(spotlightStatus.endDate)}</p>
+                  </div>
+                </CardContent>
               </Card>
             )}
 
@@ -252,36 +249,24 @@ export default function PaymentsPage() {
                   <CardDescription className="text-xs font-medium text-muted-foreground">Historical record of all platform activity.</CardDescription>
                 </div>
                 <div className="flex items-center gap-4">
-                   {isDev && !spotlightStatus?.active && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        className="text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/5 h-8"
-                        onClick={handleConfirmSpotlight}
-                        disabled={confirming}
-                      >
-                         {confirming ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Zap className="h-3 w-3 mr-2" />}
-                         Sync Payment
-                      </Button>
-                   )}
-                   
-                   <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                         <Button variant="outline" size="sm" className="font-bold gap-2 border-primary/20 hover:bg-primary/5 h-9" disabled={isExporting}>
-                            <Download className="h-4 w-4 text-primary" /> {isExporting ? 'Exporting...' : 'Export'}
-                         </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="rounded-xl border-border/50 shadow-xl">
-                         <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium py-2">
-                            <FileSpreadsheet className="mr-2 h-4 w-4 text-emerald-500" /> Download as CSV
-                         </DropdownMenuItem>
-                         <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium py-2">
-                            <FileText className="mr-2 h-4 w-4 text-primary" /> Download as PDF
-                         </DropdownMenuItem>
-                      </DropdownMenuContent>
-                   </DropdownMenu>
 
-                   <History className="h-5 w-5 text-muted-foreground/30" />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="font-bold gap-2 border-primary/20 hover:bg-primary/5 h-9" disabled={isExporting}>
+                        <Download className="h-4 w-4 text-primary" /> {isExporting ? 'Exporting...' : 'Export'}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="rounded-xl border-border/50 shadow-xl">
+                      <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium py-2">
+                        <FileSpreadsheet className="mr-2 h-4 w-4 text-emerald-500" /> Download as CSV
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium py-2">
+                        <FileText className="mr-2 h-4 w-4 text-primary" /> Download as PDF
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  <History className="h-5 w-5 text-muted-foreground/30" />
                 </div>
               </CardHeader>
               <CardContent className="p-0">
@@ -307,17 +292,17 @@ export default function PaymentsPage() {
                       </TableHeader>
                       <TableBody>
                         {paymentHistory.map((row) => (
-                          <TableRow 
-                            key={row.id} 
+                          <TableRow
+                            key={row.id}
                             className={cn(
-                               "border-border/50 transition-colors",
-                               row.status === 'COMPLETED' ? "cursor-pointer hover:bg-muted/30" : "hover:bg-muted/20"
+                              "border-border/50 transition-colors",
+                              row.status === 'COMPLETED' ? "cursor-pointer hover:bg-muted/30" : "hover:bg-muted/20"
                             )}
                             onClick={() => { if (row.status === 'COMPLETED') setSelectedPayment(row); }}
                           >
                             <TableCell className="py-5 px-6">
                               <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
-                                <Clock className="h-3 w-3" /> {formatDate(row.paidAt || row.createdAt)}
+                                {formatDate(row.paidAt || row.createdAt)}
                               </div>
                             </TableCell>
                             <TableCell className="py-5 px-6">
@@ -351,10 +336,10 @@ export default function PaymentsPage() {
                             <TableCell className="py-5 px-6 text-right">
                               <Badge className={cn(
                                 "rounded-lg font-black text-[9px] uppercase tracking-widest border-none px-2 py-0.5 text-white",
-                                row.status === 'COMPLETED' ? "bg-emerald-500" 
+                                row.status === 'COMPLETED' ? "bg-emerald-500"
                                   : row.status === 'PENDING' ? "bg-amber-500"
-                                  : row.status === 'CANCELLED' ? "bg-slate-400"
-                                  : "bg-destructive"
+                                    : row.status === 'CANCELLED' ? "bg-slate-400"
+                                      : "bg-destructive"
                               )}>
                                 {row.status}
                               </Badge>
@@ -368,7 +353,7 @@ export default function PaymentsPage() {
 
                 <div className="p-6 bg-muted/20 border-t border-border/50 flex items-center gap-3">
                   <AlertCircle className="h-3.5 w-3.5 text-muted-foreground" />
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">All transactions are processed via secure encrypted channels</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">All transactions are processed via MPESA</p>
                 </div>
               </CardContent>
             </Card>
@@ -376,65 +361,64 @@ export default function PaymentsPage() {
             {/* Financial Overview Card below the Ledger */}
             <Card className="border-border/50 shadow-sm bg-white overflow-hidden rounded-2xl">
               <CardHeader className="p-6 pb-2">
-                 <div className="flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5 text-primary" />
-                    <CardTitle className="text-lg font-bold">Financial Overview</CardTitle>
-                 </div>
-                 <CardDescription className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Comprehensive payment statistics from the database</CardDescription>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-lg font-bold">Financial Overview</CardTitle>
+                </div>
+                <CardDescription className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Comprehensive payment statistics from the database</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
-                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div className="space-y-1">
-                       <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Total Volume</p>
-                       <div className="flex items-baseline gap-1">
-                          <span className="text-2xl font-black text-foreground">KES {stats.totalVolume.toLocaleString()}</span>
-                          <TrendingUp className="h-3 w-3 text-emerald-500" />
-                       </div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Total Volume</p>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-2xl font-black text-foreground">KES {stats.totalVolume.toLocaleString()}</span>
+                      <TrendingUp className="h-3 w-3 text-emerald-500" />
                     </div>
-                    
-                    <div className="flex items-center gap-4 border-l border-border/50 pl-6">
-                       <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground font-black">
-                          {stats.total}
-                       </div>
-                       <div>
-                          <p className="text-sm font-bold">Total Events</p>
-                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">All Statuses</p>
-                       </div>
-                    </div>
+                  </div>
 
-                    <div className="flex items-center gap-4 border-l border-border/50 pl-6">
-                       <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 font-black">
-                          {stats.completed}
-                       </div>
-                       <div>
-                          <p className="text-sm font-bold text-emerald-600">Approved</p>
-                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Completed</p>
-                       </div>
+                  <div className="flex items-center gap-4 border-l border-border/50 pl-6">
+                    <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground font-black">
+                      {stats.total}
                     </div>
-
-                    <div className="flex items-center gap-4 border-l border-border/50 pl-6">
-                       <div className="h-10 w-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 font-black">
-                          {stats.pending}
-                       </div>
-                       <div>
-                          <p className="text-sm font-bold text-amber-600">Pending</p>
-                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Processing</p>
-                       </div>
+                    <div>
+                      <p className="text-sm font-bold">Total Events</p>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">All Statuses</p>
                     </div>
-                 </div>
+                  </div>
 
-                 {stats.failed > 0 && (
-                   <div className="mt-8 p-4 rounded-xl bg-red-50 border border-red-100 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                         <AlertTriangle className="h-5 w-5 text-red-500" />
-                         <div>
-                            <p className="text-sm font-bold text-red-700">Failed Transactions Detected</p>
-                            <p className="text-xs text-red-600/70">{stats.failed} transaction(s) were cancelled or failed the protocol.</p>
-                         </div>
+                  <div className="flex items-center gap-4 border-l border-border/50 pl-6">
+                    <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 font-black">
+                      {stats.completed}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-emerald-600">Approved</p>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Completed</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 border-l border-border/50 pl-6">
+                    <div className="h-10 w-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 font-black">
+                      {stats.pending}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-amber-600">Pending</p>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Processing</p>
+                    </div>
+                  </div>
+                </div>
+
+                {stats.failed > 0 && (
+                  <div className="mt-8 p-4 rounded-xl bg-red-50 border border-red-100 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <AlertTriangle className="h-5 w-5 text-red-500" />
+                      <div>
+                        <p className="text-sm font-bold text-red-700">Failed Transactions Detected</p>
+                        <p className="text-xs text-red-600/70">{stats.failed} transaction(s) were cancelled or failed the protocol.</p>
                       </div>
-                      <Badge className="bg-red-500 text-white border-none font-black">{stats.failed}</Badge>
-                   </div>
-                 )}
+                    </div>
+                    <Badge className="bg-red-500 text-white border-none font-black">{stats.failed}</Badge>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -490,6 +474,18 @@ export default function PaymentsPage() {
           </main>
         </div>
       </div>
+
+      <BuySpotlightDialog 
+        open={buySpotlightOpen}
+        onClose={() => setBuySpotlightOpen(false)}
+        onSuccess={() => {
+          setBuySpotlightOpen(false);
+          // Refresh data
+          window.location.reload();
+        }}
+        isVerified={devProfile?.verified || false}
+        hasFeaturedProject={devProfile?.projects?.some((p: any) => p.featured) || false}
+      />
     </div>
   );
 }
