@@ -1,8 +1,8 @@
 import React from 'react';
-import { MapPin, Briefcase, ShieldCheck, Globe, Camera } from 'lucide-react';
+import { MapPin, Briefcase, ShieldCheck, Globe, Camera, Star } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { formatExperience } from '@/lib/utils';
+import { formatExperience, formatAvailability, formatWorkType } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -16,9 +16,6 @@ interface ProfileHeaderProps {
 }
 
 export function ProfileHeader({ profile, isOwner, isEditing, onUpdate, onPhotoSelect }: ProfileHeaderProps) {
-  const formatAvailability = (status: string) => {
-    return status?.replace(/_/g, ' ') || 'AVAILABLE';
-  };
 
   const initials = `${profile.firstName?.[0] || ''}${profile.lastName?.[0] || ''}`;
   const profileImage = profile.profilePhoto || profile.avatarUrl;
@@ -120,7 +117,6 @@ export function ProfileHeader({ profile, isOwner, isEditing, onUpdate, onPhotoSe
                       <SelectValue placeholder="Select status" />
                    </SelectTrigger>
                    <SelectContent className="rounded-2xl">
-                      <SelectItem value="AVAILABLE">Active Now</SelectItem>
                       <SelectItem value="OPEN_TO_OFFERS">Open to Offers</SelectItem>
                       <SelectItem value="NOT_AVAILABLE">Not Available</SelectItem>
                    </SelectContent>
@@ -199,13 +195,15 @@ export function ProfileHeader({ profile, isOwner, isEditing, onUpdate, onPhotoSe
              {formatExperience(profile.yearsOfExperience)}
           </span>
           <span className="hidden md:block text-muted-foreground/30">•</span>
-          <span className="flex items-center gap-1.5">
-            <Globe className="w-4 h-4 text-primary" />
-            {profile.preferredWorkType || 'REMOTE'}
+          <span className="flex items-center gap-1.5 text-xs font-extrabold text-slate-700 normal-case">
+            <Globe className="w-3.5 h-3.5 text-primary" />
+            <span className="font-black uppercase tracking-wider text-[10px] text-slate-400">Preferred Work:</span>
+            {formatWorkType(profile.preferredWorkType || 'REMOTE')}
           </span>
         </div>
         
-        <div className="pt-2">
+        <div className="flex items-center gap-2 pt-2">
+          <span className="font-black uppercase tracking-widest text-[10px] text-slate-400">Availability:</span>
           <Badge variant={profile.availabilityStatus === 'OPEN_TO_OFFERS' ? 'default' : 'secondary'} className="rounded-lg font-black tracking-widest text-[10px] uppercase px-3 py-1">
             {formatAvailability(profile.availabilityStatus)}
           </Badge>

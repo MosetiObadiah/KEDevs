@@ -16,10 +16,12 @@ import {
   Briefcase,
   Layers,
   Sparkles,
-  Info
+  Info,
+  Flag
 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 import { companyService, CompanyProfile } from '@/services/companyService';
-import { cn } from '@/lib/utils';
+import { cn, formatCompanySize } from '@/lib/utils';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -28,12 +30,47 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function CompanyProfilePage() {
   const { companyId } = useParams();
+  const { user } = useAuth();
   const [company, setCompany] = useState<CompanyProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const isOwnProfile = user && company && user.id === company.userId;
+
+  // Flag modal state
+  const [isFlagOpen, setIsFlagOpen] = useState(false);
+  const [flagContent, setFlagContent] = useState('');
+  const [isSubmittingFlag, setIsSubmittingFlag] = useState(false);
+
+  const handleFlagCompany = async () => {
+    if (!flagContent.trim()) return;
+    setIsSubmittingFlag(true);
+    try {
+      const response = await companyService.flagCompany(companyId as string, flagContent.trim());
+      if (response.success) {
+        toast.success('Profile reported to moderation.');
+        setIsFlagOpen(false);
+        setFlagContent('');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to report profile. You may have already flagged them.');
+    } finally {
+      setIsSubmittingFlag(false);
+    }
+  };
 
   useEffect(() => {
     const fetchCompany = async () => {
@@ -136,7 +173,7 @@ export default function CompanyProfilePage() {
                   <span className="hidden md:block text-muted-foreground/30">•</span>
                   <span className="flex items-center gap-1.5">
                     <Users className="w-4 h-4 text-emerald-600" />
-                    {company.companySize?.replace(/_/g, ' ') || 'Size unknown'}
+                    {company.companySize ? formatCompanySize(company.companySize) : 'Size unknown'}
                   </span>
                   {company.companyWebsite && (
                     <>
@@ -265,12 +302,73 @@ export default function CompanyProfilePage() {
                   </div>
                 )}
 
+                {/* Flag Action */}
+                {user && !isOwnProfile && (
+                  <div className="pt-4 border-t border-slate-100 flex justify-center">
+                    <button 
+                      onClick={() => setIsFlagOpen(true)}
+                      className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-destructive transition-colors"
+                    >
+                      <Flag className="h-3.5 w-3.5" /> Report Employer Profile
+                    </button>
+                  </div>
+                )}
+
               </CardContent>
             </Card>
           </div>
 
         </div>
       </div>
+
+      {/* Flag Modal */}
+      <Dialog open={isFlagOpen} onOpenChange={setIsFlagOpen}>
+        <DialogContent className="sm:max-w-[500px] rounded-[2rem] p-8">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center text-destructive">
+                <Flag className="h-6 w-6" />
+              </div>
+              Report Profile
+            </DialogTitle>
+            <DialogDescription className="font-medium text-muted-foreground">
+              Please describe why you are reporting this profile. Our moderation team will review this report.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-6 space-y-4">
+            <div className="space-y-2">
+              <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground flex justify-between">
+                <span>Reason for Reporting</span>
+                <span className={cn(flagContent.length > 500 ? "text-destructive" : "")}>
+                  {flagContent.length}/500
+                </span>
+              </Label>
+              <Textarea 
+                placeholder="e.g. Inappropriate content, spam, or fake profile..." 
+                className="min-h-[120px] rounded-2xl border-border/50 resize-none font-medium text-base p-4 focus-visible:ring-destructive/20"
+                value={flagContent}
+                onChange={(e) => setFlagContent(e.target.value.slice(0, 500))}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="sm:justify-end gap-3">
+            <Button variant="ghost" className="rounded-xl font-bold" onClick={() => setIsFlagOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              className="rounded-xl font-black px-8 bg-destructive text-destructive-foreground hover:bg-destructive/90" 
+              onClick={handleFlagCompany}
+              disabled={isSubmittingFlag || !flagContent.trim()}
+            >
+              {isSubmittingFlag ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</>
+              ) : 'Submit Report'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -14,5 +14,5 @@ public interface ContactRequestRepository extends JpaRepository<ContactRequest, 
 
     Page<ContactRequest> findByDeveloperId(UUID developerId, Pageable pageable);
 
-    long countByEmployerIdAndCreatedAtAfter(UUID employerId, LocalDateTime since);
+    long countBySenderUserIdAndCreatedAtAfter(UUID senderUserId, LocalDateTime since);
 }

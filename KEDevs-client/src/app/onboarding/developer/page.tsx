@@ -12,12 +12,9 @@ import {
   Loader2, 
   ChevronRight, 
   ChevronLeft,
-  Info,
   ShieldCheck,
   Plus,
-  X,
-  FileText,
-  CloudUpload
+  X
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { developerService } from '@/services/developerService';
@@ -43,8 +40,7 @@ import {
 const steps = [
   { label: 'Identity', icon: User },
   { label: 'Arsenal', icon: Code2 },
-  { label: 'Experience', icon: Briefcase },
-  { label: 'Verification', icon: FileText }
+  { label: 'Experience', icon: Briefcase }
 ];
 
 const skillsOptions = [
@@ -66,7 +62,6 @@ export default function DeveloperOnboarding() {
   const [activeStep, setActiveStep] = useState(0);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [govIdFile, setGovIdFile] = useState<File | null>(null);
   const [success, setSuccess] = useState(false);
 
   const [formData, setFormData] = useState(() => {
@@ -81,7 +76,7 @@ export default function DeveloperOnboarding() {
       city: 'Nairobi',
       bio: '',
       skills: [] as string[],
-      availability: 'AVAILABLE',
+      availability: 'OPEN_TO_OFFERS',
       yearsOfExperience: 'ZERO_TO_ONE',
       summary: '',
       publicEmail: user?.email || '',
@@ -139,9 +134,6 @@ export default function DeveloperOnboarding() {
         };
         const response = await developerService.createProfile(payload);
         if (response.success) {
-          if (govIdFile) {
-            await developerService.uploadVerificationDocument(govIdFile);
-          }
           localStorage.removeItem('developer_onboarding');
           setSuccess(true);
           completeOnboarding(); // called after success state is set to avoid redirect race
@@ -199,9 +191,6 @@ export default function DeveloperOnboarding() {
       
       <div className="w-full max-w-2xl animate-in fade-in slide-in-from-bottom-8 duration-700">
         <div className="text-center mb-12">
-           <Badge variant="outline" className="rounded-lg font-black tracking-widest text-[10px] uppercase bg-primary/5 text-primary border-primary/10 mb-4 px-3 py-1">
-              FINALIZE YOUR ACCOUNT
-           </Badge>
            <h1 className="text-4xl font-black tracking-tight text-slate-900">Developer Onboarding</h1>
            <p className="text-slate-500 font-semibold mt-2">Let's build your professional presence</p>
         </div>
@@ -237,7 +226,6 @@ export default function DeveloperOnboarding() {
                    {activeStep === 0 && <User className="h-6 w-6" />}
                    {activeStep === 1 && <Code2 className="h-6 w-6" />}
                    {activeStep === 2 && <Briefcase className="h-6 w-6" />}
-                   {activeStep === 3 && <FileText className="h-6 w-6" />}
                 </div>
                 <div>
                    <CardTitle className="text-2xl font-black uppercase tracking-tight">{steps[activeStep].label}</CardTitle>
@@ -367,9 +355,8 @@ export default function DeveloperOnboarding() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
-                      <SelectItem value="AVAILABLE" className="font-bold">Available Now</SelectItem>
                       <SelectItem value="OPEN_TO_OFFERS" className="font-bold">Open to Offers</SelectItem>
-                      <SelectItem value="NOT_AVAILABLE" className="font-bold">Currently Busy</SelectItem>
+                      <SelectItem value="NOT_AVAILABLE" className="font-bold">Not Available</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -430,64 +417,6 @@ export default function DeveloperOnboarding() {
               </div>
             )}
 
-            {activeStep === 3 && (
-              <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-                 <div className="space-y-4">
-                    <div className="p-6 rounded-[2rem] bg-amber-50 border border-amber-100 flex items-start gap-4">
-                       <div className="h-10 w-10 rounded-2xl bg-white shadow-sm flex items-center justify-center text-amber-500 shrink-0">
-                          <Info className="h-5 w-5" />
-                       </div>
-                       <div>
-                          <p className="font-black text-amber-900 text-sm">Identity Verification</p>
-                          <p className="text-amber-700 font-medium text-xs mt-1 leading-relaxed">
-                             To ensure trust on our platform, we require a valid Government ID (National ID or Passport). Your documents are securely stored and never shared publicly.
-                          </p>
-                       </div>
-                    </div>
-
-                    <div className="space-y-2">
-                       <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Government ID (Required)</Label>
-                       <label className={cn(
-                          "flex flex-col items-center justify-center p-8 rounded-[2rem] border-4 border-dashed cursor-pointer transition-all",
-                          govIdFile ? "border-emerald-500 bg-emerald-50" : "border-slate-100 hover:border-primary/50"
-                       )}>
-                          <input 
-                             type="file" 
-                             className="hidden" 
-                             accept="image/*,.pdf" 
-                             onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                   if (file.size > 5 * 1024 * 1024) {
-                                      toast.error("File size exceeds 5MB limit");
-                                      return;
-                                   }
-                                   setGovIdFile(file);
-                                }
-                             }} 
-                          />
-                          {govIdFile ? (
-                             <div className="flex items-center gap-4">
-                                <div className="h-12 w-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-emerald-500">
-                                   <CheckCircle2 className="h-6 w-6" />
-                                </div>
-                                <div className="text-left">
-                                   <p className="font-black text-slate-900 truncate max-w-[200px]">{govIdFile.name}</p>
-                                   <p className="text-[10px] font-bold text-slate-400">{(govIdFile.size / 1024 / 1024).toFixed(2)} MB</p>
-                                </div>
-                             </div>
-                          ) : (
-                             <div className="text-center space-y-2">
-                                <CloudUpload className="h-10 w-10 text-slate-300 mx-auto" />
-                                <p className="font-black text-sm">Upload Photo or PDF</p>
-                                <p className="text-[10px] font-bold text-slate-400">Maximum 5MB</p>
-                             </div>
-                          )}
-                       </label>
-                    </div>
-                 </div>
-              </div>
-            )}
           </CardContent>
 
           <CardFooter className="bg-slate-50 p-8 flex justify-between gap-4">
@@ -506,7 +435,7 @@ export default function DeveloperOnboarding() {
                 size="lg" 
                 className="rounded-2xl font-black h-14 px-10 shadow-xl shadow-primary/20 transition-all active:scale-95"
                 onClick={handleNext}
-                disabled={loading || !agreedToTerms || !govIdFile}
+                disabled={loading || !agreedToTerms}
               >
                 {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <ShieldCheck className="mr-2 h-5 w-5" />}
                 {loading ? 'Submitting...' : 'Submit Profile'}

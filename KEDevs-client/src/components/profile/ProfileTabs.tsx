@@ -34,6 +34,7 @@ interface ProfileTabsProps {
   onAddAchievement?: () => void;
   onRemoveItem?: (type: string, id: string) => void;
   onToggleFeatured?: (id: string, current: boolean) => void;
+  onEndorse?: () => void;
 }
 
 export function ProfileTabs({ 
@@ -47,7 +48,8 @@ export function ProfileTabs({
   onAddOSS,
   onAddAchievement,
   onRemoveItem,
-  onToggleFeatured
+  onToggleFeatured,
+  onEndorse
 }: ProfileTabsProps) {
   return (
     <Tabs defaultValue="overview" className="w-full">
@@ -425,6 +427,11 @@ export function ProfileTabs({
             <div className="h-6 w-1.5 bg-primary rounded-full" />
             Professional Endorsements
           </h3>
+          {!isOwner && onEndorse && (
+            <Button size="sm" className="rounded-xl font-bold bg-primary text-white shadow-md shadow-primary/10 hover:shadow-lg active:scale-95 transition-all flex items-center gap-1.5" onClick={onEndorse}>
+              <Plus className="w-4 h-4" /> Endorse Developer
+            </Button>
+          )}
         </div>
 
         {profile.endorsements?.length > 0 ? (

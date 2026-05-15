@@ -70,7 +70,7 @@ class DeveloperProfileServiceTest {
         testProfile.setFirstName("Jane");
         testProfile.setLastName("Dev");
         testProfile.setProfileVisibility(ProfileVisibility.PUBLIC);
-        testProfile.setAvailabilityStatus(AvailabilityStatus.AVAILABLE);
+        testProfile.setAvailabilityStatus(AvailabilityStatus.OPEN_TO_OFFERS);
         testProfile.setVerified(false);
         testProfile.setNumberOfProjects(0);
     }
@@ -83,7 +83,7 @@ class DeveloperProfileServiceTest {
 
         UserDtos.CreateDeveloperProfileRequest request = new UserDtos.CreateDeveloperProfileRequest(
                 "Jane", "Dev", null, null, "Backend Dev",
-                null, 0, AvailabilityStatus.AVAILABLE, null,
+                null, 0, AvailabilityStatus.OPEN_TO_OFFERS, null,
                 "Nairobi", "Kenya", ProfileVisibility.PUBLIC,
                 null, null, null, null, null, null, List.of());
 
@@ -259,7 +259,7 @@ class DeveloperProfileServiceTest {
         when(skillRepository.findByDeveloperId(any())).thenReturn(List.of());
 
         UserDtos.DeveloperFilterRequest filter = new UserDtos.DeveloperFilterRequest(
-                AvailabilityStatus.AVAILABLE, null, null, null, null, null, null, null, null, null);
+                AvailabilityStatus.OPEN_TO_OFFERS, null, null, null, null, null, null, null, null, null);
 
         Page<UserDtos.DeveloperSummaryResponse> result = developerProfileService.filterDevelopers(filter, PageRequest.of(0, 10));
 

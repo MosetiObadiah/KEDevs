@@ -14,12 +14,12 @@ import java.util.UUID;
 @Table(name = "contact_requests")
 public class ContactRequest extends BaseEntity {
 
-    @Column(name = "employer_id", nullable = false)
-    private UUID employerId;
+    @Column(name = "sender_user_id", nullable = false)
+    private UUID senderUserId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "employer_id", insertable = false, updatable = false)
-    private EmployerProfile employerProfile;
+    @JoinColumn(name = "sender_user_id", insertable = false, updatable = false)
+    private User senderUser;
 
     @Column(name = "developer_id", nullable = false)
     private UUID developerId;

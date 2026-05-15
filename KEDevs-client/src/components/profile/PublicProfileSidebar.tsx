@@ -16,12 +16,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
+import { cn, formatWorkType } from '@/lib/utils';
 
 interface PublicProfileSidebarProps {
   profile: any;
   onContact: () => void;
-  onEndorse: () => void;
   onFlag: () => void;
   isLoggedIn: boolean;
   isRequesting?: boolean;
@@ -30,7 +29,6 @@ interface PublicProfileSidebarProps {
 export function PublicProfileSidebar({ 
   profile, 
   onContact, 
-  onEndorse, 
   onFlag,
   isLoggedIn,
   isRequesting 
@@ -39,22 +37,16 @@ export function PublicProfileSidebar({
     <div className="space-y-6">
       {/* Action Buttons */}
       <div className="flex flex-col gap-3">
-        <Button 
-          className="w-full h-14 rounded-2xl font-black bg-primary text-white shadow-lg shadow-primary/20 transition-all active:scale-95"
-          onClick={onContact}
-          disabled={isRequesting}
-        >
-          <Send className="mr-2 h-5 w-5" />
-          {isRequesting ? 'Sending...' : 'Contact Developer'}
-        </Button>
-        <Button 
-          variant="outline" 
-          className="w-full h-14 rounded-2xl font-black border-border/50 bg-background hover:bg-muted/50"
-          onClick={onEndorse}
-        >
-          <ThumbsUp className="mr-2 h-5 w-5 text-primary" />
-          Endorse Skills
-        </Button>
+        {profile.canEmployersReachOut !== false && profile.availabilityStatus !== 'NOT_AVAILABLE' && (
+          <Button 
+            className="w-full h-14 rounded-2xl font-black bg-primary text-white shadow-lg shadow-primary/20 transition-all active:scale-95"
+            onClick={onContact}
+            disabled={isRequesting}
+          >
+            <Send className="mr-2 h-5 w-5" />
+            {isRequesting ? 'Sending...' : 'Contact Developer'}
+          </Button>
+        )}
         <Button 
           variant="ghost" 
           className="w-full h-10 rounded-xl font-bold text-muted-foreground hover:text-destructive hover:bg-destructive/10 text-xs"
@@ -104,8 +96,8 @@ export function PublicProfileSidebar({
           <div className="pt-2 border-t border-border/50">
             <div className="space-y-1">
               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Preferred Work</p>
-              <p className="font-bold text-foreground flex items-center gap-2 uppercase tracking-tight text-xs">
-                <Globe className="h-3.5 w-3.5 text-primary" /> {profile.preferredWorkType || 'REMOTE'}
+              <p className="font-bold text-foreground flex items-center gap-2 tracking-wide text-sm">
+                <Globe className="h-3.5 w-3.5 text-primary" /> {formatWorkType(profile.preferredWorkType || 'REMOTE')}
               </p>
             </div>
           </div>
@@ -127,25 +119,6 @@ export function PublicProfileSidebar({
               </Button>
             )}
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Endorsements Card */}
-      <Card className="rounded-[2.5rem] bg-slate-900 text-white shadow-xl shadow-slate-900/20 overflow-hidden group">
-        <CardContent className="p-8 space-y-6">
-          <div className="space-y-1">
-            <p className="text-4xl font-black tracking-tight">{profile.endorsementCount || 0}</p>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Endorsements</p>
-          </div>
-          <p className="text-sm font-medium text-slate-400 leading-relaxed">
-            Help employers discover {profile.firstName}'s talent by adding a professional recommendation.
-          </p>
-          <Button 
-            className="w-full h-12 rounded-xl font-black bg-white text-slate-900 hover:bg-slate-100 transition-all active:scale-95"
-            onClick={onEndorse}
-          >
-            Submit Endorsement
-          </Button>
         </CardContent>
       </Card>
 

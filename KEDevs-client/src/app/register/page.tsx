@@ -11,7 +11,9 @@ import {
   AlertCircle,
   Code2,
   Building2,
-  CheckCircle2
+  CheckCircle2,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { authService } from '@/services/authService';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -30,6 +32,9 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -61,6 +66,12 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match. Please re-type.');
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await authService.register({ fullName, email, password, role });
@@ -173,13 +184,42 @@ export default function RegisterPage() {
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <Input 
-                      type="password" 
+                      type={showPassword ? "text" : "password"} 
                       placeholder="••••••••"
-                      className="pl-11 h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
+                      className="pl-11 pr-12 h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 px-1">Confirm Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input 
+                      type={showConfirmPassword ? "text" : "password"} 
+                      placeholder="••••••••"
+                      className="pl-11 pr-12 h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none"
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
               </div>

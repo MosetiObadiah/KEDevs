@@ -215,7 +215,9 @@ public class UserDtos {
             String locationCity,
             String locationCountry,
             String publicEmail,
-            String publicPhone
+            String publicPhone,
+            YearsOfExperience yearsOfExperience,
+            WorkType preferredWorkType
     ) {}
 
     public record EmployerProfileResponse(
@@ -263,7 +265,8 @@ public class UserDtos {
 
     public record ContactRequestResponse(
             java.util.UUID id,
-            java.util.UUID employerId,
+            java.util.UUID senderUserId,
+            String senderName,
             java.util.UUID developerId,
             String message,
             org.moseti.kedevsapi.shared.enums.ContactRequestStatus status,

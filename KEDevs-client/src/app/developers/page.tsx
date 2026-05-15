@@ -1,6 +1,7 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { 
   Search, 
   CheckCircle2, 
@@ -16,7 +17,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { developerService } from '@/services/developerService';
 import { DeveloperSummary } from '@/lib/types';
-import { cn } from '@/lib/utils';
+import { cn, formatExperience, formatWorkType, formatAvailability } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -43,16 +44,46 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Label } from '@/components/ui/label';
 
-export default function DevelopersPage() {
+const AVAILABILITY_STATUSES = [
+  { value: 'OPEN_TO_OFFERS', label: 'Open to Offers' },
+  { value: 'NOT_AVAILABLE', label: 'Not Available' }
+];
+
+const WORK_TYPES = [
+  { value: 'REMOTE', label: 'Remote' },
+  { value: 'ONSITE', label: 'On-site' },
+  { value: 'HYBRID', label: 'Hybrid' }
+];
+
+const EXPERIENCE_RANGES = [
+  { value: 'ZERO_TO_ONE', label: '0 - 1 Years' },
+  { value: 'ONE_TO_THREE', label: '1 - 3 Years' },
+  { value: 'THREE_TO_FIVE', label: '3 - 5 Years' },
+  { value: 'FIVE_TO_TEN', label: '5 - 10 Years' },
+  { value: 'TEN_PLUS', label: '10+ Years' }
+];
+
+const KENYA_CITIES = [
+  'Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Thika', 'Malindi', 'Naivasha', 'Nyeri', 'Machakos'
+];
+
+function DevelopersPageContent() {
   const { isLoggedIn, user } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  
   const [devs, setDevs] = useState<DeveloperSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   
-  const [searchTerm, setSearchTerm] = useState('');
-  const [availability, setAvailability] = useState('All');
+  const searchTerm = searchParams.get('search') || '';
+  const [selectedAvails, setSelectedAvails] = useState<string[]>([]);
+  const [selectedWorkTypes, setSelectedWorkTypes] = useState<string[]>([]);
+  const [selectedExperiences, setSelectedExperiences] = useState<string[]>([]);
   const [location, setLocation] = useState('All');
   const [isVerifiedOnly, setIsVerifiedOnly] = useState(false);
 
@@ -76,7 +107,7 @@ export default function DevelopersPage() {
     fetchDevs();
   }, []);
 
-  const uniqueLocations = Array.from(new Set(devs.map(d => d.locationCity).filter(Boolean))).sort();
+  const uniqueLocations = Array.from(new Set([...KENYA_CITIES, ...devs.map(d => d.locationCity).filter(Boolean)])).sort();
 
   const filteredDevs = devs.filter(dev => 
     (
@@ -84,8 +115,10 @@ export default function DevelopersPage() {
       dev.currentLastRole.toLowerCase().includes(searchTerm.toLowerCase()) ||
       dev.skills.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()))
     ) && 
-    (availability === 'All' || dev.availabilityStatus === availability) &&
+    (selectedAvails.length === 0 || selectedAvails.includes(dev.availabilityStatus)) &&
     (location === 'All' || dev.locationCity === location) &&
+    (selectedWorkTypes.length === 0 || (dev.preferredWorkType && selectedWorkTypes.includes(dev.preferredWorkType))) &&
+    (selectedExperiences.length === 0 || (dev.yearsOfExperience && selectedExperiences.includes(dev.yearsOfExperience))) &&
     (!isVerifiedOnly || dev.isVerified)
   );
 
@@ -93,7 +126,9 @@ export default function DevelopersPage() {
     setIsExporting(true);
     try {
       const payload = {
-        availabilityStatus: availability !== 'All' ? availability : undefined,
+        availabilityStatus: selectedAvails.length > 0 ? selectedAvails[0] as any : undefined,
+        preferredWorkType: selectedWorkTypes.length > 0 ? selectedWorkTypes[0] as any : undefined,
+        yearsOfExperience: selectedExperiences.length > 0 ? selectedExperiences[0] as any : undefined,
         locationCity: location !== 'All' ? location : undefined,
         isVerified: isVerifiedOnly ? true : undefined,
         currentLastRole: searchTerm || undefined
@@ -161,38 +196,77 @@ export default function DevelopersPage() {
                 <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Filter Talent</h3>
               </CardHeader>
               <CardContent className="space-y-6">
+
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Search</label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input 
-                      placeholder="Name, role, or skill..." 
-                      className="pl-10 text-sm border-border/50 focus-visible:ring-primary/20"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                  <label className="text-xs font-bold text-muted-foreground uppercase">Availability</label>
+                  <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
+                    {AVAILABILITY_STATUSES.map(avail => (
+                      <div key={avail.value} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`avail-${avail.value}`}
+                          checked={selectedAvails.includes(avail.value)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedAvails([...selectedAvails, avail.value]);
+                            } else {
+                              setSelectedAvails(selectedAvails.filter(a => a !== avail.value));
+                            }
+                          }}
+                        />
+                        <Label htmlFor={`avail-${avail.value}`} className="text-xs font-medium cursor-pointer">{avail.label}</Label>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Availability</label>
-                  <Select value={availability} onValueChange={setAvailability}>
-                    <SelectTrigger className="border-border/50 focus:ring-primary/20">
-                      <SelectValue placeholder="Any Availability" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="All">Any Availability</SelectItem>
-                      <SelectItem value="AVAILABLE">Available Now</SelectItem>
-                      <SelectItem value="OPEN_TO_OFFERS">Open to Offers</SelectItem>
-                      <SelectItem value="NOT_AVAILABLE">Currently Busy</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <label className="text-xs font-bold text-muted-foreground uppercase">Experience Level</label>
+                  <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
+                    {EXPERIENCE_RANGES.map(exp => (
+                      <div key={exp.value} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`exp-${exp.value}`}
+                          checked={selectedExperiences.includes(exp.value)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedExperiences([...selectedExperiences, exp.value]);
+                            } else {
+                              setSelectedExperiences(selectedExperiences.filter(e => e !== exp.value));
+                            }
+                          }}
+                        />
+                        <Label htmlFor={`exp-${exp.value}`} className="text-xs font-medium cursor-pointer">{exp.label}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground uppercase">Work Preference</label>
+                  <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
+                    {WORK_TYPES.map(type => (
+                      <div key={type.value} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`wt-${type.value}`}
+                          checked={selectedWorkTypes.includes(type.value)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedWorkTypes([...selectedWorkTypes, type.value]);
+                            } else {
+                              setSelectedWorkTypes(selectedWorkTypes.filter(t => t !== type.value));
+                            }
+                          }}
+                        />
+                        <Label htmlFor={`wt-${type.value}`} className="text-xs font-medium cursor-pointer">{type.label}</Label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-muted-foreground uppercase">Location</label>
                   <Select value={location} onValueChange={setLocation}>
-                    <SelectTrigger className="border-border/50 focus:ring-primary/20">
+                    <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-lg">
                       <SelectValue placeholder="Any Location" />
                     </SelectTrigger>
                     <SelectContent>
@@ -204,7 +278,7 @@ export default function DevelopersPage() {
                   </Select>
                 </div>
 
-                <div className="flex flex-row items-start space-x-3 space-y-0 rounded-xl border border-border/50 p-4">
+                <div className="flex flex-row items-start space-x-3 space-y-0 rounded-xl border border-border/50 p-4 bg-card shadow-inner">
                   <Checkbox 
                      id="verified" 
                      checked={isVerifiedOnly} 
@@ -219,14 +293,16 @@ export default function DevelopersPage() {
                   </div>
                 </div>
 
-                {(searchTerm || availability !== 'All' || location !== 'All' || isVerifiedOnly) && (
+                {(searchTerm || selectedAvails.length > 0 || selectedWorkTypes.length > 0 || selectedExperiences.length > 0 || location !== 'All' || isVerifiedOnly) && (
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="w-full text-xs font-bold text-muted-foreground"
+                    className="w-full text-xs font-bold text-muted-foreground mt-2"
                     onClick={() => {
-                      setSearchTerm('');
-                      setAvailability('All');
+                      router.push(pathname);
+                      setSelectedAvails([]);
+                      setSelectedWorkTypes([]);
+                      setSelectedExperiences([]);
                       setLocation('All');
                       setIsVerifiedOnly(false);
                     }}
@@ -286,15 +362,27 @@ export default function DevelopersPage() {
                         <p className="text-sm font-semibold text-muted-foreground">{dev.currentLastRole}</p>
                       </div>
 
-                      <Badge 
-                        variant={dev.availabilityStatus === 'AVAILABLE' ? 'default' : 'secondary'}
-                        className={cn(
-                          "mb-6 text-[10px] uppercase font-black px-2 shadow-sm",
-                          dev.availabilityStatus === 'AVAILABLE' ? "bg-emerald-500 hover:bg-emerald-500" : ""
+                      <div className="flex flex-wrap justify-center items-center gap-1.5 mb-6">
+                        <Badge 
+                          variant={dev.availabilityStatus === 'OPEN_TO_OFFERS' ? 'default' : 'secondary'}
+                          className={cn(
+                            "text-[9px] uppercase font-black px-2 shadow-sm tracking-wider",
+                            dev.availabilityStatus === 'OPEN_TO_OFFERS' ? "bg-emerald-500 hover:bg-emerald-500" : ""
+                          )}
+                        >
+                          {formatAvailability(dev.availabilityStatus)}
+                        </Badge>
+                        {dev.yearsOfExperience && (
+                          <Badge variant="secondary" className="text-[9px] font-bold py-0 px-2 bg-primary/10 text-primary border-none rounded-md">
+                            {EXPERIENCE_RANGES.find(r => r.value === dev.yearsOfExperience)?.label || dev.yearsOfExperience}
+                          </Badge>
                         )}
-                      >
-                        {dev.availabilityStatus.replace('_', ' ')}
-                      </Badge>
+                        {dev.preferredWorkType && (
+                          <Badge variant="outline" className="text-[9px] font-bold py-0 px-2 border-border bg-muted/20 text-muted-foreground rounded-md">
+                            {formatWorkType(dev.preferredWorkType)}
+                          </Badge>
+                        )}
+                      </div>
                       
                       {isLoggedIn && (user?.role === 'EMPLOYER' || user?.id === dev.id) && (
                         <div className="flex justify-center gap-2 mb-6">
@@ -363,9 +451,18 @@ export default function DevelopersPage() {
                     <h3 className="text-xl font-bold">No developers found</h3>
                     <p className="text-muted-foreground">Try adjusting your filters or search term.</p>
                   </div>
-                  <Button variant="outline" onClick={() => { setSearchTerm(''); setAvailability('All'); }}>
-                    Clear all filters
-                  </Button>
+                  {(searchTerm || selectedAvails.length > 0 || selectedWorkTypes.length > 0 || selectedExperiences.length > 0 || location !== 'All' || isVerifiedOnly) && (
+                    <Button variant="outline" onClick={() => {
+                      router.push(pathname);
+                      setSelectedAvails([]);
+                      setSelectedWorkTypes([]);
+                      setSelectedExperiences([]);
+                      setLocation('All');
+                      setIsVerifiedOnly(false);
+                    }}>
+                      Clear all filters
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
@@ -373,6 +470,18 @@ export default function DevelopersPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DevelopersPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col min-h-screen bg-muted/30 items-center justify-center">
+        <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <DevelopersPageContent />
+    </Suspense>
   );
 }
 

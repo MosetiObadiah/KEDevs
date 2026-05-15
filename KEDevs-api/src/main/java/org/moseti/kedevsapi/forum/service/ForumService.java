@@ -41,6 +41,7 @@ public class ForumService {
     private final UserRepository userRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final org.moseti.kedevsapi.shared.service.SettingService settingService;
+    private final org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
 
     private void pushForumEvent(UUID jobId, String type, Object data) {
         messagingTemplate.convertAndSend("/topic/forum/" + jobId, new WebSocketEvent<>(type, data));
@@ -64,6 +65,18 @@ public class ForumService {
         ForumComment saved = commentRepository.save(comment);
         CommentResponse response = toCommentResponse(saved, userId, false);
         pushForumEvent(jobId, "NEW_COMMENT", response);
+
+        // Notify job poster if commenter != job poster
+        if (!userId.equals(job.getPostedById())) {
+            notificationService.notify(
+                job.getPostedById(),
+                org.moseti.kedevsapi.shared.enums.NotificationCategory.FORUM,
+                "New Comment on Job",
+                resolveAuthorName(userId) + " commented on your job \"" + job.getTitle() + "\".",
+                "{\"jobId\":\"" + jobId + "\",\"commentId\":\"" + saved.getId() + "\"}"
+            );
+        }
+
         return response;
     }
 
@@ -96,6 +109,29 @@ public class ForumService {
         ForumComment saved = commentRepository.save(reply);
         CommentResponse response = toCommentResponse(saved, userId, false);
         pushForumEvent(jobId, "NEW_REPLY", response);
+
+        // Notify parent comment author if replier != parent author
+        if (parentComment.getAuthorId() != null && !userId.equals(parentComment.getAuthorId())) {
+            notificationService.notify(
+                parentComment.getAuthorId(),
+                org.moseti.kedevsapi.shared.enums.NotificationCategory.FORUM,
+                "New Reply to Comment",
+                resolveAuthorName(userId) + " replied to your comment.",
+                "{\"jobId\":\"" + jobId + "\",\"commentId\":\"" + saved.getId() + "\",\"parentId\":\"" + parentComment.getId() + "\"}"
+            );
+        }
+
+        // Notify job poster if replier != job poster AND parent author != job poster (deduplication)
+        if (!userId.equals(job.getPostedById()) && !job.getPostedById().equals(parentComment.getAuthorId())) {
+            notificationService.notify(
+                job.getPostedById(),
+                org.moseti.kedevsapi.shared.enums.NotificationCategory.FORUM,
+                "New Activity on Job",
+                resolveAuthorName(userId) + " replied on your job \"" + job.getTitle() + "\".",
+                "{\"jobId\":\"" + jobId + "\",\"commentId\":\"" + saved.getId() + "\"}"
+            );
+        }
+
         return response;
     }
 

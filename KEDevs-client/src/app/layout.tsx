@@ -11,6 +11,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
 
+import { NotificationProvider } from "@/context/NotificationContext";
+
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
@@ -28,16 +30,18 @@ export default function RootLayout({
       <body className="min-h-screen bg-background font-sans antialiased">
         <NextThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <AuthProvider>
-            <GoogleAuthProvider>
-              <TooltipProvider>
-                <RouteGuard>
-                  <AppLayout>
-                    {children}
-                  </AppLayout>
-                  <Toaster richColors position="top-right" />
-                </RouteGuard>
-              </TooltipProvider>
-            </GoogleAuthProvider>
+            <NotificationProvider>
+              <GoogleAuthProvider>
+                <TooltipProvider>
+                  <RouteGuard>
+                    <AppLayout>
+                      {children}
+                    </AppLayout>
+                    <Toaster richColors position="top-right" />
+                  </RouteGuard>
+                </TooltipProvider>
+              </GoogleAuthProvider>
+            </NotificationProvider>
           </AuthProvider>
         </NextThemeProvider>
       </body>

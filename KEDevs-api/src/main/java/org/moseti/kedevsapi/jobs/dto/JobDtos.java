@@ -62,9 +62,11 @@ public class JobDtos {
             @Schema(description = "Keyword to search in title/description", example = "Java") String keyword,
             @Schema(description = "Filter by city", example = "Nairobi") String locationCity,
             @Schema(description = "Filter by country", example = "Kenya") String locationCountry,
-            @Schema(description = "Filter by job type", example = "FULL_TIME") JobType jobType,
-            @Schema(description = "Filter by work arrangement", example = "REMOTE") WorkType workType,
-            @Schema(description = "Filter by experience level", example = "SENIOR") ExperienceLevel experienceLevel,
+            @Schema(description = "Filter by job types") List<JobType> jobTypes,
+            @Schema(description = "Filter by work arrangements") List<WorkType> workTypes,
+            @Schema(description = "Filter by experience levels") List<ExperienceLevel> experienceLevels,
+            @Schema(description = "Minimum base salary") java.math.BigDecimal minSalary,
+            @Schema(description = "Maximum base salary") java.math.BigDecimal maxSalary,
             @Schema(description = "Filter by job status", example = "OPEN") JobStatus status,
             @Schema(description = "Filter by visibility", example = "PUBLIC") JobVisibility visibility
     ) {}

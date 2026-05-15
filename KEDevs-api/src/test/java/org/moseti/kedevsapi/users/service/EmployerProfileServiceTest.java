@@ -12,8 +12,11 @@ import org.moseti.kedevsapi.shared.enums.ContactRequestStatus;
 import org.moseti.kedevsapi.shared.exception.BadRequestException;
 import org.moseti.kedevsapi.users.dto.UserDtos;
 import org.moseti.kedevsapi.users.entity.*;
-import org.moseti.kedevsapi.users.exception.*;
 import org.moseti.kedevsapi.users.repository.*;
+import org.moseti.kedevsapi.users.exception.*;
+import org.moseti.kedevsapi.notifications.service.NotificationService;
+import org.moseti.kedevsapi.shared.service.FileUploadService;
+import org.moseti.kedevsapi.payments.repository.UserFlagRepository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -37,6 +40,11 @@ class EmployerProfileServiceTest {
     @Mock private BookmarkedDeveloperRepository bookmarkRepository;
     @Mock private ContactRequestRepository contactRequestRepository;
     @Mock private ObjectMapper objectMapper;
+    @Mock private UserRepository userRepository;
+    @Mock private NotificationService notificationService;
+    @Mock private org.moseti.kedevsapi.shared.service.SettingService settingService;
+    @Mock private FileUploadService fileUploadService;
+    @Mock private UserFlagRepository userFlagRepository;
 
     @InjectMocks
     private EmployerProfileService employerProfileService;
@@ -44,6 +52,7 @@ class EmployerProfileServiceTest {
     private UUID userId;
     private UUID employerProfileId;
     private UUID developerProfileId;
+    private User testUser;
     private EmployerProfile testEmployerProfile;
     private DeveloperProfile testDeveloperProfile;
 
@@ -52,6 +61,11 @@ class EmployerProfileServiceTest {
         userId = UUID.randomUUID();
         employerProfileId = UUID.randomUUID();
         developerProfileId = UUID.randomUUID();
+
+        testUser = new User();
+        testUser.setId(userId);
+        testUser.setFullName("Alice Smith");
+        testUser.setRole(org.moseti.kedevsapi.shared.enums.Role.EMPLOYER);
 
         testEmployerProfile = new EmployerProfile();
         testEmployerProfile.setId(employerProfileId);
@@ -66,7 +80,7 @@ class EmployerProfileServiceTest {
         testDeveloperProfile.setUserId(UUID.randomUUID());
         testDeveloperProfile.setFirstName("Bob");
         testDeveloperProfile.setLastName("Builder");
-        testDeveloperProfile.setAvailabilityStatus(AvailabilityStatus.AVAILABLE);
+        testDeveloperProfile.setAvailabilityStatus(AvailabilityStatus.OPEN_TO_OFFERS);
     }
 
     @Test
@@ -144,13 +158,15 @@ class EmployerProfileServiceTest {
     @Test
     void sendContactRequest_Success() {
         testEmployerProfile.setProAccount(true);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
         when(employerProfileRepository.findByUserId(userId)).thenReturn(Optional.of(testEmployerProfile));
         when(developerProfileRepository.findById(developerProfileId)).thenReturn(Optional.of(testDeveloperProfile));
-        when(contactRequestRepository.countByEmployerIdAndCreatedAtAfter(eq(employerProfileId), any(LocalDateTime.class))).thenReturn(0L);
+        when(contactRequestRepository.countBySenderUserIdAndCreatedAtAfter(eq(userId), any(LocalDateTime.class))).thenReturn(0L);
+        when(settingService.getContactLimit()).thenReturn(10);
 
         ContactRequest contactRequest = new ContactRequest();
         contactRequest.setId(UUID.randomUUID());
-        contactRequest.setEmployerId(employerProfileId);
+        contactRequest.setSenderUserId(userId);
         contactRequest.setDeveloperId(developerProfileId);
         contactRequest.setMessage("Hello!");
         contactRequest.setStatus(ContactRequestStatus.PENDING);
@@ -167,9 +183,11 @@ class EmployerProfileServiceTest {
     @Test
     void sendContactRequest_RateLimitExceeded_ThrowsContactRequestLimitExceededException() {
         testEmployerProfile.setProAccount(true);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
         when(employerProfileRepository.findByUserId(userId)).thenReturn(Optional.of(testEmployerProfile));
         when(developerProfileRepository.findById(developerProfileId)).thenReturn(Optional.of(testDeveloperProfile));
-        when(contactRequestRepository.countByEmployerIdAndCreatedAtAfter(eq(employerProfileId), any(LocalDateTime.class))).thenReturn(10L);
+        when(contactRequestRepository.countBySenderUserIdAndCreatedAtAfter(eq(userId), any(LocalDateTime.class))).thenReturn(10L);
+        when(settingService.getContactLimit()).thenReturn(10);
 
         UserDtos.ContactRequestDto dto = new UserDtos.ContactRequestDto("Hello!");
 
@@ -181,6 +199,7 @@ class EmployerProfileServiceTest {
     @Test
     void sendContactRequest_NotProAccount_ThrowsNotProAccountException() {
         testEmployerProfile.setProAccount(false);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
         when(employerProfileRepository.findByUserId(userId)).thenReturn(Optional.of(testEmployerProfile));
 
         UserDtos.ContactRequestDto dto = new UserDtos.ContactRequestDto("Hello!");
@@ -194,10 +213,11 @@ class EmployerProfileServiceTest {
     void sendContactRequest_DeveloperNotAvailable_ThrowsBadRequestException() {
         testEmployerProfile.setProAccount(true);
         testDeveloperProfile.setAvailabilityStatus(AvailabilityStatus.NOT_AVAILABLE);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
         when(employerProfileRepository.findByUserId(userId)).thenReturn(Optional.of(testEmployerProfile));
         when(developerProfileRepository.findById(developerProfileId)).thenReturn(Optional.of(testDeveloperProfile));
         // Rate limit is checked AFTER availability in the service, so stub it to allow execution to reach that point
-        lenient().when(contactRequestRepository.countByEmployerIdAndCreatedAtAfter(eq(employerProfileId), any(LocalDateTime.class))).thenReturn(0L);
+        lenient().when(contactRequestRepository.countBySenderUserIdAndCreatedAtAfter(eq(userId), any(LocalDateTime.class))).thenReturn(0L);
 
         UserDtos.ContactRequestDto dto = new UserDtos.ContactRequestDto("Hello!");
 

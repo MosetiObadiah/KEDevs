@@ -19,6 +19,8 @@ import org.moseti.kedevsapi.notifications.service.NotificationService;
 import org.moseti.kedevsapi.shared.service.FileUploadService;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.moseti.kedevsapi.payments.entity.UserFlag;
+import org.moseti.kedevsapi.payments.repository.UserFlagRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,6 +41,7 @@ public class EmployerProfileService {
     private final ObjectMapper objectMapper;
     private final FileUploadService fileUploadService;
     private final org.moseti.kedevsapi.shared.service.SettingService settingService;
+    private final UserFlagRepository userFlagRepository;
 
 
     // ----------------------------------------------------------------
@@ -173,22 +176,32 @@ public class EmployerProfileService {
 
     @Transactional
     public UserDtos.ContactRequestResponse sendContactRequest(UUID userId, UUID developerId, UserDtos.ContactRequestDto request) {
-        EmployerProfile employer = getProfileEntityByUserId(userId);
+        User sender = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        if (!employer.isProAccount()) {
-            throw new NotProAccountException("Only Pro employers can send contact requests");
+        // Only enforce Pro accounts for Employer roles
+        if (sender.getRole() == org.moseti.kedevsapi.shared.enums.Role.EMPLOYER) {
+            EmployerProfile employer = employerProfileRepository.findByUserId(userId)
+                    .orElseThrow(() -> new ProfileNotFoundException("Employer profile not found"));
+            if (!employer.isProAccount()) {
+                throw new NotProAccountException("Only Pro employers can send contact requests");
+            }
         }
 
         DeveloperProfile developer = developerProfileRepository.findById(developerId)
                 .orElseThrow(() -> new ProfileNotFoundException("Developer profile not found"));
 
         if (developer.getAvailabilityStatus() == AvailabilityStatus.NOT_AVAILABLE) {
-            throw new BadRequestException("Developer is not available for contact");
+            throw new BadRequestException("This developer is currently not accepting contact requests.");
+        }
+
+        if (!developer.isCanEmployersReachOut()) {
+            throw new BadRequestException("This developer has disabled direct contact.");
         }
 
         // Rate limit check
         LocalDateTime since = LocalDateTime.now().minusHours(24);
-        long count = contactRequestRepository.countByEmployerIdAndCreatedAtAfter(employer.getId(), since);
+        long count = contactRequestRepository.countBySenderUserIdAndCreatedAtAfter(userId, since);
         int limit = settingService.getContactLimit();
         if (count >= limit) {
             throw new ContactRequestLimitExceededException(
@@ -197,7 +210,7 @@ public class EmployerProfileService {
         }
 
         ContactRequest contactRequest = new ContactRequest();
-        contactRequest.setEmployerId(employer.getId());
+        contactRequest.setSenderUserId(userId);
         contactRequest.setDeveloperId(developerId);
         contactRequest.setMessage(request.message());
         contactRequest.setStatus(ContactRequestStatus.PENDING);
@@ -207,11 +220,11 @@ public class EmployerProfileService {
                 developer.getUserId(),
                 org.moseti.kedevsapi.shared.enums.NotificationCategory.CONTACT,
                 "New Contact Request",
-                employer.getCompanyName() + " wants to connect with you.",
-                "{\"employerId\":\"" + employer.getId() + "\",\"requestId\":\"" + contactRequest.getId() + "\"}"
+                sender.getFullName() + " wants to connect with you.",
+                "{\"senderUserId\":\"" + userId + "\",\"requestId\":\"" + contactRequest.getId() + "\"}"
         );
 
-        log.info("Contact request sent from employer={} to developer={}", employer.getId(), developerId);
+        log.info("Contact request sent from user={} to developer={}", userId, developerId);
         return toContactRequestResponse(contactRequest);
     }
 
@@ -227,10 +240,10 @@ public class EmployerProfileService {
         contactRequest.setStatus(status);
         contactRequest = contactRequestRepository.save(contactRequest);
 
-        EmployerProfile employer = employerProfileRepository.findById(contactRequest.getEmployerId()).orElse(null);
-        if (employer != null) {
+        User sender = userRepository.findById(contactRequest.getSenderUserId()).orElse(null);
+        if (sender != null) {
             notificationService.notify(
-                    employer.getUserId(),
+                    sender.getId(),
                     org.moseti.kedevsapi.shared.enums.NotificationCategory.CONTACT,
                     "Contact Request Update",
                     profile.getFirstName() + " " + profile.getLastName() + " has " + status.name().toLowerCase() + " your contact request.",
@@ -360,8 +373,12 @@ public class EmployerProfileService {
     }
 
     private UserDtos.ContactRequestResponse toContactRequestResponse(ContactRequest r) {
+        String name = "Unknown";
+        if (r.getSenderUser() != null) {
+            name = r.getSenderUser().getFullName();
+        }
         return new UserDtos.ContactRequestResponse(
-                r.getId(), r.getEmployerId(), r.getDeveloperId(),
+                r.getId(), r.getSenderUserId(), name, r.getDeveloperId(),
                 r.getMessage(), r.getStatus(), r.getCreatedAt()
         );
     }
@@ -372,6 +389,41 @@ public class EmployerProfileService {
             return objectMapper.writeValueAsString(obj);
         } catch (Exception e) {
             return "{}";
+        }
+    }
+    @Transactional
+    public void flagEmployer(UUID flaggedById, UUID targetProfileId, UserDtos.FlagUserRequest request) {
+        EmployerProfile targetProfile = employerProfileRepository.findById(targetProfileId)
+                .orElseThrow(() -> new ProfileNotFoundException("Employer profile not found"));
+        
+        UUID targetUserId = targetProfile.getUserId();
+
+        if (targetUserId.equals(flaggedById)) {
+            throw new BadRequestException("You cannot flag your own profile");
+        }
+
+        if (userFlagRepository.existsByFlaggedUserIdAndFlaggedById(targetUserId, flaggedById)) {
+            throw new BadRequestException("You have already flagged this user");
+        }
+
+        UserFlag flag = new UserFlag();
+        flag.setFlaggedUserId(targetUserId);
+        flag.setFlaggedById(flaggedById);
+        flag.setReason(request.reason());
+        flag.setStatus(org.moseti.kedevsapi.shared.enums.UserFlagStatus.PENDING);
+        userFlagRepository.save(flag);
+
+        // Notify Admins
+        List<User> admins = userRepository.findByRole(org.moseti.kedevsapi.shared.enums.Role.ADMIN);
+        String reporterName = userRepository.findById(flaggedById).map(User::getFullName).orElse("Unknown");
+        for (User admin : admins) {
+            notificationService.notify(
+                    admin.getId(),
+                    org.moseti.kedevsapi.shared.enums.NotificationCategory.FLAG,
+                    "User Profile Flagged",
+                    "An employer profile has been flagged by " + reporterName + ".",
+                    "{\"flaggedUserId\":\"" + targetUserId + "\"}"
+            );
         }
     }
 }

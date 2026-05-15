@@ -33,7 +33,7 @@ public class SecurityConfig {
 
         private static final String[] PUBLIC_URLS = {
                         "/api/v1/auth/**",
-                        "/api/v1/jobs/**",
+                        "/api/v1/jobs/public",
                         "/api/v1/stats/**",
                         "/api/v1/employers/public/**",
                         "/api/v1/developers/public/**",
@@ -60,6 +60,9 @@ public class SecurityConfig {
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(PUBLIC_URLS).permitAll()
+                                                .requestMatchers(org.springframework.http.HttpMethod.GET,
+                                                                "/api/v1/jobs", "/api/v1/jobs/{id}")
+                                                .permitAll()
                                                 .requestMatchers(org.springframework.http.HttpMethod.GET,
                                                                 "/api/v1/developers/{profileId}")
                                                 .permitAll()

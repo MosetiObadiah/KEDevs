@@ -70,7 +70,7 @@ export default function VisibilitySettingsPage() {
     try {
       const response = await developerService.updateProfile({ canEmployersReachOut: newVal });
       if (response.success) {
-        toast.success(newVal ? 'Employers can now reach out' : 'Reach out disabled');
+        toast.success(newVal ? 'Other users can now reach out' : 'Direct outreach disabled');
       }
     } catch (error) {
       toast.error('Failed to update preference');
@@ -184,7 +184,7 @@ export default function VisibilitySettingsPage() {
                     <div className="p-6 flex items-center justify-between gap-6 hover:bg-muted/10 transition-colors">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-bold text-foreground text-sm tracking-tight">Recruitment Pulse</h3>
-                        <p className="text-xs font-medium text-muted-foreground leading-relaxed">Can employers reach out to you directly?</p>
+                        <p className="text-xs font-medium text-muted-foreground leading-relaxed">Can other users reach out to me directly?</p>
                       </div>
                       <Switch 
                         checked={profile?.canEmployersReachOut || false}
@@ -205,7 +205,6 @@ export default function VisibilitySettingsPage() {
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl border-border/50 shadow-xl">
-                          <SelectItem value="AVAILABLE">🟢 Available Now</SelectItem>
                           <SelectItem value="OPEN_TO_OFFERS">🟡 Open to Offers</SelectItem>
                           <SelectItem value="NOT_AVAILABLE">🔴 Not Available</SelectItem>
                         </SelectContent>

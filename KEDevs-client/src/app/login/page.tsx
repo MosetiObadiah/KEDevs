@@ -8,7 +8,9 @@ import {
   Lock, 
   ChevronRight, 
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useGoogleLogin } from '@react-oauth/google';
@@ -24,6 +26,7 @@ import { Separator } from '@/components/ui/separator';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { login, googleLogin } = useAuth();
@@ -106,19 +109,26 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between items-center px-1">
                     <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Password</Label>
-                    <Link href="#" className="text-[10px] font-black text-primary hover:underline uppercase tracking-widest">
+                    <Link href="/reset-password" className="text-[10px] font-black text-primary hover:underline uppercase tracking-widest">
                       Forgot?
                     </Link>
                   </div>
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <Input 
-                      type="password" 
-                      className="pl-11 h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
+                      type={showPassword ? "text" : "password"} 
+                      className="pl-11 pr-12 h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
               </div>

@@ -20,6 +20,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { jobService } from '@/services/jobService';
 import { forumService } from '@/services/forumService';
+import { developerService } from '@/services/developerService';
 import ApplyDialog from '@/components/jobs/ApplyDialog';
 import Forum from '@/components/forum/Forum';
 import { cn } from '@/lib/utils';
@@ -52,6 +53,7 @@ export default function JobDetailPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
   const [editForm, setEditForm] = useState<any>({});
+  const [viewerProfile, setViewerProfile] = useState<any>(null);
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -90,6 +92,22 @@ export default function JobDetailPage() {
     fetchJob();
     fetchComments();
   }, [id]);
+
+  useEffect(() => {
+    const fetchViewerProfile = async () => {
+      if (isLoggedIn && user?.role === 'DEVELOPER') {
+        try {
+          const response = await developerService.getMyProfile();
+          if (response.success) {
+            setViewerProfile(response.data);
+          }
+        } catch (err) {
+          console.error('Failed to fetch viewer developer profile:', err);
+        }
+      }
+    };
+    fetchViewerProfile();
+  }, [isLoggedIn, user]);
 
   const isPoster = user?.id === job?.postedById;
 
@@ -383,9 +401,11 @@ export default function JobDetailPage() {
                     <Badge variant="secondary" className="w-full py-3 justify-center text-sm font-semibold rounded-lg">
                       You Posted This Job
                     </Badge>
-                    <Button size="sm" variant="outline" className="w-full font-semibold" onClick={handleEditJob}>
-                      <Pencil className="w-3.5 h-3.5 mr-2" /> Edit Job
-                    </Button>
+                    {job.status !== 'CLOSED' && job.status !== 'REMOVED' && (
+                      <Button size="sm" variant="outline" className="w-full font-semibold" onClick={handleEditJob}>
+                        <Pencil className="w-3.5 h-3.5 mr-2" /> Edit Job
+                      </Button>
+                    )}
                   </div>
                 ) : job.isFlagged ? (
                   <div className="space-y-2">
@@ -399,6 +419,17 @@ export default function JobDetailPage() {
                   <Button size="lg" className="w-full bg-emerald-600 hover:bg-emerald-700 font-bold" disabled>
                     Application Sent
                   </Button>
+                ) : viewerProfile?.availabilityStatus === 'NOT_AVAILABLE' ? (
+                  <div className="space-y-2">
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center text-amber-800">
+                      <p className="text-xs font-semibold leading-snug">
+                        You are currently marked as <strong>Not Available</strong>. Update your status to apply for jobs.
+                      </p>
+                      <Button variant="link" size="sm" className="font-bold text-amber-700 h-auto p-0 mt-2" asChild>
+                        <Link href="/settings/visibility">Change Status &rarr;</Link>
+                      </Button>
+                    </div>
+                  </div>
                 ) : (
                   <Button size="lg" className="w-full font-bold" onClick={() => setApplyOpen(true)}>
                     Apply Now

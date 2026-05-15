@@ -28,7 +28,7 @@ export const authService = {
   },
 
   async confirmPasswordReset(email: string, code: string, newPassword: string): Promise<ApiResponse<void>> {
-    return apiClient.post<ApiResponse<void>>('/api/v1/auth/password-reset/confirm', { email, code, newPassword });
+    return apiClient.post<ApiResponse<void>>(`/api/v1/auth/password-reset/confirm?email=${encodeURIComponent(email)}`, { code, newPassword });
   },
 
   async logout(refreshToken: string): Promise<ApiResponse<void>> {

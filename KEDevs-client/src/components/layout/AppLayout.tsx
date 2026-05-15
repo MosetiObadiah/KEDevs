@@ -1,7 +1,8 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter, usePathname } from 'next/navigation';
+import { useNotification } from '@/context/NotificationContext';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Logo } from './Logo';
@@ -47,6 +48,7 @@ import Footer from './Footer';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { isLoggedIn, user, logout } = useAuth();
+  const { unreadCount } = useNotification();
   const router = useRouter();
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -69,15 +71,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex flex-col min-h-screen bg-background font-sans">
         <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-            <Logo />
+          <div className="max-w-7xl mx-auto px-6 h-16 flex items-center">
+            <div className="flex-1 flex justify-start">
+              <Logo />
+            </div>
             <nav className="hidden md:flex items-center gap-6">
               <Link href="/jobs" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Jobs</Link>
               <Link href="/developers" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Developers</Link>
               <Link href="/companies" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Companies</Link>
               <Link href="/contact" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Contact</Link>
             </nav>
-            <div className="flex items-center gap-3">
+            <div className="flex-1 flex items-center justify-end gap-3">
+              <Suspense fallback={<div className="hidden lg:flex w-[240px] mx-4 h-9" />}>
+                <GlobalSearchBar />
+              </Suspense>
               <Button variant="secondary" size="sm" asChild>
                 <Link href="/login">Login</Link>
               </Button>
@@ -238,13 +245,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                })()}
             </div>
           </div>
+
+          <Suspense fallback={<div className="hidden lg:flex w-[240px] mx-4 h-9" />}>
+            <GlobalSearchBar />
+          </Suspense>
+
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" className="relative" asChild>
               <Link href="/notifications">
                 <Bell className="h-5 w-5" />
-                <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px] bg-primary">
-                  0
-                </Badge>
+                {unreadCount > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px] bg-primary animate-pulse">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </Badge>
+                )}
               </Link>
             </Button>
           </div>
@@ -253,6 +267,50 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
+    </div>
+  );
+}
+
+function GlobalSearchBar() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [localVal, setLocalVal] = useState('');
+
+  useEffect(() => {
+    setLocalVal(searchParams.get('search') || '');
+  }, [searchParams]);
+
+  if (pathname !== '/jobs' && pathname !== '/developers' && pathname !== '/companies') {
+    return null;
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setLocalVal(val);
+    
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    if (val.trim()) {
+      params.set('search', val);
+    } else {
+      params.delete('search');
+    }
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  return (
+    <div className="hidden lg:flex relative animate-in fade-in duration-200 w-[240px] mx-4 shrink-0">
+      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+      <Input 
+        placeholder={
+          pathname === '/jobs' ? "Search jobs..." : 
+          pathname === '/developers' ? "Search talent..." : 
+          "Search companies..."
+        } 
+        className="pl-9 h-9 rounded-xl bg-muted/30 border border-border/60 text-xs font-medium focus-visible:ring-primary/20 transition-all shadow-none"
+        value={localVal}
+        onChange={handleChange}
+      />
     </div>
   );
 }

@@ -83,10 +83,16 @@ free_port() {
     local port=$1
     local pids
     pids=$(lsof -ti:"$port" 2>/dev/null)
-    if [ -n "$pids" ]; then
-        kill -9 $pids 2>/dev/null
-        sleep 0.5
-    fi
+    for pid in $pids; do
+        local name
+        name=$(ps -p "$pid" -o comm= 2>/dev/null)
+        if echo "$name" | grep -qiE 'zen|firefox|chrome|chromium|browser'; then
+            echo "${YELLOW}⚠  Skipping PID $pid ($name) on port $port — looks like a browser.${NC}"
+            continue
+        fi
+        kill -9 "$pid" 2>/dev/null
+    done
+    sleep 0.5
 }
 
 # Color-filter log lines without using a subshell pipe (writes directly to terminal)
@@ -155,10 +161,23 @@ color_frontend_line() {
     fi
 }
 
-# Tail a log file with color-filtering (runs in background, safe subshell)
+BACKEND_TAIL_PID=""
+FRONTEND_TAIL_PID=""
+
+# Tail a log file — kills any existing tailer first to prevent duplicate output
 tail_log() {
     local logfile="$1"
-    local filter_fn="$2"          # "backend" or "frontend"
+    local filter_fn="$2"   # "backend" or "frontend"
+
+    # Kill existing tailer for this service to avoid doubles on restart
+    if [ "$filter_fn" = "backend" ] && [ -n "$BACKEND_TAIL_PID" ]; then
+        kill "$BACKEND_TAIL_PID" 2>/dev/null
+        BACKEND_TAIL_PID=""
+    elif [ "$filter_fn" = "frontend" ] && [ -n "$FRONTEND_TAIL_PID" ]; then
+        kill "$FRONTEND_TAIL_PID" 2>/dev/null
+        FRONTEND_TAIL_PID=""
+    fi
+
     tail -F "$logfile" 2>/dev/null | while IFS= read -r line; do
         if [ "$filter_fn" = "backend" ]; then
             color_backend_line "$line"
@@ -166,6 +185,12 @@ tail_log() {
             color_frontend_line "$line"
         fi
     done &
+
+    if [ "$filter_fn" = "backend" ]; then
+        BACKEND_TAIL_PID=$!
+    else
+        FRONTEND_TAIL_PID=$!
+    fi
 }
 
 # ──────────────────────────────────────
@@ -177,8 +202,8 @@ shutdown() {
     [ -n "$FRONTEND_PID" ] && kill "$FRONTEND_PID" 2>/dev/null
     [ -n "$BACKEND_PID"  ] && kill "$BACKEND_PID"  2>/dev/null
     [ -n "$NGROK_PID"    ] && kill "$NGROK_PID"    2>/dev/null
-    pkill -f "tail -F $BACKEND_LOG"  2>/dev/null
-    pkill -f "tail -F $FRONTEND_LOG" 2>/dev/null
+    [ -n "$BACKEND_TAIL_PID"  ] && kill "$BACKEND_TAIL_PID"  2>/dev/null
+    [ -n "$FRONTEND_TAIL_PID" ] && kill "$FRONTEND_TAIL_PID" 2>/dev/null
     # Restore terminal to a clean state
     tput cnorm 2>/dev/null   # show cursor
     tput rmcup 2>/dev/null   # exit alternate screen if entered
@@ -340,8 +365,25 @@ start_backend() {
 }
 
 start_frontend() {
+    # Kill tracked frontend process
     [ -n "$FRONTEND_PID" ] && kill "$FRONTEND_PID" 2>/dev/null && sleep 1
-    free_port 3000
+
+    # Also kill any stray Next.js dev server that may have survived (e.g. from a previous run)
+    # This is what causes "port 3000 in use" and Next.js falling back to 3001
+    local stray
+    stray=$(lsof -ti:3000 2>/dev/null)
+    for pid in $stray; do
+        local name
+        name=$(ps -p "$pid" -o comm= 2>/dev/null)
+        if echo "$name" | grep -qiE 'zen|firefox|chrome|chromium|browser'; then
+            echo "${YELLOW}⚠  Skipping PID $pid ($name) on port 3000 — looks like a browser.${NC}"
+            continue
+        fi
+        echo "${FE_LABEL}[Frontend]${NC} ${YELLOW}Killing stray process on :3000 — PID $pid ($name)${NC}"
+        kill -9 "$pid" 2>/dev/null
+    done
+    sleep 0.5
+
     > "$FRONTEND_LOG"
     echo "${FE_LABEL}[Frontend]${NC} ${GREEN}Starting Next.js...${NC}"
     cd "$FRONTEND_DIR" && npm run dev >> "$FRONTEND_LOG" 2>&1 &

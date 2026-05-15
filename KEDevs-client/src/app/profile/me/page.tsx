@@ -145,7 +145,7 @@ export default function MyProfile() {
     bio: '',
     currentLastRole: '',
     yearsOfExperience: 'ZERO_TO_ONE',
-    availabilityStatus: 'AVAILABLE',
+    availabilityStatus: 'OPEN_TO_OFFERS',
     preferredWorkType: 'REMOTE',
     locationCity: '',
     locationCountry: '',

@@ -21,8 +21,18 @@ import {
   Search,
   Users2,
   Info,
-  Zap
+  Zap,
+  Trash2,
+  AlertTriangle
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { useAuth } from '@/context/AuthContext';
 import { jobService } from '@/services/jobService';
 import { employerService } from '@/services/employerService';
@@ -152,6 +162,61 @@ export default function CreateJobPostPage() {
     return () => clearTimeout(timeoutId);
   }, [formState]);
 
+  const [isUrlVerified, setIsUrlVerified] = useState<boolean | null>(null);
+  const [isVerifyingUrl, setIsVerifyingUrl] = useState(false);
+
+  // Reset verification state when URL changes
+  useEffect(() => {
+    setIsUrlVerified(null);
+  }, [formState.sourceUrl]);
+
+  const handleCheckUrl = async () => {
+    if (!formState.sourceUrl.trim()) return;
+    
+    try {
+      const parsed = new URL(formState.sourceUrl.trim());
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+        throw new Error('Invalid protocol');
+      }
+    } catch (_) {
+      toast.error("Please enter a valid absolute URL starting with http:// or https://");
+      setIsUrlVerified(false);
+      return;
+    }
+
+    setIsVerifyingUrl(true);
+    setIsUrlVerified(null);
+    try {
+      const response = await jobService.verifyUrl(formState.sourceUrl);
+      if (response.success) {
+        const isSafe = response.data.isSafe;
+        setIsUrlVerified(isSafe);
+        if (isSafe) {
+          toast.success("URL verified successfully! You can now publish the job.");
+        } else {
+          toast.error("This URL failed our safety check. Please enter a secure, valid URL.");
+        }
+      } else {
+        throw new Error(response.message || "URL safety check failed.");
+      }
+    } catch (err: any) {
+      console.error("URL check failed", err);
+      toast.error(err.message || "Failed to reach Safe Browsing service.");
+      setIsUrlVerified(false);
+    } finally {
+      setIsVerifyingUrl(false);
+    }
+  };
+
+  const [showAbandonDialog, setShowAbandonDialog] = useState(false);
+  const confirmAbandon = () => {
+    dispatch({ type: 'RESET' });
+    localStorage.removeItem('jobPostDraft');
+    setShowAbandonDialog(false);
+    toast.success('Job post discarded');
+    router.push('/jobs');
+  };
+
   // Fetch employer profile and auto-fill company name
   useEffect(() => {
     const fetchProfile = async () => {
@@ -194,6 +259,8 @@ export default function CreateJobPostPage() {
     } else if (key === 'visibility') {
       if (formState.isPeerSourced && !formState.sourceUrl.trim()) {
         errors.sourceUrl = 'External source URL is required for peer listings';
+      } else if (formState.isPeerSourced && isUrlVerified !== true) {
+        errors.sourceUrl = 'You must verify the URL before submitting';
       }
     }
 
@@ -268,6 +335,37 @@ export default function CreateJobPostPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
+      {/* Abandon Confirmation Dialog */}
+      <Dialog open={showAbandonDialog} onOpenChange={setShowAbandonDialog}>
+         <DialogContent className="max-w-md rounded-[2rem] p-8 border-none shadow-2xl">
+            <DialogHeader className="space-y-4 text-center">
+               <div className="h-16 w-16 bg-rose-100 text-rose-600 rounded-3xl flex items-center justify-center mx-auto">
+                  <AlertTriangle className="h-8 w-8" />
+               </div>
+               <DialogTitle className="text-2xl font-black text-slate-900">Abandon Job Post?</DialogTitle>
+               <DialogDescription className="text-slate-500 font-medium text-base leading-relaxed">
+                  This will clear all entered information and remove the draft completely. You won't be able to recover this.
+               </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="mt-6 grid grid-cols-2 gap-3 !border-none bg-transparent p-0 -mx-0 -mb-0">
+               <Button 
+                 type="button"
+                 variant="outline" 
+                 className="rounded-2xl h-12 font-bold border-slate-200"
+                 onClick={() => setShowAbandonDialog(false)}
+               >
+                  Keep Editing
+               </Button>
+               <Button 
+                 type="button"
+                 className="rounded-2xl h-12 font-black bg-rose-600 hover:bg-rose-700 text-white border-none shadow-lg shadow-rose-600/20"
+                 onClick={confirmAbandon}
+               >
+                  Yes, Abandon
+               </Button>
+            </DialogFooter>
+         </DialogContent>
+      </Dialog>
       <div className="container mx-auto px-6 pt-8 pb-12">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -371,8 +469,8 @@ export default function CreateJobPostPage() {
                           <Building2 className="h-8 w-8" />
                         </div>
                         <div>
-                          <h4 className="text-xl font-black">Personal / Company</h4>
-                          <p className="text-sm text-slate-500 font-medium">Posting for your own company or direct network?</p>
+                          <h4 className="text-xl font-black">Personal</h4>
+                          <p className="text-sm text-slate-500 font-medium">Posting for your own direct network or referral?</p>
                         </div>
                       </CardContent>
                     </Card>
@@ -618,8 +716,48 @@ export default function CreateJobPostPage() {
                               <Label className="font-bold text-xs flex items-center gap-1">
                                  External Source URL <span className="text-red-500">*</span>
                               </Label>
-                              <Input className="h-14 rounded-2xl border-slate-200 font-medium focus-visible:ring-primary/20" placeholder="https://..." value={formState.sourceUrl} onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'sourceUrl', value: e.target.value })} />
-                              <p className="text-[10px] font-medium text-slate-400">Must be a direct link to the original job post.</p>
+                              <div className="flex gap-2">
+                                 <Input 
+                                   className="h-14 rounded-2xl border-slate-200 font-medium focus-visible:ring-primary/20 flex-1" 
+                                   placeholder="https://..." 
+                                   value={formState.sourceUrl} 
+                                   onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'sourceUrl', value: e.target.value })} 
+                                 />
+                                 <Button
+                                   type="button"
+                                   variant="secondary"
+                                   className={cn(
+                                     "h-14 px-5 rounded-2xl font-black border transition-all",
+                                     isUrlVerified === true ? "border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-100" : 
+                                     isUrlVerified === false ? "border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100" : 
+                                     "border-slate-200 bg-slate-50 hover:bg-slate-100"
+                                   )}
+                                   disabled={isVerifyingUrl || !formState.sourceUrl.trim()}
+                                   onClick={handleCheckUrl}
+                                 >
+                                   {isVerifyingUrl ? (
+                                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                   ) : isUrlVerified === true ? (
+                                     <CheckCircle2 className="h-4 w-4 mr-2 text-emerald-600" />
+                                   ) : isUrlVerified === false ? (
+                                     <X className="h-4 w-4 mr-2 text-rose-600" />
+                                   ) : (
+                                     <Zap className="h-4 w-4 mr-2 text-primary" />
+                                   )}
+                                   {isVerifyingUrl ? 'Checking...' : isUrlVerified === true ? 'Verified Safe' : isUrlVerified === false ? 'Unsafe URL' : 'Check URL'}
+                                 </Button>
+                              </div>
+                              {isUrlVerified === true && (
+                                <p className="text-[10px] font-black text-emerald-600 uppercase tracking-wider mt-1 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                   <CheckCircle2 className="h-3 w-3" /> Verified Safe by Google Safe Browsing
+                                </p>
+                              )}
+                              {isUrlVerified === false && (
+                                <p className="text-[10px] font-black text-rose-600 uppercase tracking-wider mt-1 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                   <X className="h-3 w-3" /> URL reported as unsafe or invalid!
+                                </p>
+                              )}
+                              <p className="text-[10px] font-medium text-slate-400">Must be a direct, verified link to the original job post.</p>
                            </div>
                         )}
                      </div>
@@ -644,7 +782,7 @@ export default function CreateJobPostPage() {
               )}
             </CardContent>
 
-            <CardFooter className="bg-slate-50 p-8 flex justify-between gap-4">
+            <CardFooter className="bg-slate-50 p-8 flex justify-between items-center gap-4">
               <Button 
                 variant="ghost" 
                 size="lg" 
@@ -655,12 +793,22 @@ export default function CreateJobPostPage() {
                 <ChevronLeft className="mr-2 h-5 w-5" /> Back
               </Button>
 
+              <Button
+                type="button"
+                variant="ghost"
+                className="text-slate-400 hover:text-rose-600 font-black h-14 px-8 rounded-2xl hover:bg-rose-50 transition-all"
+                onClick={() => setShowAbandonDialog(true)}
+                disabled={isSubmitting}
+              >
+                <Trash2 className="mr-2 h-5 w-5" /> Abandon
+              </Button>
+
               {activeStep === steps.length - 1 ? (
                 <Button 
                   size="lg" 
                   className="rounded-2xl font-black h-14 px-10 shadow-xl shadow-primary/20"
                   onClick={handleSubmit}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || (formState.isPeerSourced && isUrlVerified !== true)}
                 >
                   {isSubmitting ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <CheckCircle2 className="mr-2 h-5 w-5" />}
                   {isSubmitting ? 'Publishing...' : 'Publish Job Post'}

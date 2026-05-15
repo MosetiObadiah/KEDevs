@@ -5,7 +5,7 @@ export type WorkType = 'REMOTE' | 'ONSITE' | 'HYBRID' | 'CONTRACT' | 'FULLTIME';
 export type ExperienceLevel = 'ENTRY' | 'MID' | 'SENIOR' | 'LEAD';
 export type JobStatus = 'OPEN' | 'CLOSED' | 'FILLED' | 'CANCELLED';
 export type JobVisibility = 'PUBLIC' | 'PRIVATE';
-export type AvailabilityStatus = 'AVAILABLE' | 'OPEN_TO_OFFERS' | 'NOT_AVAILABLE';
+export type AvailabilityStatus = 'OPEN_TO_OFFERS' | 'NOT_AVAILABLE';
 export type YearsOfExperience = 'ZERO_TO_ONE' | 'ONE_TO_THREE' | 'THREE_TO_FIVE' | 'FIVE_TO_TEN' | 'TEN_PLUS';
 
 export interface JobSummary {
@@ -44,6 +44,8 @@ export interface DeveloperSummary {
   locationCountry: string;
   publicEmail?: string;
   publicPhone?: string;
+  yearsOfExperience?: YearsOfExperience;
+  preferredWorkType?: WorkType;
 }
 
 export interface DeveloperSpotlightCard {

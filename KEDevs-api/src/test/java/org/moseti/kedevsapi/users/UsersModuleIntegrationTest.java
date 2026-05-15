@@ -100,7 +100,7 @@ class UsersModuleIntegrationTest {
         p.setFirstName("Dev");
         p.setLastName("User");
         p.setProfileVisibility(visibility);
-        p.setAvailabilityStatus(AvailabilityStatus.AVAILABLE);
+        p.setAvailabilityStatus(AvailabilityStatus.OPEN_TO_OFFERS);
         p.setNumberOfProjects(0);
         return developerProfileRepository.save(p);
     }

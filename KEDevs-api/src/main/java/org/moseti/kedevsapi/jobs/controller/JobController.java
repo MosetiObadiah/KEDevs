@@ -32,6 +32,7 @@ import java.util.UUID;
 public class JobController {
 
     private final JobService jobService;
+    private final org.moseti.kedevsapi.jobs.service.SafeBrowsingService safeBrowsingService;
 
     private UUID getCurrentUserId() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -260,4 +261,19 @@ public class JobController {
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(new ByteArrayResource(data));
     }
+
+    @Operation(summary = "Verify external job URL safety via Google Safe Browsing")
+    @PostMapping("/verify-url")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<VerifyUrlResponse>> verifyUrl(
+            @Valid @RequestBody VerifyUrlRequest request) {
+        boolean isSafe = safeBrowsingService.isUrlSafe(request.url());
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Verification completed", new VerifyUrlResponse(isSafe)));
+    }
+
+    public record VerifyUrlRequest(
+            @jakarta.validation.constraints.NotBlank
+            @org.hibernate.validator.constraints.URL(message = "Must be a valid web URL")
+            String url
+    ) {}
+    public record VerifyUrlResponse(boolean isSafe) {}
 }

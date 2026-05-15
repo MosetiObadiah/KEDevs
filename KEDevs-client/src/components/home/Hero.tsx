@@ -76,58 +76,80 @@ export const Hero = ({ randomJob, randomDev, stats }: HeroProps) => {
 
           {/* Right Visuals */}
           <div className="hidden lg:block relative h-[500px]">
-            {/* Developer Card Card */}
+            {/* Developer Card */}
             {randomDev && (
-              <Card className="absolute top-0 right-0 w-[320px] shadow-2xl shadow-primary/5 border-border/50 backdrop-blur-sm z-20 hover:translate-y-[-4px] transition-transform duration-300">
+              <Card className="absolute top-0 right-0 w-[320px] shadow-2xl shadow-primary/5 border-border/50 backdrop-blur-sm z-20 hover:translate-y-[-4px] transition-all duration-300 rounded-[1.5rem]">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4 mb-4">
                     <Avatar className="h-14 w-14 border-2 border-primary/20">
                       <AvatarImage src={randomDev.profilePhoto} />
-                      <AvatarFallback className="bg-primary text-primary-foreground font-bold">
-                        {randomDev.firstName.charAt(0)}{randomDev.lastName.charAt(0)}
+                      <AvatarFallback className="bg-primary text-primary-foreground font-black">
+                        {randomDev.firstName?.charAt(0)}{randomDev.lastName?.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 overflow-hidden">
                       <div className="flex items-center gap-1.5">
-                        <h3 className="font-bold text-foreground truncate">{randomDev.firstName} {randomDev.lastName}</h3>
-                        {randomDev.isVerified && <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />}
+                        <h3 className="font-bold text-foreground truncate text-sm">{randomDev.firstName} {randomDev.lastName}</h3>
+                        {randomDev.isVerified && <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />}
                       </div>
                       <p className="text-xs text-muted-foreground truncate">{randomDev.currentLastRole}</p>
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-1.5 mb-6">
-                    {randomDev.skills.slice(0, 3).map(skill => (
-                      <Badge key={skill} variant="secondary" className="text-[10px] py-0 px-2 font-medium">
+                  <div className="flex flex-wrap gap-1.5 mb-6 h-[22px] overflow-hidden">
+                    {randomDev.skills?.slice(0, 3).map(skill => (
+                      <Badge key={skill} variant="secondary" className="text-[9px] py-0.5 px-2 font-bold uppercase tracking-wider">
                         {skill}
                       </Badge>
                     ))}
+                    {(!randomDev.skills || randomDev.skills.length === 0) && (
+                      <Badge variant="secondary" className="text-[9px] py-0.5 px-2 font-bold uppercase tracking-wider">
+                        Developer
+                      </Badge>
+                    )}
                   </div>
-                  <Button variant="outline" size="sm" className="w-full font-semibold group" asChild>
+                  <Button variant="outline" size="sm" className="w-full font-bold group rounded-xl h-10 border-border/50 hover:bg-primary hover:text-white transition-all" asChild>
                     <Link href={`/developers/${randomDev.id}`}>
-                      View Profile <ArrowRight className="ml-2 h-3 w-3 group-hover:translate-x-1 transition-transform" />
+                      View Profile <ArrowRight className="ml-2 h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
                     </Link>
                   </Button>
                 </CardContent>
               </Card>
             )}
 
-            {/* Job Card Card */}
+            {/* Job Card */}
             {randomJob && (
-              <Card className="absolute bottom-10 left-0 w-[340px] shadow-2xl shadow-primary/5 border-border/50 backdrop-blur-sm z-10 hover:translate-y-[-4px] transition-transform duration-300">
+              <Card className="absolute bottom-10 left-0 w-[320px] shadow-2xl shadow-primary/5 border-border/50 backdrop-blur-sm z-10 hover:translate-y-[-4px] transition-all duration-300 rounded-[1.5rem]">
                 <CardContent className="p-6">
-                  <Badge variant="outline" className="mb-3 text-primary border-primary/20 bg-primary/5 text-[10px] font-bold tracking-widest uppercase">
-                    New Opportunity
-                  </Badge>
-                  <h3 className="text-lg font-bold text-foreground mb-1">{randomJob.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-6">
-                    {randomJob.companyName} • {randomJob.locationCity}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-primary">Open Position</span>
-                    <Button size="sm" className="h-8 px-4 font-bold" asChild>
-                      <Link href={`/jobs/${randomJob.id}`}>View</Link>
-                    </Button>
+                  <div className="flex items-center gap-4 mb-4">
+                    <Avatar className="h-14 w-14 border-2 border-primary/20">
+                      <AvatarFallback className="bg-primary/5 text-primary font-black flex items-center justify-center">
+                        <Briefcase className="h-5 w-5" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 overflow-hidden">
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="font-bold text-foreground truncate text-sm">{randomJob.title}</h3>
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">{randomJob.companyName} • {randomJob.locationCity}</p>
+                    </div>
                   </div>
+                  <div className="flex flex-wrap gap-1.5 mb-6 h-[22px] overflow-hidden">
+                    {randomJob.jobType && (
+                      <Badge variant="secondary" className="text-[9px] py-0.5 px-2 font-bold uppercase tracking-wider">
+                        {randomJob.jobType.replace('_', ' ')}
+                      </Badge>
+                    )}
+                    {randomJob.workType && (
+                      <Badge variant="secondary" className="text-[9px] py-0.5 px-2 font-bold uppercase tracking-wider">
+                        {randomJob.workType}
+                      </Badge>
+                    )}
+                  </div>
+                  <Button variant="outline" size="sm" className="w-full font-bold group rounded-xl h-10 border-border/50 hover:bg-primary hover:text-white transition-all" asChild>
+                    <Link href={`/jobs/${randomJob.id}`}>
+                      View Job <ArrowRight className="ml-2 h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                  </Button>
                 </CardContent>
               </Card>
             )}

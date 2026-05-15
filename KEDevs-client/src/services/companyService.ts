@@ -28,5 +28,9 @@ export const companyService = {
 
   async getCompanyDetails(id: string): Promise<ApiResponse<CompanyProfile>> {
     return apiClient.get<ApiResponse<CompanyProfile>>(`/api/v1/employers/public/${id}`);
+  },
+  
+  async flagCompany(id: string, reason: string): Promise<ApiResponse<void>> {
+    return apiClient.post<ApiResponse<void>>(`/api/v1/employers/${id}/flag`, { reason });
   }
 };

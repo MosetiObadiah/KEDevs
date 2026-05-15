@@ -227,15 +227,15 @@ public class EmployerController {
                 employerProfileService.getBookmarks(userId, pageable)));
     }
 
-    @Operation(summary = "Send contact request to developer (Pro)", description = "Requires EMPLOYER PRO status.")
+    @Operation(summary = "Send contact request to developer", description = "Requires authenticated user.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Contact request sent successfully"),
         @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
-        @ApiResponse(responseCode = "403", description = "Requires Pro account"),
+        @ApiResponse(responseCode = "403", description = "Requires Pro account if Employer"),
         @ApiResponse(responseCode = "429", description = "Daily contact limit exceeded")
     })
     @PostMapping("/contact/{developerId}")
-    @PreAuthorize("hasRole('EMPLOYER') and @employerProfileService.isProAccount(authentication.principal)")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.ContactRequestResponse>> sendContactRequest(
             Authentication authentication,
             @Parameter(description = "ID of the developer to contact") @PathVariable UUID developerId,
@@ -277,5 +277,20 @@ public class EmployerController {
         UUID userId = (UUID) authentication.getPrincipal();
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Response recorded",
                 employerProfileService.respondToContactRequest(userId, id, status)));
+    }
+    @Operation(summary = "Flag an employer profile", description = "Requires authenticated user.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Profile flagged successfully"),
+        @ApiResponse(responseCode = "400", description = "Cannot flag own profile or already flagged"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    })
+    @PostMapping("/{profileId}/flag")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> flagEmployer(
+            Authentication authentication,
+            @Parameter(description = "ID of the employer profile to flag") @PathVariable UUID profileId,
+            @Valid @RequestBody UserDtos.FlagUserRequest request) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        employerProfileService.flagEmployer(userId, profileId, request);
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Employer profile flagged"));
     }
 }

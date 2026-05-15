@@ -21,6 +21,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.data.jpa.domain.Specification;
+import jakarta.persistence.criteria.Predicate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -48,6 +51,9 @@ public class JobService {
 
     @Transactional
     public JobPostResponse createJobPost(UUID userId, CreateJobPostRequest request) {
+        if (userId == null) {
+            throw new org.moseti.kedevsapi.shared.exception.UnauthorizedException("User context is missing or unauthenticated");
+        }
         if (request.isPeerSourced() && (request.sourceUrl() == null || request.sourceUrl().isBlank())) {
             throw new BadRequestException("sourceUrl is required for peer-sourced jobs");
         }
@@ -122,10 +128,60 @@ public class JobService {
     }
 
     public Page<JobSummaryResponse> getJobFeed(JobSearchRequest request, Pageable pageable, UUID currentUserId) {
-        return jobPostRepository.searchJobs(
-                request.keyword(), request.locationCity(), request.locationCountry(),
-                request.jobType(), request.workType(), request.experienceLevel(),
-                request.status(), request.visibility(), pageable)
+        Specification<JobPost> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // Always exclude REMOVED jobs
+            predicates.add(cb.notEqual(root.get("status"), JobStatus.REMOVED));
+
+            if (request.keyword() != null && !request.keyword().trim().isEmpty()) {
+                String pattern = "%" + request.keyword().trim().toLowerCase() + "%";
+                predicates.add(cb.or(
+                    cb.like(cb.lower(root.get("title")), pattern),
+                    cb.like(cb.lower(root.get("description")), pattern)
+                ));
+            }
+
+            if (request.locationCity() != null && !request.locationCity().trim().isEmpty()) {
+                predicates.add(cb.like(cb.lower(root.get("locationCity")), "%" + request.locationCity().trim().toLowerCase() + "%"));
+            }
+
+            if (request.locationCountry() != null && !request.locationCountry().trim().isEmpty()) {
+                predicates.add(cb.like(cb.lower(root.get("locationCountry")), "%" + request.locationCountry().trim().toLowerCase() + "%"));
+            }
+
+            if (request.jobTypes() != null && !request.jobTypes().isEmpty()) {
+                predicates.add(root.get("jobType").in(request.jobTypes()));
+            }
+
+            if (request.workTypes() != null && !request.workTypes().isEmpty()) {
+                predicates.add(root.get("workType").in(request.workTypes()));
+            }
+
+            if (request.experienceLevels() != null && !request.experienceLevels().isEmpty()) {
+                predicates.add(root.get("experienceLevel").in(request.experienceLevels()));
+            }
+
+            if (request.minSalary() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("salaryRangeMin"), request.minSalary()));
+            }
+
+            if (request.maxSalary() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("salaryRangeMax"), request.maxSalary()));
+            }
+
+            if (request.status() != null) {
+                predicates.add(cb.equal(root.get("status"), request.status()));
+            }
+
+            if (request.visibility() != null) {
+                predicates.add(cb.equal(root.get("visibility"), request.visibility()));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        return jobPostRepository.findAll(spec, pageable)
                 .map(this::toJobSummaryResponse);
     }
 
@@ -141,6 +197,10 @@ public class JobService {
 
         if (!job.getPostedById().equals(userId)) {
             throw new ForbiddenException("Not authorized to update this job");
+        }
+
+        if (job.getStatus() == JobStatus.CLOSED || job.getStatus() == JobStatus.REMOVED) {
+            throw new BadRequestException("Cannot edit a closed or removed job posting");
         }
 
         if (request.title() != null) job.setTitle(request.title());
@@ -325,6 +385,13 @@ public class JobService {
 
         if (jobApplicationRepository.existsByJobIdAndApplicantId(jobId, userId)) {
             throw new AlreadyAppliedException("Already applied to this job");
+        }
+
+        // Verify applicant is not marked as NOT_AVAILABLE
+        org.moseti.kedevsapi.users.entity.DeveloperProfile devProfile = developerProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Developer profile not found"));
+        if (devProfile.getAvailabilityStatus() == AvailabilityStatus.NOT_AVAILABLE) {
+            throw new BadRequestException("You are currently marked as Not Available. Update your status to apply for jobs.");
         }
 
         // Upload resume to Cloudinary (required)

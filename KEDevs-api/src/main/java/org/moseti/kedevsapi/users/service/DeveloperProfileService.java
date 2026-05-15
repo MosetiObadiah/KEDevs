@@ -685,7 +685,8 @@ public class DeveloperProfileService {
                 profile.getProfilePhoto(), profile.getCurrentLastRole(),
                 skills, profile.getAvailabilityStatus(),
                 profile.isVerified(), profile.getLocationCity(), profile.getLocationCountry(),
-                profile.getPublicEmail(), profile.getPublicPhone()
+                profile.getPublicEmail(), profile.getPublicPhone(),
+                profile.getYearsOfExperience(), profile.getPreferredWorkType()
         );
     }
 

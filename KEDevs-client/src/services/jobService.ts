@@ -10,11 +10,20 @@ export const jobService = {
   },
   
   async getJobs(params: any): Promise<ApiResponse<PaginatedResponse<JobSummary>>> {
-    const cleanParams = Object.fromEntries(
-      Object.entries(params).filter(([_, v]) => v != null)
-    );
-    const query = new URLSearchParams(cleanParams as any).toString();
-    return apiClient.get<ApiResponse<PaginatedResponse<JobSummary>>>(`/api/v1/jobs?${query}`);
+    const urlParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value == null || value === '') return;
+      if (Array.isArray(value)) {
+        value.forEach(val => {
+          if (val != null && val !== '') {
+            urlParams.append(key, val);
+          }
+        });
+      } else {
+        urlParams.append(key, String(value));
+      }
+    });
+    return apiClient.get<ApiResponse<PaginatedResponse<JobSummary>>>(`/api/v1/jobs?${urlParams.toString()}`);
   },
 
   async getJobDetails(id: string): Promise<ApiResponse<any>> {
@@ -71,6 +80,10 @@ export const jobService = {
 
   async getMyPosts(): Promise<ApiResponse<PaginatedResponse<any>>> {
     return apiClient.get<ApiResponse<PaginatedResponse<any>>>('/api/v1/jobs/my-posts');
+  },
+
+  async verifyUrl(url: string): Promise<ApiResponse<{ isSafe: boolean }>> {
+    return apiClient.post<ApiResponse<{ isSafe: boolean }>>('/api/v1/jobs/verify-url', { url });
   }
 };
 

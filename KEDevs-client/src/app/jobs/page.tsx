@@ -1,6 +1,7 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { 
   Search, 
   ThumbsUp, 
@@ -14,8 +15,17 @@ import {
   FilterX,
   Plus,
   Building2,
-  Loader2
+  Loader2,
+  Download,
+  FileSpreadsheet,
+  FileText
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from '@/context/AuthContext';
 import { jobService } from '@/services/jobService';
 import { JobSummary } from '@/lib/types';
@@ -47,19 +57,66 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { LAYOUT, SPACING, TYPOGRAPHY } from '@/lib/constants';
 
-export default function JobsPage() {
+const JOB_TYPES = [
+  { value: 'FULL_TIME', label: 'Full-time' },
+  { value: 'PART_TIME', label: 'Part-time' },
+  { value: 'CONTRACT', label: 'Contract' },
+  { value: 'INTERNSHIP', label: 'Internship' },
+  { value: 'FREELANCE', label: 'Freelance' }
+];
+
+const WORK_TYPES = [
+  { value: 'REMOTE', label: 'Remote' },
+  { value: 'ONSITE', label: 'On-site' },
+  { value: 'HYBRID', label: 'Hybrid' }
+];
+
+const KENYA_CITIES = [
+  'Nairobi',
+  'Mombasa',
+  'Kisumu',
+  'Nakuru',
+  'Eldoret',
+  'Thika',
+  'Malindi',
+  'Naivasha',
+  'Nyeri',
+  'Machakos'
+];
+
+const EXPERIENCE_LEVELS = [
+  { value: 'ENTRY', label: 'Entry Level' },
+  { value: 'MID', label: 'Mid-Level' },
+  { value: 'SENIOR', label: 'Senior Level' },
+  { value: 'LEAD', label: 'Lead / Principal' }
+];
+
+function JobsPageContent() {
   const { user, isLoggedIn } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  
   const [jobs, setJobs] = useState<JobSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  const [searchTerm, setSearchTerm] = useState('');
-  const [workType, setWorkType] = useState('All');
+  const searchTerm = searchParams.get('search') || '';
+  const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([]);
+  const [selectedWorkTypes, setSelectedWorkTypes] = useState<string[]>([]);
+  const [selectedExpLevels, setSelectedExpLevels] = useState<string[]>([]);
+  const [city, setCity] = useState('All');
+  const [minSalary, setMinSalary] = useState('');
+  const [maxSalary, setMaxSalary] = useState('');
+
+  const uniqueCities = Array.from(new Set([...KENYA_CITIES, ...jobs.map(j => j.locationCity).filter(Boolean)])).sort();
+
   const [sortBy, setSortBy] = useState('newest');
   const [upvotedJobs, setUpvotedJobs] = useState<Set<string>>(new Set());
   const [downvotedJobs, setDownvotedJobs] = useState<Set<string>>(new Set());
@@ -76,12 +133,23 @@ export default function JobsPage() {
       try {
         const response = await jobService.getJobs({
           page: 0,
-          size: 20,
-          title: searchTerm,
-          workType: workType === 'All' ? undefined : workType
+          size: 50, // get a bigger slice to support fluid frontend sorting/pagination
+          keyword: searchTerm || undefined,
+          locationCity: city === 'All' ? undefined : city,
+          jobTypes: selectedJobTypes.length > 0 ? selectedJobTypes : undefined,
+          workTypes: selectedWorkTypes.length > 0 ? selectedWorkTypes : undefined,
+          experienceLevels: selectedExpLevels.length > 0 ? selectedExpLevels : undefined,
+          minSalary: minSalary ? parseFloat(minSalary) : undefined,
+          maxSalary: maxSalary ? parseFloat(maxSalary) : undefined,
         });
         if (response.success) {
-          setJobs(response.data.content);
+          let content = response.data.content;
+          if (sortBy === 'newest') {
+            content = [...content].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          } else if (sortBy === 'upvotes') {
+            content = [...content].sort((a, b) => (b.upvoteCount || 0) - (a.upvoteCount || 0));
+          }
+          setJobs(content);
         }
       } catch (err: any) {
         setError('Failed to fetch jobs. Please try again later.');
@@ -96,7 +164,44 @@ export default function JobsPage() {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchTerm, workType]);
+  }, [searchTerm, city, selectedJobTypes, selectedWorkTypes, selectedExpLevels, minSalary, maxSalary, sortBy]);
+
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async (format: 'csv' | 'pdf') => {
+    if (format === 'pdf') {
+      window.print();
+      return;
+    }
+    
+    setIsExporting(true);
+    try {
+      const headers = ['JobTitle', 'Company', 'WorkArrangement', 'Location', 'Status', 'Upvotes'];
+      const rows = jobs.map(j => [
+        `"${j.title || ''}"`,
+        `"${j.isPeerSourced || j.postedByRole !== 'EMPLOYER' ? (j.postedByName || 'Community Member') : j.companyName}"`,
+        `"${j.workType || ''}"`,
+        `"${j.locationCity || ''}"`,
+        `"${j.status || ''}"`,
+        `"${j.upvoteCount || 0}"`
+      ].join(','));
+      
+      const csvContent = [headers.join(','), ...rows].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `jobs_export_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('CSV Export failed', err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const handleVote = async (id: string, vote: 'UP' | 'DOWN', e: React.MouseEvent) => {
     e.preventDefault();
@@ -169,7 +274,24 @@ export default function JobsPage() {
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
       <PageContainer>
-        <div className="flex justify-end mb-8">
+        <div className="flex justify-end items-center gap-3 mb-8 print:hidden">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+               <Button variant="outline" className="font-bold border-primary/20 hover:bg-primary/5 h-12 px-6" disabled={isExporting}>
+                  <Download className="mr-2 h-4 w-4 text-primary" /> 
+                  {isExporting ? 'Exporting...' : 'Export'}
+               </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+               <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium">
+                  <FileSpreadsheet className="mr-2 h-4 w-4" /> Download as CSV
+               </DropdownMenuItem>
+               <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium">
+                  <FileText className="mr-2 h-4 w-4" /> Download as PDF
+               </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           {isLoggedIn && (
             <Button className="h-12 px-6 font-bold shadow-lg shadow-primary/20" asChild>
               <Link href="/jobs/post">
@@ -178,47 +300,117 @@ export default function JobsPage() {
             </Button>
           )}
         </div>
+
+        <div className="hidden print:block mb-8 border-b pb-4">
+           <h1 className="text-2xl font-black text-black">KEDevs Job Market Report</h1>
+           <p className="text-sm text-gray-500">Generated on {new Date().toLocaleDateString()}</p>
+        </div>
         
         <div className={cn("grid grid-cols-1 lg:grid-cols-4", SPACING.cards)}>
           {/* Filters Sidebar */}
-          <aside className="lg:col-span-1 space-y-6">
+          <aside className="lg:col-span-1 space-y-6 print:hidden">
             <Card className="border-border/50 shadow-sm sticky top-24">
               <CardHeader className="pb-4">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Filter Jobs</h3>
               </CardHeader>
               <CardContent className="space-y-6">
+
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Search</label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input 
-                      placeholder="Title, company..." 
-                      className="pl-10 text-sm border-border/50 focus-visible:ring-primary/20"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+                  <label className="text-xs font-bold text-muted-foreground uppercase">Work Arrangements</label>
+                  <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
+                    {WORK_TYPES.map(type => (
+                      <div key={type.value} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`wt-${type.value}`} 
+                          checked={selectedWorkTypes.includes(type.value)}
+                          onCheckedChange={(checked) => {
+                            if (checked) setSelectedWorkTypes([...selectedWorkTypes, type.value]);
+                            else setSelectedWorkTypes(selectedWorkTypes.filter(t => t !== type.value));
+                          }}
+                        />
+                        <Label htmlFor={`wt-${type.value}`} className="text-xs font-medium cursor-pointer">{type.label}</Label>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Work Type</label>
-                  <Select value={workType} onValueChange={setWorkType}>
-                    <SelectTrigger className="border-border/50 focus:ring-primary/20">
-                      <SelectValue placeholder="All Types" />
+                  <label className="text-xs font-bold text-muted-foreground uppercase">Job Types</label>
+                  <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
+                    {JOB_TYPES.map(type => (
+                      <div key={type.value} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`jt-${type.value}`} 
+                          checked={selectedJobTypes.includes(type.value)}
+                          onCheckedChange={(checked) => {
+                            if (checked) setSelectedJobTypes([...selectedJobTypes, type.value]);
+                            else setSelectedJobTypes(selectedJobTypes.filter(t => t !== type.value));
+                          }}
+                        />
+                        <Label htmlFor={`jt-${type.value}`} className="text-xs font-medium cursor-pointer">{type.label}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground uppercase">Experience Levels</label>
+                  <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
+                    {EXPERIENCE_LEVELS.map(level => (
+                      <div key={level.value} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`el-${level.value}`} 
+                          checked={selectedExpLevels.includes(level.value)}
+                          onCheckedChange={(checked) => {
+                            if (checked) setSelectedExpLevels([...selectedExpLevels, level.value]);
+                            else setSelectedExpLevels(selectedExpLevels.filter(t => t !== level.value));
+                          }}
+                        />
+                        <Label htmlFor={`el-${level.value}`} className="text-xs font-medium cursor-pointer">{level.label}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground uppercase">Location</label>
+                  <Select value={city} onValueChange={setCity}>
+                    <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-lg">
+                      <SelectValue placeholder="Any Location" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="All">All Types</SelectItem>
-                      <SelectItem value="REMOTE">Remote</SelectItem>
-                      <SelectItem value="ONSITE">On-site</SelectItem>
-                      <SelectItem value="HYBRID">Hybrid</SelectItem>
+                      <SelectItem value="All">Any Location</SelectItem>
+                      {uniqueCities.map(loc => (
+                        <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Sort By</label>
+                  <label className="text-xs font-bold text-muted-foreground uppercase">Salary Bounds (KES)</label>
+                  <div className="flex gap-2">
+                    <Input 
+                      type="number"
+                      placeholder="Min..." 
+                      className="text-xs border-border/50 h-9 focus-visible:ring-primary/20 rounded-lg flex-1"
+                      value={minSalary}
+                      onChange={(e) => setMinSalary(e.target.value)}
+                    />
+                    <Input 
+                      type="number"
+                      placeholder="Max..." 
+                      className="text-xs border-border/50 h-9 focus-visible:ring-primary/20 rounded-lg flex-1"
+                      value={maxSalary}
+                      onChange={(e) => setMaxSalary(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2 border-t pt-4">
+                  <label className="text-xs font-bold text-muted-foreground uppercase">Order Results By</label>
                   <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="border-border/50 focus:ring-primary/20">
+                    <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-lg">
                       <SelectValue placeholder="Newest First" />
                     </SelectTrigger>
                     <SelectContent>
@@ -228,14 +420,19 @@ export default function JobsPage() {
                   </Select>
                 </div>
 
-                {(searchTerm || workType !== 'All') && (
+                {(searchTerm || selectedWorkTypes.length > 0 || selectedJobTypes.length > 0 || selectedExpLevels.length > 0 || city !== 'All' || minSalary || maxSalary) && (
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="w-full text-xs font-bold text-muted-foreground"
+                    className="w-full text-xs font-bold text-muted-foreground mt-2"
                     onClick={() => {
-                      setSearchTerm('');
-                      setWorkType('All');
+                      router.push(pathname);
+                      setSelectedWorkTypes([]);
+                      setSelectedJobTypes([]);
+                      setSelectedExpLevels([]);
+                      setCity('All');
+                      setMinSalary('');
+                      setMaxSalary('');
                     }}
                   >
                     <FilterX className="mr-2 h-3.5 w-3.5" /> Reset Filters
@@ -246,7 +443,7 @@ export default function JobsPage() {
           </aside>
 
           {/* Job List area */}
-          <main className="lg:col-span-3 space-y-6">
+          <main className="lg:col-span-3 print:col-span-full space-y-6">
             {error && (
               <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-xl mb-6 text-sm font-medium">
                 {error}
@@ -275,8 +472,16 @@ export default function JobsPage() {
                   <Briefcase className="w-12 h-12 text-muted-foreground/50 mb-4" />
                   <h3 className={cn(TYPOGRAPHY.sectionHeading, "mb-2")}>No jobs found</h3>
                   <p className={cn(TYPOGRAPHY.body, "mb-4")}>Try adjusting your filters or search term.</p>
-                  {(searchTerm || workType !== 'All') && (
-                    <Button variant="outline" size="sm" onClick={() => { setSearchTerm(''); setWorkType('All'); }}>
+                  {(searchTerm || selectedWorkTypes.length > 0 || selectedJobTypes.length > 0 || selectedExpLevels.length > 0 || city !== 'All' || minSalary || maxSalary) && (
+                    <Button variant="outline" size="sm" onClick={() => { 
+                      router.push(pathname); 
+                      setSelectedWorkTypes([]);
+                      setSelectedJobTypes([]);
+                      setSelectedExpLevels([]);
+                      setCity('All');
+                      setMinSalary('');
+                      setMaxSalary('');
+                    }}>
                       Reset Filters
                     </Button>
                   )}
@@ -332,7 +537,7 @@ export default function JobsPage() {
                         </div>
 
                         {/* Voting & CTA */}
-                        <div className="flex md:flex-col items-center md:items-end justify-between md:justify-between md:w-40 shrink-0 gap-4">
+                        <div className="flex md:flex-col items-center md:items-end justify-between md:justify-between md:w-40 shrink-0 gap-4 print:hidden">
                           <div className="flex items-center gap-1.5">
                             <TooltipProvider>
                               <Tooltip>
@@ -474,6 +679,18 @@ export default function JobsPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function JobsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+      </div>
+    }>
+      <JobsPageContent />
+    </Suspense>
   );
 }
 

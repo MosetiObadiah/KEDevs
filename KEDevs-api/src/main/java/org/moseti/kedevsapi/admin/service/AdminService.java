@@ -404,6 +404,13 @@ public class AdminService {
         flag.setReviewedAt(LocalDateTime.now());
         jobFlagRepository.save(flag);
         jobPostRepository.save(job);
+
+        // Notify reporter
+        String reporterMsg = "REMOVE".equals(outcome) || "WARN".equals(outcome) || "LEGITIMATE".equals(outcome)
+                ? "Your report against job \"" + job.getTitle() + "\" has been resolved. Action was taken."
+                : "Your report against job \"" + job.getTitle() + "\" was reviewed and cleared.";
+        notificationService.notify(flag.getFlaggedById(), NotificationCategory.FLAG,
+                "Report Resolution", reporterMsg, null);
         logAction(adminId, AdminActionTypes.REVIEW_JOB_FLAG, "JOB", job.getId(), request.notes(), outcome);
     }
 
@@ -449,6 +456,13 @@ public class AdminService {
         flag.setReviewedById(adminId);
         flag.setReviewedAt(LocalDateTime.now());
         userFlagRepository.save(flag);
+
+        // Notify reporter
+        String reporterMsg = "SUSPENDED".equals(outcome) || "BANNED".equals(outcome) || "WARNED".equals(outcome)
+                ? "Your user profile report has been reviewed. Corrective measures have been applied."
+                : "Your user profile report was reviewed and cleared.";
+        notificationService.notify(flag.getFlaggedById(), NotificationCategory.FLAG,
+                "Report Resolution", reporterMsg, null);
         logAction(adminId, AdminActionTypes.REVIEW_USER_FLAG, "USER", flag.getFlaggedUserId(), request.notes(), outcome);
     }
 
@@ -489,6 +503,13 @@ public class AdminService {
         flag.setReviewedAt(LocalDateTime.now());
         commentFlagRepository.save(flag);
         forumCommentRepository.save(comment);
+
+        // Notify reporter
+        String reporterMsg = "REMOVED".equals(outcome)
+                ? "Your comment report has been reviewed and the content was removed."
+                : "Your comment report was reviewed and the content was retained.";
+        notificationService.notify(flag.getFlaggedById(), NotificationCategory.FLAG,
+                "Report Resolution", reporterMsg, null);
         logAction(adminId, AdminActionTypes.REVIEW_COMMENT_FLAG, "COMMENT", comment.getId(), request.notes(), outcome);
     }
 

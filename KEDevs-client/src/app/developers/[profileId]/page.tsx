@@ -64,6 +64,7 @@ export default function DeveloperProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [isRequesting, setIsRequesting] = useState(false);
+  const [isContactOpen, setIsContactOpen] = useState(false);
   
   // Endorsement modal state
   const [isEndorseOpen, setIsEndorseOpen] = useState(false);
@@ -108,14 +109,19 @@ export default function DeveloperProfilePage() {
 
   const handleContactDeveloper = async () => {
     if (!dev) return;
+    if (!message.trim()) {
+      toast.error('Please enter a message.');
+      return;
+    }
     setIsRequesting(true);
     try {
-      const response = await employerService.contactDeveloper(dev.id, { message });
+      const response = await employerService.contactDeveloper(dev.id, { message: message.trim() });
       if (response.success) {
         toast.success('Contact request sent successfully!');
+        setIsContactOpen(false);
       }
     } catch (err: any) {
-      toast.error('Failed to send contact request.');
+      toast.error(err.response?.data?.message || err.message || 'Failed to send contact request.');
     } finally {
       setIsRequesting(false);
     }
@@ -232,6 +238,14 @@ export default function DeveloperProfilePage() {
             <ProfileTabs 
               profile={dev} 
               isOwner={false}
+              onEndorse={() => {
+                if (!isLoggedIn) {
+                  toast.error("Please sign in to endorse developers");
+                  router.push('/login');
+                  return;
+                }
+                setIsEndorseOpen(true);
+              }}
             />
           </div>
 
@@ -246,15 +260,7 @@ export default function DeveloperProfilePage() {
                   router.push('/login');
                   return;
                 }
-                handleContactDeveloper();
-              }}
-              onEndorse={() => {
-                if (!isLoggedIn) {
-                  toast.error("Please sign in to endorse developers");
-                  router.push('/login');
-                  return;
-                }
-                setIsEndorseOpen(true);
+                setIsContactOpen(true);
               }}
               onFlag={() => {
                 if (!isLoggedIn) {
@@ -363,6 +369,57 @@ export default function DeveloperProfilePage() {
               {isSubmittingFlag ? (
                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</>
               ) : 'Submit Report'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Contact Modal */}
+      <Dialog open={isContactOpen} onOpenChange={setIsContactOpen}>
+        <DialogContent className="sm:max-w-[500px] rounded-[2rem] p-8">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                <Send className="h-5 w-5" />
+              </div>
+              Contact Developer
+            </DialogTitle>
+            <DialogDescription className="font-medium text-muted-foreground">
+              Send a direct message to {fullName}. Introduce yourself and share the details of your opportunity.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-6 space-y-4">
+            <div className="space-y-2">
+              <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground flex justify-between">
+                <span>Message Content</span>
+                <span className={cn(message.length > 1000 ? "text-destructive" : "")}>
+                  {message.length}/1000
+                </span>
+              </Label>
+              <Textarea 
+                placeholder="Write your message here..." 
+                className="min-h-[150px] rounded-2xl border-border/50 resize-none font-medium text-base p-4 focus-visible:ring-primary/20"
+                value={message}
+                onChange={(e) => setMessage(e.target.value.slice(0, 1000))}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="sm:justify-end gap-3">
+            <Button variant="ghost" className="rounded-xl font-bold" onClick={() => setIsContactOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              className="rounded-xl font-black px-8 bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20" 
+              onClick={handleContactDeveloper}
+              disabled={isRequesting || !message.trim()}
+            >
+              {isRequesting ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...</>
+              ) : (
+                <><Send className="mr-2 h-4 w-4" /> Send Message</>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
