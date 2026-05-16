@@ -116,6 +116,38 @@ public class PdfExportService {
         }
     }
 
+    public byte[] generateJobPdf(List<org.moseti.kedevsapi.jobs.dto.JobDtos.JobSummaryResponse> jobs, org.moseti.kedevsapi.jobs.dto.JobDtos.JobSearchRequest filter, String generatedBy) {
+        try {
+            Context context = new Context();
+            context.setVariable("jobs", jobs);
+            context.setVariable("generatedBy", generatedBy);
+
+            StringBuilder sb = new StringBuilder();
+            if (filter != null) {
+                if (filter.keyword() != null && !filter.keyword().isBlank()) sb.append("Keyword: ").append(filter.keyword()).append("; ");
+                if (filter.locationCity() != null && !filter.locationCity().isBlank()) sb.append("City: ").append(filter.locationCity()).append("; ");
+                if (filter.jobTypes() != null && !filter.jobTypes().isEmpty()) sb.append("Types: ").append(String.join(", ", filter.jobTypes().stream().map(Object::toString).toList())).append("; ");
+                if (filter.workTypes() != null && !filter.workTypes().isEmpty()) sb.append("Work: ").append(String.join(", ", filter.workTypes().stream().map(Object::toString).toList())).append("; ");
+                if (filter.experienceLevels() != null && !filter.experienceLevels().isEmpty()) sb.append("Levels: ").append(String.join(", ", filter.experienceLevels().stream().map(Object::toString).toList())).append("; ");
+                if (filter.minSalary() != null) sb.append("Min Salary: ").append(filter.minSalary()).append("; ");
+                if (filter.minQualification() != null && !filter.minQualification().isBlank()) sb.append("Min Qual: ").append(filter.minQualification()).append("; ");
+                if (filter.minExperienceYears() != null) sb.append("Min Exp: ").append(filter.minExperienceYears()).append(" yrs; ");
+                if (filter.deadlineFrom() != null) sb.append("Deadline From: ").append(filter.deadlineFrom()).append("; ");
+                if (filter.deadlineTo() != null) sb.append("Deadline To: ").append(filter.deadlineTo()).append("; ");
+                if (filter.isPeerSourced() != null) sb.append("Peer Sourced: ").append(filter.isPeerSourced()).append("; ");
+                if (filter.status() != null) sb.append("Status: ").append(filter.status()).append("; ");
+            }
+            String summary = sb.length() > 0 ? sb.toString() : "None (All Active Jobs)";
+            enrichContext(context, summary);
+
+            String html = templateEngine.process("jobs-export", context);
+            return renderPdf(html);
+        } catch (Exception e) {
+            log.error("Failed to generate Job PDF export", e);
+            throw new RuntimeException("Failed to generate Job PDF export", e);
+        }
+    }
+
     private byte[] renderPdf(String html) throws Exception {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ITextRenderer renderer = new ITextRenderer();

@@ -8,11 +8,12 @@ import {
   Mail, 
   Phone, 
   Star, 
-  Bookmark, 
+  Flag, 
   MapPin, 
   FilterX,
   ChevronRight,
   ArrowRight, ExternalLink, Printer, Download, FileSpreadsheet, FileText, Briefcase,
+  Loader2,
   BadgeCheck } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { developerService } from '@/services/developerService';
@@ -45,6 +46,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
 
 const AVAILABILITY_STATUSES = [
   { value: 'OPEN_TO_OFFERS', label: 'Open to Offers' },
@@ -86,6 +97,12 @@ function DevelopersPageContent() {
   const [selectedExperiences, setSelectedExperiences] = useState<string[]>([]);
   const [location, setLocation] = useState('All');
   const [isVerifiedOnly, setIsVerifiedOnly] = useState(false);
+
+  // Flagging state
+  const [isFlagOpen, setIsFlagOpen] = useState(false);
+  const [flagContent, setFlagContent] = useState('');
+  const [isSubmittingFlag, setIsSubmittingFlag] = useState(false);
+  const [selectedDevId, setSelectedDevId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDevs = async () => {
@@ -156,6 +173,28 @@ function DevelopersPageContent() {
       console.error("Export failed", err);
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleFlagDeveloper = async () => {
+    if (!selectedDevId) return;
+    if (!flagContent.trim()) {
+      toast.error('Reason for reporting is required.');
+      return;
+    }
+    setIsSubmittingFlag(true);
+    try {
+      const response = await developerService.flagDeveloper(selectedDevId, flagContent.trim());
+      if (response.success) {
+        toast.success('Profile reported to moderation team.');
+        setIsFlagOpen(false);
+        setFlagContent('');
+        setSelectedDevId(null);
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to report developer. You may have already flagged them.');
+    } finally {
+      setIsSubmittingFlag(false);
     }
   };
 
@@ -430,8 +469,21 @@ function DevelopersPageContent() {
                         {dev.locationCity}
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:text-primary">
-                          <Bookmark className="h-4 w-4" />
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 rounded-full hover:text-destructive"
+                          onClick={() => {
+                            if (!isLoggedIn) {
+                              toast.error("Please sign in to report profiles");
+                              router.push('/login');
+                              return;
+                            }
+                            setSelectedDevId(dev.id);
+                            setIsFlagOpen(true);
+                          }}
+                        >
+                          <Flag className="h-4 w-4" />
                         </Button>
                         <Button size="sm" className="h-8 px-3 font-bold group/btn" asChild>
                           <Link href={`/developers/${dev.id}`}>
@@ -469,6 +521,58 @@ function DevelopersPageContent() {
           </main>
         </div>
       </div>
+
+      {/* Flag Modal */}
+      <Dialog open={isFlagOpen} onOpenChange={setIsFlagOpen}>
+        <DialogContent className="sm:max-w-[500px] rounded-[2rem] p-8">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center text-destructive">
+                <Flag className="h-6 w-6" />
+              </div>
+              Report Profile
+            </DialogTitle>
+            <DialogDescription className="font-medium text-muted-foreground">
+              Please describe why you are reporting this profile. Our moderation team will review this report.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-6 space-y-4">
+            <div className="space-y-2">
+              <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground flex justify-between">
+                <span>Reason for Reporting</span>
+                <span className={cn(flagContent.length > 500 ? "text-destructive" : "")}>
+                  {flagContent.length}/500
+                </span>
+              </Label>
+              <Textarea 
+                placeholder="e.g. Inappropriate content, spam, or fake profile..." 
+                className="min-h-[120px] rounded-2xl border-border/50 resize-none font-medium text-base p-4 focus-visible:ring-destructive/20"
+                value={flagContent}
+                onChange={(e) => setFlagContent(e.target.value.slice(0, 500))}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="sm:justify-end gap-3">
+            <Button variant="ghost" className="rounded-xl font-bold" onClick={() => {
+              setIsFlagOpen(false);
+              setSelectedDevId(null);
+            }}>
+              Cancel
+            </Button>
+            <Button 
+              className="rounded-xl font-black px-8 bg-destructive text-destructive-foreground hover:bg-destructive/90" 
+              onClick={handleFlagDeveloper}
+              disabled={isSubmittingFlag || !flagContent.trim()}
+            >
+              {isSubmittingFlag ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</>
+              ) : 'Submit Report'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

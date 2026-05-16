@@ -41,13 +41,36 @@ public class JobService {
 
     private final UserRepository userRepository;
     private final DeveloperProfileRepository developerProfileRepository;
+    private final org.moseti.kedevsapi.users.repository.EmployerProfileRepository employerProfileRepository;
     private final EmployerProfileService employerProfileService;
     private final FileUploadService fileUploadService;
     private final org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
     private final org.moseti.kedevsapi.auth.service.EmailService emailService;
+    private final org.moseti.kedevsapi.users.service.PdfExportService pdfExportService;
+    private final org.moseti.kedevsapi.payments.repository.PlatformSettingRepository platformSettingRepository;
 
     @Value("${app.api-base-url:http://localhost:8080}")
     private String apiBaseUrl;
+
+    public byte[] exportJobsToPdf(JobSearchRequest request, UUID currentUserId) {
+        // Reuse the same logic as getJobFeed but without pagination (fetch all matching)
+        Page<JobSummaryResponse> jobsPage = getJobFeed(request, Pageable.unpaged(), currentUserId);
+        List<JobSummaryResponse> jobs = jobsPage.getContent();
+        
+        String generatedBy = "Guest User";
+        if (currentUserId != null) {
+            generatedBy = userRepository.findById(currentUserId).map(User::getFullName).orElse("Unknown User");
+        }
+        
+        return pdfExportService.generateJobPdf(jobs, request, generatedBy);
+    }
+
+    public JobFilterMetadataResponse getFilterMetadata() {
+        return new JobFilterMetadataResponse(
+                jobPostRepository.findUniqueQualifications(),
+                jobPostRepository.findUniqueExperienceYears()
+        );
+    }
 
     @Transactional
     public JobPostResponse createJobPost(UUID userId, CreateJobPostRequest request) {
@@ -168,6 +191,30 @@ public class JobService {
 
             if (request.maxSalary() != null) {
                 predicates.add(cb.lessThanOrEqualTo(root.get("salaryRangeMax"), request.maxSalary()));
+            }
+
+            if (request.minQualification() != null && !request.minQualification().trim().isEmpty()) {
+                predicates.add(cb.like(cb.lower(root.get("minQualification")), "%" + request.minQualification().trim().toLowerCase() + "%"));
+            }
+
+            if (request.minExperienceYears() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("minExperienceYears"), request.minExperienceYears()));
+            }
+
+            if (request.deadlineFrom() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("applicationDeadline"), request.deadlineFrom()));
+            }
+
+            if (request.deadlineTo() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("applicationDeadline"), request.deadlineTo()));
+            }
+
+            if (request.isPeerSourced() != null) {
+                predicates.add(cb.equal(root.get("isPeerSourced"), request.isPeerSourced()));
+            }
+
+            if (request.minUpvotes() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("upvoteCount"), request.minUpvotes()));
             }
 
             if (request.status() != null) {
@@ -562,13 +609,25 @@ public class JobService {
     }
 
     private JobPostResponse toJobPostResponse(JobPost job, UUID currentUserId) {
-        String posterName = userRepository.findById(job.getPostedById())
+        String postedByName = userRepository.findById(job.getPostedById())
                 .map(User::getFullName)
                 .orElse("Unknown");
 
         Role postedByRole = userRepository.findById(job.getPostedById())
                 .map(User::getRole)
                 .orElse(Role.DEVELOPER);
+        UUID postedByProfileId = null;
+        String postedByCompanyName = null;
+
+        if (postedByRole == Role.DEVELOPER) {
+            postedByProfileId = developerProfileRepository.findByUserId(job.getPostedById())
+                    .map(org.moseti.kedevsapi.shared.entity.BaseEntity::getId)
+                    .orElse(null);
+        } else if (postedByRole == Role.EMPLOYER) {
+            var employerProfile = employerProfileRepository.findByUserId(job.getPostedById());
+            postedByProfileId = employerProfile.map(org.moseti.kedevsapi.shared.entity.BaseEntity::getId).orElse(null);
+            postedByCompanyName = employerProfile.map(org.moseti.kedevsapi.users.entity.EmployerProfile::getCompanyName).orElse(null);
+        }
 
         boolean hasApplied = false;
         VoteType currentUserVote = null;
@@ -595,7 +654,7 @@ public class JobService {
         return new JobPostResponse(
                 job.getId(),
                 job.getPostedById(),
-                posterName,
+                postedByName,
                 posterEmail,
                 job.getTitle(),
                 job.getSummary(),
@@ -626,7 +685,9 @@ public class JobService {
                 applicationCount,
                 postedByRole,
                 job.isPinned(),
-                job.getPinnedUntil()
+                job.getPinnedUntil(),
+                postedByProfileId,
+                postedByCompanyName
         );
     }
 
@@ -647,6 +708,8 @@ public class JobService {
                 job.getJobType(),
                 job.getWorkType(),
                 job.getExperienceLevel(),
+                job.getSalaryRangeMin(),
+                job.getSalaryRangeMax(),
                 job.getVisibility(),
                 job.getStatus(),
                 job.getUpvoteCount(),
@@ -654,6 +717,7 @@ public class JobService {
                 job.isPeerSourced(),
                 job.getSourceUrl(),
                 tags,
+                job.getApplicationDeadline(),
                 job.getCreatedAt(),
                 postedByRole,
                 job.isPinned(),
@@ -721,5 +785,48 @@ public class JobService {
                         job.getPinnedUntil()
                 ))
                 .toList();
+    }
+
+    /**
+     * Returns the current availability of the 3 pinned job slots, including
+     * which jobs occupy them and the pricing for each duration tier.
+     */
+    public PinnedSlotAvailabilityResponse getPinnedSlotAvailability() {
+        int maxSlots = 3;
+        List<JobPost> activelyPinned = jobPostRepository
+                .findByIsPinnedTrueAndPinnedUntilAfterOrderByPinnedUntilDesc(java.time.LocalDateTime.now())
+                .stream()
+                .filter(job -> job.getStatus() == JobStatus.OPEN)
+                .limit(maxSlots)
+                .toList();
+
+        List<PinnedSlotInfo> activeSlots = activelyPinned.stream()
+                .map(job -> new PinnedSlotInfo(
+                        job.getId(),
+                        job.getTitle(),
+                        job.getCompanyName(),
+                        job.getPinnedUntil()
+                ))
+                .toList();
+
+        java.math.BigDecimal dayPrice = platformSettingRepository.findBySettingKey("PINNED_JOB_DAY_FEE")
+                .map(s -> new java.math.BigDecimal(s.getSettingValue()))
+                .orElse(java.math.BigDecimal.valueOf(org.moseti.kedevsapi.shared.util.Constants.DEFAULT_PINNED_JOB_DAY_FEE));
+        java.math.BigDecimal threeDaysPrice = platformSettingRepository.findBySettingKey("PINNED_JOB_3DAYS_FEE")
+                .map(s -> new java.math.BigDecimal(s.getSettingValue()))
+                .orElse(java.math.BigDecimal.valueOf(org.moseti.kedevsapi.shared.util.Constants.DEFAULT_PINNED_JOB_3DAYS_FEE));
+        java.math.BigDecimal sevenDaysPrice = platformSettingRepository.findBySettingKey("PINNED_JOB_7DAYS_FEE")
+                .map(s -> new java.math.BigDecimal(s.getSettingValue()))
+                .orElse(java.math.BigDecimal.valueOf(org.moseti.kedevsapi.shared.util.Constants.DEFAULT_PINNED_JOB_7DAYS_FEE));
+
+        return new PinnedSlotAvailabilityResponse(
+                maxSlots,
+                activeSlots.size(),
+                maxSlots - activeSlots.size(),
+                activeSlots,
+                dayPrice,
+                threeDaysPrice,
+                sevenDaysPrice
+        );
     }
 }

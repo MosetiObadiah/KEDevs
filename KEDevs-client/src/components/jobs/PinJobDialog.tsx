@@ -44,60 +44,83 @@ export default function PinJobDialog({ open, onClose, jobId, jobTitle, onSuccess
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isInitiating, setIsInitiating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [checkoutRequestId, setCheckoutRequestId] = useState<string | null>(null);
+  const [slots, setSlots] = useState<any>(null);
+  const [slotsLoading, setSlotsLoading] = useState(false);
 
   useEffect(() => {
     if (open) {
       setStep('SELECT');
       setError(null);
+      setCheckoutRequestId(null);
+      setIsInitiating(false);
+      fetchSlots();
     }
   }, [open]);
+
+  const fetchSlots = async () => {
+    setSlotsLoading(true);
+    try {
+      const { jobService } = await import('@/services/jobService');
+      const response = await jobService.getPinnedSlotAvailability();
+      if (response.success) {
+        setSlots(response.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch slot availability', err);
+    } finally {
+      setSlotsLoading(false);
+    }
+  };
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
     let timeoutId: NodeJS.Timeout;
 
-    if (step === 'PAYING' && open) {
-      // Start polling
+    if (checkoutRequestId && open) {
       interval = setInterval(async () => {
         try {
-          const response = await paymentService.confirmPinnedJob();
+          const response = await paymentService.getPaymentStatus(checkoutRequestId);
           if (response.success) {
-            setStep('SUCCESS');
-            onSuccess();
+            const status = response.data.status;
+            if (status === 'COMPLETED') {
+              toast.success('Job Featured Successfully!');
+              setCheckoutRequestId(null);
+              setIsInitiating(false);
+              onSuccess();
+              onClose();
+            } else if (status === 'FAILED' || status === 'CANCELLED') {
+              const reason = response.data.failReason || 'Transaction failed or cancelled';
+              toast.error('Payment Failed', { description: reason });
+              setError(reason);
+              setCheckoutRequestId(null);
+              setIsInitiating(false);
+            }
           }
         } catch (err: any) {
-          const msg = err.message || '';
-          if (msg.includes('FAILED') || msg.includes('CANCELLED') || msg.includes('not successful')) {
-            const isCancelled = msg.includes('CANCELLED');
-            toast.error(isCancelled ? 'Payment Cancelled' : 'Payment Failed', {
-              description: isCancelled 
-                ? 'You cancelled the transaction on your phone.' 
-                : (msg || 'Your M-Pesa transaction was not successful.')
-            });
-            setStep('SELECT');
-            setError(msg);
-          }
+          console.error('Error polling status', err);
         }
-      }, 5000);
+      }, 3000); // Poll every 3 seconds
 
       // 2-minute timeout
       timeoutId = setTimeout(() => {
-        if (step === 'PAYING') {
+        if (checkoutRequestId) {
           clearInterval(interval);
           toast.error('Transaction Timeout', {
-            description: 'The payment verification is taking longer than usual. Please try again or contact support if you have already been charged.'
+            description: 'The payment verification is taking longer than usual. Please try again later.'
           });
-          setStep('SELECT');
           setError('Verification timed out. Please try again.');
+          setCheckoutRequestId(null);
+          setIsInitiating(false);
         }
-      }, 120000); // 120 seconds
+      }, 120000);
     }
 
     return () => {
       if (interval) clearInterval(interval);
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [step, open, onSuccess]);
+  }, [checkoutRequestId, open, onSuccess, onClose]);
 
   const handleInitiate = async () => {
     if (!phoneNumber || !phoneNumber.match(/^0[17]\d{8}$/)) {
@@ -114,42 +137,90 @@ export default function PinJobDialog({ open, onClose, jobId, jobTitle, onSuccess
         phoneNumber
       });
       if (response.success) {
-        setStep('PAYING');
-        toast.info('STK Push sent to your phone');
+        toast.info('STK Push sent!', {
+          description: 'Please enter your M-Pesa PIN on your phone...'
+        });
+        setCheckoutRequestId(response.data.checkoutRequestId);
+        // We do NOT set isInitiating to false here; it stays true while polling
       }
     } catch (err: any) {
       setError(err.message || 'Failed to initiate payment');
       toast.error(err.message || 'Failed to initiate payment');
-    } finally {
       setIsInitiating(false);
     }
   };
+
 
   const currentPrice = getPrice(`PINNED_JOB_${durationType}_FEE`, '...');
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-[500px] rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+      <DialogContent className="sm:max-w-[500px] rounded-[2.5rem] p-0 overflow-y-auto max-h-[90vh] border-none shadow-2xl">
         <div className="bg-gradient-to-br from-primary/5 via-background to-background p-8">
           <DialogHeader className="mb-8">
-            <div className="flex items-center gap-4 mb-2">
-              <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
-                <TrendingUp className="h-6 w-6" />
-              </div>
-              <div>
-                <DialogTitle className="text-2xl font-black tracking-tight">
-                  {step === 'SELECT' ? 'Feature Your Job' : step === 'PAYING' ? 'Completing Payment' : 'Success!'}
-                </DialogTitle>
-                <DialogDescription className="font-bold text-muted-foreground">
-                  {jobTitle}
-                </DialogDescription>
-              </div>
+            <div className="mb-2">
+              <DialogTitle className="text-2xl font-black tracking-tight">
+                {step === 'SELECT' ? 'Feature Your Job' : step === 'PAYING' ? 'Completing Payment' : 'Success!'}
+              </DialogTitle>
+              <DialogDescription className="font-bold text-muted-foreground mt-2">
+                {jobTitle}
+              </DialogDescription>
             </div>
           </DialogHeader>
 
           <div className="min-h-[300px] flex flex-col">
             {step === 'SELECT' && (
               <div className="space-y-8 flex-1">
+                {/* Slot Availability */}
+                {slotsLoading ? (
+                  <div className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-muted/30 border border-border/30">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Checking slot availability...</span>
+                  </div>
+                ) : slots && (
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-1">Featured Slots</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[0, 1, 2].map((i) => {
+                        const slot = slots.activeSlots?.[i];
+                        return (
+                          <div
+                            key={i}
+                            className={cn(
+                              "rounded-xl p-3 border-2 text-center transition-all",
+                              slot
+                                ? "border-amber-200 bg-amber-50/50"
+                                : "border-emerald-200 bg-emerald-50/50"
+                            )}
+                          >
+                            <div className={cn(
+                              "text-[9px] font-black uppercase tracking-widest mb-1",
+                              slot ? "text-amber-600" : "text-emerald-600"
+                            )}>
+                              Slot {i + 1}
+                            </div>
+                            {slot ? (
+                              <p className="text-[10px] font-bold text-amber-700 leading-tight line-clamp-1" title={slot.jobTitle}>
+                                {slot.jobTitle}
+                              </p>
+                            ) : (
+                              <p className="text-[10px] font-bold text-emerald-700">Available</p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {slots.freeSlots === 0 && (
+                      <div className="flex gap-3 p-4 rounded-2xl bg-destructive/5 border border-destructive/10 text-destructive text-xs font-bold animate-in fade-in">
+                        <AlertCircle className="h-4 w-4 shrink-0" />
+                        <p>All 3 featured slots are currently occupied. Try again when one expires.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {(!slots || slots.freeSlots > 0) && (
+                <>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between px-1">
                     <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Select Duration</Label>
@@ -220,68 +291,37 @@ export default function PinJobDialog({ open, onClose, jobId, jobTitle, onSuccess
                     <span>You will receive an M-Pesa STK push for KES {currentPrice}</span>
                   </div>
                 </div>
+                </>
+                )}
               </div>
             )}
 
-            {step === 'PAYING' && (
-              <div className="flex-1 flex flex-col items-center justify-center py-12 space-y-8 animate-in fade-in zoom-in-95 duration-500">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping duration-[2000ms]" />
-                  <div className="relative h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center text-primary shadow-2xl">
-                    <Loader2 className="h-12 w-12 animate-spin-slow" />
-                    <Smartphone className="absolute h-6 w-6" />
-                  </div>
-                </div>
-                <div className="text-center space-y-3 max-w-xs">
-                  <h2 className="text-2xl font-black tracking-tight">Waiting for PIN</h2>
-                  <p className="text-muted-foreground font-medium leading-relaxed">
-                    Please check your phone and enter your M-Pesa PIN to complete the payment of <span className="text-primary font-black">KES {currentPrice}</span>.
-                  </p>
-                </div>
-                <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-primary animate-progress duration-[120000ms]" />
-                </div>
-              </div>
-            )}
-
-            {step === 'SUCCESS' && (
-              <div className="flex-1 flex flex-col items-center justify-center py-12 space-y-8 animate-in fade-in zoom-in-95 duration-500">
-                <div className="h-24 w-24 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 shadow-2xl shadow-emerald-500/10">
-                  <CheckCircle2 className="h-14 w-14 fill-emerald-500/10" />
-                </div>
-                <div className="text-center space-y-3 max-w-xs">
-                  <h2 className="text-3xl font-black tracking-tight">Job Featured!</h2>
-                  <p className="text-muted-foreground font-medium leading-relaxed">
-                    Your job listing is now pinned at the top of the feed and will get maximum visibility.
-                  </p>
-                </div>
-              </div>
-            )}
+            {/* Removed PAYING and SUCCESS screens */}
           </div>
 
           <DialogFooter className="mt-8 pt-6 border-t border-border/50">
-            {step === 'SELECT' ? (
-              <div className="flex w-full gap-3">
-                <Button variant="ghost" onClick={onClose} className="flex-1 h-12 rounded-xl font-bold hover:bg-muted/50 transition-colors">
-                  Cancel
-                </Button>
-                <Button 
-                  className="flex-[2] h-12 rounded-xl font-black text-base shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]" 
-                  onClick={handleInitiate}
-                  disabled={isInitiating || loadingSettings}
-                >
-                  {isInitiating ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <CreditCard className="h-5 w-5 mr-2" />}
-                  Feature Listing
-                </Button>
-              </div>
-            ) : (
-              <Button 
-                className="w-full h-14 rounded-2xl font-black text-lg shadow-xl shadow-primary/10" 
-                onClick={onClose}
-              >
-                Awesome!
+            <div className="flex w-full gap-3">
+              <Button variant="ghost" onClick={onClose} className="flex-1 h-12 rounded-xl font-bold hover:bg-muted/50 transition-colors">
+                Cancel
               </Button>
-            )}
+              <Button 
+                className="flex-[2] h-12 rounded-xl font-black text-base shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]" 
+                onClick={handleInitiate}
+                disabled={isInitiating || loadingSettings || (slots && slots.freeSlots === 0)}
+              >
+                {isInitiating ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    {checkoutRequestId ? "Waiting for PIN..." : "Initiating..."}
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="h-5 w-5 mr-2" />
+                    Feature Listing
+                  </>
+                )}
+              </Button>
+            </div>
           </DialogFooter>
         </div>
       </DialogContent>

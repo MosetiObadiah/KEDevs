@@ -255,6 +255,7 @@ export default function CreateJobPostPage() {
     } else if (key === 'requirements') {
       if (!formState.experienceLevel) errors.experienceLevel = 'Experience level is required';
     } else if (key === 'location') {
+      if (!formState.jobType) errors.jobType = 'Job type is required';
       if (!formState.workType) errors.workType = 'Work type is required';
     } else if (key === 'visibility') {
       if (formState.isPeerSourced && !formState.sourceUrl.trim()) {
@@ -607,24 +608,41 @@ export default function CreateJobPostPage() {
 
               {currentStepKey === 'location' && (
                 <div className="space-y-8">
-                  <div className="space-y-2">
-                     <Label className="font-black text-xs uppercase tracking-widest text-slate-400">Work Type</Label>
-                     <div className="grid grid-cols-3 gap-4">
-                        {workTypes.map(type => (
-                           <Button 
-                              key={type}
-                              type="button"
-                              variant="outline"
-                              className={cn(
-                                 "h-14 rounded-2xl border-slate-100 font-black tracking-tight",
-                                 formState.workType === type ? "border-primary bg-primary/5 text-primary" : "text-slate-500"
-                              )}
-                              onClick={() => dispatch({ type: 'UPDATE_FIELD', field: 'workType', value: type })}
-                           >
-                              {type}
-                           </Button>
-                        ))}
-                     </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-2">
+                      <Label className="font-black text-xs uppercase tracking-widest text-slate-400">Job Type</Label>
+                      <Select value={formState.jobType || ''} onValueChange={(v) => dispatch({ type: 'UPDATE_FIELD', field: 'jobType', value: v })}>
+                        <SelectTrigger className="h-14 rounded-2xl border-slate-200 font-black">
+                          <SelectValue placeholder="Select job type" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          {jobTypes.map(t => (
+                            <SelectItem key={t} value={t} className="font-bold">
+                              {t.replace('_', ' ')}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                       <Label className="font-black text-xs uppercase tracking-widest text-slate-400">Work Type</Label>
+                       <div className="grid grid-cols-3 gap-4">
+                          {workTypes.map(type => (
+                             <Button 
+                                key={type}
+                                type="button"
+                                variant="outline"
+                                className={cn(
+                                   "h-14 rounded-2xl border-slate-100 font-black tracking-tight",
+                                   formState.workType === type ? "border-primary bg-primary/5 text-primary" : "text-slate-500"
+                                )}
+                                onClick={() => dispatch({ type: 'UPDATE_FIELD', field: 'workType', value: type })}
+                             >
+                                {type}
+                             </Button>
+                          ))}
+                       </div>
+                    </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">

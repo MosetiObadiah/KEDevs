@@ -477,21 +477,21 @@ export default function JobDetailPage() {
                     <div className="flex items-center gap-3 py-2">
                       <Avatar className="h-8 w-8">
                         <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
-                          {job.postedByName?.charAt(0) || 'C'}
+                          {(job.postedByCompanyName || job.postedByName || 'C').charAt(0)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold">{job.postedByName || 'Community Member'}</span>
+                        <span className="text-sm font-bold">{job.postedByCompanyName || job.postedByName || 'Community Member'}</span>
                         <Badge variant="outline" className="w-fit text-[10px] h-4 border-blue-200 bg-blue-50 text-blue-700 font-bold uppercase tracking-tighter">
-                          Community Member
+                          {job.postedByRole === 'EMPLOYER' ? 'Employer' : 'Community Member'}
                         </Badge>
                       </div>
                     </div>
                   </div>
                   
                   <Button variant="outline" size="sm" className="w-full font-semibold" asChild>
-                    <Link href={`/developers/${job.postedById}`}>
-                      View Developer Profile
+                    <Link href={job.postedByRole === 'EMPLOYER' ? `/companies/${job.postedByProfileId}` : `/developers/${job.postedByProfileId}`}>
+                      View Profile
                     </Link>
                   </Button>
                 </CardContent>

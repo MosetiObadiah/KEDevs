@@ -12,6 +12,10 @@ export const jobService = {
   async getPinnedJobs(): Promise<ApiResponse<any[]>> {
     return apiClient.get<ApiResponse<any[]>>('/api/v1/jobs/pinned');
   },
+
+  async getFilterMetadata(): Promise<ApiResponse<{ qualifications: string[], experienceYears: number[] }>> {
+    return apiClient.get<ApiResponse<{ qualifications: string[], experienceYears: number[] }>>('/api/v1/jobs/metadata');
+  },
   
   async getJobs(params: any): Promise<ApiResponse<PaginatedResponse<JobSummary>>> {
     const urlParams = new URLSearchParams();
@@ -88,6 +92,33 @@ export const jobService = {
 
   async verifyUrl(url: string): Promise<ApiResponse<{ isSafe: boolean }>> {
     return apiClient.post<ApiResponse<{ isSafe: boolean }>>('/api/v1/jobs/verify-url', { url });
+  },
+
+  async exportJobsPdf(params: any): Promise<Blob> {
+    const urlParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value == null || value === '') return;
+      if (Array.isArray(value)) {
+        value.forEach(val => {
+          if (val != null && val !== '') urlParams.append(key, val);
+        });
+      } else {
+        urlParams.append(key, String(value));
+      }
+    });
+    
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/jobs/export?${urlParams.toString()}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    
+    if (!response.ok) throw new Error('Failed to export PDF');
+    return response.blob();
+  },
+
+  async getPinnedSlotAvailability(): Promise<ApiResponse<any>> {
+    return apiClient.get<ApiResponse<any>>('/api/v1/jobs/pinned/slots');
   }
 };
 

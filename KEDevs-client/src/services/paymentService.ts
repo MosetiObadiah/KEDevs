@@ -44,4 +44,8 @@ export const paymentService = {
   async confirmPinnedJob(): Promise<ApiResponse<any>> {
     return apiClient.post<ApiResponse<any>>('/api/v1/payments/confirm-pinned-job', {});
   },
+
+  async getPaymentStatus(checkoutRequestId: string): Promise<ApiResponse<any>> {
+    return apiClient.get<ApiResponse<any>>(`/api/v1/payments/status/${checkoutRequestId}`);
+  },
 };

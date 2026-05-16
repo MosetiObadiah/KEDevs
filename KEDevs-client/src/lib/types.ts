@@ -17,6 +17,8 @@ export interface JobSummary {
   jobType: JobType;
   workType: WorkType;
   experienceLevel: ExperienceLevel;
+  salaryRangeMin?: number | null;
+  salaryRangeMax?: number | null;
   visibility: JobVisibility;
   status: JobStatus;
   upvoteCount: number;
@@ -29,6 +31,7 @@ export interface JobSummary {
   postedByName?: string;
   postedByRole?: 'EMPLOYER' | 'DEVELOPER' | 'ADMIN';
   isFlagged?: boolean;
+  isPinned?: boolean;
 }
 
 export interface DeveloperSummary {

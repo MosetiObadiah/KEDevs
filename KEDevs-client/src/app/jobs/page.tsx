@@ -2,15 +2,15 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { 
-  Search, 
-  ThumbsUp, 
-  ThumbsDown, 
-  Flag, 
-  CheckCircle2, 
-  MapPin, 
-  Calendar, 
-  ArrowRight, 
+import {
+  Search,
+  ThumbsUp,
+  ThumbsDown,
+  Flag,
+  CheckCircle2,
+  MapPin,
+  Calendar,
+  ArrowRight,
   Briefcase,
   FilterX,
   Plus,
@@ -21,7 +21,9 @@ import {
   FileText,
   Pin,
   TrendingUp,
-  Clock
+  Clock,
+  DollarSign,
+  PinOff
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -44,12 +46,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { format } from 'date-fns';
 import {
   Dialog,
   DialogContent,
@@ -105,13 +108,13 @@ function JobsPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  
+
   const [jobs, setJobs] = useState<JobSummary[]>([]);
   const [pinnedJobs, setPinnedJobs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isPinnedLoading, setIsPinnedLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const searchTerm = searchParams.get('search') || '';
   const [selectedJobTypes, setSelectedJobTypes] = useState<string[]>([]);
   const [selectedWorkTypes, setSelectedWorkTypes] = useState<string[]>([]);
@@ -119,6 +122,14 @@ function JobsPageContent() {
   const [city, setCity] = useState('All');
   const [minSalary, setMinSalary] = useState('');
   const [maxSalary, setMaxSalary] = useState('');
+  const [minQualification, setMinQualification] = useState('');
+  const [minExperienceYears, setMinExperienceYears] = useState('');
+  const [deadlineFrom, setDeadlineFrom] = useState('');
+  const [deadlineTo, setDeadlineTo] = useState('');
+  const [isPeerSourced, setIsPeerSourced] = useState<boolean | null>(null);
+  const [minUpvotes, setMinUpvotes] = useState('');
+  const [status, setStatus] = useState<string>('OPEN');
+  const [metadata, setMetadata] = useState<{ qualifications: string[], experienceYears: number[] }>({ qualifications: [], experienceYears: [] });
 
   const uniqueCities = Array.from(new Set([...KENYA_CITIES, ...jobs.map(j => j.locationCity).filter(Boolean)])).sort();
 
@@ -145,6 +156,17 @@ function JobsPageContent() {
       }
     };
 
+    const fetchMetadata = async () => {
+      try {
+        const response = await jobService.getFilterMetadata();
+        if (response.success) {
+          setMetadata(response.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch filter metadata', err);
+      }
+    };
+
     const fetchJobs = async () => {
       setIsLoading(true);
       setError(null);
@@ -159,6 +181,13 @@ function JobsPageContent() {
           experienceLevels: selectedExpLevels.length > 0 ? selectedExpLevels : undefined,
           minSalary: minSalary ? parseFloat(minSalary) : undefined,
           maxSalary: maxSalary ? parseFloat(maxSalary) : undefined,
+          minQualification: minQualification || undefined,
+          minExperienceYears: minExperienceYears ? parseInt(minExperienceYears) : undefined,
+          deadlineFrom: deadlineFrom || undefined,
+          deadlineTo: deadlineTo || undefined,
+          isPeerSourced: isPeerSourced !== null ? isPeerSourced : undefined,
+          minUpvotes: minUpvotes ? parseInt(minUpvotes) : undefined,
+          status: status as any,
         });
         if (response.success) {
           let content = response.data.content;
@@ -178,23 +207,48 @@ function JobsPageContent() {
     };
 
     fetchPinnedJobs();
+    fetchMetadata();
     const timer = setTimeout(() => {
       fetchJobs();
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchTerm, city, selectedJobTypes, selectedWorkTypes, selectedExpLevels, minSalary, maxSalary, sortBy]);
+  }, [searchTerm, city, selectedJobTypes, selectedWorkTypes, selectedExpLevels, minSalary, maxSalary, minQualification, minExperienceYears, deadlineFrom, deadlineTo, isPeerSourced, minUpvotes, status, sortBy]);
 
   const [isExporting, setIsExporting] = useState(false);
 
   const handleExport = async (format: 'csv' | 'pdf') => {
-    if (format === 'pdf') {
-      window.print();
-      return;
-    }
-    
     setIsExporting(true);
     try {
+      if (format === 'pdf') {
+        const blob = await jobService.exportJobsPdf({
+          keyword: searchTerm || undefined,
+          locationCity: city === 'All' ? undefined : city,
+          jobTypes: selectedJobTypes.length > 0 ? selectedJobTypes : undefined,
+          workTypes: selectedWorkTypes.length > 0 ? selectedWorkTypes : undefined,
+          experienceLevels: selectedExpLevels.length > 0 ? selectedExpLevels : undefined,
+          minSalary: minSalary ? parseFloat(minSalary) : undefined,
+          maxSalary: maxSalary ? parseFloat(maxSalary) : undefined,
+          minQualification: minQualification || undefined,
+          minExperienceYears: minExperienceYears ? parseInt(minExperienceYears) : undefined,
+          deadlineFrom: deadlineFrom || undefined,
+          deadlineTo: deadlineTo || undefined,
+          isPeerSourced: isPeerSourced !== null ? isPeerSourced : undefined,
+          minUpvotes: minUpvotes ? parseInt(minUpvotes) : undefined,
+          status: status as any,
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `job_listings_report_${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        toast.success('PDF Report generated successfully');
+        return;
+      }
+
       const headers = ['JobTitle', 'Company', 'WorkArrangement', 'Location', 'Status', 'Upvotes'];
       const rows = jobs.map(j => [
         `"${j.title || ''}"`,
@@ -204,7 +258,7 @@ function JobsPageContent() {
         `"${j.status || ''}"`,
         `"${j.upvoteCount || 0}"`
       ].join(','));
-      
+
       const csvContent = [headers.join(','), ...rows].join('\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = window.URL.createObjectURL(blob);
@@ -215,8 +269,10 @@ function JobsPageContent() {
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
+      toast.success('CSV Exported successfully');
     } catch (err) {
-      console.error('CSV Export failed', err);
+      console.error('Export failed', err);
+      toast.error('Export failed. Please try again.');
     } finally {
       setIsExporting(false);
     }
@@ -251,6 +307,21 @@ function JobsPageContent() {
     setUpvotedJobs(prevUpvoted);
     setDownvotedJobs(prevDownvoted);
 
+    const calculateVoteChange = () => {
+      if (vote === 'UP') {
+        if (wasUpvoted) return -1;
+        if (wasDownvoted) return 2;
+        return 1;
+      } else {
+        if (wasDownvoted) return 1;
+        if (wasUpvoted) return -2;
+        return -1;
+      }
+    };
+
+    const voteChange = calculateVoteChange();
+    setJobs(prevJobs => prevJobs.map(j => j.id === id ? { ...j, upvoteCount: j.upvoteCount + voteChange } : j));
+
     try {
       const response = await jobService.voteJob(id, vote === 'UP' ? 'UPVOTE' : 'DOWNVOTE');
       if (!response.success) {
@@ -259,6 +330,7 @@ function JobsPageContent() {
     } catch (err: any) {
       setUpvotedJobs(upvotedJobs);
       setDownvotedJobs(downvotedJobs);
+      setJobs(jobs); // Revert to original jobs state
       toast.error(err.message || 'Failed to register vote');
       console.error(err);
     }
@@ -287,7 +359,22 @@ function JobsPageContent() {
   };
 
   const formatJobType = (type: string) => {
-    return type.replace('_', '-').toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
+    return type.replace('_', ' ').toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
+  };
+
+  const formatExperienceLevel = (level: string) => {
+    switch (level) {
+      case 'ENTRY': return 'Entry-level';
+      case 'MID': return 'Mid-level';
+      case 'SENIOR': return 'Senior-level';
+      case 'LEAD': return 'Lead-level';
+      default: return level;
+    }
+  };
+
+  const formatWorkType = (type: string) => {
+    if (type === 'ONSITE') return 'On-site';
+    return type.charAt(0) + type.slice(1).toLowerCase();
   };
 
   return (
@@ -296,18 +383,18 @@ function JobsPageContent() {
         <div className="flex justify-end items-center gap-3 mb-8 print:hidden">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-               <Button variant="outline" className="font-bold border-primary/20 hover:bg-primary/5 h-12 px-6" disabled={isExporting}>
-                  <Download className="mr-2 h-4 w-4 text-primary" /> 
-                  {isExporting ? 'Exporting...' : 'Export'}
-               </Button>
+              <Button variant="outline" className="font-bold border-primary/20 hover:bg-primary/5 h-12 px-6" disabled={isExporting}>
+                <Download className="mr-2 h-4 w-4 text-primary" />
+                {isExporting ? 'Exporting...' : 'Export'}
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-               <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium">
-                  <FileSpreadsheet className="mr-2 h-4 w-4" /> Download as CSV
-               </DropdownMenuItem>
-               <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium">
-                  <FileText className="mr-2 h-4 w-4" /> Download as PDF
-               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium">
+                <FileSpreadsheet className="mr-2 h-4 w-4" /> Download as CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium">
+                <FileText className="mr-2 h-4 w-4" /> Download as PDF
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -321,10 +408,10 @@ function JobsPageContent() {
         </div>
 
         <div className="hidden print:block mb-8 border-b pb-4">
-           <h1 className="text-2xl font-black text-black">KEDevs Job Market Report</h1>
-           <p className="text-sm text-gray-500">Generated on {new Date().toLocaleDateString()}</p>
+          <h1 className="text-2xl font-black text-black">KEDevs Job Market Report</h1>
+          <p className="text-sm text-gray-500">Generated on {new Date().toLocaleDateString()}</p>
         </div>
-        
+
         <div className={cn("grid grid-cols-1 lg:grid-cols-4", SPACING.cards)}>
           {/* Filters Sidebar */}
           <aside className="lg:col-span-1 space-y-6 print:hidden">
@@ -339,8 +426,8 @@ function JobsPageContent() {
                   <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
                     {WORK_TYPES.map(type => (
                       <div key={type.value} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`wt-${type.value}`} 
+                        <Checkbox
+                          id={`wt-${type.value}`}
                           checked={selectedWorkTypes.includes(type.value)}
                           onCheckedChange={(checked) => {
                             if (checked) setSelectedWorkTypes([...selectedWorkTypes, type.value]);
@@ -358,8 +445,8 @@ function JobsPageContent() {
                   <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
                     {JOB_TYPES.map(type => (
                       <div key={type.value} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`jt-${type.value}`} 
+                        <Checkbox
+                          id={`jt-${type.value}`}
                           checked={selectedJobTypes.includes(type.value)}
                           onCheckedChange={(checked) => {
                             if (checked) setSelectedJobTypes([...selectedJobTypes, type.value]);
@@ -377,8 +464,8 @@ function JobsPageContent() {
                   <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
                     {EXPERIENCE_LEVELS.map(level => (
                       <div key={level.value} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`el-${level.value}`} 
+                        <Checkbox
+                          id={`el-${level.value}`}
                           checked={selectedExpLevels.includes(level.value)}
                           onCheckedChange={(checked) => {
                             if (checked) setSelectedExpLevels([...selectedExpLevels, level.value]);
@@ -407,23 +494,93 @@ function JobsPageContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Salary Bounds (KES)</label>
-                  <div className="flex gap-2">
-                    <Input 
-                      type="number"
-                      placeholder="Min..." 
-                      className="text-xs border-border/50 h-9 focus-visible:ring-primary/20 rounded-lg flex-1"
-                      value={minSalary}
-                      onChange={(e) => setMinSalary(e.target.value)}
-                    />
-                    <Input 
-                      type="number"
-                      placeholder="Max..." 
-                      className="text-xs border-border/50 h-9 focus-visible:ring-primary/20 rounded-lg flex-1"
-                      value={maxSalary}
-                      onChange={(e) => setMaxSalary(e.target.value)}
-                    />
+                  <label className="text-xs font-bold text-muted-foreground uppercase">Qualification & Exp</label>
+                  <div className="space-y-2">
+                    <Select value={minQualification || 'All'} onValueChange={(val) => setMinQualification(val === 'All' ? '' : val)}>
+                      <SelectTrigger className="text-xs h-9 rounded-lg">
+                        <SelectValue placeholder="Any Qualification" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="All">Any Qualification</SelectItem>
+                        {metadata.qualifications.map(q => (
+                          <SelectItem key={q} value={q}>{q}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <Select value={minExperienceYears || 'All'} onValueChange={(val) => setMinExperienceYears(val === 'All' ? '' : val)}>
+                      <SelectTrigger className="text-xs h-9 rounded-lg">
+                        <SelectValue placeholder="Any Experience" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="All">Any Experience</SelectItem>
+                        {metadata.experienceYears.map(exp => (
+                          <SelectItem key={exp.toString()} value={exp.toString()}>{exp} Years</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground uppercase">Application Deadline</label>
+                  <div className="flex flex-col gap-3 bg-muted/10 p-3 rounded-xl">
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">From Date</Label>
+                      <Input
+                        type="date"
+                        className="text-xs border-border/50 h-9 rounded-lg focus-visible:ring-primary/20"
+                        value={deadlineFrom}
+                        onChange={(e) => setDeadlineFrom(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">To Date</Label>
+                      <Input
+                        type="date"
+                        className="text-xs border-border/50 h-9 rounded-lg focus-visible:ring-primary/20"
+                        value={deadlineTo}
+                        onChange={(e) => setDeadlineTo(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground uppercase">Advanced</label>
+                  <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="peer-sourced"
+                        checked={isPeerSourced === true}
+                        onCheckedChange={(checked) => setIsPeerSourced(checked ? true : null)}
+                      />
+                      <Label htmlFor="peer-sourced" className="text-xs font-medium cursor-pointer">Peer Sourced Only</Label>
+                    </div>
+                    <div className="pt-2">
+                      <Label className="text-[10px] text-muted-foreground">Min Upvotes</Label>
+                      <Input
+                        type="number"
+                        placeholder="e.g. 5"
+                        className="text-xs border-border/50 h-8 mt-1"
+                        value={minUpvotes}
+                        onChange={(e) => setMinUpvotes(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground uppercase">Job Status</label>
+                  <Select value={status} onValueChange={setStatus}>
+                    <SelectTrigger className="text-xs h-9 rounded-lg w-full">
+                      <SelectValue placeholder="Filter by Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="OPEN">Open Only</SelectItem>
+                      <SelectItem value="CLOSED">Closed Only</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2 border-t pt-4">
@@ -439,10 +596,10 @@ function JobsPageContent() {
                   </Select>
                 </div>
 
-                {(searchTerm || selectedWorkTypes.length > 0 || selectedJobTypes.length > 0 || selectedExpLevels.length > 0 || city !== 'All' || minSalary || maxSalary) && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                {(searchTerm || selectedWorkTypes.length > 0 || selectedJobTypes.length > 0 || selectedExpLevels.length > 0 || city !== 'All' || minSalary || maxSalary || minQualification || minExperienceYears || deadlineFrom || deadlineTo || isPeerSourced !== null || minUpvotes || status !== 'OPEN') && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="w-full text-xs font-bold text-muted-foreground mt-2"
                     onClick={() => {
                       router.push(pathname);
@@ -452,6 +609,13 @@ function JobsPageContent() {
                       setCity('All');
                       setMinSalary('');
                       setMaxSalary('');
+                      setMinQualification('');
+                      setMinExperienceYears('');
+                      setDeadlineFrom('');
+                      setDeadlineTo('');
+                      setIsPeerSourced(null);
+                      setMinUpvotes('');
+                      setStatus('OPEN');
                     }}
                   >
                     <FilterX className="mr-2 h-3.5 w-3.5" /> Reset Filters
@@ -474,7 +638,6 @@ function JobsPageContent() {
               <div className="space-y-4 mb-8">
                 <div className="flex items-center gap-2 px-1">
                   <div className="bg-primary/10 p-2 rounded-lg">
-                    <TrendingUp className="h-5 w-5 text-primary" />
                   </div>
                   <h2 className="text-lg font-black uppercase tracking-tight text-foreground">Featured Listings</h2>
                 </div>
@@ -482,9 +645,9 @@ function JobsPageContent() {
                   {pinnedJobs.map((pJob) => (
                     <Card key={pJob.id} className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/[0.03] to-transparent hover:shadow-xl hover:shadow-primary/10 transition-all group">
                       <div className="absolute top-0 right-0 p-3">
-                         <Badge className="bg-primary text-primary-foreground font-black text-[10px] tracking-widest uppercase py-1 px-2 shadow-sm flex items-center gap-1">
-                           <Pin className="h-3 w-3 fill-current" /> Pinned
-                         </Badge>
+                        <Badge className="bg-primary text-primary-foreground font-black text-[10px] tracking-widest uppercase py-1 px-2 shadow-sm flex items-center gap-1">
+                          <Pin className="h-3 w-3 fill-current" /> Pinned
+                        </Badge>
                       </div>
                       <CardHeader className="pb-2">
                         <Link href={`/jobs/${pJob.id}`}>
@@ -494,21 +657,21 @@ function JobsPageContent() {
                       </CardHeader>
                       <CardContent className="pb-3 text-xs space-y-2">
                         <div className="flex items-center gap-2 text-muted-foreground font-medium">
-                           <MapPin className="h-3.5 w-3.5" /> {pJob.locationCity}
+                          <MapPin className="h-3.5 w-3.5" /> {pJob.locationCity}
                         </div>
                         <div className="flex items-center gap-2">
-                           <Badge variant="secondary" className="text-[9px] uppercase tracking-wider font-black py-0.5">{pJob.workType}</Badge>
-                           <Badge variant="outline" className="text-[9px] uppercase tracking-wider font-black py-0.5 border-primary/20 text-primary">{pJob.jobType}</Badge>
+                          <Badge variant="secondary" className="text-[9px] uppercase tracking-wider font-black py-0.5">{pJob.workType}</Badge>
+                          <Badge variant="outline" className="text-[9px] uppercase tracking-wider font-black py-0.5 border-primary/20 text-primary">{pJob.jobType}</Badge>
                         </div>
                       </CardContent>
                       <CardFooter className="pt-0 flex justify-between items-center border-t border-primary/10 mt-2 bg-primary/[0.02]">
                         <span className="text-[10px] font-bold text-muted-foreground flex items-center gap-1 mt-2">
-                           <Clock className="h-3 w-3" /> Expires soon
+                          <Clock className="h-3 w-3" /> Expires soon
                         </span>
                         <Link href={`/jobs/${pJob.id}`} className="mt-2">
-                           <Button size="sm" variant="ghost" className="h-7 text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10">
-                              View <ArrowRight className="ml-1 h-3 w-3" />
-                           </Button>
+                          <Button size="sm" variant="ghost" className="h-7 text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10">
+                            View <ArrowRight className="ml-1 h-3 w-3" />
+                          </Button>
                         </Link>
                       </CardFooter>
                     </Card>
@@ -516,7 +679,7 @@ function JobsPageContent() {
                 </div>
               </div>
             )}
-            
+
             <div className="space-y-4">
               {isLoading ? (
                 [1, 2, 3, 4, 5].map(i => (
@@ -539,15 +702,22 @@ function JobsPageContent() {
                   <Briefcase className="w-12 h-12 text-muted-foreground/50 mb-4" />
                   <h3 className={cn(TYPOGRAPHY.sectionHeading, "mb-2")}>No jobs found</h3>
                   <p className={cn(TYPOGRAPHY.body, "mb-4")}>Try adjusting your filters or search term.</p>
-                  {(searchTerm || selectedWorkTypes.length > 0 || selectedJobTypes.length > 0 || selectedExpLevels.length > 0 || city !== 'All' || minSalary || maxSalary) && (
-                    <Button variant="outline" size="sm" onClick={() => { 
-                      router.push(pathname); 
+                  {(searchTerm || selectedWorkTypes.length > 0 || selectedJobTypes.length > 0 || selectedExpLevels.length > 0 || city !== 'All' || minSalary || maxSalary || minQualification || minExperienceYears || deadlineFrom || deadlineTo || isPeerSourced !== null || minUpvotes || status !== 'OPEN') && (
+                    <Button variant="outline" size="sm" onClick={() => {
+                      router.push(pathname);
                       setSelectedWorkTypes([]);
                       setSelectedJobTypes([]);
                       setSelectedExpLevels([]);
                       setCity('All');
                       setMinSalary('');
                       setMaxSalary('');
+                      setMinQualification('');
+                      setMinExperienceYears('');
+                      setDeadlineFrom('');
+                      setDeadlineTo('');
+                      setIsPeerSourced(null);
+                      setMinUpvotes('');
+                      setStatus('OPEN');
                     }}>
                       Reset Filters
                     </Button>
@@ -560,46 +730,71 @@ function JobsPageContent() {
                       <div className="flex flex-col md:flex-row gap-6">
                         {/* Job Content */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Link href={`/jobs/${job.id}`}>
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            {job.isPinned && (
+                              <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200 text-[9px] font-black uppercase tracking-widest gap-1 py-0.5 px-2">
+                                <Pin className="h-3 w-3 rotate-45" /> Pinned
+                              </Badge>
+                            )}
+                            <Link href={`/jobs/${job.id}`} className="flex-1 min-w-0">
                               <h3 className="text-xl font-bold group-hover:text-primary transition-colors truncate">
                                 {job.title}
                               </h3>
                             </Link>
                             {(() => {
                               const isExpired = job.applicationDeadline && new Date(job.applicationDeadline) < new Date();
-                              if (isExpired) return <Badge variant="destructive" className="text-[10px] uppercase">Expired</Badge>;
-                              if (job.status === 'OPEN') return <Badge className="bg-emerald-500 hover:bg-emerald-500 text-[10px] uppercase">Open</Badge>;
-                              return <Badge variant="destructive" className="text-[10px] uppercase">Closed</Badge>;
+                              if (isExpired) return <Badge variant="destructive" className="text-[10px] font-black uppercase tracking-widest py-0.5">Expired</Badge>;
+                              if (job.status === 'OPEN') return <Badge className="bg-emerald-500 hover:bg-emerald-500 text-[10px] font-black uppercase tracking-widest py-0.5">Open</Badge>;
+                              return <Badge variant="destructive" className="text-[10px] font-black uppercase tracking-widest py-0.5">Closed</Badge>;
                             })()}
                           </div>
-                          
-                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground font-medium mb-6">
-                            <span className="flex items-center gap-1.5 font-bold text-foreground/80">
-                              <Building2 className="h-4 w-4" /> {job.isPeerSourced || job.postedByRole !== 'EMPLOYER' ? (job.postedByName || 'Community Member') : job.companyName}
+
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground font-medium mb-6">
+                            <span className="font-bold text-foreground/80">
+                              {job.isPeerSourced || job.postedByRole !== 'EMPLOYER' ? (job.postedByName || 'Community Member') : job.companyName}
                             </span>
                             <span className="flex items-center gap-1.5">
                               <MapPin className="h-4 w-4" /> {job.locationCity}, {job.locationCountry}
                             </span>
+                            <span className="flex items-center gap-1.5">
+                              <Briefcase className="h-4 w-4" /> {formatExperienceLevel(job.experienceLevel)}
+                            </span>
+                            {(job.salaryRangeMin || job.salaryRangeMax) && (
+                              <span className="flex items-center gap-1.5 text-emerald-600 font-bold">
+                                {job.salaryRangeMin && `KES ${job.salaryRangeMin.toLocaleString()}`}
+                                {job.salaryRangeMin && job.salaryRangeMax && ' – '}
+                                {job.salaryRangeMax && `KES ${job.salaryRangeMax.toLocaleString()}`}
+                              </span>
+                            )}
                             {job.applicationDeadline && (
-                              <span className="flex items-center gap-1.5 text-rose-500">
-                                <Calendar className="h-4 w-4" /> Deadline: {new Date(job.applicationDeadline).toLocaleDateString()}
+                              <span className={cn(
+                                "flex items-center gap-1.5 font-bold",
+                                new Date(job.applicationDeadline) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) ? "text-rose-500" : "text-muted-foreground"
+                              )}>
+                                <Calendar className="h-4 w-4" />
+                                {new Date(job.applicationDeadline) < new Date() ? 'Expired: ' : 'Deadline: '}
+                                {format(new Date(job.applicationDeadline), 'dd MMM yyyy')}
                               </span>
                             )}
                           </div>
 
                           <div className="flex flex-wrap gap-2">
-                            <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-muted-foreground/20 text-muted-foreground">
+                            <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest bg-violet-100 text-violet-700 hover:bg-violet-100 border-violet-200">
                               {formatJobType(job.jobType)}
                             </Badge>
-                            <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest bg-primary/10 text-primary border-none">
-                              {job.workType}
+                            <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest bg-primary/10 text-primary hover:bg-primary/10 border-primary/20">
+                              {formatWorkType(job.workType)}
                             </Badge>
                             {job.tags.slice(0, 3).map(tag => (
-                              <Badge key={tag} variant="outline" className="text-[10px] font-medium bg-muted/30 border-muted">
+                              <Badge key={tag} variant="outline" className="text-[10px] font-medium bg-muted/30 border-muted text-muted-foreground">
                                 {tag}
                               </Badge>
                             ))}
+                            {job.tags.length > 3 && (
+                              <Badge variant="outline" className="text-[10px] font-medium bg-muted/30 border-muted text-muted-foreground">
+                                +{job.tags.length - 3} more
+                              </Badge>
+                            )}
                           </div>
                         </div>
 
@@ -609,9 +804,9 @@ function JobsPageContent() {
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Button 
-                                    variant="secondary" 
-                                    size="icon" 
+                                  <Button
+                                    variant="secondary"
+                                    size="icon"
                                     className={cn(
                                       "h-9 w-9 rounded-full border border-border/50",
                                       upvotedJobs.has(job.id) ? "bg-primary text-primary-foreground hover:bg-primary/90" : "hover:bg-primary/10 hover:text-primary"
@@ -626,9 +821,9 @@ function JobsPageContent() {
                               </Tooltip>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Button 
-                                    variant="secondary" 
-                                    size="icon" 
+                                  <Button
+                                    variant="secondary"
+                                    size="icon"
                                     className={cn(
                                       "h-9 w-9 rounded-full border border-border/50",
                                       downvotedJobs.has(job.id) ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : "hover:bg-destructive/10 hover:text-destructive"
@@ -643,13 +838,13 @@ function JobsPageContent() {
                               </Tooltip>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
                                     className={cn(
                                       "h-9 w-9 rounded-full",
-                                      job.isFlagged 
-                                        ? "text-destructive bg-destructive/10" 
+                                      job.isFlagged
+                                        ? "text-destructive bg-destructive/10"
                                         : "text-slate-400 hover:text-destructive hover:bg-destructive/10"
                                     )}
                                     disabled={!isLoggedIn}
@@ -670,18 +865,18 @@ function JobsPageContent() {
                               </Tooltip>
                             </TooltipProvider>
                           </div>
-                          
+
                           <div className="text-right flex-1 md:flex-none">
                             <div className="hidden md:block mb-3">
-                              <span className="text-sm font-black text-primary uppercase tracking-widest">{job.upvoteCount} Upvotes</span>
+                              <span className="text-sm font-black text-primary uppercase tracking-widest">{job.upvoteCount} {Math.abs(job.upvoteCount) === 1 ? 'Vote' : 'Votes'}</span>
                             </div>
-                            <Button 
-                              variant={user?.role === 'DEVELOPER' ? 'default' : 'outline'} 
-                              className="w-full font-bold group/btn" 
+                            <Button
+                              variant={user?.role === 'DEVELOPER' ? 'default' : 'outline'}
+                              className="w-full font-bold group/btn"
                               asChild
                             >
                               <Link href={isLoggedIn ? `/jobs/${job.id}` : '/register'}>
-                                {isLoggedIn ? (user?.role === 'DEVELOPER' ? 'Apply Now' : 'Details') : 'Register'} 
+                                {isLoggedIn ? (user?.role === 'DEVELOPER' ? 'Apply Now' : 'Details') : 'Register'}
                                 <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
                               </Link>
                             </Button>
@@ -711,7 +906,7 @@ function JobsPageContent() {
               Please describe why you are reporting this job. Our moderation team will review this report.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="py-6 space-y-4">
             <div className="space-y-2">
               <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground flex justify-between">
@@ -720,8 +915,8 @@ function JobsPageContent() {
                   {flagContent.length}/500
                 </span>
               </Label>
-              <Textarea 
-                placeholder="e.g. Spam, fake job, offensive content..." 
+              <Textarea
+                placeholder="e.g. Spam, fake job, offensive content..."
                 className="min-h-[120px] rounded-2xl border-border/50 resize-none font-medium text-base p-4 focus-visible:ring-destructive/20"
                 value={flagContent}
                 onChange={(e) => setFlagContent(e.target.value.slice(0, 500))}
@@ -733,8 +928,8 @@ function JobsPageContent() {
             <Button variant="ghost" className="rounded-xl font-bold" onClick={() => setIsFlagOpen(false)}>
               Cancel
             </Button>
-            <Button 
-              className="rounded-xl font-black px-8 bg-destructive text-destructive-foreground hover:bg-destructive/90" 
+            <Button
+              className="rounded-xl font-black px-8 bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={handleFlagJob}
               disabled={isSubmittingFlag || !flagContent.trim()}
             >

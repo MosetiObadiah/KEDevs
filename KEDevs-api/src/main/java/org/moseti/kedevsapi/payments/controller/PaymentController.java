@@ -38,7 +38,18 @@ public class PaymentController {
     private final PdfExportService pdfExportService;
 
     private UUID getCurrentUserId() {
-        return (UUID) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+        org.springframework.security.core.Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) {
+            throw new org.moseti.kedevsapi.shared.exception.BadRequestException("Authentication required");
+        }
+        Object principal = auth.getPrincipal();
+        if (principal instanceof UUID) {
+            return (UUID) principal;
+        }
+        if (principal instanceof String) {
+            return UUID.fromString((String) principal);
+        }
+        throw new org.moseti.kedevsapi.shared.exception.BadRequestException("Invalid authentication principal");
     }
 
     // ====================== Verified Badge ======================
@@ -147,6 +158,20 @@ public class PaymentController {
             @PageableDefault(size = 10) Pageable pageable) {
         Page<PaymentResponse> response = paymentService.getPaymentHistory(getCurrentUserId(), pageable);
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Payment history fetched", response));
+    }
+
+    @Operation(summary = "Get payment status by Daraja checkout ID")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Payment status fetched successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "403", description = "Not authorized to view this payment"),
+        @ApiResponse(responseCode = "404", description = "Payment not found")
+    })
+    @GetMapping("/status/{checkoutRequestId}")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<PaymentResponse>> getPaymentStatus(
+            @PathVariable String checkoutRequestId) {
+        PaymentResponse response = paymentService.getPaymentStatusByCheckoutId(getCurrentUserId(), checkoutRequestId);
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Payment status fetched", response));
     }
 
     @Operation(summary = "Get platform pricing settings", security = {})

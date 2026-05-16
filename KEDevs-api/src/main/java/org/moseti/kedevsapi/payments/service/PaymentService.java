@@ -1,5 +1,6 @@
 package org.moseti.kedevsapi.payments.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.moseti.kedevsapi.jobs.entity.JobPost;
@@ -11,6 +12,7 @@ import org.moseti.kedevsapi.payments.repository.*;
 import org.moseti.kedevsapi.shared.enums.*;
 import org.moseti.kedevsapi.shared.exception.BadRequestException;
 import org.moseti.kedevsapi.shared.exception.ForbiddenException;
+import org.moseti.kedevsapi.shared.exception.ResourceNotFoundException;
 import org.moseti.kedevsapi.shared.util.Constants;
 import org.moseti.kedevsapi.users.entity.User;
 import org.moseti.kedevsapi.users.entity.VerificationRequest;
@@ -52,6 +54,7 @@ public class PaymentService {
     private final VerificationRequestRepository verificationRequestRepository;
     private final JobPostRepository jobPostRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final ObjectMapper objectMapper;
 
     // ====================== Helper ======================
 
@@ -113,14 +116,27 @@ public class PaymentService {
 
         String feeKey = user.getRole() == Role.DEVELOPER ? "VERIFIED_BADGE_DEVELOPER" : "VERIFIED_BADGE_EMPLOYER";
         BigDecimal amount = getSettingValue(feeKey);
-        StkPushResponse stkResponse = darajaService.initiateSTKPush(
-                phoneNumber, amount, "KEDevsVerBadge", "Verified Badge");
 
-        buildAndSavePayment(userId, PaymentType.VERIFIED_BADGE, amount,
-                phoneNumber, stkResponse.checkoutRequestId(), null);
+        // Save PENDING payment before initiating STK push
+        Payment payment = buildAndSavePayment(userId, PaymentType.VERIFIED_BADGE, amount,
+                phoneNumber, null, null);
 
-        return new PaymentInitiationResponse(stkResponse.checkoutRequestId(),
-                "STK push sent. Enter your M-Pesa PIN to complete payment.", amount);
+        try {
+            StkPushResponse stkResponse = darajaService.initiateSTKPush(
+                    phoneNumber, amount, "KEDevsVerify", "Verified Badge");
+
+            payment.setMpesaCheckoutId(stkResponse.checkoutRequestId());
+            paymentRepository.save(payment);
+
+            return new PaymentInitiationResponse(stkResponse.checkoutRequestId(),
+                    "STK push sent. Enter your M-Pesa PIN to complete payment.", amount);
+        } catch (Exception e) {
+            log.error("STK push failed for verified badge {}: {}", payment.getId(), e.getMessage());
+            payment.setStatus(PaymentStatus.FAILED);
+            payment.setFailReason(e.getMessage());
+            paymentRepository.save(payment);
+            throw e;
+        }
     }
 
     @Transactional
@@ -141,65 +157,31 @@ public class PaymentService {
         BigDecimal amount = getSettingValue(feeKey);
         PaymentType type = spotlightType == SpotlightType.DAY ? PaymentType.SPOTLIGHT_DAY : PaymentType.SPOTLIGHT_WEEK;
 
-        StkPushResponse stkResponse = darajaService.initiateSTKPush(
-                phoneNumber, amount, "KEDevsSpotlt", "Spotlight " + spotlightType.name());
+        // Save PENDING payment before initiating STK push
+        Payment payment = buildAndSavePayment(userId, type, amount, phoneNumber, null,
+                "{\"spotlightType\":\"" + spotlightType.name() + "\"}");
 
-        Payment payment = buildAndSavePayment(userId, type, amount, phoneNumber,
-                stkResponse.checkoutRequestId(), "{\"spotlightType\":\"" + spotlightType.name() + "\"}");
+        try {
+            StkPushResponse stkResponse = darajaService.initiateSTKPush(
+                    phoneNumber, amount, "KEDevsSpotlt", "Spotlight " + spotlightType.name());
 
-        // Create the slot INACTIVE — it will be activated only after Daraja confirms payment
-        spotlightService.createInactiveSlot(userId, payment.getId(), spotlightType);
+            payment.setMpesaCheckoutId(stkResponse.checkoutRequestId());
+            paymentRepository.save(payment);
 
-        return new PaymentInitiationResponse(stkResponse.checkoutRequestId(),
-                "STK push sent. Enter your M-Pesa PIN to complete payment.", amount);
+            // Create the slot INACTIVE — it will be activated only after Daraja confirms payment
+            spotlightService.createInactiveSlot(userId, payment.getId(), spotlightType);
+
+            return new PaymentInitiationResponse(stkResponse.checkoutRequestId(),
+                    "STK push sent. Enter your M-Pesa PIN to complete payment.", amount);
+        } catch (Exception e) {
+            log.error("STK push failed for spotlight {}: {}", payment.getId(), e.getMessage());
+            payment.setStatus(PaymentStatus.FAILED);
+            payment.setFailReason(e.getMessage());
+            paymentRepository.save(payment);
+            throw e;
+        }
     }
 
-    @Transactional
-    public PaymentInitiationResponse initiatePinnedJob(UUID userId, UUID jobId, String durationType) {
-        getUser(userId);
-
-        JobPost job = jobPostRepository.findById(jobId)
-                .orElseThrow(() -> new BadRequestException("Job post not found: " + jobId));
-
-        if (!job.getPostedById().equals(userId)) {
-            throw new ForbiddenException("You can only pin your own job posts");
-        }
-        if (job.isPeerSourced()) {
-            throw new BadRequestException("Peer-sourced job posts cannot be pinned");
-        }
-        if (job.isPinned()) {
-            throw new BadRequestException("This job is already pinned until " + job.getPinnedUntil());
-        }
-
-        String feeKey;
-        PaymentType type;
-        switch (durationType.toUpperCase()) {
-            case "DAY" -> {
-                feeKey = "PINNED_JOB_DAY_FEE";
-                type = PaymentType.PINNED_JOB_DAY;
-            }
-            case "3DAYS" -> {
-                feeKey = "PINNED_JOB_3DAYS_FEE";
-                type = PaymentType.PINNED_JOB_3DAYS;
-            }
-            case "7DAYS" -> {
-                feeKey = "PINNED_JOB_7DAYS_FEE";
-                type = PaymentType.PINNED_JOB_7DAYS;
-            }
-            default -> throw new BadRequestException("Invalid duration type. Use: DAY, 3DAYS, or 7DAYS");
-        }
-
-        BigDecimal amount = getSettingValue(feeKey);
-
-        StkPushResponse stkResponse = darajaService.initiateSTKPush(
-                phoneNumber(userId), amount, "KEDevsPinJob", "Pinned Job " + durationType);
-
-        buildAndSavePayment(userId, type, amount, phoneNumber(userId),
-                stkResponse.checkoutRequestId(), "{\"jobId\":\"" + jobId + "\",\"durationType\":\"" + durationType + "\"}");
-
-        return new PaymentInitiationResponse(stkResponse.checkoutRequestId(),
-                "STK push sent. Enter your M-Pesa PIN to complete payment.", amount);
-    }
 
     @Transactional
     public PaymentInitiationResponse initiatePinnedJob(UUID userId, UUID jobId, String durationType, String phoneNumber) {
@@ -218,6 +200,16 @@ public class PaymentService {
             throw new BadRequestException("This job is already pinned until " + job.getPinnedUntil());
         }
 
+        // Hard cap: no more than 3 pinned jobs at once
+        long activePinnedCount = jobPostRepository
+                .findByIsPinnedTrueAndPinnedUntilAfterOrderByPinnedUntilDesc(LocalDateTime.now())
+                .stream()
+                .filter(j -> j.getStatus() == org.moseti.kedevsapi.shared.enums.JobStatus.OPEN)
+                .count();
+        if (activePinnedCount >= 3) {
+            throw new BadRequestException("All 3 pinned job slots are currently occupied. Please try again later.");
+        }
+
         String feeKey;
         PaymentType type;
         switch (durationType.toUpperCase()) {
@@ -237,14 +229,27 @@ public class PaymentService {
         }
 
         BigDecimal amount = getSettingValue(feeKey);
-        StkPushResponse stkResponse = darajaService.initiateSTKPush(
-                phoneNumber, amount, "KEDevsPinJob", "Pinned Job " + durationType);
 
-        buildAndSavePayment(userId, type, amount, phoneNumber,
-                stkResponse.checkoutRequestId(), "{\"jobId\":\"" + jobId + "\",\"durationType\":\"" + durationType + "\"}");
+        // Save PENDING payment before initiating STK push so it's registered even if push fails
+        Payment payment = buildAndSavePayment(userId, type, amount, phoneNumber, null,
+                "{\"jobId\":\"" + jobId + "\",\"durationType\":\"" + durationType + "\"}");
 
-        return new PaymentInitiationResponse(stkResponse.checkoutRequestId(),
-                "STK push sent. Enter your M-Pesa PIN to complete payment.", amount);
+        try {
+            StkPushResponse stkResponse = darajaService.initiateSTKPush(
+                    phoneNumber, amount, "KEDevsPinJob", "Pinned Job " + durationType);
+
+            payment.setMpesaCheckoutId(stkResponse.checkoutRequestId());
+            paymentRepository.save(payment);
+
+            return new PaymentInitiationResponse(stkResponse.checkoutRequestId(),
+                    "STK push sent. Enter your M-Pesa PIN to complete payment.", amount);
+        } catch (Exception e) {
+            log.error("STK push failed for payment {}: {}", payment.getId(), e.getMessage());
+            payment.setStatus(PaymentStatus.FAILED);
+            payment.setFailReason(e.getMessage());
+            paymentRepository.save(payment);
+            throw e;
+        }
     }
 
     // ====================== Callback ======================
@@ -407,19 +412,23 @@ public class PaymentService {
             return;
         }
 
-        // Parse jobId from metadata JSON: {"jobId":"<uuid>","durationType":"<str>"}
+        // Parse jobId from metadata JSON using ObjectMapper
         String meta = payment.getMetadata();
-        String jobIdStr = null;
+        UUID jobId;
         try {
-            int start = meta.indexOf("\"jobId\":\"") + 9;
-            int end = meta.indexOf("\"", start);
-            jobIdStr = meta.substring(start, end);
+            Map<String, Object> metadataMap = objectMapper.readValue(meta, Map.class);
+            String jobIdStr = (String) metadataMap.get("jobId");
+            if (jobIdStr == null || jobIdStr.isBlank()) {
+                log.error("jobId is missing or empty in metadata: {}", meta);
+                return;
+            }
+            jobId = UUID.fromString(jobIdStr);
         } catch (Exception e) {
-            log.error("Could not parse jobId from pinned job payment metadata: {}", meta);
+            log.error("Could not parse metadata JSON: {}", meta, e);
             return;
         }
 
-        JobPost job = jobPostRepository.findById(UUID.fromString(jobIdStr)).orElse(null);
+        JobPost job = jobPostRepository.findById(jobId).orElse(null);
         if (job == null) {
             log.warn("Job not found for pinned job payment {}", payment.getId());
             return;
@@ -544,7 +553,7 @@ public class PaymentService {
     // ====================== Query Methods ======================
 
     public Page<PaymentResponse> getPaymentHistory(UUID userId, Pageable pageable) {
-        return paymentRepository.findByUserId(userId, pageable)
+        return paymentRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
                 .map(p -> new PaymentResponse(
                         p.getId(), p.getType(), p.getAmount(), p.getCurrency(),
                         p.getStatus(), p.getMpesaReceiptNo(), p.getFailReason(),
@@ -573,6 +582,21 @@ public class PaymentService {
         return platformSettingRepository.findAll().stream()
                 .map(s -> new PlatformSettingResponse(s.getSettingKey(), s.getSettingValue(), s.getDescription()))
                 .toList();
+    }
+
+    public PaymentResponse getPaymentStatusByCheckoutId(UUID userId, String checkoutRequestId) {
+        Payment payment = paymentRepository.findByMpesaCheckoutId(checkoutRequestId)
+                .orElseThrow(() -> new ResourceNotFoundException("Payment not found for checkout ID"));
+        
+        if (!payment.getUserId().equals(userId)) {
+            throw new ForbiddenException("Not authorized to view this payment");
+        }
+
+        return new PaymentResponse(
+                payment.getId(), payment.getType(), payment.getAmount(), payment.getCurrency(),
+                payment.getStatus(), payment.getMpesaReceiptNo(), payment.getFailReason(),
+                payment.getPhoneNumber(), payment.getPaidAt(), payment.getCreatedAt()
+        );
     }
 
     /**

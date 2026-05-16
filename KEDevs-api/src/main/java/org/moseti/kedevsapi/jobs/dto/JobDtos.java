@@ -67,6 +67,12 @@ public class JobDtos {
             @Schema(description = "Filter by experience levels") List<ExperienceLevel> experienceLevels,
             @Schema(description = "Minimum base salary") java.math.BigDecimal minSalary,
             @Schema(description = "Maximum base salary") java.math.BigDecimal maxSalary,
+            @Schema(description = "Filter by minimum qualification", example = "BSc") String minQualification,
+            @Schema(description = "Filter by minimum years of experience", example = "2") Integer minExperienceYears,
+            @Schema(description = "Filter by application deadline from", example = "2024-01-01") java.time.LocalDate deadlineFrom,
+            @Schema(description = "Filter by application deadline to", example = "2024-12-31") java.time.LocalDate deadlineTo,
+            @Schema(description = "Filter by peer sourced status", example = "true") Boolean isPeerSourced,
+            @Schema(description = "Filter by minimum upvote count", example = "10") Integer minUpvotes,
             @Schema(description = "Filter by job status", example = "OPEN") JobStatus status,
             @Schema(description = "Filter by visibility", example = "PUBLIC") JobVisibility visibility
     ) {}
@@ -91,7 +97,7 @@ public class JobDtos {
     public record JobPostResponse(
             UUID id,
             UUID postedById,
-            String posterName,
+            String postedByName,
             String contactEmail,
             String title,
             String summary,
@@ -122,7 +128,9 @@ public class JobDtos {
             Integer applicationCount,
             Role postedByRole,
             boolean isPinned,
-            LocalDateTime pinnedUntil
+            LocalDateTime pinnedUntil,
+            UUID postedByProfileId,
+            String postedByCompanyName
     ) {}
 
     public record JobSummaryResponse(
@@ -134,6 +142,8 @@ public class JobDtos {
             JobType jobType,
             WorkType workType,
             ExperienceLevel experienceLevel,
+            java.math.BigDecimal salaryRangeMin,
+            java.math.BigDecimal salaryRangeMax,
             JobVisibility visibility,
             JobStatus status,
             int upvoteCount,
@@ -141,6 +151,7 @@ public class JobDtos {
             boolean isPeerSourced,
             String sourceUrl,
             List<String> tags,
+            java.time.LocalDate applicationDeadline,
             LocalDateTime createdAt,
             Role postedByRole,
             boolean isPinned,
@@ -184,5 +195,27 @@ public class JobDtos {
             WorkType workType,
             JobType jobType,
             LocalDateTime pinnedUntil
+    ) {}
+
+    public record JobFilterMetadataResponse(
+            java.util.List<String> qualifications,
+            java.util.List<Integer> experienceYears
+    ) {}
+
+    public record PinnedSlotInfo(
+            UUID jobId,
+            String jobTitle,
+            String companyName,
+            LocalDateTime pinnedUntil
+    ) {}
+
+    public record PinnedSlotAvailabilityResponse(
+            int maxSlots,
+            int occupiedSlots,
+            int freeSlots,
+            List<PinnedSlotInfo> activeSlots,
+            java.math.BigDecimal dayPrice,
+            java.math.BigDecimal threeDaysPrice,
+            java.math.BigDecimal sevenDaysPrice
     ) {}
 }

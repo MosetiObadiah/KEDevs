@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Job Listings Report</title>
+    <style>
+        @page {
+            margin: 2cm;
+            @bottom-center {
+                content: element(footer);
+            }
+        }
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #333;
+            margin: 0;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+        .header-strip {
+            width: 100%;
+            border-bottom: 2px solid #0f172a;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .meta-bar {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table.data-table th {
+            background-color: #f1f5f9;
+            color: #475569;
+            font-weight: bold;
+            text-align: left;
+            padding: 12px 10px;
+            border-bottom: 2px solid #e2e8f0;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        table.data-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: top;
+        }
+        .badge {
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 9px;
+            font-weight: bold;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+        .status-open { background-color: #dcfce7; color: #166534; }
+        .status-closed { background-color: #fee2e2; color: #991b1b; }
+        .status-expired { background-color: #f1f5f9; color: #475569; }
+        
+        .work-remote { color: #2563eb; font-weight: 800; }
+        
+        .footer {
+            position: running(footer);
+            width: 100%;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        .footer-cta {
+            color: #2563eb;
+            font-weight: bold;
+            font-size: 12px;
+            margin: 0 0 6px 0;
+        }
+        .footer-sub {
+            color: #64748b;
+            font-size: 10px;
+            margin: 0;
+            font-weight: 500;
+        }
+        .page-info {
+            font-size: 9px;
+            color: #94a3b8;
+            margin-top: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .job-title {
+            font-weight: 800;
+            color: #0f172a;
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
+        .company-name {
+            color: #64748b;
+            font-weight: 600;
+            font-size: 10px;
+        }
+        .location-text {
+            color: #475569;
+            font-size: 10px;
+            margin-bottom: 2px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Cohesive Header Strip -->
+    <div class="header-strip">
+        <table style="width: 100%; border: none; border-collapse: collapse;">
+            <tr style="border: none;">
+                <td style="border: none; width: 25%; padding: 0; text-align: left; vertical-align: middle;">
+                    <img th:if="${base64Logo != null and !base64Logo.isEmpty()}" th:src="${base64Logo}" style="height: 25px; width: auto;" />
+                </td>
+                <td style="border: none; width: 50%; padding: 0; text-align: center; vertical-align: middle;">
+                    <div style="font-size: 18px; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: -0.5px;">Job Listings Report</div>
+                </td>
+                <td style="border: none; width: 25%; padding: 0; text-align: right; vertical-align: middle;">
+                    <div style="color: #64748b; font-size: 9px; font-weight: bold; text-transform: uppercase;">
+                        Exported: <span style="color: #0f172a;" th:text="${dateOfExport}">2026-05-16</span>
+                    </div>
+                    <div th:if="${generatedBy != null}" style="color: #64748b; font-size: 9px; font-weight: bold; text-transform: uppercase; margin-top: 2px;">
+                        By: <span style="color: #2563eb;" th:text="${generatedBy}">Admin</span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Active Filters Metadata -->
+    <div class="meta-bar">
+        <div style="font-weight: 800; color: #475569; font-size: 9px; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 1px;">Search Context &amp; Filters</div>
+        <div style="color: #1e293b; font-size: 11px; line-height: 1.5; font-weight: 500;" th:text="${filterSummary}">None (All active jobs)</div>
+        <div style="margin-top: 10px; font-size: 10px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 8px;">
+            Found <strong style="color: #0f172a;" th:text="${jobs.size()}">0</strong> jobs matching these criteria.
+        </div>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 30%;">Job &amp; Company</th>
+                <th style="width: 20%;">Location &amp; Type</th>
+                <th style="width: 15%;">Experience</th>
+                <th style="width: 15%;">Deadline</th>
+                <th style="width: 12%;">Status</th>
+                <th style="width: 8%; text-align: center;">Votes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="job : ${jobs}">
+                <td>
+                    <div class="job-title" th:text="${job.title}">Senior Developer</div>
+                    <div class="company-name" th:text="${job.companyName}">Acme Corp</div>
+                </td>
+                <td>
+                    <div class="location-text" th:text="${(job.locationCity ?: '') + (job.locationCountry != null ? (job.locationCity != null ? ', ' : '') + job.locationCountry : '')}">Nairobi, Kenya</div>
+                    <div th:class="${job.workType == 'REMOTE' ? 'work-remote' : ''}" style="font-size: 9px; font-weight: bold; text-transform: capitalize;">
+                        <span th:text="${#strings.toLowerCase(job.workType).replace('onsite', 'On-site')}">Remote</span>
+                        <span> · </span>
+                        <span th:text="${#strings.toLowerCase(job.jobType).replace('_', ' ')}">Full-time</span>
+                    </div>
+                </td>
+                <td>
+                    <div style="font-weight: 600; color: #0f172a;" th:text="${job.experienceLevel == 'ENTRY' ? 'Entry-level' : (job.experienceLevel == 'MID' ? 'Mid-level' : (job.experienceLevel == 'SENIOR' ? 'Senior-level' : (job.experienceLevel == 'LEAD' ? 'Lead-level' : job.experienceLevel)))}">Mid-level</div>
+                </td>
+                <td>
+                    <div style="font-weight: 500;" th:text="${job.applicationDeadline != null ? #temporals.format(job.applicationDeadline, 'dd MMM yyyy') : 'Open'}">31 Dec 2026</div>
+                </td>
+                <td>
+                    <span th:class="${'badge status-' + #strings.toLowerCase(job.status)}" th:text="${job.status == 'OPEN' ? 'Open' : (job.status == 'CLOSED' ? 'Closed' : job.status)}">Open</span>
+                </td>
+                <td style="text-align: center;">
+                    <div style="font-weight: 800; color: #2563eb; font-size: 11px;" th:text="${job.upvoteCount}">12</div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Branded Footer -->
+    <div id="footer" class="footer">
+        <p class="footer-cta">KEDevs - Kenya's Premier Tech Talent Network</p>
+        <p class="footer-sub">&copy; 2026 KEDevs. This report is system generated and contains up-to-date market data.</p>
+        <div class="page-info">Verified Tech Ecosystem Report</div>
+    </div>
+</body>
+</html>

@@ -64,4 +64,10 @@ public interface JobPostRepository extends JpaRepository<JobPost, UUID>, JpaSpec
     /** Finds expired pinned jobs whose owner needs a notification (isPinned still true, pinnedUntil past). */
     @Query("SELECT j FROM JobPost j WHERE j.isPinned = true AND j.pinnedUntil < :now")
     java.util.List<JobPost> findExpiredPinnedJobs(@Param("now") java.time.LocalDateTime now);
+
+    @Query("SELECT DISTINCT j.minQualification FROM JobPost j WHERE j.minQualification IS NOT NULL AND j.status != 'REMOVED' ORDER BY j.minQualification")
+    java.util.List<String> findUniqueQualifications();
+
+    @Query("SELECT DISTINCT j.minExperienceYears FROM JobPost j WHERE j.minExperienceYears IS NOT NULL AND j.status != 'REMOVED' ORDER BY j.minExperienceYears")
+    java.util.List<Integer> findUniqueExperienceYears();
 }

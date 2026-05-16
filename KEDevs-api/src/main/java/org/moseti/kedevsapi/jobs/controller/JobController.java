@@ -68,6 +68,24 @@ public class JobController {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Job feed fetched", response));
     }
 
+    @Operation(summary = "Export filtered job posts to PDF")
+    @GetMapping("/export")
+    public ResponseEntity<Resource> exportJobsToPdf(
+            @ModelAttribute JobSearchRequest request) {
+        byte[] pdf = jobService.exportJobsToPdf(request, getCurrentUserId());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"job_listings_report.pdf\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(new ByteArrayResource(pdf));
+    }
+
+    @Operation(summary = "Get unique filter values for jobs (qualifications, experience years)")
+    @GetMapping("/metadata")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<JobFilterMetadataResponse>> getFilterMetadata() {
+        JobFilterMetadataResponse response = jobService.getFilterMetadata();
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Filter metadata fetched", response));
+    }
+
     @Operation(summary = "List public jobs for landing page", security = {})
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Public jobs fetched successfully")
@@ -87,6 +105,16 @@ public class JobController {
     public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<java.util.List<PinnedJobSummaryResponse>>> getPinnedJobs() {
         java.util.List<PinnedJobSummaryResponse> response = jobService.getPinnedJobs();
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Pinned jobs fetched", response));
+    }
+
+    @Operation(summary = "Check pinned job slot availability and pricing", security = {})
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Slot availability fetched successfully")
+    })
+    @GetMapping("/pinned/slots")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<PinnedSlotAvailabilityResponse>> getPinnedSlotAvailability() {
+        PinnedSlotAvailabilityResponse response = jobService.getPinnedSlotAvailability();
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Slot availability fetched", response));
     }
 
     @Operation(summary = "List own job posts", description = "Requires authenticated user.")

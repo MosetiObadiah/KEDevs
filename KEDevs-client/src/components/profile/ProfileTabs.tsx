@@ -115,7 +115,7 @@ export function ProfileTabs({
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-black flex items-center gap-2">
               <div className="h-6 w-1.5 bg-primary rounded-full" />
-              Technical Arsenal
+              Technical Skills
             </h3>
             {isOwner && (
               <Button variant="ghost" size="sm" className="text-primary font-bold hover:bg-primary/5" onClick={onAddSkill}>

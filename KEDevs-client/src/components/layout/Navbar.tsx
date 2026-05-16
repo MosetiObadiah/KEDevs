@@ -55,6 +55,7 @@ const Navbar = () => {
     { label: 'Marketplace', href: '/jobs' },
     { label: 'Talent', href: '/developers' },
     { label: 'Ecosystem', href: '/companies' },
+    { label: 'Pricing', href: '/pricing' },
     { label: 'Support', href: '/contact' },
     ...(isEmp ? [{ label: 'Hiring Assist', href: '/hiring-assist' }] : []),
     ...(isAdmin ? [{ label: 'Command Center', href: '/admin/dashboard' }] : []),

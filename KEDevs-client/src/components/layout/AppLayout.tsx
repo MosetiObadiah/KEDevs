@@ -79,6 +79,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <Link href="/jobs" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Jobs</Link>
               <Link href="/developers" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Developers</Link>
               <Link href="/companies" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Companies</Link>
+              <Link href="/pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
               <Link href="/contact" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Contact</Link>
             </nav>
             <div className="flex-1 flex items-center justify-end gap-3">
