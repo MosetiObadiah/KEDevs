@@ -27,9 +27,6 @@ public class NotificationPreference extends BaseEntity {
     @Column(name = "email_on_job_flagged", nullable = false)
     private boolean emailOnJobFlagged = true;
 
-    @Column(name = "email_on_subscription_expiry", nullable = false)
-    private boolean emailOnSubscriptionExpiry = true;
-
     @Column(name = "email_on_spotlight_expired", nullable = false)
     private boolean emailOnSpotlightExpired = true;
 
@@ -38,9 +35,6 @@ public class NotificationPreference extends BaseEntity {
 
     @Column(name = "email_on_verified_badge", nullable = false)
     private boolean emailOnVerifiedBadge = true;
-
-    @Column(name = "email_on_pro_upgrade", nullable = false)
-    private boolean emailOnProUpgrade = true;
 
     @Column(name = "in_app_on_job_application", nullable = false)
     private boolean inAppOnJobApplication = true;

@@ -36,8 +36,6 @@ class EmployerProfileServiceTest {
 
     @Mock private EmployerProfileRepository employerProfileRepository;
     @Mock private DeveloperProfileRepository developerProfileRepository;
-    @Mock private SavedDeveloperSearchRepository savedSearchRepository;
-    @Mock private BookmarkedDeveloperRepository bookmarkRepository;
     @Mock private ContactRequestRepository contactRequestRepository;
     @Mock private ObjectMapper objectMapper;
     @Mock private UserRepository userRepository;
@@ -73,7 +71,6 @@ class EmployerProfileServiceTest {
         testEmployerProfile.setCompanyName("Acme Corp");
         testEmployerProfile.setContactPersonName("Alice Smith");
         testEmployerProfile.setApproved(false);
-        testEmployerProfile.setProAccount(false);
 
         testDeveloperProfile = new DeveloperProfile();
         testDeveloperProfile.setId(developerProfileId);
@@ -124,40 +121,9 @@ class EmployerProfileServiceTest {
         verify(employerProfileRepository).save(testEmployerProfile);
     }
 
-    @Test
-    void bookmarkDeveloper_Success() {
-        testEmployerProfile.setProAccount(true);
-        when(employerProfileRepository.findByUserId(userId)).thenReturn(Optional.of(testEmployerProfile));
-        when(developerProfileRepository.findById(developerProfileId)).thenReturn(Optional.of(testDeveloperProfile));
-        when(bookmarkRepository.existsByEmployerIdAndDeveloperId(employerProfileId, developerProfileId)).thenReturn(false);
-
-        BookmarkedDeveloper bookmark = new BookmarkedDeveloper();
-        bookmark.setId(UUID.randomUUID());
-        bookmark.setEmployerId(employerProfileId);
-        bookmark.setDeveloperId(developerProfileId);
-        when(bookmarkRepository.save(any(BookmarkedDeveloper.class))).thenReturn(bookmark);
-
-        UserDtos.BookmarkResponse response = employerProfileService.bookmarkDeveloper(userId, developerProfileId);
-
-        assertNotNull(response);
-        assertEquals(developerProfileId, response.developerId());
-        verify(bookmarkRepository).save(any(BookmarkedDeveloper.class));
-    }
-
-    @Test
-    void bookmarkDeveloper_DuplicateBookmark_ThrowsBadRequestException() {
-        when(employerProfileRepository.findByUserId(userId)).thenReturn(Optional.of(testEmployerProfile));
-        when(developerProfileRepository.findById(developerProfileId)).thenReturn(Optional.of(testDeveloperProfile));
-        when(bookmarkRepository.existsByEmployerIdAndDeveloperId(employerProfileId, developerProfileId)).thenReturn(true);
-
-        assertThrows(BadRequestException.class,
-                () -> employerProfileService.bookmarkDeveloper(userId, developerProfileId));
-        verify(bookmarkRepository, never()).save(any());
-    }
 
     @Test
     void sendContactRequest_Success() {
-        testEmployerProfile.setProAccount(true);
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
         when(employerProfileRepository.findByUserId(userId)).thenReturn(Optional.of(testEmployerProfile));
         when(developerProfileRepository.findById(developerProfileId)).thenReturn(Optional.of(testDeveloperProfile));
@@ -182,7 +148,6 @@ class EmployerProfileServiceTest {
 
     @Test
     void sendContactRequest_RateLimitExceeded_ThrowsContactRequestLimitExceededException() {
-        testEmployerProfile.setProAccount(true);
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
         when(employerProfileRepository.findByUserId(userId)).thenReturn(Optional.of(testEmployerProfile));
         when(developerProfileRepository.findById(developerProfileId)).thenReturn(Optional.of(testDeveloperProfile));
@@ -196,22 +161,9 @@ class EmployerProfileServiceTest {
         verify(contactRequestRepository, never()).save(any());
     }
 
-    @Test
-    void sendContactRequest_NotProAccount_ThrowsNotProAccountException() {
-        testEmployerProfile.setProAccount(false);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-        when(employerProfileRepository.findByUserId(userId)).thenReturn(Optional.of(testEmployerProfile));
-
-        UserDtos.ContactRequestDto dto = new UserDtos.ContactRequestDto("Hello!");
-
-        assertThrows(NotProAccountException.class,
-                () -> employerProfileService.sendContactRequest(userId, developerProfileId, dto));
-        verify(contactRequestRepository, never()).save(any());
-    }
 
     @Test
     void sendContactRequest_DeveloperNotAvailable_ThrowsBadRequestException() {
-        testEmployerProfile.setProAccount(true);
         testDeveloperProfile.setAvailabilityStatus(AvailabilityStatus.NOT_AVAILABLE);
         when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
         when(employerProfileRepository.findByUserId(userId)).thenReturn(Optional.of(testEmployerProfile));
@@ -226,26 +178,4 @@ class EmployerProfileServiceTest {
         verify(contactRequestRepository, never()).save(any());
     }
 
-    @Test
-    void isProAccount_ReturnsTrue_WhenProAccount() {
-        testEmployerProfile.setProAccount(true);
-        when(employerProfileRepository.findByUserId(userId)).thenReturn(Optional.of(testEmployerProfile));
-
-        assertTrue(employerProfileService.isProAccount(userId));
-    }
-
-    @Test
-    void isProAccount_ReturnsFalse_WhenNotProAccount() {
-        testEmployerProfile.setProAccount(false);
-        when(employerProfileRepository.findByUserId(userId)).thenReturn(Optional.of(testEmployerProfile));
-
-        assertFalse(employerProfileService.isProAccount(userId));
-    }
-
-    @Test
-    void isProAccount_ReturnsFalse_WhenNoProfile() {
-        when(employerProfileRepository.findByUserId(userId)).thenReturn(Optional.empty());
-
-        assertFalse(employerProfileService.isProAccount(userId));
-    }
 }

@@ -108,7 +108,7 @@ class JobServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(employer));
         when(employerProfileService.getProfileByUserId(userId)).thenReturn(
-                new UserDtos.EmployerProfileResponse(UUID.randomUUID(), userId, "CP", "cp@company.com", "TrueCompany", null, null, null, null, null, null, null, null, null, null, null, true, true, true, null)
+                new UserDtos.EmployerProfileResponse(UUID.randomUUID(), userId, "CP", "cp@company.com", "TrueCompany", null, null, null, null, null, null, null, null, null, null, null, true, true, null)
         );
         when(jobPostRepository.save(any(JobPost.class))).thenAnswer(i -> {
             JobPost j = i.getArgument(0);

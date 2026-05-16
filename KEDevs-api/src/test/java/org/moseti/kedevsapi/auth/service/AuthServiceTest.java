@@ -84,8 +84,6 @@ class AuthServiceTest {
         testUser.setEmailVerified(true);
         testUser.setAccountStatus(AccountStatus.ACTIVE);
         testUser.setApprovedByAdmin(true);
-        testUser.setGracePeriodEndsAt(LocalDateTime.now().plusDays(3));
-        testUser.setSubscriptionActive(false);
     }
 
     @Test
@@ -109,7 +107,6 @@ class AuthServiceTest {
         assertEquals("refreshToken", response.getRefreshToken());
         assertEquals(testUser.getEmail(), response.getEmail());
         assertEquals(testUser.getRole(), response.getRole());
-        assertTrue(response.isInGracePeriod());
         
         verify(userRepository).existsByEmail("test@example.com");
         verify(userRepository).save(any(User.class));
@@ -147,7 +144,6 @@ class AuthServiceTest {
         employerUser.setApprovedByAdmin(false);
         employerUser.setEmail("employer@example.com");
         employerUser.setFullName("Employer User");
-        employerUser.setGracePeriodEndsAt(LocalDateTime.now().plusDays(3));
 
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
@@ -229,17 +225,6 @@ class AuthServiceTest {
         assertThrows(AccountNotApprovedException.class, () -> authService.login(loginRequest));
     }
 
-    @Test
-    void login_ExpiredGracePeriodNoSubscription_ThrowsException() {
-        // Given
-        testUser.setGracePeriodEndsAt(LocalDateTime.now().minusDays(1));
-        testUser.setSubscriptionActive(false);
-        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
-        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
-
-        // When & Then
-        assertThrows(ForbiddenException.class, () -> authService.login(loginRequest));
-    }
 
     @Test
     void verifyEmail_Success() {

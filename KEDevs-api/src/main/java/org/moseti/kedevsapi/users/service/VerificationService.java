@@ -180,7 +180,7 @@ public class VerificationService {
 
         // Fetch the user to get their name for the admin notification
         User user = userRepository.findById(userId).orElse(null);
-        String userName = user != null ? (user.getFirstName() + " " + user.getLastName()) : "A user";
+        String userName = user != null ? user.getFullName() : "A user";
 
         // Notify all admins about the new verification request
         List<User> admins = userRepository.findByRole(Role.ADMIN);

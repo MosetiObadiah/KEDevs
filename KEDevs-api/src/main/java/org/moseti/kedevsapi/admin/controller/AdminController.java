@@ -78,14 +78,6 @@ public class AdminController {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Revenue trends retrieved", adminService.getRevenueTrends(days)));
     }
 
-    @Operation(summary = "Admin: get subscription stats")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Subscription stats retrieved successfully")
-    })
-    @GetMapping("/dashboard/subscriptions")
-    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<SubscriptionStatsResponse>> getSubscriptionStats() {
-        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Subscription stats retrieved", adminService.getSubscriptionStats()));
-    }
 
     @Operation(summary = "Admin: get forum activity metrics")
     @ApiResponses({

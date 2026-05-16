@@ -23,7 +23,6 @@ import org.moseti.kedevsapi.notifications.service.NotificationService;
 import org.moseti.kedevsapi.payments.entity.PlatformSetting;
 import org.moseti.kedevsapi.payments.repository.PaymentRepository;
 import org.moseti.kedevsapi.payments.repository.PlatformSettingRepository;
-import org.moseti.kedevsapi.payments.repository.SubscriptionRepository;
 import org.moseti.kedevsapi.payments.repository.UserFlagRepository;
 import org.moseti.kedevsapi.shared.enums.*;
 import org.moseti.kedevsapi.shared.exception.ResourceNotFoundException;
@@ -62,7 +61,6 @@ class AdminServiceTest {
     @Mock private ForumCommentRepository forumCommentRepository;
     @Mock private CommentFlagRepository commentFlagRepository;
     @Mock private PaymentRepository paymentRepository;
-    @Mock private SubscriptionRepository subscriptionRepository;
     @Mock private PlatformSettingRepository platformSettingRepository;
     @Mock private UserFlagRepository userFlagRepository;
     @Mock private NotificationService notificationService;
@@ -251,8 +249,6 @@ class AdminServiceTest {
         when(paymentRepository.getRevenueAfter(any())).thenReturn(new BigDecimal("500"));
         when(paymentRepository.getRevenueByType()).thenReturn(Collections.emptyList());
         
-        // Mock subscriptions
-        when(subscriptionRepository.countByStatus(any())).thenReturn(10L);
         
         // Mock forum
         when(forumCommentRepository.count()).thenReturn(200L);
@@ -274,6 +270,5 @@ class AdminServiceTest {
         assertEquals(100, res.totalUsers());
         assertEquals(2, res.pendingEmployerApprovals());
         assertNotNull(res.revenue());
-        assertNotNull(res.subscriptions());
     }
 }

@@ -13,6 +13,7 @@ import {
   Mail,
   Phone,
   Bookmark,
+  Pin,
   ExternalLink
 } from 'lucide-react';
 import { Hero } from '@/components/home/Hero';
@@ -58,11 +59,16 @@ export default function HomePage() {
         }).catch(console.error);
 
         // Fetch Jobs
-        const jobsResponse = await jobService.getPublicJobs(0, 20);
-        if (jobsResponse.success) {
-          const allJobs = jobsResponse.data.content;
-          const shuffledJobs = [...allJobs].sort(() => Math.random() - 0.5).slice(0, 3);
-          setFeaturedJobs(shuffledJobs);
+        const pinnedResponse = await jobService.getPinnedJobs();
+        if (pinnedResponse.success && pinnedResponse.data.length > 0) {
+          setFeaturedJobs(pinnedResponse.data.slice(0, 3));
+        } else {
+          const jobsResponse = await jobService.getPublicJobs(0, 20);
+          if (jobsResponse.success) {
+            const allJobs = jobsResponse.data.content;
+            const shuffledJobs = [...allJobs].sort(() => Math.random() - 0.5).slice(0, 3);
+            setFeaturedJobs(shuffledJobs);
+          }
         }
         setIsLoadingJobs(false);
 
@@ -151,12 +157,13 @@ export default function HomePage() {
         <div className={cn(LAYOUT.maxWidth, "mx-auto", LAYOUT.padding)}>
           <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-12">
             <div className="space-y-4">
-              <Badge variant="secondary" className="bg-primary/10 text-primary border-none font-bold uppercase tracking-widest text-[10px]">Opportunities</Badge>
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-                <span className="text-primary">Featured Jobs</span>
+                <span className="text-primary">Jobs</span>
               </h2>
               <p className="text-muted-foreground max-w-lg">
-                The most upvoted and newest jobs currently available for developers in Kenya.
+                {featuredJobs.some(j => (j as any).pinnedUntil) 
+                  ? "Check out these premium job listings currently featured by our employer partners."
+                  : "The most upvoted and newest jobs currently available for developers in Kenya."}
               </p>
             </div>
             <Button variant="ghost" className="font-bold group" asChild>
@@ -191,7 +198,13 @@ export default function HomePage() {
                       <Badge variant="outline" className="font-bold border-muted-foreground/20 text-muted-foreground uppercase text-[10px]">
                         {formatJobType(job.jobType)}
                       </Badge>
-                      {job.status === 'OPEN' && <CheckCircle2 className="h-5 w-5 text-primary" />}
+                      {(job as any).pinnedUntil ? (
+                        <Badge className="bg-primary text-primary-foreground font-black text-[10px] tracking-widest uppercase py-1 px-2 shadow-sm flex items-center gap-1">
+                          <Pin className="h-3 w-3 fill-current" /> Pinned
+                        </Badge>
+                      ) : (
+                        job.status === 'OPEN' && <CheckCircle2 className="h-5 w-5 text-primary" />
+                      )}
                     </div>
                     <Link href={`/jobs/${job.id}`} className="group-hover:text-primary transition-colors inline-block">
                       <h3 className="text-xl font-bold leading-tight mb-1">{job.title}</h3>
@@ -227,9 +240,8 @@ export default function HomePage() {
       {/* Developer Directory Preview Section - Styled Identically to Jobs */}
       <section className="py-20 md:py-32 bg-background">
         <div className={cn(LAYOUT.maxWidth, "mx-auto", LAYOUT.padding)}>
-          <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-12">
+          <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-12">
             <div className="space-y-4">
-              <Badge variant="secondary" className="bg-primary/10 text-primary border-none font-bold uppercase tracking-widest text-[10px]">Talent Directory</Badge>
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
                 <span className="text-primary">Developers</span>
               </h2>

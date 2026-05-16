@@ -140,7 +140,7 @@ class NotificationServiceTest {
         when(preferenceRepository.save(any(NotificationPreference.class))).thenAnswer(i -> i.getArgument(0));
 
         UpdatePreferencesRequest request = new UpdatePreferencesRequest(
-                false, null, null, null, null, null, null, null, null, null, null, null, null
+                false, null, null, null, null, null, null, null, null, null, null
         );
 
         NotificationPreferenceResponse response = notificationService.updatePreferences(userId, request);
@@ -155,7 +155,7 @@ class NotificationServiceTest {
         when(preferenceRepository.save(any(NotificationPreference.class))).thenAnswer(i -> i.getArgument(0));
 
         UpdatePreferencesRequest request = new UpdatePreferencesRequest(
-                false, false, false, false, false, false, false, false, false, false, false, false, false
+                false, false, false, false, false, false, false, false, false, false, false
         );
 
         NotificationPreferenceResponse response = notificationService.updatePreferences(userId, request);

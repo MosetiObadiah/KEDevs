@@ -42,13 +42,6 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private AccountStatus accountStatus = AccountStatus.ACTIVE;
 
-    private LocalDateTime gracePeriodEndsAt;
-
-    private LocalDateTime subscriptionExpiresAt;
-
-    @Column(nullable = false)
-    private boolean subscriptionActive = false;
-
     // For employers - requires admin approval
     @Column(nullable = false)
     private boolean approvedByAdmin = true; // true by default for developers, false for employers

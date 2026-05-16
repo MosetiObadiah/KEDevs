@@ -36,8 +36,6 @@ public class EmployerProfileService {
 
     private final EmployerProfileRepository employerProfileRepository;
     private final DeveloperProfileRepository developerProfileRepository;
-    private final SavedDeveloperSearchRepository savedSearchRepository;
-    private final BookmarkedDeveloperRepository bookmarkRepository;
     private final ContactRequestRepository contactRequestRepository;
     private final NotificationService notificationService;
     private final UserRepository userRepository;
@@ -92,88 +90,7 @@ public class EmployerProfileService {
         log.info("Employer profile approved: id={}", employerProfileId);
     }
 
-    /**
-     * Used by @PreAuthorize SpEL in EmployerController.
-     * Checks if the user identified by userId has a Pro employer account.
-     */
-    public boolean isProAccount(UUID userId) {
-        return employerProfileRepository.findByUserId(userId)
-                .map(EmployerProfile::isProAccount)
-                .orElse(false);
-    }
 
-    // ----------------------------------------------------------------
-    // Saved Searches
-    // ----------------------------------------------------------------
-
-    @Transactional
-    public UserDtos.SavedSearchResponse saveSearch(UUID userId, UserDtos.SaveSearchRequest request) {
-        EmployerProfile profile = getProfileEntityByUserId(userId);
-        SavedDeveloperSearch search = new SavedDeveloperSearch();
-        search.setEmployerId(profile.getId());
-        search.setSearchName(request.searchName());
-        search.setFilterCriteria(toJsonString(request.filterCriteria()));
-        search = savedSearchRepository.save(search);
-        return toSavedSearchResponse(search);
-    }
-
-    public List<UserDtos.SavedSearchResponse> getSavedSearches(UUID userId) {
-        EmployerProfile profile = getProfileEntityByUserId(userId);
-        return savedSearchRepository.findByEmployerId(profile.getId())
-                .stream().map(this::toSavedSearchResponse).toList();
-    }
-
-    @Transactional
-    public void deleteSavedSearch(UUID userId, UUID searchId) {
-        EmployerProfile profile = getProfileEntityByUserId(userId);
-        SavedDeveloperSearch search = savedSearchRepository.findById(searchId)
-                .orElseThrow(() -> new ResourceNotFoundException("Saved search not found"));
-        if (!search.getEmployerId().equals(profile.getId())) {
-            throw new BadRequestException("Saved search does not belong to this employer");
-        }
-        savedSearchRepository.delete(search);
-    }
-
-    // ----------------------------------------------------------------
-    // Bookmarks
-    // ----------------------------------------------------------------
-
-    @Transactional
-    public UserDtos.BookmarkResponse bookmarkDeveloper(UUID userId, UUID developerId) {
-        EmployerProfile employer = getProfileEntityByUserId(userId);
-        DeveloperProfile developer = developerProfileRepository.findById(developerId)
-                .orElseThrow(() -> new ProfileNotFoundException("Developer profile not found"));
-
-        if (bookmarkRepository.existsByEmployerIdAndDeveloperId(employer.getId(), developerId)) {
-            throw new BadRequestException("Developer is already bookmarked");
-        }
-
-        BookmarkedDeveloper bookmark = new BookmarkedDeveloper();
-        bookmark.setEmployerId(employer.getId());
-        bookmark.setDeveloperId(developerId);
-        bookmark = bookmarkRepository.save(bookmark);
-
-        String developerName = developer.getFirstName() + " " + developer.getLastName();
-        return new UserDtos.BookmarkResponse(bookmark.getId(), developerId, developerName, bookmark.getCreatedAt());
-    }
-
-    @Transactional
-    public void removeBookmark(UUID userId, UUID developerId) {
-        EmployerProfile employer = getProfileEntityByUserId(userId);
-        BookmarkedDeveloper bookmark = bookmarkRepository.findByEmployerIdAndDeveloperId(employer.getId(), developerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Bookmark not found"));
-        bookmarkRepository.delete(bookmark);
-    }
-
-    public Page<UserDtos.BookmarkResponse> getBookmarks(UUID userId, Pageable pageable) {
-        EmployerProfile employer = getProfileEntityByUserId(userId);
-        return bookmarkRepository.findByEmployerId(employer.getId(), pageable)
-                .map(bm -> {
-                    DeveloperProfile dev = developerProfileRepository.findById(bm.getDeveloperId()).orElse(null);
-                    String name = dev != null ? dev.getFirstName() + " " + dev.getLastName() : "Unknown";
-                    return new UserDtos.BookmarkResponse(bm.getId(), bm.getDeveloperId(), name, bm.getCreatedAt());
-                });
-    }
 
     // ----------------------------------------------------------------
     // Contact Requests
@@ -184,14 +101,6 @@ public class EmployerProfileService {
         User sender = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        // Only enforce Pro accounts for Employer roles
-        if (sender.getRole() == org.moseti.kedevsapi.shared.enums.Role.EMPLOYER) {
-            EmployerProfile employer = employerProfileRepository.findByUserId(userId)
-                    .orElseThrow(() -> new ProfileNotFoundException("Employer profile not found"));
-            if (!employer.isProAccount()) {
-                throw new NotProAccountException("Only Pro employers can send contact requests");
-            }
-        }
 
         DeveloperProfile developer = developerProfileRepository.findById(developerId)
                 .orElseThrow(() -> new ProfileNotFoundException("Developer profile not found"));
@@ -387,14 +296,11 @@ public class EmployerProfileService {
                 profile.getIncorporationCertificateUrl(),
                 profile.getKraPinCertificateUrl(),
                 profile.getBusinessPermitUrl(),
-                profile.isApproved(), profile.isVerified(), profile.isProAccount(),
+                profile.isApproved(), profile.isVerified(),
                 profile.getCreatedAt()
         );
     }
 
-    private UserDtos.SavedSearchResponse toSavedSearchResponse(SavedDeveloperSearch s) {
-        return new UserDtos.SavedSearchResponse(s.getId(), s.getSearchName(), s.getFilterCriteria(), s.getCreatedAt());
-    }
 
     private UserDtos.ContactRequestResponse toContactRequestResponse(ContactRequest r) {
         String name = "Unknown";

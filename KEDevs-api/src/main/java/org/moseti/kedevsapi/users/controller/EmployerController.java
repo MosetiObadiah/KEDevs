@@ -128,110 +128,11 @@ public class EmployerController {
                 employerProfileService.uploadVerificationDocuments(userId, incorporationCertificate, kraPinCertificate, businessPermit)));
     }
 
-    @Operation(summary = "Save a filter search (Pro)", description = "Requires EMPLOYER PRO status.")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Search saved successfully"),
-        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
-        @ApiResponse(responseCode = "403", description = "Requires Pro account")
-    })
-    @PostMapping("/searches")
-    @PreAuthorize("hasRole('EMPLOYER') and @employerProfileService.isProAccount(authentication.principal)")
-    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.SavedSearchResponse>> saveSearch(
-            Authentication authentication,
-            @Valid @RequestBody UserDtos.SaveSearchRequest request) {
-        UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Search saved",
-                employerProfileService.saveSearch(userId, request)));
-    }
-
-    @Operation(summary = "List saved filter searches (Pro)", description = "Requires EMPLOYER PRO status.")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Searches retrieved successfully"),
-        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
-        @ApiResponse(responseCode = "403", description = "Requires Pro account")
-    })
-    @GetMapping("/searches")
-    @PreAuthorize("hasRole('EMPLOYER') and @employerProfileService.isProAccount(authentication.principal)")
-    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<List<UserDtos.SavedSearchResponse>>> getSavedSearches(
-            Authentication authentication) {
-        UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Searches retrieved",
-                employerProfileService.getSavedSearches(userId)));
-    }
-
-    @Operation(summary = "Delete a saved search (Pro)", description = "Requires EMPLOYER PRO status.")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Search deleted successfully"),
-        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
-        @ApiResponse(responseCode = "403", description = "Requires Pro account"),
-        @ApiResponse(responseCode = "404", description = "Search not found")
-    })
-    @DeleteMapping("/searches/{id}")
-    @PreAuthorize("hasRole('EMPLOYER') and @employerProfileService.isProAccount(authentication.principal)")
-    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> deleteSavedSearch(
-            Authentication authentication,
-            @Parameter(description = "ID of the saved search") @PathVariable UUID id) {
-        UUID userId = (UUID) authentication.getPrincipal();
-        employerProfileService.deleteSavedSearch(userId, id);
-        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Search deleted"));
-    }
-
-    @Operation(summary = "Bookmark a developer (Pro)", description = "Requires EMPLOYER PRO status.")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Developer bookmarked successfully"),
-        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
-        @ApiResponse(responseCode = "403", description = "Requires Pro account")
-    })
-    @PostMapping("/bookmarks/{developerId}")
-    @PreAuthorize("hasRole('EMPLOYER') and @employerProfileService.isProAccount(authentication.principal)")
-    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.BookmarkResponse>> bookmarkDeveloper(
-            Authentication authentication,
-            @Parameter(description = "ID of the developer profile to bookmark") @PathVariable UUID developerId) {
-        UUID userId = (UUID) authentication.getPrincipal();
-        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Developer bookmarked",
-                employerProfileService.bookmarkDeveloper(userId, developerId)));
-    }
-
-    @Operation(summary = "Remove a bookmark (Pro)", description = "Requires EMPLOYER PRO status.")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Bookmark removed successfully"),
-        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
-        @ApiResponse(responseCode = "403", description = "Requires Pro account"),
-        @ApiResponse(responseCode = "404", description = "Bookmark not found")
-    })
-    @DeleteMapping("/bookmarks/{developerId}")
-    @PreAuthorize("hasRole('EMPLOYER') and @employerProfileService.isProAccount(authentication.principal)")
-    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> removeBookmark(
-            Authentication authentication,
-            @Parameter(description = "ID of the developer profile to un-bookmark") @PathVariable UUID developerId) {
-        UUID userId = (UUID) authentication.getPrincipal();
-        employerProfileService.removeBookmark(userId, developerId);
-        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Bookmark removed"));
-    }
-
-    @Operation(summary = "List bookmarked developers (Pro)", description = "Requires EMPLOYER PRO status.")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Bookmarks retrieved successfully"),
-        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
-        @ApiResponse(responseCode = "403", description = "Requires Pro account")
-    })
-    @GetMapping("/bookmarks")
-    @PreAuthorize("hasRole('EMPLOYER') and @employerProfileService.isProAccount(authentication.principal)")
-    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<UserDtos.BookmarkResponse>>> getBookmarks(
-            Authentication authentication,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        UUID userId = (UUID) authentication.getPrincipal();
-        Pageable pageable = PageRequest.of(page, Math.min(size, 50));
-        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Bookmarks retrieved",
-                employerProfileService.getBookmarks(userId, pageable)));
-    }
 
     @Operation(summary = "Send contact request to developer", description = "Requires authenticated user.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Contact request sent successfully"),
         @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
-        @ApiResponse(responseCode = "403", description = "Requires Pro account if Employer"),
         @ApiResponse(responseCode = "429", description = "Daily contact limit exceeded")
     })
     @PostMapping("/contact/{developerId}")

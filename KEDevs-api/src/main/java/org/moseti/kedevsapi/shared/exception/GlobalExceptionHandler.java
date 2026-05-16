@@ -10,7 +10,6 @@ import org.moseti.kedevsapi.auth.exception.InvalidVerificationCodeException;
 import org.moseti.kedevsapi.shared.dto.ApiResponse;
 import org.moseti.kedevsapi.users.exception.ContactRequestLimitExceededException;
 import org.moseti.kedevsapi.users.exception.EndorsementNotAllowedException;
-import org.moseti.kedevsapi.users.exception.NotProAccountException;
 import org.moseti.kedevsapi.users.exception.ProfileAlreadyExistsException;
 import org.moseti.kedevsapi.users.exception.ProfileNotFoundException;
 import org.moseti.kedevsapi.forum.exception.CommentNotFoundException;
@@ -19,10 +18,8 @@ import org.moseti.kedevsapi.forum.exception.CannotReplyToReplyException;
 import org.moseti.kedevsapi.forum.exception.CannotVoteOnOwnCommentException;
 import org.moseti.kedevsapi.forum.exception.CannotFlagOwnCommentException;
 import org.moseti.kedevsapi.forum.exception.AlreadyFlaggedCommentException;
-import org.moseti.kedevsapi.payments.exception.AlreadySubscribedException;
 import org.moseti.kedevsapi.payments.exception.AlreadyVerifiedException;
 import org.moseti.kedevsapi.payments.exception.DarajaApiException;
-import org.moseti.kedevsapi.payments.exception.InsufficientSearchTokensException;
 import org.moseti.kedevsapi.payments.exception.PaymentAlreadyProcessedException;
 import org.moseti.kedevsapi.payments.exception.PaymentNotFoundException;
 import org.moseti.kedevsapi.payments.exception.PaywallException;
@@ -165,12 +162,6 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ex.getMessage()));
     }
 
-    @ExceptionHandler(NotProAccountException.class)
-    public ResponseEntity<ApiResponse<Void>> handleNotProAccount(NotProAccountException ex) {
-        return ResponseEntity
-                .status(HttpStatus.FORBIDDEN)
-                .body(ApiResponse.error(ex.getMessage()));
-    }
 
     @ExceptionHandler(CommentNotFoundException.class)
     public ResponseEntity<ApiResponse<Void>> handleCommentNotFound(CommentNotFoundException ex) {
@@ -228,12 +219,6 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ex.getMessage()));
     }
 
-    @ExceptionHandler(AlreadySubscribedException.class)
-    public ResponseEntity<ApiResponse<Void>> handleAlreadySubscribed(AlreadySubscribedException ex) {
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(ex.getMessage()));
-    }
 
     @ExceptionHandler(AlreadyVerifiedException.class)
     public ResponseEntity<ApiResponse<Void>> handleAlreadyVerified(AlreadyVerifiedException ex) {
@@ -249,12 +234,6 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ex.getMessage()));
     }
 
-    @ExceptionHandler(InsufficientSearchTokensException.class)
-    public ResponseEntity<ApiResponse<Void>> handleInsufficientSearchTokens(InsufficientSearchTokensException ex) {
-        return ResponseEntity
-                .status(HttpStatus.PAYMENT_REQUIRED)
-                .body(ApiResponse.error(ex.getMessage()));
-    }
 
     @ExceptionHandler(DarajaApiException.class)
     public ResponseEntity<ApiResponse<Void>> handleDarajaApi(DarajaApiException ex) {

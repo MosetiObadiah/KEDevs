@@ -591,28 +591,72 @@ export default function VerificationQueue() {
                </div>
             </div>
 
-            {/* Action Footer - Only show Approve/Reject if Pending */}
+            {/* Action Footer - Handle decisions and reverts */}
             <div className="bg-white border-t border-slate-100 px-12 py-8 flex items-center justify-between shrink-0">
                <div className="flex items-center gap-3">
-                  <Badge className="bg-slate-100 text-slate-900 shadow-none font-black text-[10px] px-3 py-1.5 rounded-lg tracking-widest uppercase">
-                     AUDIT RECORD: {selectedReq?.status}
+                  <Badge className={cn(
+                     "shadow-none font-black text-[10px] px-3 py-1.5 rounded-lg tracking-widest uppercase",
+                     selectedReq?.status === 'APPROVED' ? "bg-emerald-100 text-emerald-700" :
+                     selectedReq?.status === 'REJECTED' ? "bg-red-100 text-red-700" :
+                     "bg-slate-100 text-slate-900"
+                  )}>
+                     AUDIT RECORD: {selectedReq?.status?.replace('_', ' ')}
                   </Badge>
                </div>
                <div className="flex gap-4">
-                  {selectedReq?.status !== 'APPROVED' ? (
+                  {/* Revert or Initial Decision logic */}
+                  {selectedReq?.status === 'APPROVED' ? (
                      <>
-                        <Button variant="ghost" className="rounded-2xl font-black h-14 px-10 text-red-500 hover:bg-red-50 transition-all border border-transparent hover:border-red-100 gap-2" onClick={() => setIsRejectDialogOpen(true)} disabled={processing}>
-                           {processing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <X className="h-5 w-5" />} Deny Verification
+                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center mr-4">
+                           Decision logged. Revert if necessary:
+                        </p>
+                        <Button 
+                           variant="ghost" 
+                           className="rounded-2xl font-black h-14 px-10 text-red-500 hover:bg-red-50 transition-all border border-transparent hover:border-red-100 gap-2" 
+                           onClick={() => setIsRejectDialogOpen(true)} 
+                           disabled={processing}
+                        >
+                           {processing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <XCircle className="h-5 w-5" />} Revert & Deny
                         </Button>
-                        <Button className="rounded-2xl font-black h-14 px-12 shadow-2xl shadow-primary/30 gap-2 bg-slate-900 hover:bg-slate-800 transition-all" onClick={handleApprove} disabled={processing}>
-                           {processing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Check className="h-5 w-5" />} Validate & Grant Credentials
+                     </>
+                  ) : selectedReq?.status === 'REJECTED' ? (
+                     <>
+                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center mr-4">
+                           Decision logged. Revert if necessary:
+                        </p>
+                        <Button 
+                           className="rounded-2xl font-black h-14 px-12 shadow-2xl shadow-primary/30 gap-2 bg-slate-900 hover:bg-slate-800 transition-all" 
+                           onClick={handleApprove} 
+                           disabled={processing}
+                        >
+                           {processing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <CheckCircle className="h-5 w-5" />} Revert & Approve
                         </Button>
                      </>
                   ) : (
-                     <Button variant="outline" className="rounded-2xl font-black h-14 px-10 border-border text-slate-600" onClick={() => setIsPreviewOpen(false)}>
-                        Close Archive
-                     </Button>
+                     <>
+                        <Button 
+                           variant="ghost" 
+                           className="rounded-2xl font-black h-14 px-10 text-red-500 hover:bg-red-50 transition-all border border-transparent hover:border-red-100 gap-2" 
+                           onClick={() => setIsRejectDialogOpen(true)} 
+                           disabled={processing}
+                        >
+                           {processing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <X className="h-5 w-5" />} Deny Verification
+                        </Button>
+                        <Button 
+                           className="rounded-2xl font-black h-14 px-12 shadow-2xl shadow-primary/30 gap-2 bg-slate-900 hover:bg-slate-800 transition-all" 
+                           onClick={handleApprove} 
+                           disabled={processing}
+                        >
+                           {processing ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Check className="h-5 w-5" />} Validate & Grant Credentials
+                        </Button>
+                     </>
                   )}
+                  
+                  <Separator orientation="vertical" className="h-10 mx-2 hidden md:block" />
+                  
+                  <Button variant="outline" className="rounded-2xl font-black h-14 px-10 border-border text-slate-600" onClick={() => setIsPreviewOpen(false)}>
+                     Close Archive
+                  </Button>
                </div>
             </div>
          </DialogContent>

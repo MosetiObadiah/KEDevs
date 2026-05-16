@@ -655,7 +655,9 @@ public class JobService {
                 job.getSourceUrl(),
                 tags,
                 job.getCreatedAt(),
-                postedByRole
+                postedByRole,
+                job.isPinned(),
+                job.getPinnedUntil()
         );
     }
 

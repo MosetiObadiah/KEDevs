@@ -76,7 +76,6 @@ class GoogleOAuthIntegrationTest {
         existingUser.setRole(Role.DEVELOPER);
         existingUser.setAuthProvider(AuthProvider.LOCAL);
         existingUser.setEmailVerified(true);
-        existingUser.setGracePeriodEndsAt(LocalDateTime.now().plusDays(3));
     }
 
     @Test

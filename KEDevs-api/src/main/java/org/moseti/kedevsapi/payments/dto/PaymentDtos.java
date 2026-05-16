@@ -8,8 +8,6 @@ import jakarta.validation.constraints.Pattern;
 import org.moseti.kedevsapi.shared.enums.PaymentStatus;
 import org.moseti.kedevsapi.shared.enums.PaymentType;
 import org.moseti.kedevsapi.shared.enums.SpotlightType;
-import org.moseti.kedevsapi.shared.enums.SubscriptionStatus;
-import org.moseti.kedevsapi.shared.enums.SubscriptionType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -67,13 +65,6 @@ public class PaymentDtos {
     ) {}
 
 
-    public record SubscriptionStatusResponse(
-            boolean hasAnnualMembership,
-            LocalDateTime membershipExpiresAt,
-            boolean isProAccount,
-            LocalDateTime proExpiresAt,
-            int searchTokensRemaining
-    ) {}
 
     public record PlatformSettingResponse(
             String settingKey,

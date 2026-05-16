@@ -46,19 +46,14 @@ import {
 import { Separator } from '@/components/ui/separator';
 
 export default function HiringPipeline() {
-  const [tab, setTab] = useState('bookmarks');
-  const [bookmarks, setBookmarks] = useState<any[]>([]);
+  const [tab, setTab] = useState('requests');
   const [requests, setRequests] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [bookmarksRes, requestsRes] = await Promise.all([
-        employerService.getBookmarks(),
-        employerService.getContactRequests(),
-      ]);
-      if (bookmarksRes.success) setBookmarks(bookmarksRes.data.content || bookmarksRes.data || []);
+      const requestsRes = await employerService.getContactRequests();
       if (requestsRes.success) setRequests(requestsRes.data.content || requestsRes.data || []);
     } catch (err: any) {
       toast.error('Failed to synchronize pipeline data');
@@ -71,15 +66,6 @@ export default function HiringPipeline() {
     loadData();
   }, []);
 
-  const handleRemoveBookmark = async (developerId: string) => {
-    try {
-      await employerService.removeBookmark(developerId);
-      setBookmarks((prev) => prev.filter((item) => item.developerId !== developerId && item.id !== developerId));
-      toast.success('Developer removed from pipeline');
-    } catch (err: any) {
-      toast.error('Failed to update pipeline');
-    }
-  };
 
   const handleRespondRequest = async (requestId: string, status: string) => {
     try {
@@ -113,11 +99,8 @@ export default function HiringPipeline() {
          </div>
       </div>
 
-      <Tabs defaultValue="bookmarks" onValueChange={setTab} className="w-full">
+      <Tabs defaultValue="requests" onValueChange={setTab} className="w-full">
         <TabsList className="bg-slate-100/50 p-1 rounded-2xl h-14 mb-8 flex overflow-x-auto no-scrollbar">
-          <TabsTrigger value="bookmarks" className="rounded-xl px-8 font-black data-[state=active]:bg-white data-[state=active]:shadow-sm gap-2">
-             <Bookmark className="h-4 w-4" /> Curated Talent
-          </TabsTrigger>
           <TabsTrigger value="requests" className="rounded-xl px-8 font-black data-[state=active]:bg-white data-[state=active]:shadow-sm gap-2">
              <MessageSquare className="h-4 w-4" /> Active Outreach
           </TabsTrigger>
@@ -130,70 +113,7 @@ export default function HiringPipeline() {
                     <Loader2 className="h-10 w-10 text-primary animate-spin" />
                     <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Synchronizing records...</p>
                  </div>
-              ) : tab === 'bookmarks' ? (
-                 <Table>
-                    <TableHeader className="bg-slate-50/50">
-                       <TableRow className="border-slate-100">
-                          <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-10">Professional</TableHead>
-                          <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-10">Current Role</TableHead>
-                          <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-10 text-right">Moderation</TableHead>
-                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                       {bookmarks.map((bookmark) => (
-                          <TableRow key={bookmark.id || bookmark.developerId} className="border-slate-50 hover:bg-slate-50/50 transition-colors">
-                             <TableCell className="py-6 px-10">
-                                <div className="flex items-center gap-4">
-                                   <Avatar className="h-12 w-12 rounded-2xl border-2 border-slate-50 shadow-sm">
-                                      <AvatarFallback className="bg-slate-900 text-white font-black text-sm uppercase">
-                                         {bookmark.developerName?.charAt(0) || bookmark.fullName?.charAt(0) || 'D'}
-                                      </AvatarFallback>
-                                   </Avatar>
-                                   <div className="space-y-1">
-                                      <Link href={`/developers/${bookmark.developerId || bookmark.id}`} className="font-black text-slate-900 text-lg tracking-tight hover:text-primary transition-colors">
-                                         {bookmark.developerName || bookmark.fullName || 'Developer'}
-                                      </Link>
-                                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">CURATED_TALENT</p>
-                                   </div>
-                                </div>
-                             </TableCell>
-                             <TableCell className="py-6 px-10">
-                                <Badge variant="outline" className="rounded-lg font-black text-[9px] uppercase tracking-widest border-slate-100 bg-slate-50 text-slate-500">
-                                   {bookmark.role || bookmark.currentRole || 'ENGINEER'}
-                                </Badge>
-                             </TableCell>
-                             <TableCell className="py-6 px-10 text-right">
-                                <div className="flex justify-end gap-3">
-                                   <Button asChild size="sm" className="h-10 rounded-xl font-black bg-slate-900 gap-2">
-                                      <Link href={`/developers/${bookmark.developerId || bookmark.id}`}>
-                                         <Send className="h-3.5 w-3.5" /> Request Outreach
-                                      </Link>
-                                   </Button>
-                                   <Button 
-                                      size="sm" 
-                                      variant="ghost" 
-                                      className="h-10 w-10 p-0 rounded-xl text-red-400 hover:text-red-600 hover:bg-red-50"
-                                      onClick={() => handleRemoveBookmark(bookmark.developerId || bookmark.id)}
-                                   >
-                                      <Trash2 className="h-4 w-4" />
-                                   </Button>
-                                </div>
-                             </TableCell>
-                          </TableRow>
-                       ))}
-                       {bookmarks.length === 0 && (
-                          <TableRow>
-                             <TableCell colSpan={3} className="py-24 text-center">
-                                <div className="space-y-4">
-                                   <Layout className="h-12 w-12 text-slate-100 mx-auto" />
-                                   <p className="font-black text-slate-400 uppercase tracking-widest text-xs">No curated developers in pipeline</p>
-                                </div>
-                             </TableCell>
-                          </TableRow>
-                       )}
-                    </TableBody>
-                 </Table>
-              ) : (
+               ) : (
                  <Table>
                     <TableHeader className="bg-slate-50/50">
                        <TableRow className="border-slate-100">

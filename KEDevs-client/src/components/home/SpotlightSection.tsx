@@ -136,10 +136,7 @@ export default function SpotlightSection({ dayDev, weekDev, loading, hideTitle }
     <section className="py-16 md:py-24 bg-background">
       <div className="container mx-auto px-6">
         {!hideTitle && (
-          <div className="flex flex-col items-center text-center mb-16">
-            <Badge variant="secondary" className="mb-4 bg-primary/10 text-primary border-none font-bold uppercase tracking-widest text-[10px]">
-              Talent Spotlight
-            </Badge>
+          <div className="flex flex-col items-start mb-16">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
               Featured <span className="text-primary">Talent</span>
             </h2>

@@ -96,6 +96,17 @@
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
+  
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes progress {
+    from { width: 0%; }
+    to { width: 100%; }
+  }
+  --animate-spin-slow: spin-slow 3s linear infinite;
+  --animate-progress: progress 120s linear forwards;
 }
 
 @layer base {

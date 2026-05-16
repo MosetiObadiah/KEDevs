@@ -142,7 +142,9 @@ public class JobDtos {
             String sourceUrl,
             List<String> tags,
             LocalDateTime createdAt,
-            Role postedByRole
+            Role postedByRole,
+            boolean isPinned,
+            LocalDateTime pinnedUntil
     ) {}
 
     public record JobApplicationResponse(

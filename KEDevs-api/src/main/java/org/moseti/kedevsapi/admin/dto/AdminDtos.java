@@ -93,8 +93,6 @@ public class AdminDtos {
             AccountStatus accountStatus,
             boolean isEmailVerified,
             LocalDateTime createdAt,
-            LocalDateTime subscriptionExpiry,
-            LocalDateTime gracePeriodEndsAt,
             String avatarUrl,
             UUID profileId,
             LocalDateTime lastLoginAt
@@ -169,14 +167,6 @@ public class AdminDtos {
             BigDecimal revenue
     ) {}
 
-    public record SubscriptionStatsResponse(
-            long totalActive,
-            long totalExpired,
-            long totalCancelled,
-            long activeAnnualMemberships,
-            long activeProAccounts,
-            long expiringInSevenDays
-    ) {}
 
     public record ForumActivityResponse(
             long totalComments,
@@ -225,7 +215,6 @@ public class AdminDtos {
             long newUsersThisMonth,
             long pendingEmployerApprovals,
             RevenueBreakdownResponse revenue,
-            SubscriptionStatsResponse subscriptions,
             ForumActivityResponse forum,
             FlaggedContentSummaryResponse flaggedContent,
             List<JobSummaryForAdmin> topUpvotedJobs,

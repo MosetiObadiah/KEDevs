@@ -138,11 +138,6 @@ public class UserDtos {
             @Schema(description = "Contact email address", example = "contact@company.com") String contactEmail
     ) {}
 
-    public record SaveSearchRequest(
-            @NotBlank(message = "Search name is required") @Schema(description = "Descriptive name for the saved search", example = "Senior Java Devs in Nairobi") String searchName,
-            @Schema(description = "Map of filter criteria to apply") java.util.Map<String, Object> filterCriteria
-    ) {}
-
     public record ContactRequestDto(
             @NotBlank(message = "Message is required") @Schema(description = "Personalized message to the developer", example = "We love your profile and would like to chat about an open role.") String message
     ) {}
@@ -239,7 +234,6 @@ public class UserDtos {
             String businessPermitUrl,
             boolean isApproved,
             boolean isVerified,
-            boolean isProAccount,
             java.time.LocalDateTime createdAt
     ) {}
 
@@ -270,20 +264,6 @@ public class UserDtos {
             java.util.UUID developerId,
             String message,
             org.moseti.kedevsapi.shared.enums.ContactRequestStatus status,
-            java.time.LocalDateTime createdAt
-    ) {}
-
-    public record BookmarkResponse(
-            java.util.UUID id,
-            java.util.UUID developerId,
-            String developerName,
-            java.time.LocalDateTime bookmarkedAt
-    ) {}
-
-    public record SavedSearchResponse(
-            java.util.UUID id,
-            String searchName,
-            String filterCriteria,
             java.time.LocalDateTime createdAt
     ) {}
 

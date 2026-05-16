@@ -63,8 +63,6 @@ public class AuthService {
         // Set approval status - employers need admin approval
         user.setApprovedByAdmin(request.getRole() == Role.DEVELOPER);
 
-        // Set grace period
-        user.setGracePeriodEndsAt(LocalDateTime.now().plusDays(Constants.GRACE_PERIOD_DAYS));
 
         user = userRepository.save(user);
 
@@ -280,7 +278,6 @@ public class AuthService {
             newUser.setEmailVerified(true); // Google already verified
             newUser.setAccountStatus(AccountStatus.ACTIVE);
             newUser.setApprovedByAdmin(userRole == Role.DEVELOPER); // Employers need approval
-            newUser.setGracePeriodEndsAt(LocalDateTime.now().plusDays(Constants.GRACE_PERIOD_DAYS));
             newUser.setLastLoginAt(LocalDateTime.now());
 
             log.info("Saving new Google user: email={}, role={}", newUser.getEmail(), newUser.getRole());
@@ -329,11 +326,6 @@ public class AuthService {
     }
 
     private AuthResponse buildAuthResponse(User user, String accessToken, String refreshToken) {
-        LocalDateTime now = LocalDateTime.now();
-        boolean inGracePeriod = user.getGracePeriodEndsAt() != null &&
-                                user.getGracePeriodEndsAt().isAfter(now) &&
-                                !user.isSubscriptionActive();
-
         boolean onboarded = false;
         boolean isVerified = user.isApprovedByAdmin();
         boolean employerApproved = false;
@@ -366,7 +358,6 @@ public class AuthService {
                 .emailVerified(user.isEmailVerified())
                 .requiresApproval(requiresApproval)
                 .onboarded(onboarded)
-                .inGracePeriod(inGracePeriod)
                 .isVerified(isVerified)
                 .build();
     }

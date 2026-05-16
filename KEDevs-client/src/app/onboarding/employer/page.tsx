@@ -19,7 +19,11 @@ import {
   Eye, 
   ExternalLink,
   CreditCard,
-  Smartphone
+  Smartphone,
+  User,
+  Mail,
+  Users,
+  MapPin
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { employerService } from '@/services/employerService';
@@ -68,6 +72,8 @@ export default function EmployerOnboarding() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   // Verification document files (held in state until final submit)
+  const [incorporationFile, setIncorporationFile] = useState<File | null>(null);
+  const [kraPinFile, setKraPinFile] = useState<File | null>(null);
   const [businessPermitFile, setBusinessPermitFile] = useState<File | null>(null);
 
   // Payment state
@@ -116,7 +122,7 @@ export default function EmployerOnboarding() {
       try {
         const response = await paymentService.getSettings();
         if (response.success) {
-          const fee = response.data.find(s => s.settingKey === 'VERIFIED_BADGE_FEE')?.settingValue;
+          const fee = response.data.find(s => s.settingKey === 'VERIFIED_BADGE_EMPLOYER')?.settingValue;
           if (fee) setVerificationFee(fee);
         }
       } catch (err) {}

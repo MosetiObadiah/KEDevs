@@ -6,7 +6,6 @@ import {
   Zap, 
   Filter, 
   Search, 
-  Bookmark, 
   Send, 
   Clock, 
   ShieldCheck, 
@@ -88,8 +87,7 @@ export default function HiringAssist() {
                  {[
                     { title: 'Advanced Filtering', desc: 'Precision discovery by experience, tech stacks, and availability.', icon: Filter },
                     { title: 'Direct Outreach', desc: 'Personalized requests sent directly to verified talent.', icon: Send },
-                    { title: 'Search Persistence', desc: 'Save search nodes and receive alerts for new matches.', icon: Search },
-                    { title: 'Pipeline Ops', desc: 'Organize candidates into custom lifecycle stages.', icon: Briefcase },
+                    { title: 'Pipeline Ops', desc: 'Manage and track your active outreach operations.', icon: Briefcase },
                  ].map((feature, i) => (
                     <div key={i} className="p-8 rounded-[2.5rem] bg-slate-50 border-2 border-slate-100 space-y-3 group hover:border-primary/20 transition-all">
                        <feature.icon className="h-6 w-6 text-primary" />
@@ -179,7 +177,6 @@ export default function HiringAssist() {
 
                  <div className="space-y-3 pt-4">
                     <Button className="w-full h-14 rounded-2xl bg-slate-900 font-black shadow-lg">Scan Ecosystem</Button>
-                    <Button variant="ghost" className="w-full h-10 rounded-xl font-black text-[10px] uppercase tracking-widest text-slate-400">Save Search Profile</Button>
                  </div>
               </CardContent>
            </Card>
@@ -224,9 +221,6 @@ export default function HiringAssist() {
                        </div>
 
                        <div className="flex gap-2">
-                          <Button variant="ghost" className="h-12 w-12 rounded-xl bg-slate-50 text-slate-400 hover:text-primary">
-                             <Bookmark className="h-5 w-5" />
-                          </Button>
                           <Dialog open={isModalOpen && selectedDev?.id === dev.id} onOpenChange={(open) => { setIsModalOpen(open); if(!open) setSelectedDev(null); }}>
                              <DialogTrigger asChild>
                                 <Button 

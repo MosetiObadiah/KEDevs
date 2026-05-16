@@ -22,7 +22,6 @@ import org.moseti.kedevsapi.payments.entity.PlatformSetting;
 import org.moseti.kedevsapi.payments.entity.UserFlag;
 import org.moseti.kedevsapi.payments.repository.PaymentRepository;
 import org.moseti.kedevsapi.payments.repository.PlatformSettingRepository;
-import org.moseti.kedevsapi.payments.repository.SubscriptionRepository;
 import org.moseti.kedevsapi.payments.repository.UserFlagRepository;
 import org.moseti.kedevsapi.shared.enums.*;
 import org.moseti.kedevsapi.shared.exception.ResourceNotFoundException;
@@ -67,7 +66,6 @@ public class AdminService {
     private final CommentFlagRepository commentFlagRepository;
     private final UserFlagRepository userFlagRepository;
     private final PaymentRepository paymentRepository;
-    private final SubscriptionRepository subscriptionRepository;
     private final PlatformSettingRepository platformSettingRepository;
     private final JobApplicationRepository jobApplicationRepository;
     private final VerificationRequestRepository verificationRequestRepository;
@@ -157,14 +155,20 @@ public class AdminService {
 
         // 2. Always fetch Employers (unless strictly filtering for Developer)
         if (role == null || role == Role.EMPLOYER) {
-            List<VerificationRequestAdminResponse> employers = employerProfileRepository.findByIsApprovedFalse(Pageable.unpaged()).stream().map(p -> {
-                List<String> certs = new java.util.ArrayList<>();
-                if (p.getBusinessPermitUrl() != null) certs.add(p.getBusinessPermitUrl());
-                return new VerificationRequestAdminResponse(
-                        p.getId(), p.getUserId(), p.getCompanyName(), Role.EMPLOYER, "PENDING_APPROVAL",
-                        p.getIncorporationCertificateUrl(), p.getKraPinCertificateUrl(), certs, p.getCreatedAt()
-                );
-            }).toList();
+            List<VerificationRequestAdminResponse> employers = employerProfileRepository.findByIsApprovedFalse(Pageable.unpaged()).stream()
+                .filter(p -> {
+                    User user = userRepository.findById(p.getUserId()).orElse(null);
+                    // Only show employers who are still in PENDING status (not yet approved/rejected/banned)
+                    return user != null && user.getAccountStatus() == AccountStatus.PENDING_APPROVAL;
+                })
+                .map(p -> {
+                    List<String> certs = new java.util.ArrayList<>();
+                    if (p.getBusinessPermitUrl() != null) certs.add(p.getBusinessPermitUrl());
+                    return new VerificationRequestAdminResponse(
+                            p.getId(), p.getUserId(), p.getCompanyName(), Role.EMPLOYER, "PENDING_APPROVAL",
+                            p.getIncorporationCertificateUrl(), p.getKraPinCertificateUrl(), certs, p.getCreatedAt()
+                    );
+                }).toList();
             combined.addAll(employers);
         }
 
@@ -283,6 +287,11 @@ public class AdminService {
             
             logAction(adminId, AdminActionTypes.APPROVE_VERIFICATION, "VERIFICATION", vr.getId(), request.reason(), "APPROVED");
         } else {
+            // If it was previously approved, we must revoke the badge
+            if (oldStatus == VerificationStatus.APPROVED) {
+                performBadgeAction(adminId, vr.getUserId(), new BadgeActionRequest("REVOKE", "Verification decision reverted: " + request.reason()));
+            }
+            
             logAction(adminId, AdminActionTypes.REJECT_VERIFICATION, "VERIFICATION", vr.getId(), request.reason(), "REJECTED");
             notificationService.notify(vr.getUserId(), NotificationCategory.ADMIN, 
                     "Verification Denied", 
@@ -603,7 +612,6 @@ public class AdminService {
 
     public AnalyticsSummaryResponse getAnalyticsSummary() {
         RevenueBreakdownResponse revenue = getRevenueBreakdown();
-        SubscriptionStatsResponse subscriptions = getSubscriptionStats();
         ForumActivityResponse forum = getForumActivity();
         FlaggedContentSummaryResponse flags = getFlaggedContentSummary();
         
@@ -630,7 +638,6 @@ public class AdminService {
                 userRepository.countByCreatedAtAfter(LocalDateTime.now().minusDays(30)),
                 employerProfileRepository.countByIsApprovedFalse(),
                 revenue,
-                subscriptions,
                 forum,
                 flags,
                 topJobs,
@@ -681,16 +688,6 @@ public class AdminService {
                 .collect(Collectors.toList());
     }
 
-    public SubscriptionStatsResponse getSubscriptionStats() {
-        return new SubscriptionStatsResponse(
-                subscriptionRepository.countByStatus(SubscriptionStatus.ACTIVE),
-                subscriptionRepository.countByStatus(SubscriptionStatus.EXPIRED),
-                subscriptionRepository.countByStatus(SubscriptionStatus.CANCELLED),
-                subscriptionRepository.countByTypeAndStatus(SubscriptionType.ANNUAL_MEMBERSHIP, SubscriptionStatus.ACTIVE),
-                subscriptionRepository.countByTypeAndStatus(SubscriptionType.EMPLOYER_PRO, SubscriptionStatus.ACTIVE),
-                subscriptionRepository.countByStatusAndEndDateBetween(SubscriptionStatus.ACTIVE, LocalDateTime.now(), LocalDateTime.now().plusDays(7))
-        );
-    }
 
     public ForumActivityResponse getForumActivity() {
         long total = forumCommentRepository.count();
@@ -757,7 +754,6 @@ public class AdminService {
 
         return new UserSummaryResponse(u.getId(), u.getEmail(), u.getFullName(), u.getRole(),
                 u.getAccountStatus(), u.isEmailVerified(), u.getCreatedAt(),
-                u.getSubscriptionExpiresAt(), u.getGracePeriodEndsAt(),
                 avatarUrl, profileId, u.getLastLoginAt());
     }
 

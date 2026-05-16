@@ -89,7 +89,6 @@ class UsersModuleIntegrationTest {
         user.setEmailVerified(true);
         user.setAccountStatus(AccountStatus.ACTIVE);
         user.setApprovedByAdmin(role != Role.EMPLOYER); // employers need explicit approval
-        user.setGracePeriodEndsAt(LocalDateTime.now().plusDays(3));
         return userRepository.save(user);
     }
 
@@ -112,7 +111,6 @@ class UsersModuleIntegrationTest {
         p.setContactPersonName("Employer");
         p.setCompanyName("Acme " + UUID.randomUUID());
         p.setApproved(true);
-        p.setProAccount(true);
         return employerProfileRepository.save(p);
     }
 

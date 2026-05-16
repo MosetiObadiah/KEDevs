@@ -149,11 +149,9 @@ public class NotificationService {
         if (request.emailOnPaymentReceipt() != null) prefs.setEmailOnPaymentReceipt(request.emailOnPaymentReceipt());
         if (request.emailOnJobApplication() != null) prefs.setEmailOnJobApplication(request.emailOnJobApplication());
         if (request.emailOnJobFlagged() != null) prefs.setEmailOnJobFlagged(request.emailOnJobFlagged());
-        if (request.emailOnSubscriptionExpiry() != null) prefs.setEmailOnSubscriptionExpiry(request.emailOnSubscriptionExpiry());
         if (request.emailOnSpotlightExpired() != null) prefs.setEmailOnSpotlightExpired(request.emailOnSpotlightExpired());
         if (request.emailOnSpotlightOverridden() != null) prefs.setEmailOnSpotlightOverridden(request.emailOnSpotlightOverridden());
         if (request.emailOnVerifiedBadge() != null) prefs.setEmailOnVerifiedBadge(request.emailOnVerifiedBadge());
-        if (request.emailOnProUpgrade() != null) prefs.setEmailOnProUpgrade(request.emailOnProUpgrade());
 
         if (request.inAppOnJobApplication() != null) prefs.setInAppOnJobApplication(request.inAppOnJobApplication());
         if (request.inAppOnCommentReply() != null) prefs.setInAppOnCommentReply(request.inAppOnCommentReply());
@@ -182,11 +180,9 @@ public class NotificationService {
                 p.isEmailOnPaymentReceipt(),
                 p.isEmailOnJobApplication(),
                 p.isEmailOnJobFlagged(),
-                p.isEmailOnSubscriptionExpiry(),
                 p.isEmailOnSpotlightExpired(),
                 p.isEmailOnSpotlightOverridden(),
                 p.isEmailOnVerifiedBadge(),
-                p.isEmailOnProUpgrade(),
                 p.isInAppOnJobApplication(),
                 p.isInAppOnCommentReply(),
                 p.isInAppOnEndorsement(),

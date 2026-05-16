@@ -32,33 +32,10 @@ export const employerService = {
     return apiClient.post<ApiResponse<any>>('/api/v1/employers/profile/verification-documents', formData);
   },
 
-  async getSavedSearches(): Promise<ApiResponse<any>> {
-    return apiClient.get<ApiResponse<any>>('/api/v1/employers/searches');
-  },
-
-  async saveSearch(data: any): Promise<ApiResponse<any>> {
-    return apiClient.post<ApiResponse<any>>('/api/v1/employers/searches', data);
-  },
-
-  async deleteSearch(searchId: string): Promise<ApiResponse<void>> {
-    return apiClient.delete<ApiResponse<void>>(`/api/v1/employers/searches/${searchId}`);
-  },
-
   async contactDeveloper(developerId: string, data: any): Promise<ApiResponse<any>> {
     return apiClient.post<ApiResponse<any>>(`/api/v1/employers/contact/${developerId}`, data);
   },
 
-  async bookmarkDeveloper(developerId: string): Promise<ApiResponse<any>> {
-    return apiClient.post<ApiResponse<any>>(`/api/v1/employers/bookmarks/${developerId}`, {});
-  },
-
-  async removeBookmark(developerId: string): Promise<ApiResponse<void>> {
-    return apiClient.delete<ApiResponse<void>>(`/api/v1/employers/bookmarks/${developerId}`);
-  },
-
-  async getBookmarks(): Promise<ApiResponse<any>> {
-    return apiClient.get<ApiResponse<any>>('/api/v1/employers/bookmarks');
-  },
 
   async getContactRequests(): Promise<ApiResponse<any>> {
     return apiClient.get<ApiResponse<any>>('/api/v1/employers/contact/requests');

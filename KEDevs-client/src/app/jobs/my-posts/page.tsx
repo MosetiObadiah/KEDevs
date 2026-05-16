@@ -17,7 +17,9 @@ import {
   Lock,
   Eye,
   ArrowRight,
-  ExternalLink
+  ExternalLink,
+  Pin,
+  TrendingUp
 } from 'lucide-react';
 import { jobService } from '@/services/jobService';
 import { useAuth } from '@/context/AuthContext';
@@ -35,12 +37,17 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from '@/components/ui/skeleton';
+import PinJobDialog from '@/components/jobs/PinJobDialog';
 
 export default function MyJobPosts() {
   const { user, isLoggedIn } = useAuth();
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Pinning state
+  const [isPinDialogOpen, setIsPinDialogOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<{id: string, title: string} | null>(null);
 
   const fetchMyPosts = async () => {
     setLoading(true);
@@ -147,6 +154,12 @@ export default function MyJobPosts() {
                           if (post.status === 'OPEN') return <Badge className="bg-emerald-500 hover:bg-emerald-500 text-[10px] uppercase">Active</Badge>;
                           return <Badge variant="secondary" className="text-[10px] uppercase">Closed</Badge>;
                         })()}
+                        {post.isPinned && post.pinnedUntil && (
+                          <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px] uppercase font-black tracking-widest gap-1">
+                            <Pin className="h-3 w-3 fill-current" />
+                            Pinned until {new Date(post.pinnedUntil).toLocaleDateString()}
+                          </Badge>
+                        )}
                       </div>
                       
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground font-medium mb-6">
@@ -196,6 +209,20 @@ export default function MyJobPosts() {
                             <div className="w-full py-2 px-4 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
                               <ExternalLink className="h-3 w-3" /> External Source
                             </div>
+                          )}
+
+                          {!post.isPeerSourced && !post.isPinned && post.status === 'OPEN' && (
+                            <Button 
+                              variant="outline" 
+                              className="w-full font-bold h-11 border-primary/20 text-primary hover:bg-primary/5 hover:text-primary"
+                              onClick={() => {
+                                setSelectedJob({ id: post.id, title: post.title });
+                                setIsPinDialogOpen(true);
+                              }}
+                            >
+                              <TrendingUp className="mr-2 h-4 w-4" />
+                              Pin Listing
+                            </Button>
                           )}
 
                           <div className="flex items-center gap-2">
@@ -252,6 +279,28 @@ export default function MyJobPosts() {
           )}
         </div>
       </div>
+
+      {selectedJob && (
+        <PinJobDialog
+          open={isPinDialogOpen}
+          onClose={() => {
+            setIsPinDialogOpen(false);
+            setSelectedJob(null);
+          }}
+          jobId={selectedJob.id}
+          jobTitle={selectedJob.title}
+          onSuccess={() => {
+            // Update local state to show pinned status
+            setPosts(prev => prev.map(p => 
+              p.id === selectedJob.id 
+                ? { ...p, isPinned: true, pinnedUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() } // Placeholder until refresh
+                : p
+            ));
+            toast.success('Job pinned successfully!');
+            fetchMyPosts(); // Refresh for real data
+          }}
+        />
+      )}
     </div>
   );
 }
