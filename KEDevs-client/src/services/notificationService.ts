@@ -28,4 +28,8 @@ export const notificationService = {
   async getUnreadCount(): Promise<ApiResponse<any>> {
     return apiClient.get<ApiResponse<any>>('/api/v1/notifications/unread-count');
   },
+
+  async deleteNotification(notificationId: string): Promise<ApiResponse<any>> {
+    return apiClient.delete<ApiResponse<any>>(`/api/v1/notifications/${notificationId}`);
+  }
 };

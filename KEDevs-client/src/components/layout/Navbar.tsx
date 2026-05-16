@@ -26,7 +26,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
-import { notificationService } from '@/services/notificationService';
+import { useNotification } from '@/context/NotificationContext';
 import NotificationPopover from '../notifications/NotificationPopover';
 
 import {
@@ -45,7 +45,7 @@ const Navbar = () => {
   const { isLoggedIn, user, logout } = useAuth();
   const router = useRouter();
   const { theme, setTheme } = useTheme();
-  const [unreadCount, setUnreadCount] = useState(0);
+  const { unreadCount, refreshUnreadCount } = useNotification();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isEmp = user?.role === 'EMPLOYER';
@@ -61,24 +61,7 @@ const Navbar = () => {
     ...(isAdmin ? [{ label: 'Command Center', href: '/admin/dashboard' }] : []),
   ];
 
-  const fetchUnreadCount = async () => {
-    if (isLoggedIn) {
-      try {
-        const response = await notificationService.getUnreadCount();
-        if (response.success) {
-          setUnreadCount(response.data.count);
-        }
-      } catch (error) {
-        console.error('Failed to fetch unread count', error);
-      }
-    }
-  };
 
-  useEffect(() => {
-    fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 60000);
-    return () => clearInterval(interval);
-  }, [isLoggedIn]);
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-slate-100 bg-white/80 backdrop-blur-md">
@@ -129,9 +112,12 @@ const Navbar = () => {
               </div>
             ) : (
               <div className="flex items-center gap-3">
-                <NotificationPopover unreadCount={unreadCount} onMarkAllAsRead={fetchUnreadCount}>
-                   <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 bg-slate-50 text-slate-400 hover:text-primary">
+                <NotificationPopover unreadCount={unreadCount} onMarkAllAsRead={refreshUnreadCount}>
+                   <Button variant="ghost" size="icon" className="relative rounded-xl h-10 w-10 bg-slate-50 text-slate-400 hover:text-primary">
                       <Bell className="h-5 w-5" />
+                      {unreadCount > 0 && (
+                        <span className="absolute top-2 right-2 h-2.5 w-2.5 bg-red-500 border-2 border-white rounded-full animate-in zoom-in" />
+                      )}
                    </Button>
                 </NotificationPopover>
 

@@ -16,5 +16,7 @@ public interface EndorsementRepository extends JpaRepository<Endorsement, UUID> 
 
     List<Endorsement> findAllByRecipientId(UUID recipientId);
 
+    int countByRecipientId(UUID recipientId);
+
     boolean existsByAuthorIdAndRecipientId(UUID authorId, UUID recipientId);
 }

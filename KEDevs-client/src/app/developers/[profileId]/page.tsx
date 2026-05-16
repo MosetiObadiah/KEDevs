@@ -94,8 +94,7 @@ export default function DeveloperProfilePage() {
           }
 
           setDev(data);
-          const computedName = data.fullName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.publicEmail || data.email || 'Developer';
-          setMessage(`Hi ${computedName}, I found your profile on KEDevs and would like to invite you to apply for an opportunity.`);
+          setMessage('');
         }
       } catch (err: any) {
         setError('Unable to load developer profile.');

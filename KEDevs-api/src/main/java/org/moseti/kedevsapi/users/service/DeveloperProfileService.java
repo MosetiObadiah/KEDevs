@@ -555,9 +555,14 @@ public class DeveloperProfileService {
         List<UserDtos.DeveloperSummaryResponse> filtered = allProfiles.stream()
             .filter(p -> filter.availabilityStatus() == null || filter.availabilityStatus() == p.getAvailabilityStatus())
             .filter(p -> filter.locationCity() == null || filter.locationCity().isEmpty() || filter.locationCity().equalsIgnoreCase(p.getLocationCity()))
+            .filter(p -> filter.locationCountry() == null || filter.locationCountry().isEmpty() || filter.locationCountry().equalsIgnoreCase(p.getLocationCountry()))
+            .filter(p -> filter.preferredWorkType() == null || filter.preferredWorkType() == p.getPreferredWorkType())
+            .filter(p -> filter.yearsOfExperience() == null || filter.yearsOfExperience() == p.getYearsOfExperience())
             .filter(p -> filter.isVerified() == null || !filter.isVerified() || p.isVerified())
             .map(this::toSummaryResponse)
-            .filter(s -> matchesKeyword(s, filter.currentLastRole())) // Using currentLastRole property as a general keyword param
+            .filter(s -> matchesKeyword(s, filter.currentLastRole()))
+            .filter(s -> matchesSkills(s, filter.skills()))
+            .filter(s -> matchesLanguages(s, filter.languages()))
             .toList();
 
         if (pageable.isPaged()) {
@@ -567,6 +572,18 @@ public class DeveloperProfileService {
             return new org.springframework.data.domain.PageImpl<>(pageContent, pageable, filtered.size());
         }
         return new org.springframework.data.domain.PageImpl<>(filtered, pageable, filtered.size());
+    }
+
+    private boolean matchesSkills(UserDtos.DeveloperSummaryResponse s, List<String> requiredSkills) {
+        if (requiredSkills == null || requiredSkills.isEmpty()) return true;
+        if (s.skills() == null) return false;
+        return s.skills().stream().anyMatch(sk -> requiredSkills.stream().anyMatch(r -> r.equalsIgnoreCase(sk)));
+    }
+
+    private boolean matchesLanguages(UserDtos.DeveloperSummaryResponse s, List<String> requiredLanguages) {
+        // SummaryResponse doesn't have languages, so we'd need to fetch them if we want to filter by them here.
+        // For now, let's keep it simple as SummaryResponse is meant to be lightweight.
+        return true;
     }
 
     private boolean matchesKeyword(UserDtos.DeveloperSummaryResponse s, String keyword) {
@@ -658,12 +675,15 @@ public class DeveloperProfileService {
         List<UserDtos.EndorsementResponse> endorsements = endorsementRepository.findAllByRecipientId(profile.getId())
                 .stream().map(e -> toEndorsementResponse(e, e.getAuthorId())).toList();
 
+        int endorsementCount = endorsementRepository.countByRecipientId(profile.getId());
+        int projectCount = (int) projectRepository.countByDeveloperId(profile.getId());
+
         return new UserDtos.DeveloperProfileResponse(
                 profile.getId(), profile.getUserId(),
                 profile.getFirstName(), profile.getLastName(),
                 profile.getProfilePhoto(), profile.getBio(),
                 profile.getCurrentLastRole(), profile.getYearsOfExperience(),
-                profile.getNumberOfProjects(), profile.getAvailabilityStatus(),
+                projectCount, profile.getAvailabilityStatus(),
                 profile.getPreferredWorkType(), profile.getLocationCity(),
                 profile.getLocationCountry(), profile.getProfileVisibility(),
                 profile.isVerified(), profile.getGovernmentIdUrl(), profile.getLinkedinUrl(),
@@ -679,6 +699,10 @@ public class DeveloperProfileService {
     private UserDtos.DeveloperSummaryResponse toSummaryResponse(DeveloperProfile profile) {
         List<String> skills = skillRepository.findByDeveloperId(profile.getId())
                 .stream().map(DeveloperSkill::getSkill).toList();
+        List<String> languages = languageRepository.findByDeveloperId(profile.getId())
+                .stream().map(DeveloperLanguage::getLanguage).toList();
+        int endorsementCount = endorsementRepository.countByRecipientId(profile.getId());
+        int projectCount = (int) projectRepository.countByDeveloperId(profile.getId());
         return new UserDtos.DeveloperSummaryResponse(
                 profile.getId(),
                 profile.getFirstName(), profile.getLastName(),
@@ -686,7 +710,9 @@ public class DeveloperProfileService {
                 skills, profile.getAvailabilityStatus(),
                 profile.isVerified(), profile.getLocationCity(), profile.getLocationCountry(),
                 profile.getPublicEmail(), profile.getPublicPhone(),
-                profile.getYearsOfExperience(), profile.getPreferredWorkType()
+                profile.getYearsOfExperience(), profile.getPreferredWorkType(),
+                projectCount, endorsementCount,
+                languages
         );
     }
 

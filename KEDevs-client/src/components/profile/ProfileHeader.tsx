@@ -2,7 +2,7 @@ import React from 'react';
 import { MapPin, Briefcase, ShieldCheck, Globe, Camera, Star } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { formatExperience, formatAvailability, formatWorkType } from '@/lib/utils';
+import { formatExperience, formatAvailability, formatWorkType, toTitleCase } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -173,7 +173,7 @@ export function ProfileHeader({ profile, isOwner, isEditing, onUpdate, onPhotoSe
       <div className="space-y-3 flex-1">
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-3xl md:text-4xl font-black text-foreground tracking-tight">
-            {profile.firstName} {profile.lastName}
+            {toTitleCase(`${profile.firstName || ''} ${profile.lastName || ''}`)}
           </h1>
           {profile.isVerified && (
             <Badge className="bg-emerald-500 hover:bg-emerald-600 rounded-lg font-bold tracking-wider text-[10px] uppercase h-6 px-2">
@@ -187,12 +187,13 @@ export function ProfileHeader({ profile, isOwner, isEditing, onUpdate, onPhotoSe
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-bold text-muted-foreground uppercase tracking-wider">
           <span className="flex items-center gap-1.5">
             <MapPin className="w-4 h-4 text-primary" />
-            {profile.locationCity || 'Nairobi'}, {profile.locationCountry || 'Kenya'}
+            {toTitleCase(profile.locationCity || 'Nairobi')}, {toTitleCase(profile.locationCountry || 'Kenya')}
           </span>
           <span className="hidden md:block text-muted-foreground/30">•</span>
           <span className="flex items-center gap-1.5">
              <Briefcase className="w-4 h-4 text-primary" />
-             {formatExperience(profile.yearsOfExperience)}
+             <span className="font-black uppercase tracking-wider text-[10px] text-slate-400">Years of Experience:</span>
+             <span className="text-foreground">{formatExperience(profile.yearsOfExperience)}</span>
           </span>
           <span className="hidden md:block text-muted-foreground/30">•</span>
           <span className="flex items-center gap-1.5 text-xs font-extrabold text-slate-700 normal-case">

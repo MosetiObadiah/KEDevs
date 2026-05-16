@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.moseti.kedevsapi.shared.dto.WebSocketEvent;
+import org.moseti.kedevsapi.users.repository.BlockedUserRepository;
 
 import java.util.UUID;
 
@@ -33,6 +34,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final NotificationPreferenceRepository preferenceRepository;
+    private final BlockedUserRepository blockedUserRepository;
 
     private final SimpMessagingTemplate messagingTemplate;
     @Lazy
@@ -162,7 +164,29 @@ public class NotificationService {
         return mapToPreferenceResponse(preferenceRepository.save(prefs));
     }
 
+    @Transactional
+    public void deleteNotification(UUID userId, UUID notificationId) {
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new NotificationNotFoundException("Notification not found"));
+
+        if (!notification.getUserId().equals(userId)) {
+            throw new NotificationNotFoundException("Notification not found");
+        }
+
+        notificationRepository.delete(notification);
+    }
+
     private NotificationResponse mapToResponse(Notification n) {
+        Map<String, Object> metadata = n.getMetadata();
+        if (metadata != null && metadata.containsKey("senderUserId")) {
+            try {
+                UUID senderId = UUID.fromString(metadata.get("senderUserId").toString());
+                boolean isBlocked = blockedUserRepository.existsByBlockerIdAndBlockedId(n.getUserId(), senderId);
+                metadata.put("isSenderBlocked", isBlocked);
+            } catch (Exception e) {
+                // Ignore parsing errors
+            }
+        }
         return new NotificationResponse(
                 n.getId(),
                 n.getUserId(),
@@ -170,7 +194,7 @@ public class NotificationService {
                 n.getTitle(),
                 n.getMessage(),
                 n.isRead(),
-                n.getMetadata(),
+                metadata,
                 n.getCreatedAt()
         );
     }

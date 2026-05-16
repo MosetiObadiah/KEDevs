@@ -3,22 +3,30 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { 
-  Search, 
-  CheckCircle2, 
-  Mail, 
-  Phone, 
-  Star, 
-  Flag, 
   MapPin, 
   FilterX,
   ChevronRight,
-  ArrowRight, ExternalLink, Printer, Download, FileSpreadsheet, FileText, Briefcase,
+  Download, 
+  FileSpreadsheet, 
+  FileText, 
+  Briefcase,
   Loader2,
-  BadgeCheck } from 'lucide-react';
+  BadgeCheck,
+  ExternalLink,
+  ArrowRight,
+  Search,
+  CheckCircle2,
+  Mail,
+  Phone,
+  Star,
+  Flag
+} from 'lucide-react';
+import { PageContainer as PageLayoutContainer } from '@/components/layout/PageContainer';
+import { LAYOUT as LAYOUT_CONST, SPACING as SPACING_CONST, TYPOGRAPHY as TYPOGRAPHY_CONST } from '@/lib/constants';
 import { useAuth } from '@/context/AuthContext';
 import { developerService } from '@/services/developerService';
 import { DeveloperSummary } from '@/lib/types';
-import { cn, formatExperience, formatWorkType, formatAvailability } from '@/lib/utils';
+import { cn, formatExperience, formatWorkType, formatAvailability, formatLocation, toTitleCase } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -96,6 +104,8 @@ function DevelopersPageContent() {
   const [selectedWorkTypes, setSelectedWorkTypes] = useState<string[]>([]);
   const [selectedExperiences, setSelectedExperiences] = useState<string[]>([]);
   const [location, setLocation] = useState('All');
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [isVerifiedOnly, setIsVerifiedOnly] = useState(false);
 
   // Flagging state
@@ -136,6 +146,8 @@ function DevelopersPageContent() {
     (location === 'All' || dev.locationCity === location) &&
     (selectedWorkTypes.length === 0 || (dev.preferredWorkType && selectedWorkTypes.includes(dev.preferredWorkType))) &&
     (selectedExperiences.length === 0 || (dev.yearsOfExperience && selectedExperiences.includes(dev.yearsOfExperience))) &&
+    (selectedSkills.length === 0 || dev.skills.some(s => selectedSkills.includes(s))) &&
+    (selectedLanguages.length === 0 || dev.languages.some(l => selectedLanguages.includes(l))) &&
     (!isVerifiedOnly || dev.isVerified)
   );
 
@@ -200,26 +212,24 @@ function DevelopersPageContent() {
 
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
-      <div className="container mx-auto px-6 pt-8 pb-12">
-        <div className="flex justify-end mb-8">
-          <div className="flex items-center gap-3 print:hidden">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                 <Button variant="outline" className="font-bold border-primary/20 hover:bg-primary/5 h-12 px-6" disabled={isExporting}>
-                    <Download className="mr-2 h-4 w-4 text-primary" /> 
-                    {isExporting ? 'Exporting...' : 'Export'}
-                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                 <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium">
-                    <FileSpreadsheet className="mr-2 h-4 w-4" /> Download as CSV
-                 </DropdownMenuItem>
-                 <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium">
-                    <FileText className="mr-2 h-4 w-4" /> Download as PDF
-                 </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+      <PageLayoutContainer>
+        <div className="flex justify-end items-center gap-3 mb-8 print:hidden">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+               <Button variant="outline" className="font-bold border-primary/20 hover:bg-primary/5 h-12 px-6" disabled={isExporting}>
+                  <Download className="mr-2 h-4 w-4 text-primary" /> 
+                  {isExporting ? 'Exporting...' : 'Export'}
+               </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+               <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium">
+                  <FileSpreadsheet className="mr-2 h-4 w-4" /> Download as CSV
+               </DropdownMenuItem>
+               <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium">
+                  <FileText className="mr-2 h-4 w-4" /> Download as PDF
+               </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         
         <div className="hidden print:block mb-8 border-b pb-4">
@@ -227,9 +237,9 @@ function DevelopersPageContent() {
            <p className="text-sm text-gray-500">Generated on {new Date().toLocaleDateString()}</p>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className={cn("grid grid-cols-1 lg:grid-cols-4", SPACING_CONST.cards)}>
           {/* Filters Sidebar */}
-          <aside className="lg:col-span-1 space-y-8 print:hidden">
+          <aside className="lg:col-span-1 space-y-6 print:hidden">
             <Card className="border-border/50 shadow-sm sticky top-24">
               <CardHeader className="pb-4">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Filter Talent</h3>
@@ -317,22 +327,69 @@ function DevelopersPageContent() {
                   </Select>
                 </div>
 
-                <div className="flex flex-row items-start space-x-3 space-y-0 rounded-xl border border-border/50 p-4 bg-card shadow-inner">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground uppercase">Skills</label>
+                  <div className="flex flex-wrap gap-1 mb-2 max-h-32 overflow-y-auto p-1 bg-muted/5 rounded-lg border border-border/20">
+                    {Array.from(new Set(devs.flatMap(d => d.skills))).sort().map(skill => (
+                      <Badge 
+                        key={skill} 
+                        variant={selectedSkills.includes(skill) ? "default" : "outline"}
+                        className={cn(
+                          "text-[9px] cursor-pointer transition-all",
+                          selectedSkills.includes(skill) ? "bg-primary text-primary-foreground" : "hover:bg-primary/5"
+                        )}
+                        onClick={() => {
+                          if (selectedSkills.includes(skill)) {
+                            setSelectedSkills(selectedSkills.filter(s => s !== skill));
+                          } else {
+                            setSelectedSkills([...selectedSkills, skill]);
+                          }
+                        }}
+                      >
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-muted-foreground uppercase">Languages</label>
+                  <div className="flex flex-wrap gap-1 mb-2 max-h-24 overflow-y-auto p-1 bg-muted/5 rounded-lg border border-border/20">
+                    {Array.from(new Set(devs.flatMap(d => d.languages || []))).sort().map(lang => (
+                      <Badge 
+                        key={lang} 
+                        variant={selectedLanguages.includes(lang) ? "default" : "outline"}
+                        className={cn(
+                          "text-[9px] cursor-pointer transition-all",
+                          selectedLanguages.includes(lang) ? "bg-primary text-primary-foreground" : "hover:bg-primary/5"
+                        )}
+                        onClick={() => {
+                          if (selectedLanguages.includes(lang)) {
+                            setSelectedLanguages(selectedLanguages.filter(l => l !== lang));
+                          } else {
+                            setSelectedLanguages([...selectedLanguages, lang]);
+                          }
+                        }}
+                      >
+                        {lang}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-card shadow-inner">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="verified" className="text-sm font-bold cursor-pointer">Verified Only</Label>
+                    <p className="text-[10px] text-muted-foreground">Show only verified profiles</p>
+                  </div>
                   <Checkbox 
                      id="verified" 
                      checked={isVerifiedOnly} 
                      onCheckedChange={(checked) => setIsVerifiedOnly(checked as boolean)} 
-                     className="mt-1"
                   />
-                  <div className="space-y-1 leading-none">
-                     <label htmlFor="verified" className="text-sm font-bold leading-none cursor-pointer">
-                        Verified Only
-                     </label>
-                     <p className="text-[10px] text-muted-foreground">Show only verified profiles</p>
-                  </div>
                 </div>
 
-                {(searchTerm || selectedAvails.length > 0 || selectedWorkTypes.length > 0 || selectedExperiences.length > 0 || location !== 'All' || isVerifiedOnly) && (
+                {(searchTerm || selectedAvails.length > 0 || selectedWorkTypes.length > 0 || selectedExperiences.length > 0 || location !== 'All' || selectedSkills.length > 0 || isVerifiedOnly) && (
                   <Button 
                     variant="ghost" 
                     size="sm" 
@@ -342,6 +399,7 @@ function DevelopersPageContent() {
                       setSelectedAvails([]);
                       setSelectedWorkTypes([]);
                       setSelectedExperiences([]);
+                      setSelectedSkills([]);
                       setLocation('All');
                       setIsVerifiedOnly(false);
                     }}
@@ -391,11 +449,17 @@ function DevelopersPageContent() {
                           </div>
                         )}
                       </Link>
+
+                      <div className="flex justify-center mb-4">
+                        <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[10px] font-black px-3 py-1 rounded-full">
+                          {dev.numberOfProjects || 0} {dev.numberOfProjects === 1 ? 'Project' : 'Projects'}
+                        </Badge>
+                      </div>
                       
                       <div className="mb-4">
                         <Link href={`/developers/${dev.id}`}>
-                          <h3 className="text-xl font-bold group-hover:text-primary transition-colors mb-1">
-                            {dev.firstName} {dev.lastName}
+                          <h3 className="text-xl font-black group-hover:text-primary transition-colors mb-1 tracking-tight">
+                            {toTitleCase(`${dev.firstName} ${dev.lastName}`)}
                           </h3>
                         </Link>
                         <p className="text-sm font-semibold text-muted-foreground">{dev.currentLastRole}</p>
@@ -411,17 +475,28 @@ function DevelopersPageContent() {
                         >
                           {formatAvailability(dev.availabilityStatus)}
                         </Badge>
+                      </div>
+
+                      <div className="space-y-1 mb-6 text-center">
                         {dev.yearsOfExperience && (
-                          <Badge variant="secondary" className="text-[9px] font-bold py-0 px-2 bg-primary/10 text-primary border-none rounded-md">
-                            {EXPERIENCE_RANGES.find(r => r.value === dev.yearsOfExperience)?.label || dev.yearsOfExperience}
-                          </Badge>
+                          <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider">
+                            Years of Experience: <span className="text-foreground font-bold">{formatExperience(dev.yearsOfExperience)}</span>
+                          </p>
                         )}
                         {dev.preferredWorkType && (
-                          <Badge variant="outline" className="text-[9px] font-bold py-0 px-2 border-border bg-muted/20 text-muted-foreground rounded-md">
-                            {formatWorkType(dev.preferredWorkType)}
-                          </Badge>
+                          <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider">
+                            Work Preference: <span className="text-foreground font-bold">{formatWorkType(dev.preferredWorkType)}</span>
+                          </p>
                         )}
                       </div>
+                      
+                      {dev.endorsementCount > 0 && (
+                        <div className="mb-6">
+                          <p className="text-[10px] font-black text-primary uppercase tracking-tighter">
+                            {dev.endorsementCount} {dev.endorsementCount === 1 ? 'Endorsement' : 'Endorsements'}
+                          </p>
+                        </div>
+                      )}
                       
                       {isLoggedIn && (user?.role === 'EMPLOYER' || user?.id === dev.id) && (
                         <div className="flex justify-center gap-2 mb-6">
@@ -460,13 +535,18 @@ function DevelopersPageContent() {
                             {skill}
                           </Badge>
                         ))}
+                        {dev.skills.length > 3 && (
+                          <Badge variant="ghost" className="text-[9px] font-bold text-muted-foreground p-0">
+                            +{dev.skills.length - 3} more
+                          </Badge>
+                        )}
                       </div>
                     </CardContent>
 
                     <CardFooter className="p-4 border-t border-border/50 bg-muted/10 flex justify-between items-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest print:hidden">
                       <div className="flex items-center gap-1.5">
                         <MapPin className="h-3 w-3" />
-                        {dev.locationCity}
+                        {formatLocation(dev.locationCity)}
                       </div>
                       <div className="flex gap-2">
                         <Button 
@@ -520,59 +600,59 @@ function DevelopersPageContent() {
             </div>
           </main>
         </div>
-      </div>
 
-      {/* Flag Modal */}
-      <Dialog open={isFlagOpen} onOpenChange={setIsFlagOpen}>
-        <DialogContent className="sm:max-w-[500px] rounded-[2rem] p-8">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-black flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center text-destructive">
-                <Flag className="h-6 w-6" />
+        {/* Flag Modal */}
+        <Dialog open={isFlagOpen} onOpenChange={setIsFlagOpen}>
+          <DialogContent className="sm:max-w-[500px] rounded-[2rem] p-8">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-black flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center text-destructive">
+                  <Flag className="h-6 w-6" />
+                </div>
+                Report Profile
+              </DialogTitle>
+              <DialogDescription className="font-medium text-muted-foreground">
+                Please describe why you are reporting this profile. Our moderation team will review this report.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="py-6 space-y-4">
+              <div className="space-y-2">
+                <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground flex justify-between">
+                  <span>Reason for Reporting</span>
+                  <span className={cn(flagContent.length > 500 ? "text-destructive" : "")}>
+                    {flagContent.length}/500
+                  </span>
+                </Label>
+                <Textarea 
+                  placeholder="e.g. Inappropriate content, spam, or fake profile..." 
+                  className="min-h-[120px] rounded-2xl border-border/50 resize-none font-medium text-base p-4 focus-visible:ring-destructive/20"
+                  value={flagContent}
+                  onChange={(e) => setFlagContent(e.target.value.slice(0, 500))}
+                />
               </div>
-              Report Profile
-            </DialogTitle>
-            <DialogDescription className="font-medium text-muted-foreground">
-              Please describe why you are reporting this profile. Our moderation team will review this report.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="py-6 space-y-4">
-            <div className="space-y-2">
-              <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground flex justify-between">
-                <span>Reason for Reporting</span>
-                <span className={cn(flagContent.length > 500 ? "text-destructive" : "")}>
-                  {flagContent.length}/500
-                </span>
-              </Label>
-              <Textarea 
-                placeholder="e.g. Inappropriate content, spam, or fake profile..." 
-                className="min-h-[120px] rounded-2xl border-border/50 resize-none font-medium text-base p-4 focus-visible:ring-destructive/20"
-                value={flagContent}
-                onChange={(e) => setFlagContent(e.target.value.slice(0, 500))}
-              />
             </div>
-          </div>
 
-          <DialogFooter className="sm:justify-end gap-3">
-            <Button variant="ghost" className="rounded-xl font-bold" onClick={() => {
-              setIsFlagOpen(false);
-              setSelectedDevId(null);
-            }}>
-              Cancel
-            </Button>
-            <Button 
-              className="rounded-xl font-black px-8 bg-destructive text-destructive-foreground hover:bg-destructive/90" 
-              onClick={handleFlagDeveloper}
-              disabled={isSubmittingFlag || !flagContent.trim()}
-            >
-              {isSubmittingFlag ? (
-                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</>
-              ) : 'Submit Report'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter className="sm:justify-end gap-3">
+              <Button variant="ghost" className="rounded-xl font-bold" onClick={() => {
+                setIsFlagOpen(false);
+                setSelectedDevId(null);
+              }}>
+                Cancel
+              </Button>
+              <Button 
+                className="rounded-xl font-black px-8 bg-destructive text-destructive-foreground hover:bg-destructive/90" 
+                onClick={handleFlagDeveloper}
+                disabled={isSubmittingFlag || !flagContent.trim()}
+              >
+                {isSubmittingFlag ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</>
+                ) : 'Submit Report'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </PageLayoutContainer>
     </div>
   );
 }

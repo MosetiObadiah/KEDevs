@@ -49,6 +49,9 @@ export interface DeveloperSummary {
   publicPhone?: string;
   yearsOfExperience?: YearsOfExperience;
   preferredWorkType?: WorkType;
+  numberOfProjects: number;
+  endorsementCount: number;
+  languages: string[];
 }
 
 export interface DeveloperSpotlightCard {

@@ -29,6 +29,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useNotification } from '@/context/NotificationContext';
 
 interface Notification {
   id: string;
@@ -54,6 +55,18 @@ const NotificationPopover: React.FC<NotificationPopoverProps> = ({
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
+  const { latestNotification } = useNotification();
+
+  useEffect(() => {
+    if (latestNotification) {
+      setNotifications(prev => {
+        if (!prev.find(n => n.id === latestNotification.id)) {
+          return [latestNotification, ...prev].slice(0, 50);
+        }
+        return prev;
+      });
+    }
+  }, [latestNotification]);
 
   useEffect(() => {
     if (isOpen) {
@@ -103,11 +116,6 @@ const NotificationPopover: React.FC<NotificationPopoverProps> = ({
       <DropdownMenuTrigger asChild>
         <div className="relative cursor-pointer group">
           {children}
-          {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 h-5 w-5 bg-primary text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white shadow-sm animate-in zoom-in duration-300">
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
-          )}
         </div>
       </DropdownMenuTrigger>
       

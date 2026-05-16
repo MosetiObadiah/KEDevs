@@ -215,7 +215,7 @@ export default function HomePage() {
                   </CardHeader>
                   <CardContent className="pb-6">
                     <div className="flex flex-wrap gap-1.5">
-                      {job.tags.slice(0, 3).map(tag => (
+                      {(job.tags || []).slice(0, 3).map(tag => (
                         <Badge key={tag} variant="secondary" className="text-[10px] py-0 px-2 font-medium">
                           {tag}
                         </Badge>
@@ -292,7 +292,7 @@ export default function HomePage() {
                   </CardHeader>
                   <CardContent className="pb-6">
                     <div className="flex flex-wrap gap-1.5">
-                      {dev.skills.slice(0, 3).map(skill => (
+                      {(dev.skills || []).slice(0, 3).map(skill => (
                         <Badge key={skill} variant="secondary" className="text-[10px] py-0 px-2 font-medium">
                           {skill}
                         </Badge>

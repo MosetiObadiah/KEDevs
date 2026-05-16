@@ -12,6 +12,7 @@ interface NotificationContextType {
   incrementUnreadCount: () => void;
   refreshUnreadCount: () => void;
   clearUnreadCount: () => void;
+  latestNotification: any | null;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -20,13 +21,14 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const { isLoggedIn, user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
   const [stompClient, setStompClient] = useState<Client | null>(null);
+  const [latestNotification, setLatestNotification] = useState<any | null>(null);
 
   const refreshUnreadCount = async () => {
     if (!isLoggedIn) return;
     try {
       const response = await notificationService.getUnreadCount();
-      if (response.success) {
-        setUnreadCount(Number(response.data));
+      if (response.success && response.data) {
+        setUnreadCount(Number(response.data.count));
       }
     } catch (err) {
       console.error('Failed to fetch unread count:', err);
@@ -75,7 +77,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           // Standard backend pattern wraps into: WebSocketEvent { type, data }
           const notification = payload.data || payload;
           
-          setUnreadCount(prev => prev + 1);
+          // More robust approach: fetch the actual count from backend to ensure synchronization
+          refreshUnreadCount();
+          setLatestNotification(notification);
           // Toast disabled per user request to keep notifications silent until inbox is visited
         } catch (err) {
           console.error('Error parsing websocket message:', err);
@@ -85,6 +89,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
     client.onStompError = (frame) => {
       console.error('STOMP Handshake / Connection Error:', frame.headers['message']);
+      console.error('Additional Details:', frame.body);
+    };
+
+    client.onWebSocketError = (event) => {
+      console.error('WebSocket Error:', event);
     };
 
     client.activate();
@@ -101,7 +110,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       decrementUnreadCount: () => setUnreadCount(prev => Math.max(0, prev - 1)),
       incrementUnreadCount: () => setUnreadCount(prev => prev + 1),
       refreshUnreadCount,
-      clearUnreadCount: () => setUnreadCount(0)
+      clearUnreadCount: () => setUnreadCount(0),
+      latestNotification
     }}>
       {children}
     </NotificationContext.Provider>

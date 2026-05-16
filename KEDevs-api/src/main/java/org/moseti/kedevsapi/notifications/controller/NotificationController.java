@@ -113,4 +113,17 @@ public class NotificationController {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Preferences updated", 
                 notificationService.updatePreferences(userId, request)));
     }
+    @Operation(summary = "Delete a notification")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Notification deleted successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "404", description = "Notification not found")
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> deleteNotification(
+            @AuthenticationPrincipal UUID userId,
+            @Parameter(description = "ID of the notification") @PathVariable UUID id) {
+        notificationService.deleteNotification(userId, id);
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Notification deleted"));
+    }
 }

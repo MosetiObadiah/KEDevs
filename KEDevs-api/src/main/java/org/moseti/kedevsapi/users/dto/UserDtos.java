@@ -212,7 +212,10 @@ public class UserDtos {
             String publicEmail,
             String publicPhone,
             YearsOfExperience yearsOfExperience,
-            WorkType preferredWorkType
+            WorkType preferredWorkType,
+            int numberOfProjects,
+            int endorsementCount,
+            java.util.List<String> languages
     ) {}
 
     public record EmployerProfileResponse(

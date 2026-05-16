@@ -45,6 +45,7 @@ public class EmployerProfileService {
     private final UserFlagRepository userFlagRepository;
     private final VerificationRequestRepository verificationRequestRepository;
     @Lazy private final PaymentService paymentService;
+    private final BlockedUserRepository blockedUserRepository;
 
 
     // ----------------------------------------------------------------
@@ -113,6 +114,11 @@ public class EmployerProfileService {
             throw new BadRequestException("This developer has disabled direct contact.");
         }
 
+        // Block check
+        if (blockedUserRepository.existsByBlockerIdAndBlockedId(developer.getUserId(), userId)) {
+            throw new BadRequestException("You have been blocked by this user.");
+        }
+
         // Rate limit check
         LocalDateTime since = LocalDateTime.now().minusHours(24);
         long count = contactRequestRepository.countBySenderUserIdAndCreatedAtAfter(userId, since);
@@ -130,12 +136,31 @@ public class EmployerProfileService {
         contactRequest.setStatus(ContactRequestStatus.PENDING);
         contactRequest = contactRequestRepository.save(contactRequest);
 
+        String companyIdStr = "";
+        String senderDeveloperIdStr = "";
+        
+        if (sender.getRole() == org.moseti.kedevsapi.shared.enums.Role.EMPLOYER) {
+            java.util.Optional<EmployerProfile> empProfile = employerProfileRepository.findByUserId(userId);
+            if (empProfile.isPresent()) {
+                companyIdStr = empProfile.get().getId().toString();
+            }
+        } else if (sender.getRole() == org.moseti.kedevsapi.shared.enums.Role.DEVELOPER) {
+            java.util.Optional<DeveloperProfile> devProfile = developerProfileRepository.findByUserId(userId);
+            if (devProfile.isPresent()) {
+                senderDeveloperIdStr = devProfile.get().getId().toString();
+            }
+        }
+
         notificationService.notify(
                 developer.getUserId(),
                 org.moseti.kedevsapi.shared.enums.NotificationCategory.CONTACT,
-                "New Contact Request",
-                sender.getFullName() + " wants to connect with you.",
-                "{\"senderUserId\":\"" + userId + "\",\"requestId\":\"" + contactRequest.getId() + "\"}"
+                "New Message from " + sender.getFullName(),
+                request.message(),
+                String.format("{\"senderUserId\":\"%s\",\"requestId\":\"%s\",\"message\":\"%s\",\"senderName\":\"%s\",\"companyId\":\"%s\",\"senderDeveloperId\":\"%s\"}", 
+                        userId, contactRequest.getId(), 
+                        request.message().replace("\"", "\\\"").replace("\n", "\\n"),
+                        sender.getFullName().replace("\"", "\\\""),
+                        companyIdStr, senderDeveloperIdStr)
         );
 
         log.info("Contact request sent from user={} to developer={}", userId, developerId);
@@ -355,5 +380,25 @@ public class EmployerProfileService {
                     "{\"flaggedUserId\":\"" + targetUserId + "\"}"
             );
         }
+    }
+
+    @Transactional
+    public void blockUser(UUID blockerId, UUID blockedId) {
+        if (blockerId.equals(blockedId)) {
+            throw new BadRequestException("You cannot block yourself");
+        }
+        if (!blockedUserRepository.existsByBlockerIdAndBlockedId(blockerId, blockedId)) {
+            BlockedUser block = new BlockedUser();
+            block.setBlockerId(blockerId);
+            block.setBlockedId(blockedId);
+            blockedUserRepository.save(block);
+            log.info("User {} blocked user {}", blockerId, blockedId);
+        }
+    }
+
+    @Transactional
+    public void unblockUser(UUID blockerId, UUID blockedId) {
+        blockedUserRepository.deleteByBlockerIdAndBlockedId(blockerId, blockedId);
+        log.info("User {} unblocked user {}", blockerId, blockedId);
     }
 }

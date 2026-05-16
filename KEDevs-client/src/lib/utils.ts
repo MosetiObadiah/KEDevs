@@ -7,11 +7,11 @@ export function cn(...inputs: ClassValue[]) {
 export function formatExperience(level: string) {
   if (!level) return 'N/A';
   const mapping: Record<string, string> = {
-    'ZERO_TO_ONE': 'Zero to one years of experience',
-    'ONE_TO_THREE': 'One to three years of experience',
-    'THREE_TO_FIVE': 'Three to five years of experience',
-    'FIVE_TO_TEN': 'Five to ten years of experience',
-    'TEN_PLUS': 'Ten plus years of experience'
+    'ZERO_TO_ONE': '0–1 Years',
+    'ONE_TO_THREE': '1–3 Years',
+    'THREE_TO_FIVE': '3–5 Years',
+    'FIVE_TO_TEN': '5–10 Years',
+    'TEN_PLUS': '10+ Years'
   };
   return mapping[level] || level.replace(/_/g, ' ');
 }
@@ -70,4 +70,14 @@ export function formatAvailability(status: string) {
     'OPEN_TO_OFFERS': 'Open to Offers'
   };
   return mapping[status] || status.replace(/_/g, ' ');
+}
+
+export function formatLocation(city: string) {
+  if (!city) return 'N/A';
+  return toTitleCase(city);
+}
+
+export function toTitleCase(str: string) {
+  if (!str) return '';
+  return str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
 }

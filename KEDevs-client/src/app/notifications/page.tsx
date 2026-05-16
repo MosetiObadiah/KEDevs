@@ -22,9 +22,16 @@ import {
   FilterX,
   Mail,
   Zap,
-  Info
+  Info,
+  UserX,
+  User,
+  MessageSquare,
+  ExternalLink,
+  Building2
 } from 'lucide-react';
+import { userService } from '@/services/userService';
 import { notificationService } from '@/services/notificationService';
+import { useNotification } from '@/context/NotificationContext';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
@@ -47,6 +54,7 @@ interface Notification {
   category: string;
   isRead: boolean;
   createdAt: string;
+  metadata?: any;
 }
 
 const categoryConfig: Record<string, { color: string, icon: any, label: string }> = {
@@ -55,7 +63,8 @@ const categoryConfig: Record<string, { color: string, icon: any, label: string }
   'ADMIN': { color: 'text-red-600 bg-red-50', icon: ShieldCheck, label: 'Security & Auth' },
   'ENDORSEMENT': { color: 'text-purple-600 bg-purple-50', icon: Sparkles, label: 'Endorsements' },
   'SPOTLIGHT': { color: 'text-amber-600 bg-amber-50', icon: Bell, label: 'Visibility' },
-  'default': { color: 'text-slate-600 bg-slate-50', icon: Bell, label: 'General Pulse' },
+  'CONTACT': { color: 'text-indigo-600 bg-indigo-50', icon: Mail, label: 'Contact Requests' },
+  'default': { color: 'text-slate-600 bg-slate-50', icon: Bell, label: 'System Alerts' },
 };
 
 export default function NotificationsPage() {
@@ -64,11 +73,23 @@ export default function NotificationsPage() {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [activeFilter, setActiveFilter] = useState('ALL');
+  const { decrementUnreadCount, refreshUnreadCount, clearUnreadCount, latestNotification } = useNotification();
   const router = useRouter();
 
   useEffect(() => {
     fetchNotifications();
   }, []);
+
+  useEffect(() => {
+    if (latestNotification) {
+      setNotifications(prev => {
+        if (!prev.find(n => n.id === latestNotification.id)) {
+          return [latestNotification, ...prev];
+        }
+        return prev;
+      });
+    }
+  }, [latestNotification]);
 
   const fetchNotifications = async (isLoadMore = false) => {
     const currentPage = isLoadMore ? page + 1 : 0;
@@ -96,11 +117,51 @@ export default function NotificationsPage() {
   const handleMarkAsRead = async (id: string) => {
     try {
       await notificationService.markRead(id);
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
-      );
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+      refreshUnreadCount();
     } catch (error) {
       toast.error('Failed to update status');
+    }
+  };
+
+  const handleBlockUser = async (userId: string) => {
+    if (!confirm('Are you sure you want to block this user? They will not be able to contact you again.')) return;
+    try {
+      await userService.blockUser(userId);
+      setNotifications(prev => prev.map(n => 
+        n.metadata?.senderUserId === userId 
+          ? { ...n, metadata: { ...n.metadata, isSenderBlocked: true } } 
+          : n
+      ));
+      toast.success('User blocked');
+    } catch (error) {
+      toast.error('Failed to block user');
+    }
+  };
+
+  const handleUnblockUser = async (userId: string) => {
+    try {
+      await userService.unblockUser(userId);
+      setNotifications(prev => prev.map(n => 
+        n.metadata?.senderUserId === userId 
+          ? { ...n, metadata: { ...n.metadata, isSenderBlocked: false } } 
+          : n
+      ));
+      toast.success('User unblocked');
+    } catch (error) {
+      toast.error('Failed to unblock user');
+    }
+  };
+
+  const handleDeleteNotification = async (id: string) => {
+    if (!confirm('Archive this record?')) return;
+    try {
+      await notificationService.deleteNotification(id);
+      setNotifications(prev => prev.filter(n => n.id !== id));
+      refreshUnreadCount();
+      toast.success('Record archived');
+    } catch (error) {
+      toast.error('Failed to delete');
     }
   };
 
@@ -108,6 +169,7 @@ export default function NotificationsPage() {
     try {
       await notificationService.markAllRead();
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      clearUnreadCount();
       toast.success('All marked as read');
     } catch (error) {
       toast.error('Operation failed');
@@ -278,12 +340,56 @@ export default function NotificationsPage() {
                             </span>
                           </div>
                           
-                          <p className={cn(
-                            "text-sm font-medium leading-relaxed max-w-2xl",
-                            n.isRead ? "text-muted-foreground/70" : "text-muted-foreground"
-                          )}>
-                            {n.message}
-                          </p>
+                          {n.category !== 'CONTACT' && (
+                            <p className={cn(
+                              "text-sm font-medium leading-relaxed max-w-2xl",
+                              n.isRead ? "text-muted-foreground/70" : "text-muted-foreground"
+                            )}>
+                              {n.message}
+                            </p>
+                          )}
+                          
+                          {n.category === 'CONTACT' && n.metadata?.message && (
+                            <div className="mt-4 p-4 rounded-2xl bg-muted/30 border border-border/50 space-y-3">
+                              <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                                <MessageSquare className="h-3 w-3" /> Message Content
+                              </div>
+                              <p className="text-sm font-medium text-foreground italic">
+                                "{n.metadata.message}"
+                              </p>
+                              <div className="flex flex-wrap gap-2 pt-2">
+                                {n.metadata.companyId ? (
+                                  <Button size="sm" variant="outline" className="h-8 rounded-lg font-bold text-[10px] uppercase gap-1.5 border-primary/20 hover:bg-primary/5" asChild onClick={(e) => e.stopPropagation()}>
+                                    <Link href={`/companies/${n.metadata.companyId}`}>
+                                      <Building2 className="h-3 w-3" /> View Employer
+                                    </Link>
+                                  </Button>
+                                ) : n.metadata.senderDeveloperId ? (
+                                  <Button size="sm" variant="outline" className="h-8 rounded-lg font-bold text-[10px] uppercase gap-1.5 border-primary/20 hover:bg-primary/5" asChild onClick={(e) => e.stopPropagation()}>
+                                    <Link href={`/developers/${n.metadata.senderDeveloperId}`}>
+                                      <User className="h-3 w-3" /> View Profile
+                                    </Link>
+                                  </Button>
+                                ) : null}
+                                {!n.metadata.isSenderBlocked ? (
+                                  <Button size="sm" variant="ghost" className="h-8 rounded-lg font-bold text-[10px] uppercase gap-1.5 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleBlockUser(n.metadata.senderUserId);
+                                  }}>
+                                    <UserX className="h-3 w-3" /> Block
+                                  </Button>
+                                ) : (
+                                  <Button size="sm" variant="ghost" className="h-8 rounded-lg font-bold text-[10px] uppercase gap-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50" onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleUnblockUser(n.metadata.senderUserId);
+                                  }}>
+                                    <ShieldCheck className="h-3 w-3" /> Unblock
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          
                           
                           <div className="flex items-center justify-between pt-4">
                             <div className="flex items-center gap-3">
@@ -291,9 +397,34 @@ export default function NotificationsPage() {
                                 {config.label}
                               </Badge>
                             </div>
-                            <Button variant="ghost" className="h-8 px-3 rounded-xl text-[10px] font-bold uppercase tracking-widest text-primary gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                              Acknowledge <ChevronRight className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              {!n.isRead && (
+                                <Button 
+                                  variant="ghost" 
+                                  className="h-8 px-3 rounded-xl text-[10px] font-bold uppercase tracking-widest text-primary gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleMarkAsRead(n.id);
+                                  }}
+                                >
+                                  Mark as Read
+                                </Button>
+                              )}
+                              <Button variant="ghost" className="h-8 px-3 rounded-xl text-[10px] font-bold uppercase tracking-widest text-muted-foreground gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                Acknowledge <ChevronRight className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                className="h-8 w-8 rounded-xl text-muted-foreground hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteNotification(n.id);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </CardContent>
