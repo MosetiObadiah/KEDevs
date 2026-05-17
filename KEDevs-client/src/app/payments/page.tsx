@@ -191,9 +191,6 @@ export default function PaymentsPage() {
       <div className="container mx-auto px-6 pt-8 pb-12">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
           <div>
-            <Badge variant="outline" className="rounded-lg font-black tracking-widest text-[10px] uppercase bg-primary/10 text-primary border-none px-3 py-1 mb-2">
-              Financials
-            </Badge>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Ledger history</h1>
           </div>
           <div className="flex flex-wrap gap-3 print:hidden">
@@ -208,8 +205,8 @@ export default function PaymentsPage() {
             {isDev && !spotlightStatus?.active && (
               <>
                 {hasSpotlightAvailability ? (
-                  <Button 
-                    className="font-bold h-11 shadow-lg shadow-primary/20" 
+                  <Button
+                    className="font-bold h-11 shadow-lg shadow-primary/20"
                     onClick={() => setBuySpotlightOpen(true)}
                   >
                     <Star className="mr-2 h-4 w-4 fill-white" /> Get Spotlight
@@ -475,7 +472,7 @@ export default function PaymentsPage() {
         </div>
       </div>
 
-      <BuySpotlightDialog 
+      <BuySpotlightDialog
         open={buySpotlightOpen}
         onClose={() => setBuySpotlightOpen(false)}
         onSuccess={() => {

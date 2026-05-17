@@ -28,7 +28,8 @@ import {
   Sparkles,
   Flag,
   BarChart3,
-  History
+  History,
+  Tag
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -123,6 +124,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         { label: 'My Applications', href: '/jobs/my-applications', icon: FileText },
         { label: 'Spotlight', href: '/spotlight', icon: Star },
         { label: 'Payments', href: '/payments', icon: CreditCard },
+        { label: 'Pricing', href: '/pricing', icon: Tag },
       ]
     : [
         { label: 'Browse Developers', href: '/developers', icon: Users },
@@ -131,6 +133,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         { label: 'My Job Posts', href: '/jobs/my-posts', icon: ClipboardList },
         { label: 'Spotlight', href: '/spotlight', icon: Star },
         { label: 'Payments', href: '/payments', icon: CreditCard },
+        { label: 'Pricing', href: '/pricing', icon: Tag },
       ];
 
   const SidebarContent = () => (
@@ -240,6 +243,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   if (pathname.startsWith('/developers/')) return <h1 className="text-xl font-black tracking-tight text-primary">Talent Profile</h1>;
                   if (pathname.startsWith('/jobs/')) return <h1 className="text-xl font-black tracking-tight text-primary">Job Details</h1>;
                   if (pathname === '/verify') return <h1 className="text-xl font-black tracking-tight text-primary">Verification Center</h1>;
+                  if (pathname === '/pricing') return <h1 className="text-xl font-black tracking-tight text-primary">Pricing</h1>;
                   return null;
                })()}
             </div>
