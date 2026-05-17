@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
    ChevronLeft,
@@ -20,8 +20,7 @@ import {
    BadgeCheck,
    MoreVertical,
    ArrowRight,
-   FileSpreadsheet,
-   Search
+   FileSpreadsheet
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import { jobService } from '@/services/jobService';
@@ -57,7 +56,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { Input } from '@/components/ui/input';
 
 const statusConfig: Record<string, { label: string, color: string }> = {
    'PENDING': { label: 'Pending', color: 'bg-amber-100 text-amber-600' },
@@ -69,6 +67,8 @@ const statusConfig: Record<string, { label: string, color: string }> = {
 export default function ApplicationsInbox() {
    const { id } = useParams();
    const router = useRouter();
+   const searchParams = useSearchParams();
+   const searchTerm = searchParams.get('search') || '';
 
    const [job, setJob] = useState<any>(null);
    const [applicants, setApplicants] = useState<any[]>([]);
@@ -83,7 +83,6 @@ export default function ApplicationsInbox() {
    const [activeFilter, setActiveFilter] = useState<'ALL' | 'PENDING' | 'ACCEPTED' | 'REJECTED'>('ALL');
    const [startDate, setStartDate] = useState('');
    const [endDate, setEndDate] = useState('');
-   const [searchTerm, setSearchTerm] = useState('');
    const [isExporting, setIsExporting] = useState(false);
 
    const fetchJobAndApplications = async () => {
@@ -475,18 +474,7 @@ export default function ApplicationsInbox() {
                   </p>
                </div>
             </div>
-            <div className="flex flex-wrap items-center gap-4">
-               {/* Search Applicants */}
-               <div className="relative w-full sm:w-64">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <Input
-                     placeholder="Search applicants..."
-                     value={searchTerm}
-                     onChange={(e) => setSearchTerm(e.target.value)}
-                     className="pl-11 h-14 rounded-2xl border-slate-200/60 focus-visible:ring-primary/20 text-sm font-semibold shadow-sm bg-white"
-                  />
-               </div>
-
+            <div className="flex items-center gap-4">
                <div className="text-right hidden sm:block">
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Pipeline</p>
                   <p className="text-2xl font-black text-slate-900">{applicants.length}</p>
