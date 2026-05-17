@@ -151,10 +151,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                <div className="flex items-center gap-3">
                   <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full" asChild>
-                     <Link href="/admin/dashboard">
+                     <Link href="/notifications">
                         <Bell className="h-5 w-5" />
                         {unreadCount > 0 && (
-                           <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 bg-red-500 border-2 border-white rounded-full animate-in zoom-in" />
+                           <span className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[9px] font-black bg-red-500 text-white rounded-full animate-in zoom-in shadow-sm shadow-red-500/20">
+                              {unreadCount > 9 ? '9+' : unreadCount}
+                           </span>
                         )}
                      </Link>
                   </Button>
