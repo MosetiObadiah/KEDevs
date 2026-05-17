@@ -50,10 +50,12 @@ public class CloudinaryFileUploadService implements FileUploadService {
             throw new BadRequestException("Unsupported file type. Allowed types: PNG, JPEG, WEBP, PDF");
         }
 
+        String resourceType = contentType.startsWith("image/") ? "image" : "raw";
+
         try {
             Map<?, ?> uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
                     "folder", folder,
-                    "resource_type", "auto",
+                    "resource_type", resourceType,
                     "overwrite", true));
             Object secureUrl = uploadResult.get("secure_url");
             if (secureUrl == null) {

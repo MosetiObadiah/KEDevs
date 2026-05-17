@@ -684,6 +684,13 @@ public class JobService {
             String publicId = path.substring(0, dotIndex);
             String extension = path.substring(dotIndex + 1);
 
+            // Force explicit resource types per document type, ignoring what was in the legacy URL
+            if (extension.matches("(?i)pdf|doc|docx")) {
+                resourceType = "raw";
+            } else if (extension.matches("(?i)jpg|jpeg|png|webp")) {
+                resourceType = "image";
+            }
+
             return new CloudinaryUrlParts(resourceType, deliveryType, publicId, extension);
         } catch (Exception e) {
             log.error("Failed to parse Cloudinary URL: {}", url, e);
