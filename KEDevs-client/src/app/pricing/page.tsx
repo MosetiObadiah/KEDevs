@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 import { paymentService } from '@/services/paymentService';
 import { 
   CheckCircle2, 
@@ -19,8 +21,18 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 
 export default function PricingPage() {
+  const { isLoggedIn } = useAuth();
+  const router = useRouter();
   const [settings, setSettings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const handleAction = (href: string) => {
+    if (!isLoggedIn) {
+      router.push('/login');
+    } else {
+      router.push(href);
+    }
+  };
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -116,10 +128,8 @@ export default function PricingPage() {
               </ul>
             </CardContent>
             <CardFooter className="p-8 pt-0">
-              <Button asChild className="w-full h-14 rounded-2xl font-black text-base shadow-lg bg-slate-900 hover:bg-slate-800 text-white">
-                <Link href="/verify">
-                  Get Verified <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+              <Button onClick={() => handleAction('/verify')} className="w-full h-14 rounded-2xl font-black text-base shadow-lg bg-slate-900 hover:bg-slate-800 text-white">
+                Get Verified <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </CardFooter>
           </Card>
@@ -175,10 +185,8 @@ export default function PricingPage() {
               </ul>
             </CardContent>
             <CardFooter className="p-8 pt-0">
-              <Button asChild className="w-full h-14 rounded-2xl font-black text-base shadow-xl shadow-primary/20 transition-transform hover:scale-[1.02]">
-                <Link href="/jobs">
-                  Post & Pin a Job <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+              <Button onClick={() => handleAction('/jobs/post')} className="w-full h-14 rounded-2xl font-black text-base shadow-xl shadow-primary/20 transition-transform hover:scale-[1.02]">
+                Post & Pin a Job <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </CardFooter>
           </Card>
@@ -227,10 +235,8 @@ export default function PricingPage() {
               </ul>
             </CardContent>
             <CardFooter className="p-8 pt-0">
-              <Button asChild variant="outline" className="w-full h-14 rounded-2xl font-black text-base border-2 hover:bg-violet-50 hover:text-violet-700 hover:border-violet-200">
-                <Link href="/spotlight">
-                  Join Spotlight <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+              <Button onClick={() => handleAction('/spotlight')} variant="outline" className="w-full h-14 rounded-2xl font-black text-base border-2 hover:bg-violet-50 hover:text-violet-700 hover:border-violet-200">
+                Join Spotlight <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </CardFooter>
           </Card>
