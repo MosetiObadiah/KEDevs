@@ -52,6 +52,32 @@ public class JobService {
     @Value("${app.api-base-url:http://localhost:8080}")
     private String apiBaseUrl;
 
+    @Value("${cloudinary.cloud-name:}")
+    private String cloudinaryCloudName;
+
+    @Value("${cloudinary.api-key:}")
+    private String cloudinaryApiKey;
+
+    @Value("${cloudinary.api-secret:}")
+    private String cloudinaryApiSecret;
+
+    private com.cloudinary.Cloudinary cloudinaryInstance;
+
+    @jakarta.annotation.PostConstruct
+    public void init() {
+        if (cloudinaryCloudName != null && !cloudinaryCloudName.isBlank() &&
+            cloudinaryApiKey != null && !cloudinaryApiKey.isBlank() &&
+            cloudinaryApiSecret != null && !cloudinaryApiSecret.isBlank()) {
+            this.cloudinaryInstance = new com.cloudinary.Cloudinary(com.cloudinary.utils.ObjectUtils.asMap(
+                    "cloud_name", cloudinaryCloudName,
+                    "api_key", cloudinaryApiKey,
+                    "api_secret", cloudinaryApiSecret));
+            log.info("JobService pre-cached Cloudinary configurations successfully.");
+        } else {
+            log.warn("Cloudinary credentials are missing or empty in JobService.");
+        }
+    }
+
     public byte[] exportJobsToPdf(JobSearchRequest request, UUID currentUserId) {
         // Reuse the same logic as getJobFeed but without pagination (fetch all
         // matching)
@@ -592,19 +618,111 @@ public class JobService {
         return downloadFromCloudinary(application.getCoverLetterUrl());
     }
 
+    private static class CloudinaryUrlParts {
+        public final String resourceType;
+        public final String deliveryType;
+        public final String publicId;
+        public final String extension;
+
+        public CloudinaryUrlParts(String resourceType, String deliveryType, String publicId, String extension) {
+            this.resourceType = resourceType;
+            this.deliveryType = deliveryType;
+            this.publicId = publicId;
+            this.extension = extension;
+        }
+    }
+
+    private CloudinaryUrlParts parseCloudinaryUrl(String url) {
+        if (url == null || url.isBlank()) {
+            return null;
+        }
+        try {
+            String resourceType = null;
+            int typeIndex = -1;
+
+            if (url.contains("/image/")) {
+                resourceType = "image";
+                typeIndex = url.indexOf("/image/");
+            } else if (url.contains("/raw/")) {
+                resourceType = "raw";
+                typeIndex = url.indexOf("/raw/");
+            } else if (url.contains("/video/")) {
+                resourceType = "video";
+                typeIndex = url.indexOf("/video/");
+            }
+
+            if (typeIndex == -1) {
+                return null;
+            }
+
+            int startOfDeliveryType = typeIndex + resourceType.length() + 2;
+            int endOfDeliveryType = url.indexOf('/', startOfDeliveryType);
+            if (endOfDeliveryType == -1) {
+                return null;
+            }
+            String deliveryType = url.substring(startOfDeliveryType, endOfDeliveryType);
+
+            int startOfPath = endOfDeliveryType + 1;
+            String path = url.substring(startOfPath);
+
+            // Skip version segment (e.g. v1234567) if present
+            if (path.startsWith("v")) {
+                int slashIndex = path.indexOf('/');
+                if (slashIndex != -1) {
+                    String possibleVersion = path.substring(1, slashIndex);
+                    if (possibleVersion.matches("\\d+")) {
+                        path = path.substring(slashIndex + 1);
+                    }
+                }
+            }
+
+            int dotIndex = path.lastIndexOf('.');
+            if (dotIndex == -1) {
+                return null;
+            }
+
+            String publicId = path.substring(0, dotIndex);
+            String extension = path.substring(dotIndex + 1);
+
+            return new CloudinaryUrlParts(resourceType, deliveryType, publicId, extension);
+        } catch (Exception e) {
+            log.error("Failed to parse Cloudinary URL: {}", url, e);
+            return null;
+        }
+    }
+
     private byte[] downloadFromCloudinary(String url) {
         if (url == null || url.isBlank()) {
             throw new BadRequestException("Invalid file URL");
         }
         try {
-            // Replace http:// with https:// if necessary or let Cloudinary handle it
-            java.net.URL fileUrl = new java.net.URI(url).toURL();
+            String downloadUrl = url;
+            if (cloudinaryInstance != null) {
+                CloudinaryUrlParts parts = parseCloudinaryUrl(url);
+                if (parts != null) {
+                    try {
+                        // Generate a signed temporary download URL using Cloudinary URL builder
+                        downloadUrl = cloudinaryInstance.url()
+                                .resourceType(parts.resourceType)
+                                .type(parts.deliveryType)
+                                .secure(true)
+                                .signed(true)
+                                .format(parts.extension)
+                                .generate(parts.publicId);
+                        log.info("Generated authenticated private URL for asset download: {}", downloadUrl);
+                    } catch (Exception e) {
+                        log.warn("Failed to generate private download URL for {}, downloading from fallback URL", url, e);
+                    }
+                }
+            }
+
+            java.net.URL fileUrl = new java.net.URI(downloadUrl).toURL();
             try (java.io.InputStream in = fileUrl.openStream()) {
                 return in.readAllBytes();
             }
         } catch (Exception e) {
             log.error("Failed to download file from Cloudinary: {}", url, e);
-            throw new RuntimeException("Failed to download file from Cloudinary");
+            throw new RuntimeException("Failed to download file from Cloudinary: " + e.getMessage());
         }
     }
 
