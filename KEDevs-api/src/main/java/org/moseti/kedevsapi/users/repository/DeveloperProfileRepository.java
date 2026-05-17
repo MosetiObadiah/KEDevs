@@ -27,4 +27,6 @@ public interface DeveloperProfileRepository extends JpaRepository<DeveloperProfi
     );
 
     long countByProfileVisibility(ProfileVisibility visibility);
+
+    long countByAvailabilityStatus(AvailabilityStatus status);
 }

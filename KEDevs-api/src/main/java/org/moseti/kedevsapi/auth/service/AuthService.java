@@ -38,6 +38,10 @@ public class AuthService {
     private final DeveloperProfileRepository developerProfileRepository;
     private final EmployerProfileRepository employerProfileRepository;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    @org.springframework.context.annotation.Lazy
+    private org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
+
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         // Check if email already exists
@@ -79,6 +83,7 @@ public class AuthService {
                 .role(user.getRole())
                 .emailVerified(false)
                 .requiresApproval(request.getRole() == Role.EMPLOYER)
+                .accountStatus(user.getAccountStatus().name())
                 .build();
     }
 
@@ -316,13 +321,6 @@ public class AuthService {
             throw new EmailNotVerifiedException("Email not verified. Please check your email for the verification code.", user.getId());
         }
 
-        // Check if account is active
-        if (user.getAccountStatus() != AccountStatus.ACTIVE) {
-            throw new org.moseti.kedevsapi.shared.exception.ForbiddenException(
-                    "Account is " + user.getAccountStatus()
-            );
-        }
-
         // Grace period and subscription gating is no longer enforced for current users.
     }
 
@@ -360,6 +358,48 @@ public class AuthService {
                 .requiresApproval(requiresApproval)
                 .onboarded(onboarded)
                 .isVerified(isVerified)
+                .accountStatus(user.getAccountStatus().name())
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public AuthResponse getCurrentUser(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        return buildAuthResponse(user, null, null);
+    }
+
+    @Transactional
+    public void submitAppeal(UUID userId, String message) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        
+        java.util.List<User> admins = userRepository.findByRole(Role.ADMIN);
+        
+        String title = "User Appeal Submitted";
+        String notificationMsg = String.format("%s (%s) has contested their %s: %s",
+                user.getFullName(),
+                user.getEmail(),
+                user.getAccountStatus() == AccountStatus.SUSPENDED ? "suspension" : "ban",
+                message
+        );
+        
+        String metadata = String.format("{\"appealingUserId\":\"%s\",\"accountStatus\":\"%s\"}", 
+                user.getId(), 
+                user.getAccountStatus().name()
+        );
+        
+        for (User admin : admins) {
+            notificationService.notify(
+                    admin.getId(),
+                    org.moseti.kedevsapi.shared.enums.NotificationCategory.ADMIN,
+                    title,
+                    notificationMsg,
+                    metadata
+            );
+        }
+        
+        log.info("Appeal submitted by user: {} (ID: {}). Notified {} admins.", 
+                user.getEmail(), user.getId(), admins.size());
     }
 }

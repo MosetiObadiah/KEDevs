@@ -128,4 +128,33 @@ public class AuthController {
         AuthResponse response = authService.googleAuth(request);
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Google authentication successful", response));
     }
+
+    @Operation(summary = "Get current authenticated user status and details")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Current user retrieved successfully"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
+    @GetMapping("/me")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<AuthResponse>> getCurrentUser() {
+        org.springframework.security.core.Authentication authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal() instanceof String) {
+            return ResponseEntity.status(401).body(org.moseti.kedevsapi.shared.dto.ApiResponse.error("Unauthorized"));
+        }
+        UUID userId = (UUID) authentication.getPrincipal();
+        AuthResponse response = authService.getCurrentUser(userId);
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Current user fetched successfully", response));
+    }
+
+    @Operation(summary = "Submit a contestation / appeal message for suspension or ban")
+    @PostMapping("/appeal")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> submitAppeal(
+            @Valid @RequestBody AppealRequest request) {
+        org.springframework.security.core.Authentication authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal() instanceof String) {
+            return ResponseEntity.status(401).body(org.moseti.kedevsapi.shared.dto.ApiResponse.error("Unauthorized"));
+        }
+        UUID userId = (UUID) authentication.getPrincipal();
+        authService.submitAppeal(userId, request.getMessage());
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Appeal submitted successfully. Our administration team will review it."));
+    }
 }

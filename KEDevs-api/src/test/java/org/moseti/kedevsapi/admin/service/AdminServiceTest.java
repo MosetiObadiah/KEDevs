@@ -65,6 +65,8 @@ class AdminServiceTest {
     @Mock private UserFlagRepository userFlagRepository;
     @Mock private NotificationService notificationService;
     @Mock private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+    @Mock private org.moseti.kedevsapi.users.repository.DeveloperSkillRepository developerSkillRepository;
+    @Mock private org.moseti.kedevsapi.users.repository.VerificationRequestRepository verificationRequestRepository;
 
     @InjectMocks
     private AdminService adminService;
@@ -265,6 +267,11 @@ class AdminServiceTest {
         
         // Mock recent actions
         when(adminActionRepository.findAll(any(Pageable.class))).thenReturn(Page.empty());
+
+        // Mock new analytics KPIs
+        when(jobApplicationRepository.count()).thenReturn(50L);
+        when(developerProfileRepository.countByAvailabilityStatus(any())).thenReturn(10L);
+        when(verificationRequestRepository.findByCreatedAtAfter(any())).thenReturn(Collections.emptyList());
 
         AnalyticsSummaryResponse res = adminService.getAnalyticsSummary();
 

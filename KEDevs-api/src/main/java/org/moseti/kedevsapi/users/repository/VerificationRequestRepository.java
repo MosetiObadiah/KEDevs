@@ -15,4 +15,6 @@ public interface VerificationRequestRepository extends JpaRepository<Verificatio
     long countByStatus(VerificationStatus status);
     org.springframework.data.domain.Page<VerificationRequest> findByStatus(VerificationStatus status, org.springframework.data.domain.Pageable pageable);
     org.springframework.data.domain.Page<VerificationRequest> findByRoleAndStatus(org.moseti.kedevsapi.shared.enums.Role role, VerificationStatus status, org.springframework.data.domain.Pageable pageable);
+
+    java.util.List<VerificationRequest> findByCreatedAtAfter(java.time.LocalDateTime since);
 }

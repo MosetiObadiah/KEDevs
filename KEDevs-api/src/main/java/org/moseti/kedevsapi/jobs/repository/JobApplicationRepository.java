@@ -15,4 +15,6 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
     Optional<JobApplication> findByJobIdAndId(UUID jobId, UUID id);
 
     int countByJobId(UUID jobId);
+
+    java.util.List<JobApplication> findByCreatedAtAfter(java.time.LocalDateTime since);
 }

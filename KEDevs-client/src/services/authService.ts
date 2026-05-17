@@ -37,5 +37,13 @@ export const authService = {
   
   async googleAuth(data: { idToken: string; role?: string }): Promise<ApiResponse<AuthResponse>> {
     return apiClient.post<ApiResponse<AuthResponse>>('/api/v1/auth/google', data);
+  },
+
+  async me(): Promise<ApiResponse<AuthResponse>> {
+    return apiClient.get<ApiResponse<AuthResponse>>('/api/v1/auth/me');
+  },
+
+  async appeal(message: string): Promise<ApiResponse<void>> {
+    return apiClient.post<ApiResponse<void>>('/api/v1/auth/appeal', { message });
   }
 };

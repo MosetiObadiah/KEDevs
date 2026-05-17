@@ -6,6 +6,7 @@ public class AdminActionTypes {
     public static final String SUSPEND_USER = "SUSPEND_USER";
     public static final String BAN_USER = "BAN_USER";
     public static final String REACTIVATE_USER = "REACTIVATE_USER";
+    public static final String WARN_USER = "WARN_USER";
     public static final String REVIEW_JOB_FLAG = "REVIEW_JOB_FLAG";
     public static final String REVIEW_USER_FLAG = "REVIEW_USER_FLAG";
     public static final String REVIEW_COMMENT_FLAG = "REVIEW_COMMENT_FLAG";

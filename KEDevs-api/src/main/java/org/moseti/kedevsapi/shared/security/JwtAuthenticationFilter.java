@@ -6,7 +6,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.moseti.kedevsapi.auth.service.JwtService;
+import org.moseti.kedevsapi.shared.enums.AccountStatus;
 import org.moseti.kedevsapi.shared.util.Constants;
+import org.moseti.kedevsapi.users.entity.User;
+import org.moseti.kedevsapi.users.repository.UserRepository;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -24,6 +27,7 @@ import java.util.UUID;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(
@@ -44,6 +48,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (jwtService.isTokenValid(jwt) && !jwtService.isTokenExpired(jwt)) {
                 UUID userId = jwtService.extractUserId(jwt);
+
+                // Real-time block for Banned or Suspended users
+                User user = userRepository.findById(userId).orElse(null);
+                if (user != null) {
+                    if (user.getAccountStatus() == AccountStatus.BANNED || user.getAccountStatus() == AccountStatus.SUSPENDED) {
+                        String uri = request.getRequestURI();
+                        // Allow only status check, appeals, logout, and token refresh
+                        if (!uri.endsWith("/auth/me") && !uri.endsWith("/auth/appeal") && !uri.endsWith("/auth/logout") && !uri.endsWith("/auth/refresh")) {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"success\":false,\"message\":\"Account is suspended or banned.\",\"data\":null}");
+                            return;
+                        }
+                    }
+                }
+
                 String role = jwtService.extractRole(jwt).name();
 
                 var authorities = Collections.singletonList(

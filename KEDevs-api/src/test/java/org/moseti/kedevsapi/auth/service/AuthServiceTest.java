@@ -203,14 +203,22 @@ class AuthServiceTest {
     }
 
     @Test
-    void login_SuspendedAccount_ThrowsException() {
+    void login_SuspendedAccount_Succeeds() {
         // Given
         testUser.setAccountStatus(AccountStatus.SUSPENDED);
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
+        when(jwtService.generateAccessToken(any(UUID.class), anyString(), any(Role.class)))
+                .thenReturn("accessToken");
+        when(jwtService.generateRefreshToken(any(UUID.class))).thenReturn("refreshToken");
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
 
-        // When & Then
-        assertThrows(ForbiddenException.class, () -> authService.login(loginRequest));
+        // When
+        AuthResponse response = authService.login(loginRequest);
+
+        // Then
+        assertNotNull(response);
+        assertEquals("accessToken", response.getAccessToken());
     }
 
     @Test

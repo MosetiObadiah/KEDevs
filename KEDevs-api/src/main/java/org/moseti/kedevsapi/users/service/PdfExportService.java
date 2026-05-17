@@ -181,4 +181,28 @@ public class PdfExportService {
         renderer.createPDF(baos);
         return baos.toByteArray();
     }
+
+    public record ExportChartData(
+            String id,
+            String title,
+            String description,
+            List<String> headers,
+            List<List<String>> rows
+    ) {}
+
+    public byte[] generateAnalyticsPdf(List<ExportChartData> charts, String dateRange, String generatedBy) {
+        try {
+            Context context = new Context();
+            context.setVariable("charts", charts);
+            context.setVariable("dateRange", dateRange != null && !dateRange.isBlank() ? dateRange : "All Time");
+            context.setVariable("generatedBy", generatedBy != null && !generatedBy.isBlank() ? generatedBy : "System Admin");
+            enrichContext(context, "Analytics Executive Summary");
+
+            String html = templateEngine.process("analytics-export", context);
+            return renderPdf(html);
+        } catch (Exception e) {
+            log.error("Failed to generate Analytics PDF export", e);
+            throw new RuntimeException("Failed to generate Analytics PDF export", e);
+        }
+    }
 }

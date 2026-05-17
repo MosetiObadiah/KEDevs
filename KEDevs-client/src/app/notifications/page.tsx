@@ -151,7 +151,11 @@ export default function NotificationsPage() {
           router.push('/admin/flags');
           return;
         case 'ADMIN':
-          router.push('/admin/verification');
+          if (meta.appealingUserId) {
+            router.push('/admin/users');
+          } else {
+            router.push('/admin/verification');
+          }
           return;
         case 'PAYMENT':
         case 'EMPLOYER_VERIFICATION_PAYMENT_SUCCESS':

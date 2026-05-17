@@ -24,7 +24,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [latestNotification, setLatestNotification] = useState<any | null>(null);
 
   const refreshUnreadCount = async () => {
-    if (!isLoggedIn) return;
+    if (!isLoggedIn || user?.accountStatus === 'BANNED' || user?.accountStatus === 'SUSPENDED') return;
     try {
       const response = await notificationService.getUnreadCount();
       if (response.success && response.data) {
@@ -44,7 +44,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   }, [isLoggedIn]);
 
   useEffect(() => {
-    if (!isLoggedIn || !user) {
+    if (!isLoggedIn || !user || user.accountStatus === 'BANNED' || user.accountStatus === 'SUSPENDED') {
       if (stompClient) {
         stompClient.deactivate();
         setStompClient(null);

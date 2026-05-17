@@ -17,4 +17,7 @@ public interface DeveloperSkillRepository extends JpaRepository<DeveloperSkill, 
     Optional<DeveloperSkill> findByDeveloperIdAndSkillIgnoreCase(UUID developerId, String skill);
 
     void deleteByDeveloperIdAndSkillIgnoreCase(UUID developerId, String skill);
+
+    @org.springframework.data.jpa.repository.Query("SELECT ds.skill, COUNT(ds) FROM DeveloperSkill ds GROUP BY ds.skill ORDER BY COUNT(ds) DESC")
+    java.util.List<Object[]> findTopSkills(org.springframework.data.domain.Pageable pageable);
 }

@@ -14,6 +14,8 @@ import org.moseti.kedevsapi.forum.repository.CommentFlagRepository;
 import org.moseti.kedevsapi.forum.repository.ForumCommentRepository;
 import org.moseti.kedevsapi.jobs.entity.JobFlag;
 import org.moseti.kedevsapi.jobs.entity.JobPost;
+import org.moseti.kedevsapi.jobs.entity.JobApplication;
+import org.moseti.kedevsapi.payments.entity.Payment;
 import org.moseti.kedevsapi.jobs.repository.JobApplicationRepository;
 import org.moseti.kedevsapi.jobs.repository.JobFlagRepository;
 import org.moseti.kedevsapi.jobs.repository.JobPostRepository;
@@ -33,6 +35,7 @@ import org.moseti.kedevsapi.users.repository.DeveloperProfileRepository;
 import org.moseti.kedevsapi.users.repository.EmployerProfileRepository;
 import org.moseti.kedevsapi.users.repository.UserRepository;
 import org.moseti.kedevsapi.users.repository.VerificationRequestRepository;
+import org.moseti.kedevsapi.users.repository.DeveloperSkillRepository;
 import org.moseti.kedevsapi.users.entity.VerificationRequest;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -69,6 +72,7 @@ public class AdminService {
     private final PlatformSettingRepository platformSettingRepository;
     private final JobApplicationRepository jobApplicationRepository;
     private final VerificationRequestRepository verificationRequestRepository;
+    private final DeveloperSkillRepository developerSkillRepository;
     private final SimpMessagingTemplate messagingTemplate;
     
     @Lazy private final NotificationService notificationService;
@@ -329,20 +333,28 @@ public class AdminService {
         String notifyTitle;
         String notifyMsg;
 
+        String notesStr = request.notes() != null && !request.notes().isBlank() ? request.notes() : "No reason specified";
+
         switch (request.action().toUpperCase()) {
+            case "WARN" -> {
+                actionType = AdminActionTypes.WARN_USER;
+                outcome = "WARNED";
+                notifyTitle = "Administrative Warning";
+                notifyMsg = "Your account has received an administrative warning. Details: " + notesStr;
+            }
             case "SUSPEND" -> {
                 user.setAccountStatus(AccountStatus.SUSPENDED);
                 actionType = AdminActionTypes.SUSPEND_USER;
                 outcome = "SUSPENDED";
                 notifyTitle = "Account Suspended";
-                notifyMsg = "Your account has been suspended by an administrator. Reason: " + request.notes();
+                notifyMsg = "Your account has been suspended by an administrator. Reason: " + notesStr;
             }
             case "BAN" -> {
                 user.setAccountStatus(AccountStatus.BANNED);
                 actionType = AdminActionTypes.BAN_USER;
                 outcome = "BANNED";
                 notifyTitle = "Account Banned";
-                notifyMsg = "Your account has been permanently banned. Reason: " + request.notes();
+                notifyMsg = "Your account has been permanently banned. Reason: " + notesStr;
             }
             case "REACTIVATE" -> {
                 user.setAccountStatus(AccountStatus.ACTIVE);
@@ -351,7 +363,7 @@ public class AdminService {
                 notifyTitle = "Account Reactivated";
                 notifyMsg = "Your account has been reactivated. You can now use the platform.";
             }
-            default -> throw new InvalidAdminActionException("Invalid action type. Valid values are: SUSPEND, BAN, REACTIVATE");
+            default -> throw new InvalidAdminActionException("Invalid action type. Valid values are: WARN, SUSPEND, BAN, REACTIVATE");
         }
 
         userRepository.save(user);
@@ -628,6 +640,57 @@ public class AdminService {
 
         LocalDateTime startOfToday = LocalDateTime.now().toLocalDate().atStartOfDay();
 
+        // 1. Total applications
+        long totalApplications = jobApplicationRepository.count();
+
+        // 2. Job type & work type breakdown
+        Map<String, Long> jobTypeBreakdown = new HashMap<>();
+        List<JobPost> allJobs = jobPostRepository.findAll();
+        for (JobPost j : allJobs) {
+            if (j.getStatus() != JobStatus.REMOVED) {
+                if (j.getJobType() != null) {
+                    String jt = j.getJobType().name();
+                    jobTypeBreakdown.put(jt, jobTypeBreakdown.getOrDefault(jt, 0L) + 1);
+                }
+                if (j.getWorkType() != null) {
+                    String wt = j.getWorkType().name();
+                    jobTypeBreakdown.put(wt, jobTypeBreakdown.getOrDefault(wt, 0L) + 1);
+                }
+            }
+        }
+
+        // 3. Availability breakdown
+        long openToOffers = developerProfileRepository.countByAvailabilityStatus(AvailabilityStatus.OPEN_TO_OFFERS);
+        long notAvailable = developerProfileRepository.countByAvailabilityStatus(AvailabilityStatus.NOT_AVAILABLE);
+        AvailabilityBreakdown availabilityBreakdown = new AvailabilityBreakdown(openToOffers, notAvailable);
+
+        // 4. Verification stats over the last 6 months
+        LocalDateTime since = LocalDateTime.now().minusMonths(6);
+        List<VerificationRequest> requests = verificationRequestRepository.findByCreatedAtAfter(since);
+        Map<String, Map<VerificationStatus, Long>> groupedReqs = requests.stream()
+                .collect(Collectors.groupingBy(
+                        r -> r.getCreatedAt().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM")),
+                        Collectors.groupingBy(
+                                VerificationRequest::getStatus,
+                                Collectors.counting()
+                        )
+                ));
+                
+        List<MonthlyVerificationStats> verificationStats = new java.util.ArrayList<>();
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM");
+        for (int i = 5; i >= 0; i--) {
+            java.time.LocalDate d = today.minusMonths(i);
+            String monthStr = d.format(formatter);
+            Map<VerificationStatus, Long> counts = groupedReqs.getOrDefault(monthStr, new java.util.HashMap<>());
+            verificationStats.add(new MonthlyVerificationStats(
+                    monthStr,
+                    counts.getOrDefault(VerificationStatus.UNDER_REVIEW, 0L),
+                    counts.getOrDefault(VerificationStatus.APPROVED, 0L),
+                    counts.getOrDefault(VerificationStatus.REJECTED, 0L)
+            ));
+        }
+
         return new AnalyticsSummaryResponse(
                 userRepository.count(),
                 userRepository.countByRole(Role.DEVELOPER),
@@ -637,12 +700,89 @@ public class AdminService {
                 userRepository.countByCreatedAtAfter(LocalDateTime.now().minusDays(7)),
                 userRepository.countByCreatedAtAfter(LocalDateTime.now().minusDays(30)),
                 employerProfileRepository.countByIsApprovedFalse(),
+                totalApplications,
+                jobTypeBreakdown,
+                availabilityBreakdown,
+                verificationStats,
                 revenue,
                 forum,
                 flags,
                 topJobs,
                 recentActions
         );
+    }
+
+    public List<ApplicationTrendResponse> getApplicationsOverTime() {
+        LocalDateTime since = LocalDateTime.now().minusDays(30);
+        List<JobApplication> apps = jobApplicationRepository.findByCreatedAtAfter(since);
+        
+        Map<java.time.LocalDate, Long> countsByDate = apps.stream()
+                .collect(Collectors.groupingBy(
+                        a -> a.getCreatedAt().toLocalDate(),
+                        Collectors.counting()
+                ));
+                
+        List<ApplicationTrendResponse> result = new java.util.ArrayList<>();
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        for (int i = 29; i >= 0; i--) {
+            java.time.LocalDate d = today.minusDays(i);
+            long count = countsByDate.getOrDefault(d, 0L);
+            result.add(new ApplicationTrendResponse(d.format(formatter), count));
+        }
+        return result;
+    }
+
+    public List<SkillCountResponse> getTopSkills() {
+        return developerSkillRepository.findTopSkills(PageRequest.of(0, 10)).stream()
+                .map(row -> new SkillCountResponse(row[0].toString(), ((Number) row[1]).longValue()))
+                .collect(Collectors.toList());
+    }
+
+    public List<RevenueByTypeResponse> getRevenueByType() {
+        LocalDateTime since = LocalDateTime.now().minusMonths(12);
+        List<Payment> completedPayments = paymentRepository.findByStatusAndCreatedAtAfter(PaymentStatus.COMPLETED, since);
+        
+        Map<String, Map<String, BigDecimal>> grouped = completedPayments.stream()
+                .collect(Collectors.groupingBy(
+                        p -> p.getCreatedAt().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM")),
+                        Collectors.groupingBy(
+                                p -> p.getType().name(),
+                                Collectors.reducing(
+                                        BigDecimal.ZERO,
+                                        Payment::getAmount,
+                                        BigDecimal::add
+                                )
+                        )
+                ));
+                
+        List<RevenueByTypeResponse> result = new java.util.ArrayList<>();
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM");
+        for (int i = 11; i >= 0; i--) {
+            java.time.LocalDate d = today.minusMonths(i);
+            String monthStr = d.format(formatter);
+            Map<String, BigDecimal> byType = grouped.getOrDefault(monthStr, new java.util.HashMap<>());
+            result.add(new RevenueByTypeResponse(monthStr, byType));
+        }
+        return result;
+    }
+
+    public List<LocationCountResponse> getDeveloperLocations() {
+        List<DeveloperProfile> profiles = developerProfileRepository.findAll();
+        Map<String, Long> cityCounts = new java.util.HashMap<>();
+        for (DeveloperProfile p : profiles) {
+            String city = p.getLocationCity();
+            if (city != null && !city.isBlank()) {
+                String normalized = city.trim();
+                cityCounts.put(normalized, cityCounts.getOrDefault(normalized, 0L) + 1);
+            }
+        }
+        return cityCounts.entrySet().stream()
+                .map(e -> new LocationCountResponse(e.getKey(), e.getValue()))
+                .sorted((a, b) -> Long.compare(b.count(), a.count()))
+                .limit(10)
+                .collect(Collectors.toList());
     }
 
     public RevenueBreakdownResponse getRevenueBreakdown() {
@@ -737,24 +877,27 @@ public class AdminService {
     private UserSummaryResponse toUserSummary(User u) {
         String avatarUrl = null;
         UUID profileId = null;
+        boolean isVerified = false;
 
         if (u.getRole() == Role.DEVELOPER) {
             var profileOpt = developerProfileRepository.findByUserId(u.getId());
             if (profileOpt.isPresent()) {
                 avatarUrl = profileOpt.get().getProfilePhoto();
                 profileId = profileOpt.get().getId();
+                isVerified = profileOpt.get().isVerified();
             }
         } else if (u.getRole() == Role.EMPLOYER) {
             var profileOpt = employerProfileRepository.findByUserId(u.getId());
             if (profileOpt.isPresent()) {
                 avatarUrl = profileOpt.get().getLogoUrl();
                 profileId = profileOpt.get().getId();
+                isVerified = profileOpt.get().isVerified();
             }
         }
 
         return new UserSummaryResponse(u.getId(), u.getEmail(), u.getFullName(), u.getRole(),
                 u.getAccountStatus(), u.isEmailVerified(), u.getCreatedAt(),
-                avatarUrl, profileId, u.getLastLoginAt());
+                avatarUrl, profileId, u.getLastLoginAt(), u.getAuthProvider(), u.isApprovedByAdmin(), isVerified);
     }
 
     private AdminActionResponse toAdminActionResponse(AdminAction a) {
@@ -763,5 +906,108 @@ public class AdminService {
                 .orElse("Unknown Admin");
         return new AdminActionResponse(a.getId(), a.getAdminId(), adminName, a.getActionType(),
                 a.getTargetType(), a.getTargetId(), a.getNotes(), a.getOutcome(), a.getCreatedAt());
+    }
+
+    public byte[] generateAnalyticsReportPdf(AnalyticsExportRequest request) {
+        List<org.moseti.kedevsapi.users.service.PdfExportService.ExportChartData> exportCharts = new java.util.ArrayList<>();
+        
+        for (String chartId : request.charts()) {
+            if ("applications-over-time".equalsIgnoreCase(chartId)) {
+                List<ApplicationTrendResponse> data = getApplicationsOverTime();
+                List<List<String>> rows = data.stream()
+                        .map(item -> List.of(item.date(), String.valueOf(item.count())))
+                        .collect(Collectors.toList());
+                exportCharts.add(new org.moseti.kedevsapi.users.service.PdfExportService.ExportChartData(
+                        "applications-over-time",
+                        "Job Applications Over Time",
+                        "Daily submission counts showing candidate application activity across the platform over the last 30 days.",
+                        List.of("Date", "Applications Submitted"),
+                        rows
+                ));
+            } else if ("job-types".equalsIgnoreCase(chartId)) {
+                AnalyticsSummaryResponse summary = getAnalyticsSummary();
+                List<List<String>> rows = summary.jobTypeBreakdown().entrySet().stream()
+                        .map(e -> List.of(e.getKey(), String.valueOf(e.getValue())))
+                        .collect(Collectors.toList());
+                exportCharts.add(new org.moseti.kedevsapi.users.service.PdfExportService.ExportChartData(
+                        "job-types",
+                        "Job Types & Work Arrangements",
+                        "Platform distribution of roles based on work environment and employment types.",
+                        List.of("Classification", "Total Postings"),
+                        rows
+                ));
+            } else if ("availability-status".equalsIgnoreCase(chartId)) {
+                AnalyticsSummaryResponse summary = getAnalyticsSummary();
+                List<List<String>> rows = List.of(
+                        List.of("Open to Offers", String.valueOf(summary.availabilityBreakdown().openToOffers())),
+                        List.of("Not Available", String.valueOf(summary.availabilityBreakdown().notAvailable()))
+                );
+                exportCharts.add(new org.moseti.kedevsapi.users.service.PdfExportService.ExportChartData(
+                        "availability-status",
+                        "Developer Availability Breakdown",
+                        "Split showing active talent pool availability across different status flags.",
+                        List.of("Status", "Developer Count"),
+                        rows
+                ));
+            } else if ("top-skills".equalsIgnoreCase(chartId)) {
+                List<SkillCountResponse> data = getTopSkills();
+                List<List<String>> rows = data.stream()
+                        .map(item -> List.of(item.skill(), String.valueOf(item.count())))
+                        .collect(Collectors.toList());
+                exportCharts.add(new org.moseti.kedevsapi.users.service.PdfExportService.ExportChartData(
+                        "top-skills",
+                        "Top Developer Skills in Demand",
+                        "Most popular technical and domain skills listed by developers on the platform.",
+                        List.of("Skill / Tech", "Total Developers"),
+                        rows
+                ));
+            } else if ("revenue-by-type".equalsIgnoreCase(chartId)) {
+                List<RevenueByTypeResponse> data = getRevenueByType();
+                List<List<String>> rows = new java.util.ArrayList<>();
+                for (RevenueByTypeResponse item : data) {
+                    for (Map.Entry<String, BigDecimal> entry : item.byType().entrySet()) {
+                        rows.add(List.of(item.month(), entry.getKey(), "$" + entry.getValue().toPlainString()));
+                    }
+                }
+                exportCharts.add(new org.moseti.kedevsapi.users.service.PdfExportService.ExportChartData(
+                        "revenue-by-type",
+                        "Revenue Breakdown by Payment Type",
+                        "Monthly total financial streams showing allocations for highlights, pins, and verification badges.",
+                        List.of("Month", "Payment Type", "Revenue"),
+                        rows
+                ));
+            } else if ("verification-outcomes".equalsIgnoreCase(chartId)) {
+                AnalyticsSummaryResponse summary = getAnalyticsSummary();
+                List<List<String>> rows = summary.verificationStats().stream()
+                        .map(item -> List.of(
+                                item.month(),
+                                String.valueOf(item.pending()),
+                                String.valueOf(item.approved()),
+                                String.valueOf(item.rejected())
+                        ))
+                        .collect(Collectors.toList());
+                exportCharts.add(new org.moseti.kedevsapi.users.service.PdfExportService.ExportChartData(
+                        "verification-outcomes",
+                        "Verification Request Outcomes",
+                        "Monthly historical breakdown showing administrative processing rates and outcomes.",
+                        List.of("Month", "Pending Requests", "Approved Requests", "Rejected Requests"),
+                        rows
+                ));
+            } else if ("geographic-distribution".equalsIgnoreCase(chartId)) {
+                List<LocationCountResponse> data = getDeveloperLocations();
+                List<List<String>> rows = data.stream()
+                        .map(item -> List.of(item.city(), String.valueOf(item.count())))
+                        .collect(Collectors.toList());
+                exportCharts.add(new org.moseti.kedevsapi.users.service.PdfExportService.ExportChartData(
+                        "geographic-distribution",
+                        "Geographic Talent Distribution",
+                        "Top municipal hubs showing developer density counts across cities.",
+                        List.of("City / Location", "Total Developers"),
+                        rows
+                ));
+            }
+        }
+        
+        return pdfExportService.generateAnalyticsPdf(exportCharts, request.dateRange(), request.generatedBy());
     }
 }

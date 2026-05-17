@@ -46,4 +46,6 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     );
 
     boolean existsByUserIdAndTypeAndStatus(UUID userId, PaymentType type, PaymentStatus status);
+
+    java.util.List<Payment> findByStatusAndCreatedAtAfter(PaymentStatus status, java.time.LocalDateTime since);
 }

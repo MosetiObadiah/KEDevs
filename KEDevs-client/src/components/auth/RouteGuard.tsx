@@ -15,14 +15,72 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const isPublicRoute = publicRoutes.some(route => 
-    pathname === route || pathname.startsWith(`${route}/`)
-  );
+  const checkIsPublicRoute = (path: string): boolean => {
+    if (!path) return false;
+
+    // Exact public paths
+    const exactPublics = [
+      '/',
+      '/login',
+      '/register',
+      '/jobs',
+      '/developers',
+      '/companies',
+      '/contact',
+      '/verify-email',
+      '/reset-password',
+      '/spotlight',
+      '/pricing'
+    ];
+
+    if (exactPublics.includes(path)) return true;
+
+    // Check dynamic job detail page: /jobs/[id] (where [id] is a UUID/slug, but not special paths)
+    // Avoid matching /jobs/post, /jobs/my-applications, /jobs/my-posts, etc.
+    const genericJobDetailRegex = /^\/jobs\/[^\/]+$/;
+    if (genericJobDetailRegex.test(path)) {
+      const segment = path.split('/')[2];
+      const protectedJobPaths = ['post', 'my-applications', 'my-posts', 'edit'];
+      if (!protectedJobPaths.includes(segment)) {
+        return true;
+      }
+    }
+
+    // Check dynamic developer detail page: /developers/[id]
+    // Avoid matching edit, onboarding, etc.
+    const developerDetailRegex = /^\/developers\/[^\/]+$/;
+    if (developerDetailRegex.test(path)) {
+      const segment = path.split('/')[2];
+      const protectedDevPaths = ['edit', 'onboarding'];
+      if (!protectedDevPaths.includes(segment)) {
+        return true;
+      }
+    }
+
+    // Check dynamic company detail page: /companies/[id]
+    const companyDetailRegex = /^\/companies\/[^\/]+$/;
+    if (companyDetailRegex.test(path)) {
+      const segment = path.split('/')[2];
+      const protectedCompanyPaths = ['edit', 'new'];
+      if (!protectedCompanyPaths.includes(segment)) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  const isPublicRoute = checkIsPublicRoute(pathname || '');
 
   useEffect(() => {
     if (isLoading) return;
 
     if (isLoggedIn && user) {
+      // 0. If user is SUSPENDED or BANNED, let AppLayout intercept rendering completely and skip redirects
+      if (user.accountStatus === 'BANNED' || user.accountStatus === 'SUSPENDED') {
+        return;
+      }
+
       const isDev = user.role === 'DEVELOPER';
       const isEmp = user.role === 'EMPLOYER';
       const isAdmin = user.role === 'ADMIN';
@@ -58,7 +116,7 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
         router.push('/developers');
         return;
       }
-      
+
       // 5. Prevent accessing login/register if already logged in
       if (pathname === '/login' || pathname === '/register') {
         router.push(isDev ? '/jobs' : (isEmp ? '/developers' : '/admin/dashboard'));
@@ -74,14 +132,14 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center space-y-6 bg-white animate-in fade-in duration-500">
         <div className="relative">
-           <div className="h-16 w-16 bg-primary/5 rounded-[1.5rem] flex items-center justify-center animate-pulse">
-              <Zap className="h-8 w-8 text-primary fill-primary" />
-           </div>
-           <Loader2 className="absolute -bottom-2 -right-2 h-6 w-6 text-primary animate-spin" />
+          <div className="h-16 w-16 bg-primary/5 rounded-[1.5rem] flex items-center justify-center animate-pulse">
+            <Zap className="h-8 w-8 text-primary fill-primary" />
+          </div>
+          <Loader2 className="absolute -bottom-2 -right-2 h-6 w-6 text-primary animate-spin" />
         </div>
         <div className="text-center space-y-1">
-           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Synchronizing Session</p>
-           <p className="text-sm font-bold text-slate-900 italic">Establishing secure connection...</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Synchronizing Session</p>
+          <p className="text-sm font-bold text-slate-900 italic">Establishing secure connection...</p>
         </div>
       </div>
     );

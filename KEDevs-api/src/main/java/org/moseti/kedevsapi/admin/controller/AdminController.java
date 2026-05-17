@@ -51,6 +51,43 @@ public class AdminController {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Dashboard data retrieved", adminService.getAnalyticsSummary()));
     }
 
+    @Operation(summary = "Admin: get applications trend over the last 30 days")
+    @GetMapping("/analytics/applications-over-time")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<List<ApplicationTrendResponse>>> getApplicationsOverTime() {
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Applications trend retrieved", adminService.getApplicationsOverTime()));
+    }
+
+    @Operation(summary = "Admin: get top 10 skills by developer frequency count")
+    @GetMapping("/analytics/top-skills")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<List<SkillCountResponse>>> getTopSkills() {
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Top skills retrieved", adminService.getTopSkills()));
+    }
+
+    @Operation(summary = "Admin: get monthly revenue breakdown by payment type")
+    @GetMapping("/analytics/revenue-by-type")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<List<RevenueByTypeResponse>>> getRevenueByType() {
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Revenue breakdown retrieved", adminService.getRevenueByType()));
+    }
+
+    @Operation(summary = "Admin: get developer locations count")
+    @GetMapping("/analytics/developer-locations")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<List<LocationCountResponse>>> getDeveloperLocations() {
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Developer locations retrieved", adminService.getDeveloperLocations()));
+    }
+
+    @Operation(summary = "Admin: export customized analytics report PDF")
+    @PostMapping("/analytics/export-report")
+    public ResponseEntity<org.springframework.core.io.Resource> exportReport(
+            @Valid @RequestBody AnalyticsExportRequest request) {
+        byte[] fileBytes = adminService.generateAnalyticsReportPdf(request);
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.add(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=analytics-report.pdf");
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
+                .body(new org.springframework.core.io.ByteArrayResource(fileBytes));
+    }
+
     @Operation(summary = "Admin: get signup trends for a period")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Signup trends retrieved successfully")

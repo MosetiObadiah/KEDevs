@@ -29,10 +29,18 @@ import {
   Flag,
   BarChart3,
   History,
-  Tag
+  Tag,
+  AlertTriangle,
+  ShieldAlert,
+  ShieldX
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { authService } from '@/services/authService';
+import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -45,27 +53,250 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import Footer from './Footer';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { isLoggedIn, user, logout } = useAuth();
+  const { isLoggedIn, user, logout, refreshUserStatus } = useAuth();
   const { unreadCount } = useNotification();
   const router = useRouter();
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // Appeal states
+  const [isAppealModalOpen, setIsAppealModalOpen] = useState(false);
+  const [appealMessage, setAppealMessage] = useState('');
+  const [isSubmittingAppeal, setIsSubmittingAppeal] = useState(false);
+  const [appealSubmitted, setAppealSubmitted] = useState(false);
+
   const isDev = user?.role === 'DEVELOPER';
   const isAdmin = user?.role === 'ADMIN';
+
+  const checkIsPublicRoute = (path: string): boolean => {
+    if (!path) return false;
+    
+    // Exact public paths
+    const exactPublics = [
+      '/',
+      '/login',
+      '/register',
+      '/jobs',
+      '/developers',
+      '/companies',
+      '/contact',
+      '/verify-email',
+      '/reset-password',
+      '/spotlight',
+      '/pricing'
+    ];
+    
+    if (exactPublics.includes(path)) return true;
+    
+    // Check dynamic job detail page: /jobs/[id] (where [id] is a UUID/slug, but not special paths)
+    // Avoid matching /jobs/post, /jobs/my-applications, /jobs/my-posts, etc.
+    const genericJobDetailRegex = /^\/jobs\/[^\/]+$/;
+    if (genericJobDetailRegex.test(path)) {
+      const segment = path.split('/')[2];
+      const protectedJobPaths = ['post', 'my-applications', 'my-posts', 'edit'];
+      if (!protectedJobPaths.includes(segment)) {
+        return true;
+      }
+    }
+    
+    // Check dynamic developer detail page: /developers/[id]
+    // Avoid matching edit, onboarding, etc.
+    const developerDetailRegex = /^\/developers\/[^\/]+$/;
+    if (developerDetailRegex.test(path)) {
+      const segment = path.split('/')[2];
+      const protectedDevPaths = ['edit', 'onboarding'];
+      if (!protectedDevPaths.includes(segment)) {
+        return true;
+      }
+    }
+
+    // Check dynamic company detail page: /companies/[id]
+    const companyDetailRegex = /^\/companies\/[^\/]+$/;
+    if (companyDetailRegex.test(path)) {
+      const segment = path.split('/')[2];
+      const protectedCompanyPaths = ['edit', 'new'];
+      if (!protectedCompanyPaths.includes(segment)) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  const isPublicRoute = checkIsPublicRoute(pathname || '');
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    
+    // Check status immediately on transition
+    refreshUserStatus();
+    
+    // Poll status every 60 seconds for background enforcement
+    const interval = setInterval(refreshUserStatus, 60000);
+    
+    return () => clearInterval(interval);
+  }, [pathname, isLoggedIn]);
+
+  const handleLogout = () => {
+    logout();
+    router.push('/');
+  };
+
+  const handleAppealSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!appealMessage.trim()) return;
+    
+    setIsSubmittingAppeal(true);
+    try {
+      const response = await authService.appeal(appealMessage);
+      if (response.success) {
+        setAppealSubmitted(true);
+        toast.success("Appeal submitted successfully!");
+      } else {
+        toast.error(response.message || "Failed to submit appeal");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("An unexpected error occurred while submitting appeal");
+    } finally {
+      setIsSubmittingAppeal(false);
+    }
+  };
+
+
+
+
 
   // Prevent wrapping admin routes with global layout
   if (pathname?.startsWith('/admin')) {
     return <>{children}</>;
   }
 
-  const handleLogout = () => {
-    logout();
-    router.push('/');
-  };
+  if (isLoggedIn && (user?.accountStatus === 'BANNED' || user?.accountStatus === 'SUSPENDED')) {
+    const isBanned = user.accountStatus === 'BANNED';
+    
+    return (
+      <div className="min-h-screen bg-slate-50/50 flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
+        {/* Decorative background element matching login/jobs page styling */}
+        <div className="absolute top-0 left-0 w-full h-[400px] bg-gradient-to-b from-primary/5 to-transparent -z-10" />
+        
+        <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-8 duration-700">
+          <div className="text-center mb-6">
+            {isBanned ? (
+              <>
+                <span className="rounded-lg font-black tracking-widest text-[10px] uppercase bg-red-50 text-red-600 border border-red-100 px-3 py-1.5 mb-4 inline-block">
+                  PERMANENTLY BANNED
+                </span>
+                <h1 className="text-4xl font-black tracking-tight text-slate-900">Access Revoked</h1>
+                <p className="text-slate-500 font-bold mt-2">Account Permanently Banned</p>
+              </>
+            ) : (
+              <>
+                <span className="rounded-lg font-black tracking-widest text-[10px] uppercase bg-amber-50 text-amber-600 border border-amber-100 px-3 py-1.5 mb-4 inline-block">
+                  ACCESS SUSPENDED
+                </span>
+                <h1 className="text-4xl font-black tracking-tight text-slate-900">Access Restricted</h1>
+                <p className="text-slate-500 font-bold mt-2">Account Temporarily Suspended</p>
+              </>
+            )}
+          </div>
+
+          <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-primary/5 overflow-hidden bg-white">
+            <CardContent className="p-8 md:p-10 space-y-6">
+              <div className={cn(
+                "h-16 w-16 rounded-2xl flex items-center justify-center shadow-sm mx-auto",
+                isBanned ? "bg-red-50 border border-red-100" : "bg-amber-50 border border-amber-100"
+              )}>
+                {isBanned ? (
+                  <ShieldX className="h-8 w-8 text-red-500" />
+                ) : (
+                  <AlertTriangle className="h-8 w-8 text-amber-500 animate-pulse" />
+                )}
+              </div>
+
+              <p className="text-slate-500 font-semibold text-center text-sm leading-relaxed">
+                {isBanned ? (
+                  "This account has been permanently restricted due to severe community guideline violations or administrative action. Banned accounts are completely deactivated, final, and cannot be appealed."
+                ) : (
+                  "This account has been temporarily restricted by the administration. You can contest this decision and request a reactivation review by submitting an appeal below."
+                )}
+              </p>
+
+              {!isBanned && (
+                <>
+                  {appealSubmitted ? (
+                    <div className="w-full bg-emerald-50 border border-emerald-100 rounded-2xl p-6 text-center space-y-3 animate-in fade-in duration-300">
+                      <div className="h-10 w-10 bg-emerald-100/50 rounded-full flex items-center justify-center mx-auto">
+                        <ShieldCheck className="h-5 w-5 text-emerald-600" />
+                      </div>
+                      <h3 className="font-black text-slate-950 text-sm">Contestation Received</h3>
+                      <p className="text-xs text-slate-500 font-semibold">
+                        Your appeal has been securely dispatched to our moderation team. You will be notified via email once a decision has been reached.
+                      </p>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleAppealSubmit} className="space-y-4 mt-4">
+                      <div className="space-y-2">
+                        <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 px-1">Contest Suspension</Label>
+                        <textarea
+                          id="banned-appeal"
+                          rows={4}
+                          placeholder="Provide context or explain why your account should be reinstated..."
+                          className="w-full rounded-2xl border border-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary p-4 text-sm text-slate-900 placeholder-slate-400 transition-all resize-none bg-slate-50/30"
+                          value={appealMessage}
+                          onChange={(e) => setAppealMessage(e.target.value)}
+                          required
+                          maxLength={1000}
+                        />
+                        <div className="flex justify-between text-[10px] font-black uppercase tracking-wider text-slate-400 px-1">
+                          <span>Max 1000 characters</span>
+                          <span>{appealMessage.length}/1000</span>
+                        </div>
+                      </div>
+                      
+                      <Button 
+                        type="submit" 
+                        disabled={isSubmittingAppeal || !appealMessage.trim()}
+                        className="w-full h-14 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 transition-all active:scale-[0.98] bg-amber-500 hover:bg-amber-600 text-white"
+                      >
+                        {isSubmittingAppeal ? 'Submitting Appeal...' : 'Submit Appeal'}
+                      </Button>
+                    </form>
+                  )}
+                </>
+              )}
+
+              <div className="relative my-4 pt-2">
+                <div className="absolute inset-0 flex items-center">
+                  <Separator className="w-full bg-slate-100" />
+                </div>
+              </div>
+
+              <div className="flex justify-center pt-2">
+                <button 
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  <LogOut className="h-4 w-4" /> Sign out
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   // Logged out Header
   if (!isLoggedIn) {
@@ -267,6 +498,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
         <main className="flex-1 overflow-y-auto p-6 scroll-smooth">
+
           {children}
         </main>
       </div>

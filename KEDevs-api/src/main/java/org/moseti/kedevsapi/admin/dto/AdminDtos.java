@@ -25,7 +25,7 @@ public class AdminDtos {
 
     public record UserActionRequest(
             @NotBlank @Schema(description = "Action to perform on user", allowableValues = {"WARN", "SUSPEND", "BAN", "UNBAN"}, example = "BAN") String action,
-            @NotBlank @Schema(description = "Reason for the action", example = "Violation of terms.") String notes
+            @jakarta.validation.constraints.Size(max = 500) @Schema(description = "Reason for the action", example = "Violation of terms.") String notes
     ) {}
 
     public record ReviewJobFlagRequest(
@@ -95,7 +95,10 @@ public class AdminDtos {
             LocalDateTime createdAt,
             String avatarUrl,
             UUID profileId,
-            LocalDateTime lastLoginAt
+            LocalDateTime lastLoginAt,
+            org.moseti.kedevsapi.shared.enums.AuthProvider authProvider,
+            boolean approvedByAdmin,
+            boolean isVerified
     ) {}
 
     public record PendingEmployerResponse(
@@ -205,6 +208,44 @@ public class AdminDtos {
             LocalDateTime updatedAt
     ) {}
 
+    public record AvailabilityBreakdown(
+            long openToOffers,
+            long notAvailable
+    ) {}
+
+    public record MonthlyVerificationStats(
+            String month,
+            long pending,
+            long approved,
+            long rejected
+    ) {}
+
+    public record ApplicationTrendResponse(
+            String date,
+            long count
+    ) {}
+
+    public record SkillCountResponse(
+            String skill,
+            long count
+    ) {}
+
+    public record RevenueByTypeResponse(
+            String month,
+            Map<String, java.math.BigDecimal> byType
+    ) {}
+
+    public record LocationCountResponse(
+            String city,
+            long count
+    ) {}
+
+    public record AnalyticsExportRequest(
+            List<String> charts,
+            String dateRange,
+            String generatedBy
+    ) {}
+
     public record AnalyticsSummaryResponse(
             long totalUsers,
             long totalDevelopers,
@@ -214,6 +255,10 @@ public class AdminDtos {
             long newUsersThisWeek,
             long newUsersThisMonth,
             long pendingEmployerApprovals,
+            long totalApplications,
+            Map<String, Long> jobTypeBreakdown,
+            AvailabilityBreakdown availabilityBreakdown,
+            List<MonthlyVerificationStats> verificationStats,
             RevenueBreakdownResponse revenue,
             ForumActivityResponse forum,
             FlaggedContentSummaryResponse flaggedContent,

@@ -28,6 +28,7 @@ public class AuthResponse {
     private boolean requiresApproval;
     private boolean onboarded;
     private boolean isVerified;
+    private String accountStatus;
 }
 
 

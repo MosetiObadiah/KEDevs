@@ -105,15 +105,51 @@ export const adminService = {
     return apiClient.post<ApiResponse<any>>(`/api/v1/admin/flags/comments/${flagId}/review`, { outcome: data.outcome, notes: data.notes || 'Reviewed by admin' });
   },
 
-  async approveEmployer(profileId: string, data: { approved: boolean; reason?: string }): Promise<ApiResponse<any>> {
-    return apiClient.patch<ApiResponse<any>>(`/api/v1/admin/employers/${profileId}/approval`, data);
+  async approveEmployer(profileId: string, data: { approved: boolean; notes?: string }): Promise<ApiResponse<any>> {
+    return apiClient.patch<ApiResponse<any>>(`/api/v1/admin/employers/${profileId}/approval`, {
+      approved: data.approved,
+      notes: data.notes || 'Employer approval updated'
+    });
   },
 
-  async grantBadge(userId: string, verified: boolean): Promise<ApiResponse<any>> {
-    return apiClient.post<ApiResponse<any>>(`/api/v1/admin/users/${userId}/badge`, { verified });
+  async grantBadge(userId: string, action: 'GRANT' | 'REVOKE', notes = 'Badge action by admin'): Promise<ApiResponse<any>> {
+    return apiClient.post<ApiResponse<any>>(`/api/v1/admin/users/${userId}/badge`, { action, notes });
   },
 
-  async performUserAction(userId: string, action: string, reason?: string): Promise<ApiResponse<any>> {
-    return apiClient.post<ApiResponse<any>>(`/api/v1/admin/users/${userId}/action`, { action, reason });
+  async performUserAction(userId: string, action: string, notes?: string): Promise<ApiResponse<any>> {
+    return apiClient.post<ApiResponse<any>>(`/api/v1/admin/users/${userId}/action`, { action, notes });
+  },
+
+  async getApplicationsOverTime(): Promise<ApiResponse<any>> {
+    return apiClient.get<ApiResponse<any>>('/api/v1/admin/analytics/applications-over-time');
+  },
+
+  async getTopSkills(): Promise<ApiResponse<any>> {
+    return apiClient.get<ApiResponse<any>>('/api/v1/admin/analytics/top-skills');
+  },
+
+  async getRevenueByType(): Promise<ApiResponse<any>> {
+    return apiClient.get<ApiResponse<any>>('/api/v1/admin/analytics/revenue-by-type');
+  },
+
+  async getDeveloperLocations(): Promise<ApiResponse<any>> {
+    return apiClient.get<ApiResponse<any>>('/api/v1/admin/analytics/developer-locations');
+  },
+
+  async exportReport(data: { charts: string[]; dateRange: string; generatedBy: string }): Promise<Blob> {
+    const headers = apiClient.getHeaders();
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+    const response = await fetch(`${baseUrl}/api/v1/admin/analytics/export-report`, {
+      method: 'POST',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to export PDF: ${response.statusText}`);
+    }
+    return response.blob();
   }
 };

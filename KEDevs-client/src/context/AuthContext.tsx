@@ -16,6 +16,7 @@ interface AuthContextType {
   completeOnboarding: () => void;
   setAuthData: (userData: User, token: string, refreshToken?: string) => void;
   isLoading: boolean;
+  refreshUserStatus: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -57,7 +58,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isEmailVerified: emailVerified,
       isApproved: !requiresApproval,
       isVerified: data.isVerified || !requiresApproval,
-      spotlightStatus: { isActive: false }
+      spotlightStatus: { isActive: false },
+      accountStatus: data.accountStatus || 'ACTIVE'
     };
 
     setUser(userData);
@@ -153,6 +155,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('isOnboarded');
   };
 
+  const refreshUserStatus = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      const response = await authService.me();
+      if (response.success && response.data) {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          const parsedUser = JSON.parse(storedUser);
+          const updatedUser = {
+            ...parsedUser,
+            accountStatus: response.data.accountStatus || 'ACTIVE',
+            isApproved: !response.data.requiresApproval,
+            isVerified: response.data.isVerified
+          };
+          setUser(updatedUser);
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+      }
+    } catch (e) {
+      console.error('Failed to refresh user status', e);
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -163,7 +189,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout,
       completeOnboarding,
       setAuthData,
-      isLoading
+      isLoading,
+      refreshUserStatus
     }}>
       {children}
     </AuthContext.Provider>

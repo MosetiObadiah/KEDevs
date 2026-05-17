@@ -93,6 +93,7 @@ export interface User {
     expiresAt?: string;
     type?: "Day" | "Week";
   };
+  accountStatus?: string;
 }
 
 export interface AuthResponse {
@@ -106,6 +107,7 @@ export interface AuthResponse {
   requiresApproval: boolean;
   onboarded: boolean;
   isVerified: boolean;
+  accountStatus?: string;
 }
 
 export interface PublicStats {
