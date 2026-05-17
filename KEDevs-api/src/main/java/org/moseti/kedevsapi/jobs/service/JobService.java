@@ -66,8 +66,8 @@ public class JobService {
     @jakarta.annotation.PostConstruct
     public void init() {
         if (cloudinaryCloudName != null && !cloudinaryCloudName.isBlank() &&
-            cloudinaryApiKey != null && !cloudinaryApiKey.isBlank() &&
-            cloudinaryApiSecret != null && !cloudinaryApiSecret.isBlank()) {
+                cloudinaryApiKey != null && !cloudinaryApiKey.isBlank() &&
+                cloudinaryApiSecret != null && !cloudinaryApiSecret.isBlank()) {
             this.cloudinaryInstance = new com.cloudinary.Cloudinary(com.cloudinary.utils.ObjectUtils.asMap(
                     "cloud_name", cloudinaryCloudName,
                     "api_key", cloudinaryApiKey,
@@ -569,7 +569,7 @@ public class JobService {
             default -> request.status().name().toLowerCase();
         };
 
-        String notifTitle = request.status() == ApplicationStatus.SHORTLISTED ? "Application Accepted 🎉"
+        String notifTitle = request.status() == ApplicationStatus.SHORTLISTED ? "Application Accepted"
                 : (request.status() == ApplicationStatus.REJECTED ? "Application Rejected ✗" : "Application Update");
         String notifBody = "Your application for '" + job.getTitle() + "' at " + job.getCompanyName() + " has been "
                 + statusLabel + ".";
@@ -684,7 +684,8 @@ public class JobService {
             String publicId = path.substring(0, dotIndex);
             String extension = path.substring(dotIndex + 1);
 
-            // Force explicit resource types per document type, ignoring what was in the legacy URL
+            // Force explicit resource types per document type, ignoring what was in the
+            // legacy URL
             if (extension.matches("(?i)pdf|doc|docx")) {
                 resourceType = "raw";
             } else if (extension.matches("(?i)jpg|jpeg|png|webp")) {
@@ -718,7 +719,8 @@ public class JobService {
                                 .generate(parts.publicId);
                         log.info("Generated authenticated private URL for asset download: {}", downloadUrl);
                     } catch (Exception e) {
-                        log.warn("Failed to generate private download URL for {}, downloading from fallback URL", url, e);
+                        log.warn("Failed to generate private download URL for {}, downloading from fallback URL", url,
+                                e);
                     }
                 }
             }

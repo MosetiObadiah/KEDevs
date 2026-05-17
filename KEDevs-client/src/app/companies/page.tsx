@@ -250,7 +250,7 @@ function CompaniesPageContent() {
                       <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-lg">
                         <SelectValue placeholder="Any Country" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="max-h-60 overflow-y-auto">
                         <SelectItem value="All">Any Country</SelectItem>
                         {COUNTRIES.map(c => (
                            <SelectItem key={c} value={c}>{c}</SelectItem>
@@ -266,7 +266,7 @@ function CompaniesPageContent() {
                         <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-lg">
                           <SelectValue placeholder="Any City" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="max-h-60 overflow-y-auto">
                           <SelectItem value="All">Any City</SelectItem>
                           {KENYA_CITIES.map(loc => (
                              <SelectItem key={loc} value={loc}>{loc}</SelectItem>

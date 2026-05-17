@@ -3,17 +3,17 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  Bell, 
-  CheckCheck, 
-  Trash2, 
-  Settings, 
-  MoreVertical, 
-  Clock, 
-  Briefcase, 
-  Wallet, 
-  ShieldCheck, 
-  Sparkles, 
+import {
+  Bell,
+  CheckCheck,
+  Trash2,
+  Settings,
+  MoreVertical,
+  Clock,
+  Briefcase,
+  Wallet,
+  ShieldCheck,
+  Sparkles,
   Circle,
   Loader2,
   Inbox,
@@ -128,9 +128,9 @@ export default function NotificationsPage() {
     if (!confirm('Are you sure you want to block this user? They will not be able to contact you again.')) return;
     try {
       await userService.blockUser(userId);
-      setNotifications(prev => prev.map(n => 
-        n.metadata?.senderUserId === userId 
-          ? { ...n, metadata: { ...n.metadata, isSenderBlocked: true } } 
+      setNotifications(prev => prev.map(n =>
+        n.metadata?.senderUserId === userId
+          ? { ...n, metadata: { ...n.metadata, isSenderBlocked: true } }
           : n
       ));
       toast.success('User blocked');
@@ -142,9 +142,9 @@ export default function NotificationsPage() {
   const handleUnblockUser = async (userId: string) => {
     try {
       await userService.unblockUser(userId);
-      setNotifications(prev => prev.map(n => 
-        n.metadata?.senderUserId === userId 
-          ? { ...n, metadata: { ...n.metadata, isSenderBlocked: false } } 
+      setNotifications(prev => prev.map(n =>
+        n.metadata?.senderUserId === userId
+          ? { ...n, metadata: { ...n.metadata, isSenderBlocked: false } }
           : n
       ));
       toast.success('User unblocked');
@@ -190,14 +190,14 @@ export default function NotificationsPage() {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-end items-center mb-6 space-y-4 md:space-y-0 print:hidden">
           <div className="flex gap-3">
-             <Button variant="outline" className="font-bold border-primary/20 hover:bg-primary/5 h-11" onClick={handleMarkAllRead} disabled={notifications.every(n => n.isRead)}>
-                <CheckCheck className="mr-2 h-4 w-4 text-primary" /> Mark All Read
-             </Button>
-             <Button className="font-bold h-11 shadow-lg shadow-primary/20 px-6" asChild>
-                <Link href="/settings/notifications">
-                   <Settings className="mr-2 h-4 w-4" /> Preferences
-                </Link>
-             </Button>
+            <Button variant="outline" className="font-bold border-primary/20 hover:bg-primary/5 h-11" onClick={handleMarkAllRead} disabled={notifications.every(n => n.isRead)}>
+              <CheckCheck className="mr-2 h-4 w-4 text-primary" /> Mark All Read
+            </Button>
+            <Button className="font-bold h-11 shadow-lg shadow-primary/20 px-6" asChild>
+              <Link href="/settings/notifications">
+                <Settings className="mr-2 h-4 w-4" /> Preferences
+              </Link>
+            </Button>
           </div>
         </div>
 
@@ -209,8 +209,8 @@ export default function NotificationsPage() {
                 <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Categories</h3>
               </CardHeader>
               <CardContent className="p-2 space-y-1">
-                <Button 
-                  variant={activeFilter === 'ALL' ? 'secondary' : 'ghost'} 
+                <Button
+                  variant={activeFilter === 'ALL' ? 'secondary' : 'ghost'}
                   className={cn(
                     "w-full justify-between font-bold h-10 gap-3",
                     activeFilter === 'ALL' ? "bg-primary/5 text-primary border-none" : "text-muted-foreground"
@@ -223,8 +223,8 @@ export default function NotificationsPage() {
                   <Badge variant="secondary" className="bg-muted/50 text-[10px] h-5 px-1.5">{notifications.length}</Badge>
                 </Button>
 
-                <Button 
-                  variant={activeFilter === 'UNREAD' ? 'secondary' : 'ghost'} 
+                <Button
+                  variant={activeFilter === 'UNREAD' ? 'secondary' : 'ghost'}
                   className={cn(
                     "w-full justify-between font-bold h-10 gap-3",
                     activeFilter === 'UNREAD' ? "bg-primary/5 text-primary border-none" : "text-muted-foreground"
@@ -245,9 +245,9 @@ export default function NotificationsPage() {
                   if (count === 0 && activeFilter !== key) return null;
 
                   return (
-                    <Button 
+                    <Button
                       key={key}
-                      variant={activeFilter === key ? 'secondary' : 'ghost'} 
+                      variant={activeFilter === key ? 'secondary' : 'ghost'}
                       className={cn(
                         "w-full justify-between font-medium h-10 gap-3",
                         activeFilter === key ? "bg-primary/5 text-primary border-none" : "text-muted-foreground"
@@ -288,7 +288,7 @@ export default function NotificationsPage() {
                     <Inbox className="h-10 w-10" />
                   </div>
                   <div className="space-y-1">
-                    <h3 className="text-2xl font-bold text-foreground">Clean Slate</h3>
+                    <h3 className="text-2xl font-bold text-foreground">Inbox is empty</h3>
                     <p className="text-muted-foreground font-medium max-w-xs">No active alerts found for this category. You're all caught up!</p>
                   </div>
                   {activeFilter !== 'ALL' && (
@@ -303,10 +303,10 @@ export default function NotificationsPage() {
                 {filteredNotifications.map((n) => {
                   const config = categoryConfig[n.category] || categoryConfig.default;
                   const Icon = config.icon;
-                  
+
                   return (
-                    <Card 
-                      key={n.id} 
+                    <Card
+                      key={n.id}
                       className={cn(
                         "group border-border/50 hover:shadow-xl hover:shadow-primary/5 transition-all overflow-hidden cursor-pointer",
                         n.isRead ? "bg-white/60" : "bg-white border-l-4 border-l-primary"
@@ -317,7 +317,7 @@ export default function NotificationsPage() {
                         <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm", config.color)}>
                           <Icon className="h-5 w-5" />
                         </div>
-                        
+
                         <div className="flex-1 min-w-0 space-y-2">
                           <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-3">
@@ -332,7 +332,7 @@ export default function NotificationsPage() {
                               <Clock className="h-3 w-3 text-primary" /> {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
                             </span>
                           </div>
-                          
+
                           {n.category !== 'CONTACT' && (
                             <p className={cn(
                               "text-sm font-medium leading-relaxed max-w-2xl",
@@ -341,7 +341,7 @@ export default function NotificationsPage() {
                               {n.message}
                             </p>
                           )}
-                          
+
                           {n.category === 'CONTACT' && n.metadata?.message && (
                             <div className="mt-4 p-4 rounded-2xl bg-muted/30 border border-border/50 space-y-3">
                               <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
@@ -382,8 +382,8 @@ export default function NotificationsPage() {
                               </div>
                             </div>
                           )}
-                          
-                          
+
+
                           <div className="flex items-center justify-between pt-4">
                             <div className="flex items-center gap-3">
                               <Badge variant="outline" className="rounded-lg font-bold text-[9px] uppercase tracking-widest bg-muted/30 border-border/50 text-muted-foreground px-2 py-0.5">
@@ -392,8 +392,8 @@ export default function NotificationsPage() {
                             </div>
                             <div className="flex items-center gap-2">
                               {!n.isRead && (
-                                <Button 
-                                  variant="ghost" 
+                                <Button
+                                  variant="ghost"
                                   className="h-8 px-3 rounded-xl text-[10px] font-bold uppercase tracking-widest text-primary gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -406,8 +406,8 @@ export default function NotificationsPage() {
                               <Button variant="ghost" className="h-8 px-3 rounded-xl text-[10px] font-bold uppercase tracking-widest text-muted-foreground gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                 Acknowledge <ChevronRight className="h-4 w-4" />
                               </Button>
-                              <Button 
-                                variant="ghost" 
+                              <Button
+                                variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 rounded-xl text-muted-foreground hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
                                 onClick={(e) => {

@@ -23,7 +23,9 @@ import {
   TrendingUp,
   Clock,
   DollarSign,
-  PinOff
+  PinOff,
+  ChevronDown,
+  X
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -109,6 +111,9 @@ function JobsPageContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  const now = React.useMemo(() => new Date(), []);
+  const sevenDaysFromNow = React.useMemo(() => new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), [now]);
+
   const [jobs, setJobs] = useState<JobSummary[]>([]);
   const [pinnedJobs, setPinnedJobs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -131,7 +136,20 @@ function JobsPageContent() {
   const [status, setStatus] = useState<string>('OPEN');
   const [metadata, setMetadata] = useState<{ qualifications: string[], experienceYears: number[] }>({ qualifications: [], experienceYears: [] });
 
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [skillSearch, setSkillSearch] = useState('');
+  const [isSkillsDropdownOpen, setIsSkillsDropdownOpen] = useState(false);
+
   const uniqueCities = Array.from(new Set([...KENYA_CITIES, ...jobs.map(j => j.locationCity).filter(Boolean)])).sort();
+  const availableSkills = Array.from(new Set(jobs.flatMap(j => j.tags || []))).sort();
+  const filteredSkillsList = availableSkills.filter(skill =>
+    skill.toLowerCase().includes(skillSearch.toLowerCase())
+  );
+
+  const filteredJobs = jobs.filter(job => 
+    selectedSkills.length === 0 || 
+    (job.tags && job.tags.some(t => selectedSkills.includes(t)))
+  );
 
   const [sortBy, setSortBy] = useState('newest');
   const [upvotedJobs, setUpvotedJobs] = useState<Set<string>>(new Set());
@@ -250,7 +268,7 @@ function JobsPageContent() {
       }
 
       const headers = ['JobTitle', 'Company', 'WorkArrangement', 'Location', 'Status', 'Upvotes'];
-      const rows = jobs.map(j => [
+      const rows = filteredJobs.map(j => [
         `"${j.title || ''}"`,
         `"${j.isPeerSourced || j.postedByRole !== 'EMPLOYER' ? (j.postedByName || 'Community Member') : j.companyName}"`,
         `"${j.workType || ''}"`,
@@ -484,13 +502,139 @@ function JobsPageContent() {
                     <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-lg">
                       <SelectValue placeholder="Any Location" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-60 overflow-y-auto">
                       <SelectItem value="All">Any Location</SelectItem>
                       {uniqueCities.map(loc => (
                         <SelectItem key={loc} value={loc}>{loc}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="space-y-2 relative">
+                  <label className="text-xs font-bold text-muted-foreground uppercase">Skills</label>
+
+                  {/* Dropdown Trigger */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      className="w-full flex items-center justify-between border border-border/50 bg-background text-xs h-9 px-3 rounded-lg hover:bg-slate-50 transition-all font-medium text-slate-700"
+                      onClick={() => setIsSkillsDropdownOpen(!isSkillsDropdownOpen)}
+                    >
+                      <span className="truncate text-left flex-1">
+                        {selectedSkills.length === 0
+                          ? "Select skills..."
+                          : `${selectedSkills.length} skill${selectedSkills.length > 1 ? 's' : ''} selected`}
+                      </span>
+                      <ChevronDown className="h-4 w-4 text-slate-400 shrink-0 ml-2" />
+                    </button>
+
+                    {/* Dropdown Menu Overlay */}
+                    {isSkillsDropdownOpen && (
+                      <>
+                        {/* Invisible backdrop to close the dropdown */}
+                        <div
+                          className="fixed inset-0 z-10"
+                          onClick={() => setIsSkillsDropdownOpen(false)}
+                        />
+                        <div className="absolute left-0 right-0 mt-1.5 p-3 bg-background border border-border/70 rounded-xl shadow-xl z-20 space-y-3 max-h-[300px] flex flex-col">
+                          {/* Search Input */}
+                          <div className="relative shrink-0">
+                            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                            <Input
+                              placeholder="Search or enter custom skill..."
+                              className="pl-8 text-xs h-8 rounded-lg border-border/50 focus-visible:ring-primary/20"
+                              value={skillSearch}
+                              onChange={(e) => setSkillSearch(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && skillSearch.trim()) {
+                                  e.preventDefault();
+                                  const customSkill = skillSearch.trim();
+                                  if (!selectedSkills.includes(customSkill)) {
+                                    setSelectedSkills([...selectedSkills, customSkill]);
+                                  }
+                                  setSkillSearch('');
+                                }
+                              }}
+                            />
+                          </div>
+
+                          {/* Skills List */}
+                          <div className="overflow-y-auto flex-1 space-y-1.5 scrollbar-thin pr-1">
+                            {/* Option to add custom skill if search term doesn't match exactly */}
+                            {skillSearch.trim() && !availableSkills.some(s => s.toLowerCase() === skillSearch.trim().toLowerCase()) && (
+                              <button
+                                type="button"
+                                className="w-full flex items-center gap-2 p-2 rounded-lg bg-primary/5 text-primary hover:bg-primary/10 text-xs font-bold text-left transition-colors border border-primary/10"
+                                onClick={() => {
+                                  const customSkill = skillSearch.trim();
+                                  if (!selectedSkills.includes(customSkill)) {
+                                    setSelectedSkills([...selectedSkills, customSkill]);
+                                  }
+                                  setSkillSearch('');
+                                }}
+                              >
+                                <Plus className="h-3.5 w-3.5 shrink-0" />
+                                <span className="truncate">Add custom skill: &quot;{skillSearch.trim()}&quot;</span>
+                              </button>
+                            )}
+
+                            {filteredSkillsList.length > 0 ? (
+                              filteredSkillsList.map(skill => {
+                                const isChecked = selectedSkills.includes(skill);
+                                return (
+                                  <div
+                                    key={skill}
+                                    className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors"
+                                    onClick={() => {
+                                      if (isChecked) {
+                                        setSelectedSkills(selectedSkills.filter(s => s !== skill));
+                                      } else {
+                                        setSelectedSkills([...selectedSkills, skill]);
+                                      }
+                                    }}
+                                  >
+                                    <Checkbox
+                                      id={`skill-${skill}`}
+                                      checked={isChecked}
+                                      onCheckedChange={() => {}} // handled by parent click
+                                    />
+                                    <Label htmlFor={`skill-${skill}`} className="text-xs font-medium cursor-pointer flex-1 py-0.5 truncate">{skill}</Label>
+                                  </div>
+                                );
+                              })
+                            ) : (
+                              !skillSearch.trim() && (
+                                <p className="text-[10px] text-muted-foreground text-center py-4">No skills available. Type to add custom.</p>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Render Selected Skills badges below trigger */}
+                  {selectedSkills.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {selectedSkills.map(skill => (
+                        <Badge
+                          key={skill}
+                          variant="secondary"
+                          className="bg-primary/5 text-primary hover:bg-primary/10 border-primary/10 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1.5"
+                        >
+                          {skill}
+                          <button
+                            type="button"
+                            onClick={() => setSelectedSkills(selectedSkills.filter(s => s !== skill))}
+                            className="text-primary/70 hover:text-primary transition-colors shrink-0"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -500,7 +644,7 @@ function JobsPageContent() {
                       <SelectTrigger className="text-xs h-9 rounded-lg">
                         <SelectValue placeholder="Any Qualification" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="max-h-60 overflow-y-auto">
                         <SelectItem value="All">Any Qualification</SelectItem>
                         {metadata.qualifications.map(q => (
                           <SelectItem key={q} value={q}>{q}</SelectItem>
@@ -512,7 +656,7 @@ function JobsPageContent() {
                       <SelectTrigger className="text-xs h-9 rounded-lg">
                         <SelectValue placeholder="Any Experience" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="max-h-60 overflow-y-auto">
                         <SelectItem value="All">Any Experience</SelectItem>
                         {metadata.experienceYears.map(exp => (
                           <SelectItem key={exp.toString()} value={exp.toString()}>{exp} Years</SelectItem>
@@ -576,7 +720,7 @@ function JobsPageContent() {
                     <SelectTrigger className="text-xs h-9 rounded-lg w-full">
                       <SelectValue placeholder="Filter by Status" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-60 overflow-y-auto">
                       <SelectItem value="OPEN">Open Only</SelectItem>
                       <SelectItem value="CLOSED">Closed Only</SelectItem>
                     </SelectContent>
@@ -589,14 +733,14 @@ function JobsPageContent() {
                     <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-lg">
                       <SelectValue placeholder="Newest First" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-60 overflow-y-auto">
                       <SelectItem value="newest">Newest First</SelectItem>
                       <SelectItem value="upvotes">Most Upvoted</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                {(searchTerm || selectedWorkTypes.length > 0 || selectedJobTypes.length > 0 || selectedExpLevels.length > 0 || city !== 'All' || minSalary || maxSalary || minQualification || minExperienceYears || deadlineFrom || deadlineTo || isPeerSourced !== null || minUpvotes || status !== 'OPEN') && (
+                {(searchTerm || selectedWorkTypes.length > 0 || selectedJobTypes.length > 0 || selectedExpLevels.length > 0 || city !== 'All' || minSalary || maxSalary || minQualification || minExperienceYears || deadlineFrom || deadlineTo || isPeerSourced !== null || minUpvotes || status !== 'OPEN' || selectedSkills.length > 0) && (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -616,6 +760,7 @@ function JobsPageContent() {
                       setIsPeerSourced(null);
                       setMinUpvotes('');
                       setStatus('OPEN');
+                      setSelectedSkills([]);
                     }}
                   >
                     <FilterX className="mr-2 h-3.5 w-3.5" /> Reset Filters
@@ -692,12 +837,12 @@ function JobsPageContent() {
                     </div>
                   </Card>
                 ))
-              ) : jobs.length === 0 ? (
+              ) : filteredJobs.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center bg-card rounded-xl border border-dashed border-border">
                   <Briefcase className="w-12 h-12 text-muted-foreground/50 mb-4" />
                   <h3 className={cn(TYPOGRAPHY.sectionHeading, "mb-2")}>No jobs found</h3>
                   <p className={cn(TYPOGRAPHY.body, "mb-4")}>Try adjusting your filters or search term.</p>
-                  {(searchTerm || selectedWorkTypes.length > 0 || selectedJobTypes.length > 0 || selectedExpLevels.length > 0 || city !== 'All' || minSalary || maxSalary || minQualification || minExperienceYears || deadlineFrom || deadlineTo || isPeerSourced !== null || minUpvotes || status !== 'OPEN') && (
+                  {(searchTerm || selectedWorkTypes.length > 0 || selectedJobTypes.length > 0 || selectedExpLevels.length > 0 || city !== 'All' || minSalary || maxSalary || minQualification || minExperienceYears || deadlineFrom || deadlineTo || isPeerSourced !== null || minUpvotes || status !== 'OPEN' || selectedSkills.length > 0) && (
                     <Button variant="outline" size="sm" onClick={() => {
                       router.push(pathname);
                       setSelectedWorkTypes([]);
@@ -713,13 +858,14 @@ function JobsPageContent() {
                       setIsPeerSourced(null);
                       setMinUpvotes('');
                       setStatus('OPEN');
+                      setSelectedSkills([]);
                     }}>
                       Reset Filters
                     </Button>
                   )}
                 </div>
               ) : (
-                jobs.map((job) => (
+                filteredJobs.map((job) => (
                   <Card key={job.id} className="group border-border/50 hover:shadow-xl hover:shadow-primary/5 transition-all overflow-hidden">
                     <CardContent className="p-6">
                       <div className="flex flex-col md:flex-row gap-6">
@@ -759,10 +905,10 @@ function JobsPageContent() {
                             {job.applicationDeadline && (
                               <span className={cn(
                                 "flex items-center gap-1.5 font-bold",
-                                new Date(job.applicationDeadline) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) ? "text-rose-500" : "text-muted-foreground"
+                                new Date(job.applicationDeadline) < sevenDaysFromNow ? "text-rose-500" : "text-muted-foreground"
                               )}>
                                 <Calendar className="h-4 w-4" />
-                                {new Date(job.applicationDeadline) < new Date() ? 'Expired: ' : 'Deadline: '}
+                                {new Date(job.applicationDeadline) < now ? 'Expired: ' : 'Deadline: '}
                                 {format(new Date(job.applicationDeadline), 'dd MMM yyyy')}
                               </span>
                             )}
