@@ -20,7 +20,8 @@ import {
    BadgeCheck,
    MoreVertical,
    ArrowRight,
-   FileSpreadsheet
+   FileSpreadsheet,
+   Search
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import { jobService } from '@/services/jobService';
@@ -56,6 +57,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
 
 const statusConfig: Record<string, { label: string, color: string }> = {
    'PENDING': { label: 'Pending', color: 'bg-amber-100 text-amber-600' },
@@ -81,6 +83,7 @@ export default function ApplicationsInbox() {
    const [activeFilter, setActiveFilter] = useState<'ALL' | 'PENDING' | 'ACCEPTED' | 'REJECTED'>('ALL');
    const [startDate, setStartDate] = useState('');
    const [endDate, setEndDate] = useState('');
+   const [searchTerm, setSearchTerm] = useState('');
    const [isExporting, setIsExporting] = useState(false);
 
    const fetchJobAndApplications = async () => {
@@ -438,6 +441,15 @@ export default function ApplicationsInbox() {
             if (appDate > end) return false;
          }
       }
+
+      // Filter by search term (applicantName, applicantEmail)
+      if (searchTerm.trim()) {
+         const term = searchTerm.toLowerCase();
+         const nameMatches = app.applicantName?.toLowerCase().includes(term);
+         const emailMatches = app.applicantEmail?.toLowerCase().includes(term);
+         if (!nameMatches && !emailMatches) return false;
+      }
+
       return true;
    }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
@@ -463,7 +475,18 @@ export default function ApplicationsInbox() {
                   </p>
                </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
+               {/* Search Applicants */}
+               <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                     placeholder="Search applicants..."
+                     value={searchTerm}
+                     onChange={(e) => setSearchTerm(e.target.value)}
+                     className="pl-11 h-14 rounded-2xl border-slate-200/60 focus-visible:ring-primary/20 text-sm font-semibold shadow-sm bg-white"
+                  />
+               </div>
+
                <div className="text-right hidden sm:block">
                   <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Pipeline</p>
                   <p className="text-2xl font-black text-slate-900">{applicants.length}</p>

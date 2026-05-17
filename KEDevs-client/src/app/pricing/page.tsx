@@ -5,11 +5,11 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { paymentService } from '@/services/paymentService';
-import { 
-  CheckCircle2, 
-  ShieldCheck, 
-  TrendingUp, 
-  Sparkles, 
+import {
+  CheckCircle2,
+  ShieldCheck,
+  TrendingUp,
+  Sparkles,
   ArrowRight,
   Loader2,
   Building2,
@@ -67,21 +67,18 @@ export default function PricingPage() {
     <div className="min-h-screen bg-background pt-24 pb-32">
       {/* Header Section */}
       <div className="container mx-auto px-4 max-w-4xl text-center mb-20">
-        <Badge className="mb-6 bg-primary/10 text-primary hover:bg-primary/20 border-none px-4 py-1.5 text-xs font-black uppercase tracking-widest rounded-full">
-          Transparent Pricing
-        </Badge>
         <h1 className="text-5xl md:text-6xl font-black text-slate-900 tracking-tighter mb-6">
           Simple, upfront <span className="text-primary italic">pricing</span> for everyone.
         </h1>
         <p className="text-lg md:text-xl text-slate-500 font-medium max-w-2xl mx-auto leading-relaxed">
-          Pay only for what you need. No hidden fees, no recurring subscriptions. 
+          Pay only for what you need. No hidden fees, no recurring subscriptions.
           Boost your visibility or verify your identity with one-time payments via M-Pesa.
         </p>
       </div>
 
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          
+
           {/* Identity Verification */}
           <Card className="relative overflow-hidden rounded-[2.5rem] border-2 border-slate-100 shadow-xl shadow-slate-200/20 hover:border-emerald-200 transition-colors group flex flex-col">
             <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
@@ -240,7 +237,7 @@ export default function PricingPage() {
               </Button>
             </CardFooter>
           </Card>
-          
+
         </div>
       </div>
     </div>
