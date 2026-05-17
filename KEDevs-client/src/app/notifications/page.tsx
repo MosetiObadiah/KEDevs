@@ -61,7 +61,8 @@ interface Notification {
 const categoryConfig: Record<string, { color: string, icon: any, label: string }> = {
   'JOB': { color: 'text-blue-600 bg-blue-50', icon: Briefcase, label: 'Talent Acquisition' },
   'PAYMENT': { color: 'text-emerald-600 bg-emerald-50', icon: Wallet, label: 'Financial Alerts' },
-  'ADMIN': { color: 'text-red-600 bg-red-50', icon: ShieldCheck, label: 'Security & Auth' },
+  'ADMIN': { color: 'text-red-600 bg-red-50', icon: ShieldCheck, label: 'Platform & Verification' },
+  'FLAG': { color: 'text-rose-600 bg-rose-50', icon: Info, label: 'Moderation Alerts' },
   'ENDORSEMENT': { color: 'text-purple-600 bg-purple-50', icon: Sparkles, label: 'Endorsements' },
   'SPOTLIGHT': { color: 'text-amber-600 bg-amber-50', icon: Bell, label: 'Visibility' },
   'CONTACT': { color: 'text-indigo-600 bg-indigo-50', icon: Mail, label: 'Contact Requests' },
@@ -143,6 +144,24 @@ export default function NotificationsPage() {
     }
 
     if (!meta) return;
+
+    if (user?.role === 'ADMIN') {
+      switch (n.category) {
+        case 'FLAG':
+          router.push('/admin/flags');
+          return;
+        case 'ADMIN':
+          router.push('/admin/verification');
+          return;
+        case 'PAYMENT':
+        case 'EMPLOYER_VERIFICATION_PAYMENT_SUCCESS':
+          router.push('/admin/dashboard');
+          return;
+        default:
+          router.push('/admin/dashboard');
+          return;
+      }
+    }
 
     switch (n.category) {
       case 'FORUM':
