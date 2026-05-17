@@ -4,33 +4,34 @@ import React, { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Cropper from 'react-easy-crop';
-import { 
-  Edit2, 
-  Save, 
-  Globe, 
-  CheckCircle2, 
-  Zap, 
-  Plus, 
-  Trash2, 
-  GraduationCap, 
-  Award, 
-  Code2, 
-  Trophy, 
-  Star, 
-  Camera, 
-  Upload, 
-  MapPin, 
-  Mail, 
-  Phone, 
-  ExternalLink, 
-  Eye, 
-  Building2, 
-  Users2, 
+import {
+  Edit2,
+  Save,
+  Globe,
+  CheckCircle2,
+  Zap,
+  Plus,
+  Trash2,
+  GraduationCap,
+  Award,
+  Code2,
+  Trophy,
+  Star,
+  Camera,
+  Upload,
+  MapPin,
+  Mail,
+  Phone,
+  ExternalLink,
+  Eye,
+  Building2,
+  Users2,
   Loader2,
   X,
   ShieldCheck,
   Briefcase,
-  BadgeCheck
+  BadgeCheck,
+  User
 } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
@@ -48,14 +49,14 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
   DialogTitle,
-  DialogTrigger 
+  DialogTrigger
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -68,15 +69,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { toast } from 'sonner';
-import { cn, formatExperience } from '@/lib/utils';
+import { cn, formatExperience, formatCompanySize } from '@/lib/utils';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { ProfileTabs } from '@/components/profile/ProfileTabs';
 import { ProfileSidebar } from '@/components/profile/ProfileSidebar';
 
 const COMMON_SKILLS = [
-  'React', 'Java', 'Docker', 'Node.js', 'Python', 'TypeScript', 'Spring Boot', 'AWS', 
-  'PostgreSQL', 'MongoDB', 'Next.js', 'Flutter', 'Kubernetes', 'GraphQL', 'TailWind CSS', 
-  'Material UI', 'Redux', 'Go', 'Rust', 'C++', 'C#', 'Angular', 'Vue.js', 'Swift', 
+  'React', 'Java', 'Docker', 'Node.js', 'Python', 'TypeScript', 'Spring Boot', 'AWS',
+  'PostgreSQL', 'MongoDB', 'Next.js', 'Flutter', 'Kubernetes', 'GraphQL', 'TailWind CSS',
+  'Material UI', 'Redux', 'Go', 'Rust', 'C++', 'C#', 'Angular', 'Vue.js', 'Swift',
   'Kotlin', 'PHP', 'Laravel', 'Symfony', 'Django', 'Flask', 'Express', 'NestJS',
   'MySQL', 'Redis', 'Elasticsearch', 'Terraform', 'Jenkins', 'Git', 'GitHub Actions',
   'Figma', 'Adobe XD', 'Unity', 'Unreal Engine', 'TensorFlow', 'PyTorch'
@@ -216,7 +217,7 @@ export default function MyProfile() {
   const loadProfile = async (initial = false) => {
     if (initial) setIsLoading(true);
     else setIsRefreshing(true);
-    
+
     setError(null);
     try {
       const response = user?.role === 'EMPLOYER'
@@ -243,33 +244,33 @@ export default function MyProfile() {
       const isEmp = user?.role === 'EMPLOYER';
       const payload = isEmp
         ? {
-            contactPersonName: profile.contactPersonName || user?.fullName || 'Employer',
-            companyName: profile.companyName,
-            companyWebsite: profile.companyWebsite,
-            industry: profile.industry,
-            companySize: profile.companySize || 'TEN_TO_FIFTY',
-            locationHQ: profile.locationHQ,
-            companyBio: profile.companyBio,
-            logoUrl: profile.logoUrl,
-            linkedinUrl: profile.linkedinUrl,
-            twitterUrl: profile.twitterUrl,
-            contactEmail: profile.contactEmail,
-          }
+          contactPersonName: profile.contactPersonName || user?.fullName || 'Employer',
+          companyName: profile.companyName,
+          companyWebsite: profile.companyWebsite,
+          industry: profile.industry,
+          companySize: profile.companySize || 'TEN_TO_FIFTY',
+          locationHQ: profile.locationHQ,
+          companyBio: profile.companyBio,
+          logoUrl: profile.logoUrl,
+          linkedinUrl: profile.linkedinUrl,
+          twitterUrl: profile.twitterUrl,
+          contactEmail: profile.contactEmail,
+        }
         : {
-            firstName: profile.firstName,
-            lastName: profile.lastName,
-            bio: profile.bio,
-            currentLastRole: profile.currentLastRole,
-            yearsOfExperience: profile.yearsOfExperience,
-            preferredWorkType: profile.preferredWorkType,
-            locationCity: profile.locationCity,
-            locationCountry: profile.locationCountry,
-            linkedinUrl: profile.linkedinUrl,
-            githubUrl: profile.githubUrl,
-            portfolioUrl: profile.portfolioUrl,
-            publicEmail: profile.publicEmail,
-            publicPhone: profile.publicPhone,
-          };
+          firstName: profile.firstName,
+          lastName: profile.lastName,
+          bio: profile.bio,
+          currentLastRole: profile.currentLastRole,
+          yearsOfExperience: profile.yearsOfExperience,
+          preferredWorkType: profile.preferredWorkType,
+          locationCity: profile.locationCity,
+          locationCountry: profile.locationCountry,
+          linkedinUrl: profile.linkedinUrl,
+          githubUrl: profile.githubUrl,
+          portfolioUrl: profile.portfolioUrl,
+          publicEmail: profile.publicEmail,
+          publicPhone: profile.publicPhone,
+        };
 
       const response = isEmp
         ? await employerService.updateProfile(payload)
@@ -314,7 +315,7 @@ export default function MyProfile() {
     let initialNewItem = {};
     if (type === 'project') initialNewItem = { isFeatured: false };
     if (type === 'education') initialNewItem = { isCertification: false };
-    
+
     setNewItem(initialNewItem);
     setSelectedFile(null);
     setPreviewUrl(null);
@@ -350,8 +351,8 @@ export default function MyProfile() {
           break;
         case 'education':
           await developerService.addEducation({
-             ...newItem,
-             isCertification: newItem.isCertification || false
+            ...newItem,
+            isCertification: newItem.isCertification || false
           });
           break;
         case 'certification':
@@ -488,11 +489,13 @@ export default function MyProfile() {
         {/* Header Actions */}
         <div className="flex justify-end items-center mb-6">
           <div className="flex gap-3">
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               className={cn(
                 "rounded-xl font-bold px-8 h-12 shadow-xl transition-all",
-                isEditing ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20" : "shadow-primary/20"
+                isEmployer
+                  ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20 text-white"
+                  : (isEditing ? "bg-primary hover:bg-primary/90 shadow-primary/20 text-white" : "shadow-primary/20")
               )}
               onClick={() => isEditing ? handleUpdateBasicInfo() : setIsEditing(true)}
               disabled={isSaving}
@@ -501,9 +504,9 @@ export default function MyProfile() {
               {isEditing ? 'Save Profile' : 'Edit Profile'}
             </Button>
             {isEditing && (
-              <Button 
-                size="lg" 
-                variant="outline" 
+              <Button
+                size="lg"
+                variant="outline"
                 className="rounded-xl font-bold h-12 border-border/50"
                 onClick={() => setIsEditing(false)}
               >
@@ -521,16 +524,16 @@ export default function MyProfile() {
               {/* Employer Identity Card */}
               <div className={cn(
                 "flex flex-col md:flex-row items-start gap-8 bg-white p-8 rounded-[2.5rem] border shadow-xl shadow-slate-200/40 transition-all",
-                isEditing ? "border-primary/20" : "border-slate-100"
+                isEditing ? "border-emerald-500/20" : "border-slate-100"
               )}>
                 <div className="relative group">
                   <Avatar className="w-32 h-32 rounded-[2.5rem] border-4 border-background shadow-xl overflow-hidden bg-white shrink-0">
                     <AvatarImage src={profile.logoUrl} className="object-contain p-4" />
-                    <AvatarFallback className="bg-primary text-white text-4xl font-black">
+                    <AvatarFallback className="bg-emerald-600 text-white text-4xl font-black">
                       {profile.companyName?.charAt(0) || <Building2 className="w-10 h-10" />}
                     </AvatarFallback>
                   </Avatar>
-                  <Label htmlFor="employer-logo-upload" className="absolute bottom-2 right-2 h-10 w-10 bg-primary text-white rounded-xl flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 transition-transform z-20 border-4 border-white">
+                  <Label htmlFor="employer-logo-upload" className="absolute bottom-2 right-2 h-10 w-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 transition-transform z-20 border-4 border-white">
                     <Camera className="h-5 w-5" />
                     <input id="employer-logo-upload" type="file" className="hidden" accept="image/*" onChange={(e) => {
                       const file = e.target.files?.[0];
@@ -553,16 +556,16 @@ export default function MyProfile() {
                     <>
                       <div className="space-y-1.5">
                         <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Company Name</Label>
-                        <Input 
-                          value={profile.companyName || ''} 
-                          onChange={(e) => setProfile({...profile, companyName: e.target.value})}
-                          className="h-12 rounded-xl border-slate-200 focus:border-primary font-bold"
+                        <Input
+                          value={profile.companyName || ''}
+                          onChange={(e) => setProfile({ ...profile, companyName: e.target.value })}
+                          className="h-12 rounded-xl border-slate-200 focus:border-emerald-500 font-bold"
                         />
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
                           <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Industry</Label>
-                          <Select value={profile.industry} onValueChange={(v) => setProfile({...profile, industry: v})}>
+                          <Select value={profile.industry} onValueChange={(v) => setProfile({ ...profile, industry: v })}>
                             <SelectTrigger className="h-12 rounded-xl border-slate-200">
                               <SelectValue placeholder="Select industry" />
                             </SelectTrigger>
@@ -575,12 +578,26 @@ export default function MyProfile() {
                         </div>
                         <div className="space-y-1.5">
                           <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Location (HQ)</Label>
-                          <Input 
-                            value={profile.locationHQ || ''} 
-                            onChange={(e) => setProfile({...profile, locationHQ: e.target.value})}
-                            className="h-12 rounded-xl border-slate-200 focus:border-primary"
+                          <Input
+                            value={profile.locationHQ || ''}
+                            onChange={(e) => setProfile({ ...profile, locationHQ: e.target.value })}
+                            className="h-12 rounded-xl border-slate-200 focus:border-emerald-500"
                             placeholder="e.g. Nairobi, Kenya"
                           />
+                        </div>
+                        <div className="space-y-1.5 md:col-span-2">
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Company Size</Label>
+                          <Select value={profile.companySize} onValueChange={(v) => setProfile({ ...profile, companySize: v })}>
+                            <SelectTrigger className="h-12 rounded-xl border-slate-200">
+                              <SelectValue placeholder="Select company size" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-2xl">
+                              <SelectItem value="ONE_TO_TEN">1–10 Employees</SelectItem>
+                              <SelectItem value="TEN_TO_FIFTY">10–50 Employees</SelectItem>
+                              <SelectItem value="FIFTY_TO_TWO_HUNDRED">50–200 Employees</SelectItem>
+                              <SelectItem value="TWO_HUNDRED_PLUS">200+ Employees</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
                     </>
@@ -596,18 +613,18 @@ export default function MyProfile() {
                           </Badge>
                         )}
                       </div>
-                      
+
                       <p className="text-xl font-medium text-muted-foreground">{profile.industry || 'Define Industry'}</p>
-                      
+
                       <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-bold text-muted-foreground uppercase tracking-wider pt-1">
                         <span className="flex items-center gap-1.5">
-                          <MapPin className="w-4 h-4 text-primary" />
+                          <MapPin className="w-4 h-4 text-emerald-600" />
                           {profile.locationHQ || 'Location unspecified'}
                         </span>
                         <span className="hidden md:block text-muted-foreground/30">•</span>
                         <span className="flex items-center gap-1.5">
-                          <Users2 className="w-4 h-4 text-primary" />
-                          {profile.companySize?.replace(/_/g, ' ') || 'Team Size Unspecified'}
+                          <Users2 className="w-4 h-4 text-emerald-600" />
+                          {profile.companySize ? formatCompanySize(profile.companySize) : 'Team Size Unspecified'}
                         </span>
                       </div>
                     </div>
@@ -619,19 +636,19 @@ export default function MyProfile() {
               <Card className="rounded-[2.5rem] border-none shadow-xl shadow-slate-200/40 overflow-hidden bg-white">
                 <CardHeader className="px-10 pt-10 pb-4">
                   <CardTitle className="text-2xl font-black flex items-center gap-3">
-                     <div className="h-7 w-1.5 bg-primary rounded-full" />
-                     Company Bio & Mission
+                    <div className="h-7 w-1.5 bg-emerald-600 rounded-full" />
+                    About the Company
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="px-10 pb-10">
                   {isEditing ? (
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Company Story / Vision</Label>
-                      <Textarea 
-                        className="min-h-[160px] rounded-2xl border-slate-200 font-medium text-base p-4 focus-visible:ring-primary/20 resize-none" 
-                        value={profile.companyBio || ''} 
-                        onChange={(e) => setProfile({...profile, companyBio: e.target.value})} 
-                        placeholder="Summarize what your company does, your core values, and what developers love about working with you..." 
+                      <Textarea
+                        className="min-h-[160px] rounded-2xl border-slate-200 font-medium text-base p-4 focus-visible:ring-emerald-500/20 resize-none"
+                        value={profile.companyBio || ''}
+                        onChange={(e) => setProfile({ ...profile, companyBio: e.target.value })}
+                        placeholder="Summarize what your company does, your core values, and what developers love about working with you..."
                       />
                     </div>
                   ) : (
@@ -647,58 +664,59 @@ export default function MyProfile() {
             <div className="lg:col-span-1 space-y-6">
               <Card className="rounded-[2.5rem] border-none shadow-xl shadow-slate-200/40 overflow-hidden bg-white">
                 <CardContent className="p-8 space-y-8">
-                  
-                  {/* Quick Access Buttons */}
-                  <div className="space-y-4">
-                    <Button 
-                      className="w-full h-14 rounded-2xl font-black bg-slate-900 hover:bg-slate-800 text-white shadow-xl shadow-slate-900/20 gap-3"
-                      onClick={() => router.push(`/companies/${profile.id}`)}
-                    >
-                      <Eye className="h-5 w-5" /> Preview Public View
-                    </Button>
-                    {!profile.isVerified && (
-                      <Button 
-                        variant="outline"
-                        className="w-full h-14 rounded-2xl font-bold border-primary/20 hover:bg-primary/5 text-primary gap-3"
-                        onClick={() => router.push('/verify')}
-                      >
-                        <ShieldCheck className="h-5 w-5" /> Initiate Verification
-                      </Button>
-                    )}
-                  </div>
 
-                  <Separator className="bg-slate-100" />
 
-                  {/* Contact & Meta Details */}
+
+                  {/* Contact & Online Presence */}
                   <div className="space-y-6">
-                    <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Operational Meta</h3>
-                    
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Contact & Online Presence</h3>
+
                     <div className="space-y-4">
                       {isEditing ? (
                         <>
                           <div className="space-y-1">
-                            <Label className="text-[10px] font-bold uppercase text-slate-500">Website URL</Label>
-                            <Input 
-                              value={profile.companyWebsite || ''} 
-                              onChange={(e) => setProfile({...profile, companyWebsite: e.target.value})}
+                            <Label className="text-[10px] font-bold uppercase text-slate-500">Primary Contact Name</Label>
+                            <Input
+                              value={profile.contactPersonName || ''}
+                              onChange={(e) => setProfile({ ...profile, contactPersonName: e.target.value })}
+                              className="h-10 rounded-xl"
+                              placeholder="e.g. Jane Doe"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[10px] font-bold uppercase text-slate-500">Support Email</Label>
+                            <Input
+                              value={profile.contactEmail || ''}
+                              onChange={(e) => setProfile({ ...profile, contactEmail: e.target.value })}
+                              className="h-10 rounded-xl"
+                              placeholder="e.g. support@company.com"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[10px] font-bold uppercase text-slate-500">Official Website URL</Label>
+                            <Input
+                              value={profile.companyWebsite || ''}
+                              onChange={(e) => setProfile({ ...profile, companyWebsite: e.target.value })}
                               className="h-10 rounded-xl"
                               placeholder="https://..."
                             />
                           </div>
                           <div className="space-y-1">
-                            <Label className="text-[10px] font-bold uppercase text-slate-500">Contact Email</Label>
-                            <Input 
-                              value={profile.contactEmail || ''} 
-                              onChange={(e) => setProfile({...profile, contactEmail: e.target.value})}
+                            <Label className="text-[10px] font-bold uppercase text-slate-500">LinkedIn Company Page</Label>
+                            <Input
+                              value={profile.linkedinUrl || ''}
+                              onChange={(e) => setProfile({ ...profile, linkedinUrl: e.target.value })}
                               className="h-10 rounded-xl"
+                              placeholder="https://linkedin.com/company/..."
                             />
                           </div>
                           <div className="space-y-1">
-                            <Label className="text-[10px] font-bold uppercase text-slate-500">LinkedIn URL</Label>
-                            <Input 
-                              value={profile.linkedinUrl || ''} 
-                              onChange={(e) => setProfile({...profile, linkedinUrl: e.target.value})}
+                            <Label className="text-[10px] font-bold uppercase text-slate-500">Twitter / X Profile</Label>
+                            <Input
+                              value={profile.twitterUrl || ''}
+                              onChange={(e) => setProfile({ ...profile, twitterUrl: e.target.value })}
                               className="h-10 rounded-xl"
+                              placeholder="https://x.com/..."
                             />
                           </div>
                         </>
@@ -706,21 +724,56 @@ export default function MyProfile() {
                         <>
                           <div className="flex items-center gap-4">
                             <div className="h-10 w-10 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center shrink-0 border border-slate-100">
-                              <Mail className="h-5 w-5" />
+                              <User className="h-5 w-5 text-emerald-600" />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Comm Node</p>
+                              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Primary Contact</p>
+                              <p className="font-bold text-slate-900 truncate">{profile.contactPersonName || 'Not set'}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center shrink-0 border border-slate-100">
+                              <Mail className="h-5 w-5 text-emerald-600" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Support Email</p>
                               <p className="font-bold text-slate-900 truncate">{profile.contactEmail || 'Not set'}</p>
                             </div>
                           </div>
+
                           {profile.companyWebsite && (
                             <div className="flex items-center gap-4">
                               <div className="h-10 w-10 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center shrink-0 border border-slate-100">
-                                <Globe className="h-5 w-5" />
+                                <Globe className="h-5 w-5 text-emerald-600" />
                               </div>
                               <div className="min-w-0 flex-1">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Official Axis</p>
-                                <a href={profile.companyWebsite} target="_blank" className="font-bold text-primary hover:underline truncate block">{profile.companyWebsite}</a>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Official Site</p>
+                                <a href={profile.companyWebsite} target="_blank" rel="noreferrer" className="font-bold text-emerald-600 hover:underline truncate block">{profile.companyWebsite}</a>
+                              </div>
+                            </div>
+                          )}
+
+                          {profile.linkedinUrl && (
+                            <div className="flex items-center gap-4">
+                              <div className="h-10 w-10 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center shrink-0 border border-slate-100">
+                                <ExternalLink className="h-5 w-5 text-emerald-600" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">LinkedIn Company Page</p>
+                                <a href={profile.linkedinUrl} target="_blank" rel="noreferrer" className="font-bold text-emerald-600 hover:underline truncate block">{profile.linkedinUrl}</a>
+                              </div>
+                            </div>
+                          )}
+
+                          {profile.twitterUrl && (
+                            <div className="flex items-center gap-4">
+                              <div className="h-10 w-10 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center shrink-0 border border-slate-100">
+                                <X className="h-5 w-5 text-emerald-600" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Twitter / X Profile</p>
+                                <a href={profile.twitterUrl} target="_blank" rel="noreferrer" className="font-bold text-emerald-600 hover:underline truncate block">{profile.twitterUrl}</a>
                               </div>
                             </div>
                           )}
@@ -738,9 +791,9 @@ export default function MyProfile() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
             {/* Left Column (65%) */}
             <div className="lg:col-span-2 space-y-10">
-              <ProfileHeader 
-                profile={profile} 
-                isOwner={true} 
+              <ProfileHeader
+                profile={profile}
+                isOwner={true}
                 isEditing={isEditing}
                 onUpdate={setProfile}
                 onPhotoSelect={(file) => {
@@ -754,9 +807,9 @@ export default function MyProfile() {
                   reader.readAsDataURL(file);
                 }}
               />
-              
-              <ProfileTabs 
-                profile={profile} 
+
+              <ProfileTabs
+                profile={profile}
                 isOwner={true}
                 isEditing={isEditing}
                 onUpdate={setProfile}
@@ -772,7 +825,7 @@ export default function MyProfile() {
 
             {/* Right Column (35%) */}
             <div className="lg:col-span-1">
-              <ProfileSidebar 
+              <ProfileSidebar
                 profile={profile}
                 isEditing={isEditing}
                 onUpdate={setProfile}
@@ -786,9 +839,9 @@ export default function MyProfile() {
       </div>
 
       {/* Dialogs & Overlays */}
-      <BuySpotlightDialog 
-        open={buySpotlightOpen} 
-        onClose={() => setBuySpotlightOpen(false)} 
+      <BuySpotlightDialog
+        open={buySpotlightOpen}
+        onClose={() => setBuySpotlightOpen(false)}
         onSuccess={() => { fetchSpotlightStatus(); setBuySpotlightOpen(false); }}
         isVerified={profile.isVerified}
         hasFeaturedProject={profile.projects?.some((p: any) => p.isFeatured) || false}
@@ -824,12 +877,12 @@ export default function MyProfile() {
                     {(newItem.techStack ? newItem.techStack.split(',').filter(Boolean) : []).map((tech: string, i: number) => (
                       <Badge key={`${tech}-${i}`} className="bg-slate-100 hover:bg-slate-200 text-slate-900 border-none flex items-center gap-1.5 pl-3 pr-1.5 py-1 rounded-lg text-xs font-bold transition-colors">
                         {tech.trim()}
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           onClick={() => {
                             const updated = newItem.techStack.split(',').filter((_: any, idx: number) => idx !== i).join(',');
                             setNewItem({ ...newItem, techStack: updated });
-                          }} 
+                          }}
                           className="rounded-md p-0.5 hover:bg-slate-300 transition-colors text-slate-500 hover:text-slate-900"
                         >
                           <X className="h-3.5 w-3.5" />
@@ -837,9 +890,9 @@ export default function MyProfile() {
                       </Badge>
                     ))}
                   </div>
-                  <Input 
-                    placeholder="Add technology... (Press Enter)" 
-                    value={techInputValue} 
+                  <Input
+                    placeholder="Add technology... (Press Enter)"
+                    value={techInputValue}
                     onChange={(e) => {
                       const val = e.target.value;
                       if (val.includes(',')) {
@@ -854,7 +907,7 @@ export default function MyProfile() {
                         }
                       }
                       setTechInputValue(val);
-                    }} 
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -867,7 +920,7 @@ export default function MyProfile() {
                         }
                       }
                     }}
-                    className="rounded-xl" 
+                    className="rounded-xl"
                   />
                 </div>
                 <div className="space-y-2"><Label className="font-bold">Live URL</Label><Input value={newItem.projectUrl || ''} onChange={(e) => setNewItem({ ...newItem, projectUrl: e.target.value })} className="rounded-xl" /></div>
@@ -878,13 +931,13 @@ export default function MyProfile() {
                   {previewUrl && (
                     <div className="mt-4 relative rounded-2xl overflow-hidden">
                       <img src={previewUrl} className="w-full h-40 object-cover" />
-                      <button 
+                      <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedFile(null);
                           setPreviewUrl(null);
-                        }} 
+                        }}
                         className="absolute top-2 right-2 h-8 w-8 rounded-xl bg-black/60 hover:bg-red-600 text-white flex items-center justify-center transition-all backdrop-blur-md border border-white/10"
                       >
                         <X className="h-4 w-4" />
@@ -932,13 +985,13 @@ export default function MyProfile() {
               <Cropper image={cropImageSrc || ''} crop={crop} zoom={zoom} aspect={1} onCropChange={setCrop} onZoomChange={setZoom} onCropComplete={(_, pixels) => setCroppedAreaPixels(pixels)} />
             </div>
             <div className="space-y-4 px-2">
-              <div className="flex justify-between items-center"><Label className="font-black uppercase tracking-widest text-[10px] text-slate-400">Zoom Level</Label><span className="font-black text-xs text-primary">{(zoom * 100).toFixed(0)}%</span></div>
+              <div className="flex justify-between items-center"><Label className="font-black uppercase tracking-widest text-[10px] text-slate-400">Zoom Level</Label><span className={cn("font-black text-xs", isEmployer ? "text-emerald-600" : "text-primary")}>{(zoom * 100).toFixed(0)}%</span></div>
               <Slider value={[zoom]} min={1} max={3} step={0.1} onValueChange={(val) => setZoom(val[0])} />
             </div>
           </div>
           <DialogFooter className="pt-4 border-t border-slate-50 gap-3">
             <Button variant="ghost" onClick={() => setCropDialogOpen(false)} className="font-bold">Cancel</Button>
-            <Button className="font-black rounded-xl px-8 h-12 shadow-lg" disabled={isSaving} onClick={async () => {
+            <Button className={cn("font-black rounded-xl px-8 h-12 shadow-lg", isEmployer ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20" : "")} disabled={isSaving} onClick={async () => {
               try {
                 setIsSaving(true);
                 const croppedBlob = await getCroppedImg(cropImageSrc!, croppedAreaPixels);
@@ -961,50 +1014,50 @@ function SpotlightStatusCard({ status, onBuy }: { status: any, onBuy: () => void
       "rounded-[2rem] border-none shadow-xl overflow-hidden relative group",
       isActive ? "bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-emerald-500/20" : "bg-slate-50 border border-slate-100 shadow-slate-100/50"
     )}>
-       {isActive && (
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-white/20 transition-all pointer-events-none" />
-       )}
-       <CardContent className="p-8 space-y-6">
-          <div className="flex items-center gap-4">
-             <div className={cn(
-                "h-14 w-14 rounded-2xl flex items-center justify-center shadow-lg",
-                isActive ? "bg-white text-emerald-500" : "bg-primary text-white"
-             )}>
-                <Zap className={cn("h-7 w-7", isActive && "fill-current")} />
-             </div>
-             <div>
-                <h3 className="text-xl font-black uppercase tracking-tight leading-none">
-                   {isActive ? 'Spotlight Active!' : 'Get Spotlight'}
-                </h3>
-                <p className={cn("text-xs font-bold mt-1 uppercase tracking-widest", isActive ? "text-emerald-100" : "text-slate-400")}>
-                   {isActive ? 'You are being featured' : 'Boost your reach'}
-                </p>
-             </div>
+      {isActive && (
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-white/20 transition-all pointer-events-none" />
+      )}
+      <CardContent className="p-8 space-y-6">
+        <div className="flex items-center gap-4">
+          <div className={cn(
+            "h-14 w-14 rounded-2xl flex items-center justify-center shadow-lg",
+            isActive ? "bg-white text-emerald-500" : "bg-primary text-white"
+          )}>
+            <Zap className={cn("h-7 w-7", isActive && "fill-current")} />
           </div>
+          <div>
+            <h3 className="text-xl font-black uppercase tracking-tight leading-none">
+              {isActive ? 'Spotlight Active!' : 'Get Spotlight'}
+            </h3>
+            <p className={cn("text-xs font-bold mt-1 uppercase tracking-widest", isActive ? "text-emerald-100" : "text-slate-400")}>
+              {isActive ? 'You are being featured' : 'Boost your reach'}
+            </p>
+          </div>
+        </div>
 
-          {isActive ? (
-             <div className="space-y-4 pt-2">
-                <div className="p-4 rounded-2xl bg-white/10 border border-white/20">
-                   <p className="font-black text-sm">Developer of the {status.type}</p>
-                   <p className="text-[10px] font-bold text-emerald-100 uppercase mt-1">
-                      Expires: {new Date(status.expiresAt).toLocaleDateString()}
-                   </p>
-                </div>
-                <p className="text-xs font-medium text-emerald-50">
-                   You are currently showcased on the homepage spotlight.
-                </p>
-             </div>
-          ) : (
-             <div className="space-y-6 pt-2">
-                <p className="text-sm font-medium text-slate-500 leading-relaxed">
-                   Get featured on the homepage and attract up to <span className="font-black text-slate-900">10x more</span> employer views.
-                </p>
-                <Button className="w-full h-12 rounded-xl font-black bg-white text-slate-900 hover:bg-slate-50 shadow-lg" onClick={onBuy}>
-                   Boost Profile Now
-                </Button>
-             </div>
-          )}
-       </CardContent>
+        {isActive ? (
+          <div className="space-y-4 pt-2">
+            <div className="p-4 rounded-2xl bg-white/10 border border-white/20">
+              <p className="font-black text-sm">Developer of the {status.type}</p>
+              <p className="text-[10px] font-bold text-emerald-100 uppercase mt-1">
+                Expires: {new Date(status.expiresAt).toLocaleDateString()}
+              </p>
+            </div>
+            <p className="text-xs font-medium text-emerald-50">
+              You are currently showcased on the homepage spotlight.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-6 pt-2">
+            <p className="text-sm font-medium text-slate-500 leading-relaxed">
+              Get featured on the homepage and attract up to <span className="font-black text-slate-900">10x more</span> employer views.
+            </p>
+            <Button className="w-full h-12 rounded-xl font-black bg-white text-slate-900 hover:bg-slate-50 shadow-lg" onClick={onBuy}>
+              Boost Profile Now
+            </Button>
+          </div>
+        )}
+      </CardContent>
     </Card>
   );
 }

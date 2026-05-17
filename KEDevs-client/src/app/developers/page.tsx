@@ -2,13 +2,13 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { 
-  MapPin, 
+import {
+  MapPin,
   FilterX,
   ChevronRight,
-  Download, 
-  FileSpreadsheet, 
-  FileText, 
+  Download,
+  FileSpreadsheet,
+  FileText,
   Briefcase,
   Loader2,
   BadgeCheck,
@@ -19,7 +19,10 @@ import {
   Mail,
   Phone,
   Star,
-  Flag
+  Flag,
+  ChevronDown,
+  Plus,
+  X
 } from 'lucide-react';
 import { PageContainer as PageLayoutContainer } from '@/components/layout/PageContainer';
 import { LAYOUT as LAYOUT_CONST, SPACING as SPACING_CONST, TYPOGRAPHY as TYPOGRAPHY_CONST } from '@/lib/constants';
@@ -40,7 +43,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -93,18 +96,20 @@ function DevelopersPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  
+
   const [devs, setDevs] = useState<DeveloperSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
-  
+
   const searchTerm = searchParams.get('search') || '';
   const [selectedAvails, setSelectedAvails] = useState<string[]>([]);
   const [selectedWorkTypes, setSelectedWorkTypes] = useState<string[]>([]);
   const [selectedExperiences, setSelectedExperiences] = useState<string[]>([]);
   const [location, setLocation] = useState('All');
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [skillSearch, setSkillSearch] = useState('');
+  const [isSkillsDropdownOpen, setIsSkillsDropdownOpen] = useState(false);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [isVerifiedOnly, setIsVerifiedOnly] = useState(false);
 
@@ -136,12 +141,12 @@ function DevelopersPageContent() {
 
   const uniqueLocations = Array.from(new Set([...KENYA_CITIES, ...devs.map(d => d.locationCity).filter(Boolean)])).sort();
 
-  const filteredDevs = devs.filter(dev => 
+  const filteredDevs = devs.filter(dev =>
     (
-      `${dev.firstName} ${dev.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      `${dev.firstName} ${dev.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
       dev.currentLastRole.toLowerCase().includes(searchTerm.toLowerCase()) ||
       dev.skills.some(skill => skill.toLowerCase().includes(searchTerm.toLowerCase()))
-    ) && 
+    ) &&
     (selectedAvails.length === 0 || selectedAvails.includes(dev.availabilityStatus)) &&
     (location === 'All' || dev.locationCity === location) &&
     (selectedWorkTypes.length === 0 || (dev.preferredWorkType && selectedWorkTypes.includes(dev.preferredWorkType))) &&
@@ -154,35 +159,63 @@ function DevelopersPageContent() {
   const handleExport = async (format: 'csv' | 'pdf') => {
     setIsExporting(true);
     try {
-      const payload = {
-        availabilityStatus: selectedAvails.length > 0 ? selectedAvails[0] as any : undefined,
-        preferredWorkType: selectedWorkTypes.length > 0 ? selectedWorkTypes[0] as any : undefined,
-        yearsOfExperience: selectedExperiences.length > 0 ? selectedExperiences[0] as any : undefined,
-        locationCity: location !== 'All' ? location : undefined,
-        isVerified: isVerifiedOnly ? true : undefined,
-        currentLastRole: searchTerm || undefined
-      };
+      if (format === 'pdf') {
+        const payload = {
+          availabilityStatus: selectedAvails.length > 0 ? selectedAvails[0] as any : undefined,
+          preferredWorkType: selectedWorkTypes.length > 0 ? selectedWorkTypes[0] as any : undefined,
+          yearsOfExperience: selectedExperiences.length > 0 ? selectedExperiences[0] as any : undefined,
+          locationCity: location !== 'All' ? location : undefined,
+          isVerified: isVerifiedOnly ? true : undefined,
+          currentLastRole: searchTerm || undefined
+        };
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      const response = await fetch(`${API_URL}/api/v1/developers/public/export?format=${format}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload)
-      });
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+        const response = await fetch(`${API_URL}/api/v1/developers/public/export?format=pdf`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload)
+        });
 
-      if (!response.ok) throw new Error('Export failed');
+        if (!response.ok) throw new Error('Export failed');
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `developers.${format}`;
-      a.click();
-      window.URL.revokeObjectURL(url);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `developers_report_${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        toast.success('PDF Report generated successfully');
+      } else {
+        const headers = ['FullName', 'CurrentRole', 'Availability', 'Location', 'Experience', 'Skills'];
+        const rows = filteredDevs.map(d => [
+          `"${d.firstName || ''} ${d.lastName || ''}"`,
+          `"${d.currentLastRole || ''}"`,
+          `"${d.availabilityStatus || ''}"`,
+          `"${d.locationCity || ''}"`,
+          `"${d.yearsOfExperience || 0} years"`,
+          `"${(d.skills || []).join(' | ')}"`
+        ].join(','));
+
+        const csvContent = [headers.join(','), ...rows].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `developers_export_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        toast.success('CSV Exported successfully');
+      }
     } catch (err) {
       console.error("Export failed", err);
+      toast.error('Export failed. Please try again.');
     } finally {
       setIsExporting(false);
     }
@@ -210,39 +243,44 @@ function DevelopersPageContent() {
     }
   };
 
+  const availableSkills = Array.from(new Set(devs.flatMap(d => d.skills))).sort();
+  const filteredSkillsList = availableSkills.filter(skill =>
+    skill.toLowerCase().includes(skillSearch.toLowerCase())
+  );
+
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
-      <PageLayoutContainer>
+      <PageLayoutContainer className="max-w-full px-8 xl:px-16">
         <div className="flex justify-end items-center gap-3 mb-8 print:hidden">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-               <Button variant="outline" className="font-bold border-primary/20 hover:bg-primary/5 h-12 px-6" disabled={isExporting}>
-                  <Download className="mr-2 h-4 w-4 text-primary" /> 
-                  {isExporting ? 'Exporting...' : 'Export'}
-               </Button>
+              <Button variant="outline" className="font-bold border-primary/20 hover:bg-primary/5 h-12 px-6" disabled={isExporting}>
+                <Download className="mr-2 h-4 w-4 text-primary" />
+                {isExporting ? 'Exporting...' : 'Export'}
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-               <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium">
-                  <FileSpreadsheet className="mr-2 h-4 w-4" /> Download as CSV
-               </DropdownMenuItem>
-               <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium">
-                  <FileText className="mr-2 h-4 w-4" /> Download as PDF
-               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium">
+                <FileSpreadsheet className="mr-2 h-4 w-4" /> Download as CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium">
+                <FileText className="mr-2 h-4 w-4" /> Download as PDF
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        
+
         <div className="hidden print:block mb-8 border-b pb-4">
-           <h1 className="text-2xl font-black text-black">KEDevs Talent Report</h1>
-           <p className="text-sm text-gray-500">Generated on {new Date().toLocaleDateString()}</p>
+          <h1 className="text-2xl font-black text-black">KEDevs Talent Report</h1>
+          <p className="text-sm text-gray-500">Generated on {new Date().toLocaleDateString()}</p>
         </div>
-        
-        <div className={cn("grid grid-cols-1 lg:grid-cols-4", SPACING_CONST.cards)}>
+
+        <div className={cn("grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-5 items-start", SPACING_CONST.cards)}>
           {/* Filters Sidebar */}
-          <aside className="lg:col-span-1 space-y-6 print:hidden">
-            <Card className="border-border/50 shadow-sm sticky top-24">
+          <aside className="lg:col-span-1 space-y-6 print:hidden sticky top-24 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent pr-1">
+            <Card className="border-border/50 shadow-sm">
               <CardHeader className="pb-4">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Filter Talent</h3>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Filter Developers</h3>
               </CardHeader>
               <CardContent className="space-y-6">
 
@@ -251,7 +289,7 @@ function DevelopersPageContent() {
                   <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
                     {AVAILABILITY_STATUSES.map(avail => (
                       <div key={avail.value} className="flex items-center space-x-2">
-                        <Checkbox 
+                        <Checkbox
                           id={`avail-${avail.value}`}
                           checked={selectedAvails.includes(avail.value)}
                           onCheckedChange={(checked) => {
@@ -273,7 +311,7 @@ function DevelopersPageContent() {
                   <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
                     {EXPERIENCE_RANGES.map(exp => (
                       <div key={exp.value} className="flex items-center space-x-2">
-                        <Checkbox 
+                        <Checkbox
                           id={`exp-${exp.value}`}
                           checked={selectedExperiences.includes(exp.value)}
                           onCheckedChange={(checked) => {
@@ -295,7 +333,7 @@ function DevelopersPageContent() {
                   <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
                     {WORK_TYPES.map(type => (
                       <div key={type.value} className="flex items-center space-x-2">
-                        <Checkbox 
+                        <Checkbox
                           id={`wt-${type.value}`}
                           checked={selectedWorkTypes.includes(type.value)}
                           onCheckedChange={(checked) => {
@@ -321,43 +359,146 @@ function DevelopersPageContent() {
                     <SelectContent>
                       <SelectItem value="All">Any Location</SelectItem>
                       {uniqueLocations.map(loc => (
-                         <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                        <SelectItem key={loc} value={loc}>{loc}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 relative">
                   <label className="text-xs font-bold text-muted-foreground uppercase">Skills</label>
-                  <div className="flex flex-wrap gap-1 mb-2 max-h-32 overflow-y-auto p-1 bg-muted/5 rounded-lg border border-border/20">
-                    {Array.from(new Set(devs.flatMap(d => d.skills))).sort().map(skill => (
-                      <Badge 
-                        key={skill} 
-                        variant={selectedSkills.includes(skill) ? "default" : "outline"}
-                        className={cn(
-                          "text-[9px] cursor-pointer transition-all",
-                          selectedSkills.includes(skill) ? "bg-primary text-primary-foreground" : "hover:bg-primary/5"
-                        )}
-                        onClick={() => {
-                          if (selectedSkills.includes(skill)) {
-                            setSelectedSkills(selectedSkills.filter(s => s !== skill));
-                          } else {
-                            setSelectedSkills([...selectedSkills, skill]);
-                          }
-                        }}
-                      >
-                        {skill}
-                      </Badge>
-                    ))}
+
+                  {/* Dropdown Trigger */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      className="w-full flex items-center justify-between border border-border/50 bg-background text-xs h-10 px-3 rounded-lg hover:bg-slate-50 transition-all font-medium text-slate-700"
+                      onClick={() => setIsSkillsDropdownOpen(!isSkillsDropdownOpen)}
+                    >
+                      <span className="truncate">
+                        {selectedSkills.length === 0
+                          ? "Select skills..."
+                          : `${selectedSkills.length} skill${selectedSkills.length > 1 ? 's' : ''} selected`}
+                      </span>
+                      <ChevronDown className="h-4 w-4 text-slate-400 shrink-0 ml-2" />
+                    </button>
+
+                    {/* Dropdown Menu Overlay */}
+                    {isSkillsDropdownOpen && (
+                      <>
+                        {/* Invisible backdrop to close the dropdown */}
+                        <div
+                          className="fixed inset-0 z-10"
+                          onClick={() => setIsSkillsDropdownOpen(false)}
+                        />
+                        <div className="absolute left-0 right-0 mt-1.5 p-3 bg-background border border-border/70 rounded-xl shadow-xl z-20 space-y-3 max-h-[300px] flex flex-col">
+                          {/* Search Input */}
+                          <div className="relative shrink-0">
+                            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                            <Input
+                              placeholder="Search or enter custom skill..."
+                              className="pl-8 text-xs h-8.5 rounded-lg border-border/50 focus-visible:ring-primary/20"
+                              value={skillSearch}
+                              onChange={(e) => setSkillSearch(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && skillSearch.trim()) {
+                                  e.preventDefault();
+                                  const customSkill = skillSearch.trim();
+                                  if (!selectedSkills.includes(customSkill)) {
+                                    setSelectedSkills([...selectedSkills, customSkill]);
+                                  }
+                                  setSkillSearch('');
+                                }
+                              }}
+                            />
+                          </div>
+
+                          {/* Skills List */}
+                          <div className="overflow-y-auto flex-1 space-y-1.5 scrollbar-thin pr-1">
+                            {/* Option to add custom skill if search term doesn't match exactly */}
+                            {skillSearch.trim() && !availableSkills.some(s => s.toLowerCase() === skillSearch.trim().toLowerCase()) && (
+                              <button
+                                type="button"
+                                className="w-full flex items-center gap-2 p-2 rounded-lg bg-primary/5 text-primary hover:bg-primary/10 text-xs font-bold text-left transition-colors border border-primary/10"
+                                onClick={() => {
+                                  const customSkill = skillSearch.trim();
+                                  if (!selectedSkills.includes(customSkill)) {
+                                    setSelectedSkills([...selectedSkills, customSkill]);
+                                  }
+                                  setSkillSearch('');
+                                }}
+                              >
+                                <Plus className="h-3.5 w-3.5 shrink-0" />
+                                <span className="truncate">Add custom skill: "{skillSearch.trim()}"</span>
+                              </button>
+                            )}
+
+                            {filteredSkillsList.length > 0 ? (
+                              filteredSkillsList.map(skill => {
+                                const isChecked = selectedSkills.includes(skill);
+                                return (
+                                  <div
+                                    key={skill}
+                                    className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors"
+                                    onClick={() => {
+                                      if (isChecked) {
+                                        setSelectedSkills(selectedSkills.filter(s => s !== skill));
+                                      } else {
+                                        setSelectedSkills([...selectedSkills, skill]);
+                                      }
+                                    }}
+                                  >
+                                    <Checkbox
+                                      id={`skill-filter-${skill}`}
+                                      checked={isChecked}
+                                      onCheckedChange={() => { }} // handled by div click
+                                    />
+                                    <label htmlFor={`skill-filter-${skill}`} className="text-xs font-semibold text-slate-700 cursor-pointer truncate flex-1 select-none">
+                                      {skill}
+                                    </label>
+                                  </div>
+                                );
+                              })
+                            ) : (
+                              !skillSearch.trim() && (
+                                <p className="text-[10px] text-center text-muted-foreground py-2 font-medium">No skills found.</p>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
+
+                  {/* Render Selected Skills badges below trigger */}
+                  {selectedSkills.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {selectedSkills.map(skill => (
+                        <Badge
+                          key={skill}
+                          variant="secondary"
+                          className="bg-primary/5 text-primary hover:bg-primary/10 border-primary/10 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1.5"
+                        >
+                          {skill}
+                          <button
+                            type="button"
+                            onClick={() => setSelectedSkills(selectedSkills.filter(s => s !== skill))}
+                            className="text-primary/70 hover:text-primary transition-colors shrink-0"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-muted-foreground uppercase">Languages</label>
                   <div className="flex flex-wrap gap-1 mb-2 max-h-24 overflow-y-auto p-1 bg-muted/5 rounded-lg border border-border/20">
                     {Array.from(new Set(devs.flatMap(d => d.languages || []))).sort().map(lang => (
-                      <Badge 
-                        key={lang} 
+                      <Badge
+                        key={lang}
                         variant={selectedLanguages.includes(lang) ? "default" : "outline"}
                         className={cn(
                           "text-[9px] cursor-pointer transition-all",
@@ -382,17 +523,17 @@ function DevelopersPageContent() {
                     <Label htmlFor="verified" className="text-sm font-bold cursor-pointer">Verified Only</Label>
                     <p className="text-[10px] text-muted-foreground">Show only verified profiles</p>
                   </div>
-                  <Checkbox 
-                     id="verified" 
-                     checked={isVerifiedOnly} 
-                     onCheckedChange={(checked) => setIsVerifiedOnly(checked as boolean)} 
+                  <Checkbox
+                    id="verified"
+                    checked={isVerifiedOnly}
+                    onCheckedChange={(checked) => setIsVerifiedOnly(checked as boolean)}
                   />
                 </div>
 
                 {(searchTerm || selectedAvails.length > 0 || selectedWorkTypes.length > 0 || selectedExperiences.length > 0 || location !== 'All' || selectedSkills.length > 0 || isVerifiedOnly) && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="w-full text-xs font-bold text-muted-foreground mt-2"
                     onClick={() => {
                       router.push(pathname);
@@ -412,14 +553,14 @@ function DevelopersPageContent() {
           </aside>
 
           {/* Results Area */}
-          <main className="lg:col-span-3 print:col-span-full">
+          <main className="lg:col-span-3 xl:col-span-4 print:col-span-full">
             {error && (
               <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-xl mb-6 text-sm font-medium">
                 {error}
               </div>
             )}
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {isLoading ? (
                 [1, 2, 3, 4, 5, 6].map(i => (
                   <Card key={i} className="p-8 flex flex-col items-center border-border/50">
@@ -455,7 +596,7 @@ function DevelopersPageContent() {
                           {dev.numberOfProjects || 0} {dev.numberOfProjects === 1 ? 'Project' : 'Projects'}
                         </Badge>
                       </div>
-                      
+
                       <div className="mb-4">
                         <Link href={`/developers/${dev.id}`}>
                           <h3 className="text-xl font-black group-hover:text-primary transition-colors mb-1 tracking-tight">
@@ -466,7 +607,7 @@ function DevelopersPageContent() {
                       </div>
 
                       <div className="flex flex-wrap justify-center items-center gap-1.5 mb-6">
-                        <Badge 
+                        <Badge
                           variant={dev.availabilityStatus === 'OPEN_TO_OFFERS' ? 'default' : 'secondary'}
                           className={cn(
                             "text-[9px] uppercase font-black px-2 shadow-sm tracking-wider",
@@ -489,7 +630,7 @@ function DevelopersPageContent() {
                           </p>
                         )}
                       </div>
-                      
+
                       {dev.endorsementCount > 0 && (
                         <div className="mb-6">
                           <p className="text-[10px] font-black text-primary uppercase tracking-tighter">
@@ -497,7 +638,7 @@ function DevelopersPageContent() {
                           </p>
                         </div>
                       )}
-                      
+
                       {isLoggedIn && (user?.role === 'EMPLOYER' || user?.id === dev.id) && (
                         <div className="flex justify-center gap-2 mb-6">
                           <TooltipProvider>
@@ -549,9 +690,9 @@ function DevelopersPageContent() {
                         {formatLocation(dev.locationCity)}
                       </div>
                       <div className="flex gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="h-8 w-8 rounded-full hover:text-destructive"
                           onClick={() => {
                             if (!isLoggedIn) {
@@ -615,7 +756,7 @@ function DevelopersPageContent() {
                 Please describe why you are reporting this profile. Our moderation team will review this report.
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="py-6 space-y-4">
               <div className="space-y-2">
                 <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground flex justify-between">
@@ -624,8 +765,8 @@ function DevelopersPageContent() {
                     {flagContent.length}/500
                   </span>
                 </Label>
-                <Textarea 
-                  placeholder="e.g. Inappropriate content, spam, or fake profile..." 
+                <Textarea
+                  placeholder="e.g. Inappropriate content, spam, or fake profile..."
                   className="min-h-[120px] rounded-2xl border-border/50 resize-none font-medium text-base p-4 focus-visible:ring-destructive/20"
                   value={flagContent}
                   onChange={(e) => setFlagContent(e.target.value.slice(0, 500))}
@@ -640,8 +781,8 @@ function DevelopersPageContent() {
               }}>
                 Cancel
               </Button>
-              <Button 
-                className="rounded-xl font-black px-8 bg-destructive text-destructive-foreground hover:bg-destructive/90" 
+              <Button
+                className="rounded-xl font-black px-8 bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 onClick={handleFlagDeveloper}
                 disabled={isSubmittingFlag || !flagContent.trim()}
               >

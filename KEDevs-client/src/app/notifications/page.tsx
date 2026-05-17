@@ -262,13 +262,6 @@ export default function NotificationsPage() {
                   );
                 })}
               </CardContent>
-              <Separator className="bg-border/50" />
-              <CardFooter className="p-4 flex flex-col items-start gap-2">
-                <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                  <ShieldCheck className="h-3 w-3 text-emerald-500" /> Auto-Expiring
-                </div>
-                <p className="text-[10px] text-muted-foreground leading-tight">System alerts are archived after 30 days of inactivity.</p>
-              </CardFooter>
             </Card>
           </aside>
 
@@ -358,16 +351,16 @@ export default function NotificationsPage() {
                                 "{n.metadata.message}"
                               </p>
                               <div className="flex flex-wrap gap-2 pt-2">
-                                {n.metadata.companyId ? (
+                                {n.metadata.senderDeveloperId ? (
+                                  <Button size="sm" variant="outline" className="h-8 rounded-lg font-bold text-[10px] uppercase gap-1.5 border-primary/20 hover:bg-primary/5" asChild onClick={(e) => e.stopPropagation()}>
+                                    <Link href={`/developers/${n.metadata.senderDeveloperId}`}>
+                                      <User className="h-3 w-3" /> View Developer
+                                    </Link>
+                                  </Button>
+                                ) : n.metadata.companyId ? (
                                   <Button size="sm" variant="outline" className="h-8 rounded-lg font-bold text-[10px] uppercase gap-1.5 border-primary/20 hover:bg-primary/5" asChild onClick={(e) => e.stopPropagation()}>
                                     <Link href={`/companies/${n.metadata.companyId}`}>
                                       <Building2 className="h-3 w-3" /> View Employer
-                                    </Link>
-                                  </Button>
-                                ) : n.metadata.senderDeveloperId ? (
-                                  <Button size="sm" variant="outline" className="h-8 rounded-lg font-bold text-[10px] uppercase gap-1.5 border-primary/20 hover:bg-primary/5" asChild onClick={(e) => e.stopPropagation()}>
-                                    <Link href={`/developers/${n.metadata.senderDeveloperId}`}>
-                                      <User className="h-3 w-3" /> View Profile
                                     </Link>
                                   </Button>
                                 ) : null}

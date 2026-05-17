@@ -34,8 +34,22 @@ public class EmployerController {
     @Operation(summary = "List all approved employer profiles (public)")
     @GetMapping("/public")
     public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<UserDtos.EmployerProfileResponse>>> getPublicProfiles(
+            @ModelAttribute UserDtos.EmployerFilterRequest filter,
             @org.springframework.data.web.PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Employer profiles fetched", employerProfileService.getPublicProfiles(pageable)));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Employer profiles fetched", employerProfileService.getPublicProfiles(filter, pageable)));
+    }
+
+    @Operation(summary = "Export filtered employer profiles to PDF")
+    @GetMapping("/public/export")
+    public ResponseEntity<org.springframework.core.io.Resource> exportEmployersToPdf(
+            @ModelAttribute UserDtos.EmployerFilterRequest filter,
+            Authentication authentication) {
+        UUID currentUserId = authentication != null ? (UUID) authentication.getPrincipal() : null;
+        byte[] pdf = employerProfileService.exportEmployersToPdf(filter, currentUserId);
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"companies_report.pdf\"")
+                .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
+                .body(new org.springframework.core.io.ByteArrayResource(pdf));
     }
 
     @Operation(summary = "Get a single employer profile by ID (public)")
@@ -193,5 +207,42 @@ public class EmployerController {
         UUID userId = (UUID) authentication.getPrincipal();
         employerProfileService.flagEmployer(userId, profileId, request);
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Employer profile flagged"));
+    }
+
+    @Operation(summary = "Send an inquiry to a company profile", description = "Requires authenticated user.")
+    @PostMapping("/public/{companyId}/inquire")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.CompanyInquiryResponse>> sendCompanyInquiry(
+            Authentication authentication,
+            @PathVariable UUID companyId,
+            @Valid @RequestBody UserDtos.ContactRequestDto request) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Inquiry sent successfully",
+                employerProfileService.sendCompanyInquiry(userId, companyId, request)));
+    }
+
+    @Operation(summary = "List received company inquiries", description = "Requires EMPLOYER role.")
+    @GetMapping("/inquiries")
+    @PreAuthorize("hasRole('EMPLOYER')")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<UserDtos.CompanyInquiryResponse>>> getIncomingInquiries(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        Pageable pageable = PageRequest.of(page, Math.min(size, 50));
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Inquiries retrieved successfully",
+                employerProfileService.getIncomingInquiries(userId, pageable)));
+    }
+
+    @Operation(summary = "Respond to a company inquiry", description = "Requires EMPLOYER role.")
+    @PatchMapping("/inquiries/{id}")
+    @PreAuthorize("hasRole('EMPLOYER')")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<UserDtos.CompanyInquiryResponse>> respondToInquiry(
+            Authentication authentication,
+            @PathVariable UUID id,
+            @RequestParam ContactRequestStatus status) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Response recorded",
+                employerProfileService.respondToInquiry(userId, id, status)));
     }
 }

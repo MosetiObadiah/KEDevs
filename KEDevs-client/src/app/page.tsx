@@ -63,7 +63,7 @@ export default function HomePage() {
         if (pinnedResponse.success && pinnedResponse.data.length > 0) {
           setFeaturedJobs(pinnedResponse.data.slice(0, 3));
         } else {
-          const jobsResponse = await jobService.getPublicJobs(0, 20);
+          const jobsResponse = await jobService.getPublicJobs(undefined, 0, 20);
           if (jobsResponse.success) {
             const allJobs = jobsResponse.data.content;
             const shuffledJobs = [...allJobs].sort(() => Math.random() - 0.5).slice(0, 3);
@@ -99,7 +99,10 @@ export default function HomePage() {
                 availabilityStatus: 'OPEN_TO_OFFERS',
                 isVerified: slot.isVerified,
                 locationCity: slot.locationCity || 'Nairobi',
-                locationCountry: slot.locationCountry || 'Kenya'
+                locationCountry: slot.locationCountry || 'Kenya',
+                numberOfProjects: slot.featuredProjects ? slot.featuredProjects.length : 0,
+                endorsementCount: 0,
+                languages: []
               });
             }
           });

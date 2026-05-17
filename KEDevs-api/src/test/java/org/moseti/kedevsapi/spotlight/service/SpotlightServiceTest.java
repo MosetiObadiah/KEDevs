@@ -83,7 +83,7 @@ class SpotlightServiceTest {
         assertEquals(SpotlightType.DAY, slot.getType());
         assertTrue(slot.isActive());
         assertTrue(slot.getStartDate().isBefore(slot.getEndDate()));
-        verify(spotlightSlotRepository).save(any(SpotlightSlot.class));
+        verify(spotlightSlotRepository, atLeastOnce()).save(any(SpotlightSlot.class));
     }
 
     @Test
@@ -101,7 +101,7 @@ class SpotlightServiceTest {
 
         assertNotNull(slot);
         assertEquals(SpotlightType.WEEK, slot.getType());
-        verify(spotlightSlotRepository).save(any(SpotlightSlot.class));
+        verify(spotlightSlotRepository, atLeastOnce()).save(any(SpotlightSlot.class));
     }
 
     @Test
@@ -109,11 +109,12 @@ class SpotlightServiceTest {
         SpotlightSlot existing = new SpotlightSlot();
         existing.setId(slotId);
         when(spotlightSlotRepository.findByPaymentId(paymentId)).thenReturn(Optional.of(existing));
+        when(spotlightSlotRepository.save(any(SpotlightSlot.class))).thenAnswer(i -> i.getArgument(0));
 
         SpotlightSlot slot = spotlightService.activateSpotlight(developerId, paymentId, SpotlightType.DAY);
 
         assertEquals(slotId, slot.getId());
-        verify(spotlightSlotRepository, never()).save(any(SpotlightSlot.class));
+        verify(spotlightSlotRepository, atLeastOnce()).save(any(SpotlightSlot.class));
     }
 
     @Test

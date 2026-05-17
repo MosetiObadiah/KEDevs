@@ -148,6 +148,31 @@ public class PdfExportService {
         }
     }
 
+    public byte[] generateEmployerPdf(List<org.moseti.kedevsapi.users.dto.UserDtos.EmployerProfileResponse> profiles, org.moseti.kedevsapi.users.dto.UserDtos.EmployerFilterRequest filter, String generatedBy) {
+        try {
+            Context context = new Context();
+            context.setVariable("profiles", profiles);
+            context.setVariable("generatedBy", generatedBy);
+
+            StringBuilder sb = new StringBuilder();
+            if (filter != null) {
+                if (filter.industries() != null && !filter.industries().isEmpty()) sb.append("Industries: ").append(String.join(", ", filter.industries())).append("; ");
+                if (filter.sizes() != null && !filter.sizes().isEmpty()) sb.append("Sizes: ").append(String.join(", ", filter.sizes().stream().map(Object::toString).toList())).append("; ");
+                if (filter.city() != null && !filter.city().isBlank()) sb.append("City: ").append(filter.city()).append("; ");
+                if (filter.country() != null && !filter.country().isBlank()) sb.append("Country: ").append(filter.country()).append("; ");
+                if (filter.hasOpenJobs() != null && filter.hasOpenJobs()) sb.append("With Open Jobs; ");
+            }
+            String summary = sb.length() > 0 ? sb.toString() : "None (All Employers)";
+            enrichContext(context, summary);
+
+            String html = templateEngine.process("employer-export", context);
+            return renderPdf(html);
+        } catch (Exception e) {
+            log.error("Failed to generate Employer PDF export", e);
+            throw new RuntimeException("Failed to generate Employer PDF export", e);
+        }
+    }
+
     private byte[] renderPdf(String html) throws Exception {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ITextRenderer renderer = new ITextRenderer();

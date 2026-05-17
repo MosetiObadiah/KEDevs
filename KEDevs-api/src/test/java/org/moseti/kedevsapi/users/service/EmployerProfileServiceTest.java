@@ -17,6 +17,11 @@ import org.moseti.kedevsapi.users.exception.*;
 import org.moseti.kedevsapi.notifications.service.NotificationService;
 import org.moseti.kedevsapi.shared.service.FileUploadService;
 import org.moseti.kedevsapi.payments.repository.UserFlagRepository;
+import org.moseti.kedevsapi.payments.service.PaymentService;
+import org.moseti.kedevsapi.jobs.repository.JobPostRepository;
+import org.moseti.kedevsapi.users.repository.BlockedUserRepository;
+import org.moseti.kedevsapi.users.repository.VerificationRequestRepository;
+import org.moseti.kedevsapi.users.service.PdfExportService;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -43,6 +48,12 @@ class EmployerProfileServiceTest {
     @Mock private org.moseti.kedevsapi.shared.service.SettingService settingService;
     @Mock private FileUploadService fileUploadService;
     @Mock private UserFlagRepository userFlagRepository;
+    @Mock private VerificationRequestRepository verificationRequestRepository;
+    @Mock private PaymentService paymentService;
+    @Mock private BlockedUserRepository blockedUserRepository;
+    @Mock private org.moseti.kedevsapi.jobs.repository.JobPostRepository jobPostRepository;
+    @Mock private PdfExportService pdfExportService;
+    @Mock private org.moseti.kedevsapi.users.repository.CompanyInquiryRepository companyInquiryRepository;
 
     @InjectMocks
     private EmployerProfileService employerProfileService;
@@ -148,11 +159,12 @@ class EmployerProfileServiceTest {
 
     @Test
     void sendContactRequest_RateLimitExceeded_ThrowsContactRequestLimitExceededException() {
-        when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-        when(employerProfileRepository.findByUserId(userId)).thenReturn(Optional.of(testEmployerProfile));
-        when(developerProfileRepository.findById(developerProfileId)).thenReturn(Optional.of(testDeveloperProfile));
-        when(contactRequestRepository.countBySenderUserIdAndCreatedAtAfter(eq(userId), any(LocalDateTime.class))).thenReturn(10L);
-        when(settingService.getContactLimit()).thenReturn(10);
+        testEmployerProfile.setApproved(true);
+        lenient().when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
+        lenient().when(developerProfileRepository.findById(developerProfileId)).thenReturn(Optional.of(testDeveloperProfile));
+        lenient().when(employerProfileRepository.findByUserId(userId)).thenReturn(Optional.of(testEmployerProfile));
+        lenient().when(contactRequestRepository.countBySenderUserIdAndCreatedAtAfter(eq(userId), any(LocalDateTime.class))).thenReturn(10L);
+        lenient().when(settingService.getContactLimit()).thenReturn(10);
 
         UserDtos.ContactRequestDto dto = new UserDtos.ContactRequestDto("Hello!");
 
@@ -165,17 +177,42 @@ class EmployerProfileServiceTest {
     @Test
     void sendContactRequest_DeveloperNotAvailable_ThrowsBadRequestException() {
         testDeveloperProfile.setAvailabilityStatus(AvailabilityStatus.NOT_AVAILABLE);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
-        when(employerProfileRepository.findByUserId(userId)).thenReturn(Optional.of(testEmployerProfile));
-        when(developerProfileRepository.findById(developerProfileId)).thenReturn(Optional.of(testDeveloperProfile));
-        // Rate limit is checked AFTER availability in the service, so stub it to allow execution to reach that point
-        lenient().when(contactRequestRepository.countBySenderUserIdAndCreatedAtAfter(eq(userId), any(LocalDateTime.class))).thenReturn(0L);
+        lenient().when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
+        lenient().when(developerProfileRepository.findById(developerProfileId)).thenReturn(Optional.of(testDeveloperProfile));
 
         UserDtos.ContactRequestDto dto = new UserDtos.ContactRequestDto("Hello!");
 
         assertThrows(BadRequestException.class,
                 () -> employerProfileService.sendContactRequest(userId, developerProfileId, dto));
         verify(contactRequestRepository, never()).save(any());
+    }
+
+    @Test
+    void sendContactRequest_SelfContact_ThrowsBadRequestException() {
+        testDeveloperProfile.setUserId(userId);
+        lenient().when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
+        lenient().when(developerProfileRepository.findById(developerProfileId)).thenReturn(Optional.of(testDeveloperProfile));
+
+        UserDtos.ContactRequestDto dto = new UserDtos.ContactRequestDto("Hello myself!");
+
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> employerProfileService.sendContactRequest(userId, developerProfileId, dto));
+        assertEquals("You cannot send a contact request to yourself.", ex.getMessage());
+        verify(contactRequestRepository, never()).save(any());
+    }
+
+    @Test
+    void sendCompanyInquiry_SelfContact_ThrowsBadRequestException() {
+        testEmployerProfile.setUserId(userId);
+        lenient().when(userRepository.findById(userId)).thenReturn(Optional.of(testUser));
+        lenient().when(employerProfileRepository.findById(employerProfileId)).thenReturn(Optional.of(testEmployerProfile));
+
+        UserDtos.ContactRequestDto dto = new UserDtos.ContactRequestDto("Hello my company!");
+
+        BadRequestException ex = assertThrows(BadRequestException.class,
+                () -> employerProfileService.sendCompanyInquiry(userId, employerProfileId, dto));
+        assertEquals("You cannot send an inquiry to your own company.", ex.getMessage());
+        verify(companyInquiryRepository, never()).save(any());
     }
 
 }

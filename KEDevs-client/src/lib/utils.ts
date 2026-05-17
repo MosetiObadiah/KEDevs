@@ -54,13 +54,14 @@ export function formatExperienceLevel(level: string) {
 
 export function formatCompanySize(size: string) {
   if (!size) return 'N/A';
+  const cleanSize = size.toUpperCase().replace(/\s+/g, '_');
   const mapping: Record<string, string> = {
-    'ONE_TO_TEN': '1-10 employees',
-    'ELEVEN_TO_FIFTY': '11-50 employees',
-    'FIFTY_ONE_TO_TWO_HUNDRED': '51-200 employees',
-    'TWO_HUNDRED_PLUS': '200+ employees'
+    'ONE_TO_TEN': '1–10 Employees',
+    'TEN_TO_FIFTY': '10–50 Employees',
+    'FIFTY_TO_TWO_HUNDRED': '50–200 Employees',
+    'TWO_HUNDRED_PLUS': '200+ Employees'
   };
-  return mapping[size] || size.replace(/_/g, ' ');
+  return mapping[cleanSize] || size;
 }
 
 export function formatAvailability(status: string) {

@@ -92,8 +92,9 @@ public class JobController {
     })
     @GetMapping("/public")
     public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<JobSummaryResponse>>> getPublicJobs(
+            @RequestParam(required = false) UUID postedById,
             @PageableDefault(size = 10) Pageable pageable) {
-        Page<JobSummaryResponse> response = jobService.getPublicJobs(pageable);
+        Page<JobSummaryResponse> response = jobService.getPublicJobs(postedById, pageable);
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Public jobs fetched", response));
     }
 

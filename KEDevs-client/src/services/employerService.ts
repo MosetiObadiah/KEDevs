@@ -51,5 +51,13 @@ export const employerService = {
 
   async getPublicEmployer(id: string): Promise<ApiResponse<any>> {
     return apiClient.get<ApiResponse<any>>(`/api/v1/employers/public/${id}`);
+  },
+
+  async getIncomingInquiries(page = 0, size = 10): Promise<ApiResponse<any>> {
+    return apiClient.get<ApiResponse<any>>(`/api/v1/employers/inquiries?page=${page}&size=${size}`);
+  },
+
+  async respondToInquiry(inquiryId: string, status: string): Promise<ApiResponse<any>> {
+    return apiClient.patch<ApiResponse<any>>(`/api/v1/employers/inquiries/${inquiryId}?status=${status}`, {});
   }
 };

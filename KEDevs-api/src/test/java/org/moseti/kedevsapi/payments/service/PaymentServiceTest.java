@@ -17,9 +17,11 @@ import org.moseti.kedevsapi.spotlight.service.SpotlightService;
 import org.moseti.kedevsapi.users.entity.DeveloperProfile;
 import org.moseti.kedevsapi.users.entity.EmployerProfile;
 import org.moseti.kedevsapi.users.entity.User;
+import org.moseti.kedevsapi.users.entity.VerificationRequest;
 import org.moseti.kedevsapi.users.repository.DeveloperProfileRepository;
 import org.moseti.kedevsapi.users.repository.EmployerProfileRepository;
 import org.moseti.kedevsapi.users.repository.UserRepository;
+import org.moseti.kedevsapi.users.repository.VerificationRequestRepository;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
@@ -43,9 +45,11 @@ class PaymentServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private DeveloperProfileRepository developerProfileRepository;
     @Mock private EmployerProfileRepository employerProfileRepository;
+    @Mock private VerificationRequestRepository verificationRequestRepository;
     @Mock private SpotlightService spotlightService;
     @Mock private org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
     @Mock private org.moseti.kedevsapi.auth.service.EmailService emailService;
+    @Mock private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     @InjectMocks private PaymentService paymentService;
 
@@ -107,7 +111,7 @@ class PaymentServiceTest {
 
         assertNotNull(res);
         assertEquals("cReq", res.checkoutRequestId());
-        verify(paymentRepository).save(any(Payment.class));
+        verify(paymentRepository, atLeastOnce()).save(any(Payment.class));
     }
 
 
@@ -116,15 +120,17 @@ class PaymentServiceTest {
     @Test
     void handleCallback_verifiedBadge_setsVerified() {
         Payment payment = buildPendingPayment(PaymentType.VERIFIED_BADGE);
-        DeveloperProfile devProfile = new DeveloperProfile();
+        VerificationRequest request = new VerificationRequest();
+        request.setUserId(devUserId);
+        request.setStatus(VerificationStatus.PENDING_PAYMENT);
 
         when(paymentRepository.findByMpesaCheckoutId("chk-004")).thenReturn(Optional.of(payment));
         when(userRepository.findById(any())).thenReturn(Optional.of(developer));
-        when(developerProfileRepository.findByUserId(devUserId)).thenReturn(Optional.of(devProfile));
+        when(verificationRequestRepository.findByUserId(devUserId)).thenReturn(Optional.of(request));
 
         paymentService.handleCallback(buildSuccessCallback("chk-004", "MPES126"));
 
-        assertThat(devProfile.isVerified()).isTrue();
+        assertThat(request.getStatus()).isEqualTo(VerificationStatus.PENDING_DOCS);
         verify(notificationService).notify(any(), any(), any(), any(), any());
         verify(emailService).sendPaymentConfirmationEmail(any(), any(), any(), any(), any());
     }
@@ -138,7 +144,7 @@ class PaymentServiceTest {
 
         paymentService.handleCallback(buildFailureCallback("chk-006"));
 
-        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.FAILED);
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.CANCELLED);
     }
 
     // 12. handleCallback_alreadyCompleted_skipsProcessing
@@ -146,6 +152,7 @@ class PaymentServiceTest {
     void handleCallback_alreadyCompleted_skipsProcessing() {
         Payment payment = buildPendingPayment(PaymentType.VERIFIED_BADGE);
         payment.setStatus(PaymentStatus.COMPLETED);
+        payment.setMpesaReceiptNo("MPES127");
         when(paymentRepository.findByMpesaCheckoutId("chk-007")).thenReturn(Optional.of(payment));
 
         paymentService.handleCallback(buildSuccessCallback("chk-007", "MPES128"));

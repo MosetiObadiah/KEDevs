@@ -78,6 +78,7 @@ public class AuthService {
                 .fullName(user.getFullName())
                 .role(user.getRole())
                 .emailVerified(false)
+                .requiresApproval(request.getRole() == Role.EMPLOYER)
                 .build();
     }
 

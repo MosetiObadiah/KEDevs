@@ -46,6 +46,9 @@ class ForumServiceTest {
     @Mock private CommentFlagRepository flagRepository;
     @Mock private JobPostRepository jobPostRepository;
     @Mock private UserRepository userRepository;
+    @Mock private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+    @Mock private org.moseti.kedevsapi.shared.service.SettingService settingService;
+    @Mock private org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
 
     @InjectMocks private ForumService forumService;
 
@@ -65,6 +68,7 @@ class ForumServiceTest {
         jobPost = new JobPost();
         jobPost.setId(jobId);
         jobPost.setStatus(JobStatus.OPEN);
+        jobPost.setPostedById(UUID.randomUUID());
 
         comment = new ForumComment();
         comment.setId(commentId);
@@ -79,6 +83,9 @@ class ForumServiceTest {
         user.setFullName("Test User");
 
         lenient().when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        lenient().when(settingService.getCommentEditWindow()).thenReturn(15);
+        lenient().when(settingService.getCommentDeleteWindow()).thenReturn(15);
+        lenient().when(commentRepository.findByParentCommentIdAndIsHiddenFalse(any(), any())).thenReturn(Page.empty());
     }
 
     // 1. addComment_success

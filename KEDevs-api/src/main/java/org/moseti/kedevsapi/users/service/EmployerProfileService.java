@@ -46,6 +46,9 @@ public class EmployerProfileService {
     private final VerificationRequestRepository verificationRequestRepository;
     @Lazy private final PaymentService paymentService;
     private final BlockedUserRepository blockedUserRepository;
+    private final org.moseti.kedevsapi.jobs.repository.JobPostRepository jobPostRepository;
+    private final PdfExportService pdfExportService;
+    private final CompanyInquiryRepository companyInquiryRepository;
 
 
     // ----------------------------------------------------------------
@@ -105,6 +108,10 @@ public class EmployerProfileService {
 
         DeveloperProfile developer = developerProfileRepository.findById(developerId)
                 .orElseThrow(() -> new ProfileNotFoundException("Developer profile not found"));
+
+        if (developer.getUserId().equals(userId)) {
+            throw new BadRequestException("You cannot send a contact request to yourself.");
+        }
 
         if (developer.getAvailabilityStatus() == AvailabilityStatus.NOT_AVAILABLE) {
             throw new BadRequestException("This developer is currently not accepting contact requests.");
@@ -291,9 +298,57 @@ public class EmployerProfileService {
     }
 
     @Transactional(readOnly = true)
-    public Page<UserDtos.EmployerProfileResponse> getPublicProfiles(Pageable pageable) {
-        return employerProfileRepository.findByIsApprovedTrue(pageable)
+    public Page<UserDtos.EmployerProfileResponse> getPublicProfiles(UserDtos.EmployerFilterRequest filter, Pageable pageable) {
+        org.springframework.data.jpa.domain.Specification<EmployerProfile> spec = (root, query, cb) -> {
+            java.util.List<jakarta.persistence.criteria.Predicate> predicates = new java.util.ArrayList<>();
+
+            predicates.add(cb.isTrue(root.get("isApproved")));
+
+            if (filter != null) {
+                if (filter.industries() != null && !filter.industries().isEmpty()) {
+                    predicates.add(root.get("industry").in(filter.industries()));
+                }
+                if (filter.sizes() != null && !filter.sizes().isEmpty()) {
+                    predicates.add(root.get("companySize").in(filter.sizes()));
+                }
+                if (filter.city() != null && !filter.city().isBlank()) {
+                    predicates.add(cb.equal(root.get("locationHQ"), filter.city()));
+                }
+                // Country logic if locationHQ contains city, country
+                if (filter.country() != null && !filter.country().isBlank()) {
+                    predicates.add(cb.like(cb.lower(root.get("locationHQ")), "%" + filter.country().toLowerCase() + "%"));
+                }
+                
+                if (filter.hasOpenJobs() != null && filter.hasOpenJobs()) {
+                    // This requires a subquery or join to job_posts
+                    jakarta.persistence.criteria.Subquery<Long> subquery = query.subquery(Long.class);
+                    jakarta.persistence.criteria.Root<org.moseti.kedevsapi.jobs.entity.JobPost> jobRoot = subquery.from(org.moseti.kedevsapi.jobs.entity.JobPost.class);
+                    subquery.select(cb.count(jobRoot));
+                    subquery.where(
+                        cb.equal(jobRoot.get("postedById"), root.get("userId")),
+                        cb.equal(jobRoot.get("status"), org.moseti.kedevsapi.shared.enums.JobStatus.OPEN)
+                    );
+                    predicates.add(cb.greaterThan(subquery, 0L));
+                }
+            }
+
+            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        };
+
+        return employerProfileRepository.findAll(spec, pageable)
                 .map(this::toResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public byte[] exportEmployersToPdf(UserDtos.EmployerFilterRequest filter, UUID currentUserId) {
+        List<UserDtos.EmployerProfileResponse> profiles = getPublicProfiles(filter, Pageable.unpaged()).getContent();
+        
+        String generatedBy = "Guest User";
+        if (currentUserId != null) {
+            generatedBy = userRepository.findById(currentUserId).map(User::getFullName).orElse("Unknown User");
+        }
+
+        return pdfExportService.generateEmployerPdf(profiles, filter, generatedBy);
     }
 
     @Transactional(readOnly = true)
@@ -309,6 +364,8 @@ public class EmployerProfileService {
             email = profile.getUser().getEmail();
         }
 
+        int openJobsCount = (int) jobPostRepository.countByPostedByIdAndStatus(profile.getUserId(), org.moseti.kedevsapi.shared.enums.JobStatus.OPEN);
+
         return new UserDtos.EmployerProfileResponse(
                 profile.getId(), profile.getUserId(),
                 profile.getContactPersonName(),
@@ -322,6 +379,7 @@ public class EmployerProfileService {
                 profile.getKraPinCertificateUrl(),
                 profile.getBusinessPermitUrl(),
                 profile.isApproved(), profile.isVerified(),
+                openJobsCount,
                 profile.getCreatedAt()
         );
     }
@@ -400,5 +458,103 @@ public class EmployerProfileService {
     public void unblockUser(UUID blockerId, UUID blockedId) {
         blockedUserRepository.deleteByBlockerIdAndBlockedId(blockerId, blockedId);
         log.info("User {} unblocked user {}", blockerId, blockedId);
+    }
+
+    @Transactional
+    public UserDtos.CompanyInquiryResponse sendCompanyInquiry(UUID developerUserId, UUID companyId, UserDtos.ContactRequestDto request) {
+        User sender = userRepository.findById(developerUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Developer not found"));
+
+        EmployerProfile company = employerProfileRepository.findById(companyId)
+                .orElseThrow(() -> new ProfileNotFoundException("Employer profile not found"));
+
+        if (company.getUserId().equals(developerUserId)) {
+            throw new BadRequestException("You cannot send an inquiry to your own company.");
+        }
+
+        // Rate limit check: default 5 per day
+        LocalDateTime since = LocalDateTime.now().minusHours(24);
+        long count = companyInquiryRepository.countBySenderUserIdAndCreatedAtAfter(developerUserId, since);
+        if (count >= 5) {
+            throw new BadRequestException("Daily limit of 5 inquiries exceeded.");
+        }
+
+        CompanyInquiry inquiry = new CompanyInquiry();
+        inquiry.setSenderUserId(developerUserId);
+        inquiry.setEmployerProfileId(companyId);
+        inquiry.setMessage(request.message());
+        inquiry.setStatus(ContactRequestStatus.PENDING);
+        inquiry = companyInquiryRepository.save(inquiry);
+
+        String senderDeveloperIdStr = "";
+        java.util.Optional<DeveloperProfile> devProfile = developerProfileRepository.findByUserId(developerUserId);
+        if (devProfile.isPresent()) {
+            senderDeveloperIdStr = devProfile.get().getId().toString();
+        }
+
+        // Send WebSocket Notification to the Employer (company owner)
+        notificationService.notify(
+                company.getUserId(),
+                org.moseti.kedevsapi.shared.enums.NotificationCategory.CONTACT,
+                "New Inquiry from " + sender.getFullName(),
+                request.message(),
+                String.format("{\"senderUserId\":\"%s\",\"inquiryId\":\"%s\",\"message\":\"%s\",\"senderName\":\"%s\",\"companyId\":\"%s\",\"senderDeveloperId\":\"%s\"}",
+                        developerUserId, inquiry.getId(),
+                        request.message().replace("\"", "\\\"").replace("\n", "\\n"),
+                        sender.getFullName().replace("\"", "\\\""),
+                        companyId, senderDeveloperIdStr)
+        );
+
+        log.info("Company inquiry sent from developer={} to company={}", developerUserId, companyId);
+        return toCompanyInquiryResponse(inquiry);
+    }
+
+    public Page<UserDtos.CompanyInquiryResponse> getIncomingInquiries(UUID employerUserId, Pageable pageable) {
+        EmployerProfile profile = employerProfileRepository.findByUserId(employerUserId)
+                .orElseThrow(() -> new ProfileNotFoundException("Employer profile not found"));
+        return companyInquiryRepository.findByEmployerProfileId(profile.getId(), pageable)
+                .map(this::toCompanyInquiryResponse);
+    }
+
+    @Transactional
+    public UserDtos.CompanyInquiryResponse respondToInquiry(UUID employerUserId, UUID inquiryId, ContactRequestStatus status) {
+        EmployerProfile profile = employerProfileRepository.findByUserId(employerUserId)
+                .orElseThrow(() -> new ProfileNotFoundException("Employer profile not found"));
+        
+        CompanyInquiry inquiry = companyInquiryRepository.findById(inquiryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Inquiry not found"));
+
+        if (!inquiry.getEmployerProfileId().equals(profile.getId())) {
+            throw new BadRequestException("Inquiry does not belong to this company");
+        }
+
+        inquiry.setStatus(status);
+        inquiry = companyInquiryRepository.save(inquiry);
+
+        // Send notification to Developer
+        notificationService.notify(
+                inquiry.getSenderUserId(),
+                org.moseti.kedevsapi.shared.enums.NotificationCategory.CONTACT,
+                "Inquiry Update",
+                profile.getCompanyName() + " has " + status.name().toLowerCase() + " your inquiry.",
+                "{\"companyId\":\"" + profile.getId() + "\",\"inquiryId\":\"" + inquiry.getId() + "\"}"
+        );
+
+        return toCompanyInquiryResponse(inquiry);
+    }
+
+    private UserDtos.CompanyInquiryResponse toCompanyInquiryResponse(CompanyInquiry inquiry) {
+        String senderName = userRepository.findById(inquiry.getSenderUserId())
+                .map(User::getFullName)
+                .orElse("Unknown Developer");
+        return new UserDtos.CompanyInquiryResponse(
+                inquiry.getId(),
+                inquiry.getSenderUserId(),
+                senderName,
+                inquiry.getEmployerProfileId(),
+                inquiry.getMessage(),
+                inquiry.getStatus(),
+                inquiry.getCreatedAt()
+        );
     }
 }

@@ -3,10 +3,11 @@ import { apiClient, ApiResponse, PaginatedResponse } from '@/lib/api-client';
 import { JobSummary } from '@/lib/types';
 
 export const jobService = {
-  async getPublicJobs(page = 0, size = 10): Promise<ApiResponse<PaginatedResponse<JobSummary>>> {
-    return apiClient.get<ApiResponse<PaginatedResponse<JobSummary>>>(
-      `/api/v1/jobs/public?page=${page}&size=${size}`
-    );
+  async getPublicJobs(postedById?: string, page = 0, size = 10): Promise<ApiResponse<PaginatedResponse<JobSummary>>> {
+    const url = postedById
+      ? `/api/v1/jobs/public?postedById=${postedById}&page=${page}&size=${size}`
+      : `/api/v1/jobs/public?page=${page}&size=${size}`;
+    return apiClient.get<ApiResponse<PaginatedResponse<JobSummary>>>(url);
   },
 
   async getPinnedJobs(): Promise<ApiResponse<any[]>> {

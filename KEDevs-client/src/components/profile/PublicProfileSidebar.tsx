@@ -24,6 +24,7 @@ interface PublicProfileSidebarProps {
   onFlag: () => void;
   isLoggedIn: boolean;
   isRequesting?: boolean;
+  isOwnProfile?: boolean;
 }
 
 export function PublicProfileSidebar({ 
@@ -31,7 +32,8 @@ export function PublicProfileSidebar({
   onContact, 
   onFlag,
   isLoggedIn,
-  isRequesting 
+  isRequesting,
+  isOwnProfile
 }: PublicProfileSidebarProps) {
   return (
     <div className="space-y-6">
@@ -41,16 +43,17 @@ export function PublicProfileSidebar({
           <Button 
             className="w-full h-14 rounded-2xl font-black bg-primary text-white shadow-lg shadow-primary/20 transition-all active:scale-95"
             onClick={onContact}
-            disabled={isRequesting}
+            disabled={isRequesting || isOwnProfile}
           >
             <Send className="mr-2 h-5 w-5" />
-            {isRequesting ? 'Sending...' : 'Contact Developer'}
+            {isRequesting ? 'Sending...' : isOwnProfile ? 'Your Developer Profile' : 'Contact Developer'}
           </Button>
         )}
         <Button 
           variant="ghost" 
           className="w-full h-10 rounded-xl font-bold text-muted-foreground hover:text-destructive hover:bg-destructive/10 text-xs"
           onClick={onFlag}
+          disabled={isOwnProfile}
         >
           <Flag className="mr-2 h-3.5 w-3.5" />
           Report Profile

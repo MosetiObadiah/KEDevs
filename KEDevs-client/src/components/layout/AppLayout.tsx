@@ -129,7 +129,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         { label: 'Jobs', href: '/jobs', icon: Briefcase },
         { label: 'Companies', href: '/companies', icon: Building2 },
         { label: 'My Job Posts', href: '/jobs/my-posts', icon: ClipboardList },
-        { label: 'Hiring Assist', href: '/hiring-assist', icon: Sparkles },
         { label: 'Spotlight', href: '/spotlight', icon: Star },
         { label: 'Payments', href: '/payments', icon: CreditCard },
       ];
@@ -241,7 +240,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   if (pathname.startsWith('/developers/')) return <h1 className="text-xl font-black tracking-tight text-primary">Talent Profile</h1>;
                   if (pathname.startsWith('/jobs/')) return <h1 className="text-xl font-black tracking-tight text-primary">Job Details</h1>;
                   if (pathname === '/verify') return <h1 className="text-xl font-black tracking-tight text-primary">Verification Center</h1>;
-                  if (pathname === '/hiring-assist') return <h1 className="text-xl font-black tracking-tight text-primary">Hiring Assist</h1>;
                   return null;
                })()}
             </div>

@@ -14,6 +14,8 @@ import org.moseti.kedevsapi.shared.enums.AuthProvider;
 import org.moseti.kedevsapi.shared.enums.Role;
 import org.moseti.kedevsapi.shared.exception.BadRequestException;
 import org.moseti.kedevsapi.users.entity.User;
+import org.moseti.kedevsapi.users.repository.DeveloperProfileRepository;
+import org.moseti.kedevsapi.users.repository.EmployerProfileRepository;
 import org.moseti.kedevsapi.users.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -48,6 +50,12 @@ class GoogleOAuthIntegrationTest {
 
     @Mock
     private org.moseti.kedevsapi.auth.repository.RefreshTokenRepository refreshTokenRepository;
+
+    @Mock
+    private DeveloperProfileRepository developerProfileRepository;
+
+    @Mock
+    private EmployerProfileRepository employerProfileRepository;
 
     @InjectMocks
     private AuthService authService;
@@ -134,15 +142,29 @@ class GoogleOAuthIntegrationTest {
     }
 
     @Test
-    void googleAuth_NewUserWithoutRole_ThrowsException() {
+    void googleAuth_NewUserWithoutRole_DefaultsToDeveloper() {
         // Given
         googleAuthRequest.setRole(null);
         when(googleOAuthService.verifyToken(anyString())).thenReturn(googleTokenInfo);
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded-random-password");
 
-        // When & Then
-        assertThrows(BadRequestException.class, () -> authService.googleAuth(googleAuthRequest));
-        verify(userRepository, never()).save(any());
+        User newUser = new User();
+        newUser.setId(UUID.randomUUID());
+        newUser.setEmail(googleTokenInfo.getEmail());
+        newUser.setFullName(googleTokenInfo.getName());
+        newUser.setRole(Role.DEVELOPER);
+
+        when(userRepository.save(any(User.class))).thenReturn(newUser);
+        when(jwtService.generateAccessToken(any(), anyString(), any())).thenReturn("access-token");
+        when(jwtService.generateRefreshToken(any())).thenReturn("refresh-token");
+
+        // When
+        AuthResponse response = authService.googleAuth(googleAuthRequest);
+
+        // Then
+        assertNotNull(response);
+        assertEquals(Role.DEVELOPER, response.getRole());
     }
 
     @Test

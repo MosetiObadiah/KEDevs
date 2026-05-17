@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Employer Ecosystem Report</title>
+    <style>
+        @page {
+            margin: 2cm;
+            @bottom-center {
+                content: element(footer);
+            }
+        }
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #333;
+            margin: 0;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+        .header-strip {
+            width: 100%;
+            border-bottom: 2px solid #0f172a;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .meta-bar {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table.data-table th {
+            background-color: #f1f5f9;
+            color: #475569;
+            font-weight: bold;
+            text-align: left;
+            padding: 12px 10px;
+            border-bottom: 2px solid #e2e8f0;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        table.data-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: top;
+        }
+        .badge {
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 9px;
+            font-weight: bold;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+        .jobs-badge { background-color: #dcfce7; color: #166534; }
+        .no-jobs-badge { background-color: #f1f5f9; color: #64748b; }
+        
+        .footer {
+            position: running(footer);
+            width: 100%;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        .footer-cta {
+            color: #2563eb;
+            font-weight: bold;
+            font-size: 12px;
+            margin: 0 0 6px 0;
+        }
+        .footer-sub {
+            color: #64748b;
+            font-size: 10px;
+            margin: 0;
+            font-weight: 500;
+        }
+        .page-info {
+            font-size: 9px;
+            color: #94a3b8;
+            margin-top: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .company-name {
+            font-weight: 800;
+            color: #0f172a;
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
+        .industry-name {
+            color: #64748b;
+            font-weight: 600;
+            font-size: 10px;
+        }
+        .location-text {
+            color: #475569;
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-strip">
+        <table style="width: 100%; border: none; border-collapse: collapse;">
+            <tr style="border: none;">
+                <td style="border: none; width: 25%; padding: 0; text-align: left; vertical-align: middle;">
+                    <img th:if="${base64Logo != null and !base64Logo.isEmpty()}" th:src="${base64Logo}" style="height: 25px; width: auto;" />
+                </td>
+                <td style="border: none; width: 50%; padding: 0; text-align: center; vertical-align: middle;">
+                    <div style="font-size: 18px; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: -0.5px;">Employer Ecosystem Report</div>
+                </td>
+                <td style="border: none; width: 25%; padding: 0; text-align: right; vertical-align: middle;">
+                    <div style="color: #64748b; font-size: 9px; font-weight: bold; text-transform: uppercase;">
+                        Exported: <span style="color: #0f172a;" th:text="${dateOfExport}">2026-05-16</span>
+                    </div>
+                    <div th:if="${generatedBy != null}" style="color: #64748b; font-size: 9px; font-weight: bold; text-transform: uppercase; margin-top: 2px;">
+                        By: <span style="color: #2563eb;" th:text="${generatedBy}">Admin</span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="meta-bar">
+        <div style="font-weight: 800; color: #475569; font-size: 9px; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 1px;">Search Context &amp; Filters</div>
+        <div style="color: #1e293b; font-size: 11px; line-height: 1.5; font-weight: 500;" th:text="${filterSummary}">None (All employers)</div>
+        <div style="margin-top: 10px; font-size: 10px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 8px;">
+            Found <strong style="color: #0f172a;" th:text="${profiles.size()}">0</strong> companies matching these criteria.
+        </div>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 35%;">Company &amp; Industry</th>
+                <th style="width: 25%;">Location &amp; Size</th>
+                <th style="width: 25%;">Contact Person</th>
+                <th style="width: 15%; text-align: center;">Open Roles</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="profile : ${profiles}">
+                <td>
+                    <div class="company-name" th:text="${profile.companyName}">Acme Corp</div>
+                    <div class="industry-name" th:text="${profile.industry != null ? profile.industry : 'Technology'}">Software Development</div>
+                </td>
+                <td>
+                    <div class="location-text" th:text="${profile.locationHQ}">Nairobi, Kenya</div>
+                    <div style="font-size: 9px; font-weight: bold; color: #64748b; text-transform: capitalize; margin-top: 2px;" th:text="${#strings.toLowerCase(profile.companySize).replace('_', ' ')}">11-50 employees</div>
+                </td>
+                <td>
+                    <div style="font-weight: 600; color: #0f172a;" th:text="${profile.contactPersonName}">Alice Smith</div>
+                    <div style="font-size: 9px; color: #64748b;" th:text="${profile.contactEmail}">hiring@acme.com</div>
+                </td>
+                <td style="text-align: center;">
+                    <span th:class="${profile.openJobsCount > 0 ? 'badge jobs-badge' : 'badge no-jobs-badge'}" th:text="${profile.openJobsCount + (profile.openJobsCount == 1 ? ' Role' : ' Roles')}">3 Roles</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div id="footer" class="footer">
+        <p class="footer-cta">KEDevs - Kenya's Premier Tech Talent Network</p>
+        <p class="footer-sub">&copy; 2026 KEDevs. This report is system generated and contains up-to-date ecosystem data.</p>
+        <div class="page-info">Verified Employer Directory Report</div>
+    </div>
+</body>
+</html>

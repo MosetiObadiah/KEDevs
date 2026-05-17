@@ -144,7 +144,12 @@ public class JobService {
         return toJobPostResponse(job, currentUserId);
     }
 
-    public Page<JobSummaryResponse> getPublicJobs(Pageable pageable) {
+    public Page<JobSummaryResponse> getPublicJobs(UUID postedById, Pageable pageable) {
+        if (postedById != null) {
+            return jobPostRepository.findByVisibilityAndStatusAndPostedByIdOrderByUpvoteCountDescCreatedAtDesc(
+                    JobVisibility.PUBLIC, JobStatus.OPEN, postedById, pageable)
+                    .map(this::toJobSummaryResponse);
+        }
         return jobPostRepository.findByVisibilityAndStatusOrderByUpvoteCountDescCreatedAtDesc(
                 JobVisibility.PUBLIC, JobStatus.OPEN, pageable)
                 .map(this::toJobSummaryResponse);

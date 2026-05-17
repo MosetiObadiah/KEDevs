@@ -218,6 +218,14 @@ public class UserDtos {
             java.util.List<String> languages
     ) {}
 
+    public record EmployerFilterRequest(
+            java.util.List<String> industries,
+            java.util.List<org.moseti.kedevsapi.shared.enums.CompanySize> sizes,
+            String city,
+            String country,
+            Boolean hasOpenJobs
+    ) {}
+
     public record EmployerProfileResponse(
             java.util.UUID id,
             java.util.UUID userId,
@@ -237,6 +245,7 @@ public class UserDtos {
             String businessPermitUrl,
             boolean isApproved,
             boolean isVerified,
+            int openJobsCount,
             java.time.LocalDateTime createdAt
     ) {}
 
@@ -265,6 +274,16 @@ public class UserDtos {
             java.util.UUID senderUserId,
             String senderName,
             java.util.UUID developerId,
+            String message,
+            org.moseti.kedevsapi.shared.enums.ContactRequestStatus status,
+            java.time.LocalDateTime createdAt
+    ) {}
+
+    public record CompanyInquiryResponse(
+            java.util.UUID id,
+            java.util.UUID senderUserId,
+            String senderName,
+            java.util.UUID employerProfileId,
             String message,
             org.moseti.kedevsapi.shared.enums.ContactRequestStatus status,
             java.time.LocalDateTime createdAt

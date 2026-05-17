@@ -77,6 +77,7 @@ export default function DeveloperProfilePage() {
   const [isSubmittingFlag, setIsSubmittingFlag] = useState(false);
 
   const fullName = dev ? (dev.fullName || `${dev.firstName || ''} ${dev.lastName || ''}`.trim() || dev.publicEmail || dev.email || 'Developer') : '';
+  const isOwnProfile = dev && user && dev.userId === user.id;
 
   useEffect(() => {
     const loadDeveloper = async () => {
@@ -108,6 +109,10 @@ export default function DeveloperProfilePage() {
 
   const handleContactDeveloper = async () => {
     if (!dev) return;
+    if (isOwnProfile) {
+      toast.error('You cannot contact yourself.');
+      return;
+    }
     if (!message.trim()) {
       toast.error('Please enter a message.');
       return;
@@ -259,6 +264,10 @@ export default function DeveloperProfilePage() {
                   router.push('/login');
                   return;
                 }
+                if (isOwnProfile) {
+                  toast.error("You cannot contact yourself.");
+                  return;
+                }
                 setIsContactOpen(true);
               }}
               onFlag={() => {
@@ -267,9 +276,14 @@ export default function DeveloperProfilePage() {
                   router.push('/login');
                   return;
                 }
+                if (isOwnProfile) {
+                  toast.error("You cannot report your own profile.");
+                  return;
+                }
                 setIsFlagOpen(true);
               }}
               isRequesting={isRequesting}
+              isOwnProfile={isOwnProfile}
             />
           </div>
         </div>

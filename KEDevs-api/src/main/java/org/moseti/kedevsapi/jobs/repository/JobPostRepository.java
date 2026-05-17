@@ -20,6 +20,9 @@ public interface JobPostRepository extends JpaRepository<JobPost, UUID>, JpaSpec
     Page<JobPost> findByVisibilityAndStatusOrderByUpvoteCountDescCreatedAtDesc(
             JobVisibility visibility, JobStatus status, Pageable pageable);
 
+    Page<JobPost> findByVisibilityAndStatusAndPostedByIdOrderByUpvoteCountDescCreatedAtDesc(
+            JobVisibility visibility, JobStatus status, UUID postedById, Pageable pageable);
+
     Page<JobPost> findByStatusNotOrderByUpvoteCountDescCreatedAtDesc(
             JobStatus status, Pageable pageable);
 
@@ -48,6 +51,8 @@ public interface JobPostRepository extends JpaRepository<JobPost, UUID>, JpaSpec
             Pageable pageable);
 
     Page<JobPost> findByStatusNotOrderByUpvoteCountDesc(JobStatus status, Pageable pageable);
+
+    long countByPostedByIdAndStatus(UUID postedById, JobStatus status);
 
     long countByVisibilityAndStatus(JobVisibility visibility, JobStatus status);
 

@@ -64,6 +64,7 @@ class AdminServiceTest {
     @Mock private PlatformSettingRepository platformSettingRepository;
     @Mock private UserFlagRepository userFlagRepository;
     @Mock private NotificationService notificationService;
+    @Mock private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     @InjectMocks
     private AdminService adminService;

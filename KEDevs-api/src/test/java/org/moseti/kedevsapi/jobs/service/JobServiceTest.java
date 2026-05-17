@@ -15,6 +15,8 @@ import org.moseti.kedevsapi.shared.exception.BadRequestException;
 import org.moseti.kedevsapi.shared.exception.ForbiddenException;
 import org.moseti.kedevsapi.users.dto.UserDtos;
 import org.moseti.kedevsapi.users.entity.User;
+import org.moseti.kedevsapi.users.entity.DeveloperProfile;
+import org.moseti.kedevsapi.users.repository.DeveloperProfileRepository;
 import org.moseti.kedevsapi.users.repository.UserRepository;
 import org.moseti.kedevsapi.users.service.EmployerProfileService;
 import org.springframework.data.domain.Page;
@@ -41,9 +43,14 @@ class JobServiceTest {
     @Mock private JobFlagRepository jobFlagRepository;
     @Mock private JobApplicationRepository jobApplicationRepository;
     @Mock private UserRepository userRepository;
+    @Mock private DeveloperProfileRepository developerProfileRepository;
+    @Mock private org.moseti.kedevsapi.users.repository.EmployerProfileRepository employerProfileRepository;
     @Mock private EmployerProfileService employerProfileService;
     @Mock private org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
     @Mock private org.moseti.kedevsapi.auth.service.EmailService emailService;
+    @Mock private org.moseti.kedevsapi.shared.service.FileUploadService fileUploadService;
+    @Mock private org.moseti.kedevsapi.users.service.PdfExportService pdfExportService;
+    @Mock private org.moseti.kedevsapi.payments.repository.PlatformSettingRepository platformSettingRepository;
 
     @InjectMocks private JobService jobService;
 
@@ -76,6 +83,8 @@ class JobServiceTest {
         jobPost.setPeerSourced(false);
 
         lenient().when(jobApplicationRepository.findByJobId(any(), any())).thenReturn(Page.empty());
+        lenient().when(developerProfileRepository.findByUserId(any())).thenReturn(Optional.empty());
+        lenient().when(employerProfileRepository.findByUserId(any())).thenReturn(Optional.empty());
     }
 
     // 1. createJobPost_success_developer
@@ -108,7 +117,7 @@ class JobServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(employer));
         when(employerProfileService.getProfileByUserId(userId)).thenReturn(
-                new UserDtos.EmployerProfileResponse(UUID.randomUUID(), userId, "CP", "cp@company.com", "TrueCompany", null, null, null, null, null, null, null, null, null, null, null, true, true, null)
+                new UserDtos.EmployerProfileResponse(UUID.randomUUID(), userId, "CP", "cp@company.com", "TrueCompany", null, null, null, null, null, null, null, null, null, null, null, true, true, 0, java.time.LocalDateTime.now())
         );
         when(jobPostRepository.save(any(JobPost.class))).thenAnswer(i -> {
             JobPost j = i.getArgument(0);
@@ -154,7 +163,6 @@ class JobServiceTest {
                 .isInstanceOf(JobNotFoundException.class);
     }
 
-    // 6. getPublicJobs_onlyReturnsPublicOpen
     @Test
     void getPublicJobs_onlyReturnsPublicOpen() {
         Pageable pageable = PageRequest.of(0, 10);
@@ -162,7 +170,19 @@ class JobServiceTest {
                 JobVisibility.PUBLIC, JobStatus.OPEN, pageable))
                 .thenReturn(new PageImpl<>(List.of(jobPost)));
 
-        Page<JobSummaryResponse> response = jobService.getPublicJobs(pageable);
+        Page<JobSummaryResponse> response = jobService.getPublicJobs(null, pageable);
+        assertThat(response.getContent()).hasSize(1);
+    }
+
+    @Test
+    void getPublicJobs_withPostedById_returnsFiltered() {
+        Pageable pageable = PageRequest.of(0, 10);
+        UUID postedBy = UUID.randomUUID();
+        when(jobPostRepository.findByVisibilityAndStatusAndPostedByIdOrderByUpvoteCountDescCreatedAtDesc(
+                JobVisibility.PUBLIC, JobStatus.OPEN, postedBy, pageable))
+                .thenReturn(new PageImpl<>(List.of(jobPost)));
+
+        Page<JobSummaryResponse> response = jobService.getPublicJobs(postedBy, pageable);
         assertThat(response.getContent()).hasSize(1);
     }
 
@@ -171,6 +191,7 @@ class JobServiceTest {
     void updateJobPost_success_owner() {
         UpdateJobPostRequest request = new UpdateJobPostRequest("NewTitle", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
         when(jobPostRepository.findById(jobId)).thenReturn(Optional.of(jobPost));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(employer));
         when(jobPostRepository.save(any(JobPost.class))).thenAnswer(i -> i.getArgument(0));
 
         JobPostResponse response = jobService.updateJobPost(userId, jobId, request);
@@ -292,6 +313,9 @@ class JobServiceTest {
             return app;
         });
         when(userRepository.findById(any())).thenReturn(Optional.of(developer));
+        DeveloperProfile devProfile = new DeveloperProfile();
+        devProfile.setAvailabilityStatus(AvailabilityStatus.OPEN_TO_OFFERS);
+        when(developerProfileRepository.findByUserId(otherUser)).thenReturn(Optional.of(devProfile));
 
         JobApplicationResponse response = jobService.applyToJob(otherUser, jobId, null, null, "Cover letter");
 

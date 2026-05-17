@@ -24,6 +24,8 @@ import org.moseti.kedevsapi.shared.exception.BadRequestException;
 import org.moseti.kedevsapi.shared.exception.ForbiddenException;
 import org.moseti.kedevsapi.shared.exception.ResourceNotFoundException;
 import org.moseti.kedevsapi.users.entity.User;
+import org.moseti.kedevsapi.users.repository.DeveloperProfileRepository;
+import org.moseti.kedevsapi.users.repository.EmployerProfileRepository;
 import org.moseti.kedevsapi.users.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -55,6 +57,12 @@ class AuthServiceTest {
 
     @Mock
     private EmailService emailService;
+
+    @Mock
+    private DeveloperProfileRepository developerProfileRepository;
+
+    @Mock
+    private EmployerProfileRepository employerProfileRepository;
 
     @InjectMocks
     private AuthService authService;
@@ -94,17 +102,12 @@ class AuthServiceTest {
         when(userRepository.save(any(User.class))).thenReturn(testUser);
         when(verificationCodeService.generateCode(any(UUID.class), any(VerificationCode.CodeType.class)))
                 .thenReturn("123456");
-        when(jwtService.generateAccessToken(any(UUID.class), anyString(), any(Role.class)))
-                .thenReturn("accessToken");
-        when(jwtService.generateRefreshToken(any(UUID.class))).thenReturn("refreshToken");
 
         // When
         AuthResponse response = authService.register(registerRequest);
 
         // Then
         assertNotNull(response);
-        assertEquals("accessToken", response.getAccessToken());
-        assertEquals("refreshToken", response.getRefreshToken());
         assertEquals(testUser.getEmail(), response.getEmail());
         assertEquals(testUser.getRole(), response.getRole());
         
@@ -150,9 +153,6 @@ class AuthServiceTest {
         when(userRepository.save(any(User.class))).thenReturn(employerUser);
         when(verificationCodeService.generateCode(any(UUID.class), any(VerificationCode.CodeType.class)))
                 .thenReturn("123456");
-        when(jwtService.generateAccessToken(any(UUID.class), anyString(), any(Role.class)))
-                .thenReturn("accessToken");
-        when(jwtService.generateRefreshToken(any(UUID.class))).thenReturn("refreshToken");
 
         // When
         AuthResponse response = authService.register(registerRequest);
@@ -214,15 +214,23 @@ class AuthServiceTest {
     }
 
     @Test
-    void login_UnapprovedEmployer_ThrowsException() {
+    void login_UnapprovedEmployer_ReturnsRequiresApproval() {
         // Given
         testUser.setRole(Role.EMPLOYER);
         testUser.setApprovedByAdmin(false);
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
+        when(jwtService.generateAccessToken(any(UUID.class), anyString(), any(Role.class)))
+                .thenReturn("accessToken");
+        when(jwtService.generateRefreshToken(any(UUID.class))).thenReturn("refreshToken");
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
 
-        // When & Then
-        assertThrows(AccountNotApprovedException.class, () -> authService.login(loginRequest));
+        // When
+        AuthResponse response = authService.login(loginRequest);
+
+        // Then
+        assertNotNull(response);
+        assertTrue(response.isRequiresApproval());
     }
 
 

@@ -379,7 +379,7 @@ function JobsPageContent() {
 
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
-      <PageContainer>
+      <PageContainer className="max-w-full px-8 xl:px-16">
         <div className="flex justify-end items-center gap-3 mb-8 print:hidden">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -412,10 +412,10 @@ function JobsPageContent() {
           <p className="text-sm text-gray-500">Generated on {new Date().toLocaleDateString()}</p>
         </div>
 
-        <div className={cn("grid grid-cols-1 lg:grid-cols-4", SPACING.cards)}>
+        <div className={cn("grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-5 items-start", SPACING.cards)}>
           {/* Filters Sidebar */}
-          <aside className="lg:col-span-1 space-y-6 print:hidden">
-            <Card className="border-border/50 shadow-sm sticky top-24">
+          <aside className="lg:col-span-1 space-y-6 print:hidden sticky top-24 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent pr-1">
+            <Card className="border-border/50 shadow-sm">
               <CardHeader className="pb-4">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Filter Jobs</h3>
               </CardHeader>
@@ -626,7 +626,7 @@ function JobsPageContent() {
           </aside>
 
           {/* Job List area */}
-          <main className="lg:col-span-3 print:col-span-full space-y-6">
+          <main className="lg:col-span-3 xl:col-span-4 print:col-span-full space-y-6">
             {error && (
               <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-xl mb-6 text-sm font-medium">
                 {error}
@@ -641,17 +641,12 @@ function JobsPageContent() {
                   </div>
                   <h2 className="text-lg font-black uppercase tracking-tight text-foreground">Featured Listings</h2>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4">
                   {pinnedJobs.map((pJob) => (
                     <Card key={pJob.id} className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/[0.03] to-transparent hover:shadow-xl hover:shadow-primary/10 transition-all group">
-                      <div className="absolute top-0 right-0 p-3">
-                        <Badge className="bg-primary text-primary-foreground font-black text-[10px] tracking-widest uppercase py-1 px-2 shadow-sm flex items-center gap-1">
-                          <Pin className="h-3 w-3 fill-current" /> Pinned
-                        </Badge>
-                      </div>
                       <CardHeader className="pb-2">
                         <Link href={`/jobs/${pJob.id}`}>
-                          <h3 className="font-black text-lg group-hover:text-primary transition-colors line-clamp-1 pr-12">{pJob.title}</h3>
+                          <h3 className="font-black text-lg group-hover:text-primary transition-colors line-clamp-1">{pJob.title}</h3>
                         </Link>
                         <p className="text-xs font-bold text-muted-foreground line-clamp-1">{pJob.companyName}</p>
                       </CardHeader>
@@ -731,11 +726,6 @@ function JobsPageContent() {
                         {/* Job Content */}
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-wrap items-center gap-2 mb-2">
-                            {job.isPinned && (
-                              <Badge variant="secondary" className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200 text-[9px] font-black uppercase tracking-widest gap-1 py-0.5 px-2">
-                                <Pin className="h-3 w-3 rotate-45" /> Pinned
-                              </Badge>
-                            )}
                             <Link href={`/jobs/${job.id}`} className="flex-1 min-w-0">
                               <h3 className="text-xl font-bold group-hover:text-primary transition-colors truncate">
                                 {job.title}
