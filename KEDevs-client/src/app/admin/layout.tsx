@@ -23,7 +23,6 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { useNotification } from '@/context/NotificationContext';
-import NotificationPopover from '@/components/notifications/NotificationPopover';
 
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -47,13 +46,15 @@ const menuItems = [
   { text: 'Settings', icon: Settings, path: '/admin/settings' },
 ];
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const { user, logout } = useAuth();
-  const { unreadCount, refreshUnreadCount } = useNotification();
-  const [collapsed, setCollapsed] = useState(false);
+interface SidebarContentProps {
+  collapsed: boolean;
+  setCollapsed: (c: boolean) => void;
+  pathname: string;
+  logout: () => void;
+}
 
-  const SidebarContent = () => (
+function SidebarContent({ collapsed, setCollapsed, pathname, logout }: SidebarContentProps) {
+  return (
     <div className="flex flex-col h-full bg-card border-r border-border text-foreground">
       <div className="p-6 flex items-center justify-between">
          <div className={cn("flex items-center gap-3 transition-all", collapsed && "opacity-0 invisible w-0")}>
@@ -99,6 +100,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
     </div>
   );
+}
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const { user, logout } = useAuth();
+  const { unreadCount } = useNotification();
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <div className="min-h-screen bg-muted/30 flex font-sans">
@@ -107,7 +115,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         "hidden md:block transition-all duration-300 sticky top-0 h-screen z-50",
         collapsed ? "w-20" : "w-64"
       )}>
-        <SidebarContent />
+        <SidebarContent collapsed={collapsed} setCollapsed={setCollapsed} pathname={pathname} logout={logout} />
       </aside>
 
       {/* Mobile Sidebar */}
@@ -123,7 +131,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <SheetTitle>Admin Navigation</SheetTitle>
               <SheetDescription>Access administrative controls and platform management.</SheetDescription>
             </SheetHeader>
-            <SidebarContent />
+            <SidebarContent collapsed={collapsed} setCollapsed={setCollapsed} pathname={pathname} logout={logout} />
           </SheetContent>
         </Sheet>
       </div>
@@ -142,11 +150,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
 
                <div className="flex items-center gap-3">
-                  <NotificationPopover unreadCount={unreadCount} onMarkAllAsRead={refreshUnreadCount}>
-                     <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full">
+                  <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full" asChild>
+                     <Link href="/admin/dashboard">
                         <Bell className="h-5 w-5" />
-                     </Button>
-                  </NotificationPopover>
+                        {unreadCount > 0 && (
+                           <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 bg-red-500 border-2 border-white rounded-full animate-in zoom-in" />
+                        )}
+                     </Link>
+                  </Button>
                   
                   <Separator orientation="vertical" className="h-6 bg-border" />
                   
