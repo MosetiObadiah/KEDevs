@@ -136,6 +136,24 @@ export const adminService = {
     return apiClient.get<ApiResponse<any>>('/api/v1/admin/analytics/developer-locations');
   },
 
+  async exportFlags(format: 'csv' | 'pdf', category?: string, history?: boolean): Promise<Blob> {
+    const headers = apiClient.getHeaders();
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+    const q = new URLSearchParams();
+    q.append('format', format);
+    if (category) q.append('category', category);
+    if (history !== undefined) q.append('history', String(history));
+    
+    const response = await fetch(`${baseUrl}/api/v1/admin/flags/export?${q.toString()}`, {
+      method: 'GET',
+      headers,
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to export flags: ${response.statusText}`);
+    }
+    return response.blob();
+  },
+
   async exportReport(data: { charts: string[]; dateRange: string; generatedBy: string }): Promise<Blob> {
     const headers = apiClient.getHeaders();
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
@@ -151,5 +169,43 @@ export const adminService = {
       throw new Error(`Failed to export PDF: ${response.statusText}`);
     }
     return response.blob();
-  }
+  },
+
+  // ── Job Advertisement Slots ──────────────────────────────────────────
+  async getJobAdvertisements(page = 0, size = 10): Promise<ApiResponse<PaginatedResponse<any>>> {
+    return apiClient.get<ApiResponse<PaginatedResponse<any>>>(`/api/v1/admin/job-advertisements?page=${page}&size=${size}`);
+  },
+
+  async getJobAdvertisementHistory(page = 0, size = 10): Promise<ApiResponse<PaginatedResponse<any>>> {
+    return apiClient.get<ApiResponse<PaginatedResponse<any>>>(`/api/v1/admin/job-advertisements/history?page=${page}&size=${size}`);
+  },
+
+  async overrideJobAdvertisement(slotId: string, reason: string): Promise<ApiResponse<any>> {
+    return apiClient.post<ApiResponse<any>>(`/api/v1/admin/job-advertisements/${slotId}/override`, { reason });
+  },
+
+  async exportJobAdvertisementsPdf(): Promise<Blob> {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+    const headers: Record<string, string> = {};
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('accessToken');
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+    }
+    const response = await fetch(`${baseUrl}/api/v1/admin/job-advertisements/export/pdf`, { headers });
+    if (!response.ok) throw new Error(`Failed to export PDF: ${response.statusText}`);
+    return response.blob();
+  },
+
+  async exportJobAdvertisementsCsv(): Promise<Blob> {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+    const headers: Record<string, string> = {};
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('accessToken');
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+    }
+    const response = await fetch(`${baseUrl}/api/v1/admin/job-advertisements/export/csv`, { headers });
+    if (!response.ok) throw new Error(`Failed to export CSV: ${response.statusText}`);
+    return response.blob();
+  },
 };
+

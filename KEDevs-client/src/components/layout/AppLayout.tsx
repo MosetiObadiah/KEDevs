@@ -32,7 +32,8 @@ import {
   Tag,
   AlertTriangle,
   ShieldAlert,
-  ShieldX
+  ShieldX,
+  Megaphone
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { authService } from '@/services/authService';
@@ -342,6 +343,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         { label: 'User Management', href: '/admin/users', icon: Users },
         { label: 'Verification Queue', href: '/admin/verification', icon: ShieldCheck },
         { label: 'Flagged Content', href: '/admin/flags', icon: Flag },
+        { label: 'Job Advertisements', href: '/admin/job-advertisements', icon: Megaphone },
         { label: 'Spotlight', href: '/admin/spotlight', icon: Sparkles },
         { label: 'Audit Log', href: '/admin/audit', icon: History },
         { label: 'Settings', href: '/admin/settings', icon: Settings },

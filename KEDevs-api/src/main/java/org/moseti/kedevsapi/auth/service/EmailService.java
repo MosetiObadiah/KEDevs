@@ -188,6 +188,48 @@ public class EmailService {
         }
     }
 
+    @Async
+    public void sendJobAdvertisementExpiredEmail(String to, String fullName, String jobTitle) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(to);
+            message.setSubject("Your Job Advertisement Has Ended - KEDevs");
+            message.setText(String.format("""
+                    Hi %s,
+                    
+                    Your job advertisement for '%s' has ended.
+                    Thank you for promoting your job!
+                    
+                    Best regards,
+                    The KEDevs Team
+                    """, fullName, jobTitle));
+            mailSender.send(message);
+        } catch (Exception e) {
+            log.error("Failed to send job advertisement expired email to: {}", to, e);
+        }
+    }
+
+    @Async
+    public void sendJobAdvertisementOverriddenEmail(String to, String fullName, String jobTitle, String reason) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(to);
+            message.setSubject("Your Job Advertisement Has Been Removed - KEDevs");
+            message.setText(String.format("""
+                    Hi %s,
+                    
+                    Your job advertisement for '%s' has been removed by an admin.
+                    Reason: %s.
+                    
+                    Best regards,
+                    The KEDevs Team
+                    """, fullName, jobTitle, reason));
+            mailSender.send(message);
+        } catch (Exception e) {
+            log.error("Failed to send job advertisement overridden email to: {}", to, e);
+        }
+    }
+
     private String buildVerificationEmail(String fullName, String code) {
         return String.format("""
                 Hi %s,

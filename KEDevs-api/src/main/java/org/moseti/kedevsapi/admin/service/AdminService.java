@@ -1010,4 +1010,109 @@ public class AdminService {
         
         return pdfExportService.generateAnalyticsPdf(exportCharts, request.dateRange(), request.generatedBy());
     }
+
+    public byte[] generateFlagsExport(String format, String category, Boolean history) {
+        List<org.moseti.kedevsapi.admin.dto.AdminDtos.FlagExportResponse> exportList = new java.util.ArrayList<>();
+        java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+        // 1. Fetch and map Job Flags
+        if (category == null || category.isBlank() || "JOB".equalsIgnoreCase(category)) {
+            List<org.moseti.kedevsapi.jobs.entity.JobFlag> jobFlags = jobFlagRepository.findAll();
+            for (org.moseti.kedevsapi.jobs.entity.JobFlag f : jobFlags) {
+                if (history != null) {
+                    boolean isPending = f.getStatus() == FlagStatus.PENDING;
+                    if (history && isPending) continue;
+                    if (!history && !isPending) continue;
+                }
+                org.moseti.kedevsapi.jobs.entity.JobPost job = jobPostRepository.findById(f.getJobId()).orElse(null);
+                String jobTitle = job != null ? job.getTitle() : "Unknown Job Post";
+                org.moseti.kedevsapi.users.entity.User flagger = userRepository.findById(f.getFlaggedById()).orElse(null);
+                String flaggerName = flagger != null ? flagger.getFullName() : "System Bot";
+                
+                exportList.add(new org.moseti.kedevsapi.admin.dto.AdminDtos.FlagExportResponse(
+                        f.getCreatedAt() != null ? dtf.format(f.getCreatedAt()) : "—",
+                        "JOB",
+                        jobTitle,
+                        f.getReason() != null ? f.getReason() : "Review Needed",
+                        flaggerName,
+                        f.getStatus() != null ? f.getStatus().name() : "PENDING"
+                ));
+            }
+        }
+
+        // 2. Fetch and map User Flags
+        if (category == null || category.isBlank() || "USER".equalsIgnoreCase(category)) {
+            List<org.moseti.kedevsapi.payments.entity.UserFlag> userFlags = userFlagRepository.findAll();
+            for (org.moseti.kedevsapi.payments.entity.UserFlag f : userFlags) {
+                if (history != null) {
+                    boolean isPending = f.getStatus() == UserFlagStatus.PENDING;
+                    if (history && isPending) continue;
+                    if (!history && !isPending) continue;
+                }
+                org.moseti.kedevsapi.users.entity.User flaggedUser = userRepository.findById(f.getFlaggedUserId()).orElse(null);
+                String userEmail = flaggedUser != null ? flaggedUser.getEmail() : "Unknown User";
+                org.moseti.kedevsapi.users.entity.User flagger = userRepository.findById(f.getFlaggedById()).orElse(null);
+                String flaggerName = flagger != null ? flagger.getFullName() : "System Bot";
+
+                exportList.add(new org.moseti.kedevsapi.admin.dto.AdminDtos.FlagExportResponse(
+                        f.getCreatedAt() != null ? dtf.format(f.getCreatedAt()) : "—",
+                        "USER",
+                        userEmail,
+                        f.getReason() != null ? f.getReason() : "Review Needed",
+                        flaggerName,
+                        f.getStatus() != null ? f.getStatus().name() : "PENDING"
+                ));
+            }
+        }
+
+        // 3. Fetch and map Comment Flags
+        if (category == null || category.isBlank() || "COMMENT".equalsIgnoreCase(category)) {
+            List<org.moseti.kedevsapi.forum.entity.CommentFlag> commentFlags = commentFlagRepository.findAll();
+            for (org.moseti.kedevsapi.forum.entity.CommentFlag f : commentFlags) {
+                if (history != null) {
+                    boolean isPending = f.getStatus() == CommentFlagStatus.PENDING;
+                    if (history && isPending) continue;
+                    if (!history && !isPending) continue;
+                }
+                org.moseti.kedevsapi.forum.entity.ForumComment comment = f.getComment();
+                String commentContent = comment != null ? comment.getContent() : "Unknown Comment";
+                if (commentContent.length() > 50) {
+                    commentContent = commentContent.substring(0, 47) + "...";
+                }
+                org.moseti.kedevsapi.users.entity.User flagger = userRepository.findById(f.getFlaggedById()).orElse(null);
+                String flaggerName = flagger != null ? flagger.getFullName() : "System Bot";
+
+                exportList.add(new org.moseti.kedevsapi.admin.dto.AdminDtos.FlagExportResponse(
+                        f.getCreatedAt() != null ? dtf.format(f.getCreatedAt()) : "—",
+                        "COMMENT",
+                        commentContent,
+                        f.getReason() != null ? f.getReason() : "Review Needed",
+                        flaggerName,
+                        f.getStatus() != null ? f.getStatus().name() : "PENDING"
+                ));
+            }
+        }
+
+        // Sort by date descending
+        exportList.sort((a, b) -> b.date().compareTo(a.date()));
+
+        StringBuilder sb = new StringBuilder();
+        if (category != null && !category.isBlank()) {
+            sb.append("Category: ").append(category.toUpperCase()).append("; ");
+        } else {
+            sb.append("Category: All; ");
+        }
+        if (history != null) {
+            sb.append("Scope: ").append(history ? "Reviewed History" : "Active Pending").append("; ");
+        } else {
+            sb.append("Scope: All (Pending & Historical); ");
+        }
+        String filterSummary = sb.toString();
+
+        if ("csv".equalsIgnoreCase(format)) {
+            return csvExportService.generateFlagsCsv(exportList);
+        } else {
+            return pdfExportService.generateFlagsPdf(exportList, filterSummary);
+        }
+    }
 }

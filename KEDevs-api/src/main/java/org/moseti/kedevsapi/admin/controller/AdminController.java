@@ -248,6 +248,28 @@ public class AdminController {
                 .body(new org.springframework.core.io.ByteArrayResource(fileBytes));
     }
 
+    @Operation(summary = "Admin: generate and stream flagged content report (CSV/PDF)")
+    @GetMapping("/flags/export")
+    public ResponseEntity<org.springframework.core.io.Resource> exportFlags(
+            @RequestParam String format,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) Boolean history) {
+        byte[] fileBytes = adminService.generateFlagsExport(format, category, history);
+        
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        String filename = "moderation-report." + format.toLowerCase();
+        headers.add(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename);
+        
+        org.springframework.http.MediaType mediaType = "csv".equalsIgnoreCase(format) 
+                ? org.springframework.http.MediaType.parseMediaType("text/csv")
+                : org.springframework.http.MediaType.APPLICATION_PDF;
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(mediaType)
+                .body(new org.springframework.core.io.ByteArrayResource(fileBytes));
+    }
+
     // --- Flagged Content ---
 
     @Operation(summary = "Admin: list flagged job posts")

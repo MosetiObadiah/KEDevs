@@ -88,6 +88,20 @@ public class PdfExportService {
         }
     }
 
+    public byte[] generatePastJobAdvertisementsPdf(List<org.moseti.kedevsapi.jobs.dto.PinnedJobSlotDtos.PastPinnedJobSlotResponse> slots) {
+        try {
+            Context context = new Context();
+            context.setVariable("slots", slots);
+            enrichContext(context, "None (Full History)");
+
+            String html = templateEngine.process("job-advertisement-export", context);
+            return renderPdf(html);
+        } catch (Exception e) {
+            log.error("Failed to generate Job Advertisements PDF export", e);
+            throw new RuntimeException("Failed to generate Job Advertisements PDF export", e);
+        }
+    }
+
     public byte[] generatePaymentPdf(List<Payment> payments) {
         try {
             Context context = new Context();
@@ -203,6 +217,20 @@ public class PdfExportService {
         } catch (Exception e) {
             log.error("Failed to generate Analytics PDF export", e);
             throw new RuntimeException("Failed to generate Analytics PDF export", e);
+        }
+    }
+
+    public byte[] generateFlagsPdf(List<org.moseti.kedevsapi.admin.dto.AdminDtos.FlagExportResponse> flags, String filterSummary) {
+        try {
+            Context context = new Context();
+            context.setVariable("flags", flags);
+            enrichContext(context, filterSummary != null && !filterSummary.isBlank() ? filterSummary : "None (All Pending & Historical)");
+
+            String html = templateEngine.process("flags-export", context);
+            return renderPdf(html);
+        } catch (Exception e) {
+            log.error("Failed to generate Flags PDF export", e);
+            throw new RuntimeException("Failed to generate Flags PDF export", e);
         }
     }
 }

@@ -265,4 +265,13 @@ public class AdminDtos {
             List<JobSummaryForAdmin> topUpvotedJobs,
             List<AdminActionResponse> recentAdminActions
     ) {}
+
+    public record FlagExportResponse(
+            String date,
+            String category,
+            String content,
+            String reason,
+            String flaggedBy,
+            String status
+    ) {}
 }

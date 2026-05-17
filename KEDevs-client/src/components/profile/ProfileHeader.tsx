@@ -40,107 +40,107 @@ export function ProfileHeader({ profile, isOwner, isEditing, onUpdate, onPhotoSe
           {isOwner && (
             <Label htmlFor="dev-photo-upload" className="absolute bottom-2 right-2 h-10 w-10 bg-primary text-white rounded-xl flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 transition-transform z-20 border-4 border-white">
               <Camera className="h-5 w-5" />
-              <input 
-                id="dev-photo-upload" 
-                type="file" 
-                className="hidden" 
-                accept="image/*" 
-                onChange={handleFileChange} 
+              <input
+                id="dev-photo-upload"
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={handleFileChange}
               />
             </Label>
           )}
         </div>
-        
+
         <div className="space-y-6 flex-1 w-full">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">First Name</Label>
-              <Input 
-                value={profile.firstName || ''} 
-                onChange={(e) => onUpdate?.({...profile, firstName: e.target.value})}
+              <Input
+                value={profile.firstName || ''}
+                onChange={(e) => onUpdate?.({ ...profile, firstName: e.target.value })}
                 className="h-12 rounded-xl border-slate-200 focus:border-primary"
               />
             </div>
             <div className="space-y-1.5">
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Last Name</Label>
-              <Input 
-                value={profile.lastName || ''} 
-                onChange={(e) => onUpdate?.({...profile, lastName: e.target.value})}
+              <Input
+                value={profile.lastName || ''}
+                onChange={(e) => onUpdate?.({ ...profile, lastName: e.target.value })}
                 className="h-12 rounded-xl border-slate-200 focus:border-primary"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Professional Headline</Label>
-            <Input 
-              value={profile.currentLastRole || ''} 
-              onChange={(e) => onUpdate?.({...profile, currentLastRole: e.target.value})}
+            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Current Role</Label>
+            <Input
+              value={profile.currentLastRole || ''}
+              onChange={(e) => onUpdate?.({ ...profile, currentLastRole: e.target.value })}
               className="h-12 rounded-xl border-slate-200 focus:border-primary"
               placeholder="e.g. Senior Android Developer"
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-             <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Experience</Label>
-                <Select value={profile.yearsOfExperience} onValueChange={(v) => onUpdate?.({...profile, yearsOfExperience: v})}>
-                   <SelectTrigger className="h-12 rounded-xl border-slate-200">
-                      <SelectValue placeholder="Select experience" />
-                   </SelectTrigger>
-                   <SelectContent className="rounded-2xl">
-                      <SelectItem value="ZERO_TO_ONE">0 - 1 Year</SelectItem>
-                      <SelectItem value="ONE_TO_THREE">1 - 3 Years</SelectItem>
-                      <SelectItem value="THREE_TO_FIVE">3 - 5 Years</SelectItem>
-                      <SelectItem value="FIVE_TO_TEN">5 - 10 Years</SelectItem>
-                      <SelectItem value="TEN_PLUS">10+ Years</SelectItem>
-                   </SelectContent>
-                </Select>
-             </div>
-             <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Work Type</Label>
-                <Select value={profile.preferredWorkType} onValueChange={(v) => onUpdate?.({...profile, preferredWorkType: v})}>
-                   <SelectTrigger className="h-12 rounded-xl border-slate-200">
-                      <SelectValue placeholder="Select work type" />
-                   </SelectTrigger>
-                   <SelectContent className="rounded-2xl">
-                      <SelectItem value="REMOTE">Remote</SelectItem>
-                      <SelectItem value="HYBRID">Hybrid</SelectItem>
-                      <SelectItem value="ONSITE">On-site</SelectItem>
-                   </SelectContent>
-                </Select>
-             </div>
-             <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Availability</Label>
-                <Select value={profile.availabilityStatus} onValueChange={(v) => onUpdate?.({...profile, availabilityStatus: v})}>
-                   <SelectTrigger className="h-12 rounded-xl border-slate-200">
-                      <SelectValue placeholder="Select status" />
-                   </SelectTrigger>
-                   <SelectContent className="rounded-2xl">
-                      <SelectItem value="OPEN_TO_OFFERS">Open to Offers</SelectItem>
-                      <SelectItem value="NOT_AVAILABLE">Not Available</SelectItem>
-                   </SelectContent>
-                </Select>
-             </div>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Experience</Label>
+              <Select value={profile.yearsOfExperience} onValueChange={(v) => onUpdate?.({ ...profile, yearsOfExperience: v })}>
+                <SelectTrigger className="h-12 rounded-xl border-slate-200">
+                  <SelectValue placeholder="Select experience" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl">
+                  <SelectItem value="ZERO_TO_ONE">0 - 1 Year</SelectItem>
+                  <SelectItem value="ONE_TO_THREE">1 - 3 Years</SelectItem>
+                  <SelectItem value="THREE_TO_FIVE">3 - 5 Years</SelectItem>
+                  <SelectItem value="FIVE_TO_TEN">5 - 10 Years</SelectItem>
+                  <SelectItem value="TEN_PLUS">10+ Years</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Work Type</Label>
+              <Select value={profile.preferredWorkType} onValueChange={(v) => onUpdate?.({ ...profile, preferredWorkType: v })}>
+                <SelectTrigger className="h-12 rounded-xl border-slate-200">
+                  <SelectValue placeholder="Select work type" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl">
+                  <SelectItem value="REMOTE">Remote</SelectItem>
+                  <SelectItem value="HYBRID">Hybrid</SelectItem>
+                  <SelectItem value="ONSITE">On-site</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Availability</Label>
+              <Select value={profile.availabilityStatus} onValueChange={(v) => onUpdate?.({ ...profile, availabilityStatus: v })}>
+                <SelectTrigger className="h-12 rounded-xl border-slate-200">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl">
+                  <SelectItem value="OPEN_TO_OFFERS">Open to Offers</SelectItem>
+                  <SelectItem value="NOT_AVAILABLE">Not Available</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">City</Label>
-                <Input 
-                  value={profile.locationCity || ''} 
-                  onChange={(e) => onUpdate?.({...profile, locationCity: e.target.value})}
-                  className="h-12 rounded-xl border-slate-200 focus:border-primary"
-                />
-             </div>
-             <div className="space-y-1.5">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Country</Label>
-                <Input 
-                  value={profile.locationCountry || ''} 
-                  onChange={(e) => onUpdate?.({...profile, locationCountry: e.target.value})}
-                  className="h-12 rounded-xl border-slate-200 focus:border-primary"
-                />
-             </div>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">City</Label>
+              <Input
+                value={profile.locationCity || ''}
+                onChange={(e) => onUpdate?.({ ...profile, locationCity: e.target.value })}
+                className="h-12 rounded-xl border-slate-200 focus:border-primary"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Country</Label>
+              <Input
+                value={profile.locationCountry || ''}
+                onChange={(e) => onUpdate?.({ ...profile, locationCountry: e.target.value })}
+                className="h-12 rounded-xl border-slate-200 focus:border-primary"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -159,17 +159,17 @@ export function ProfileHeader({ profile, isOwner, isEditing, onUpdate, onPhotoSe
         {isOwner && (
           <Label htmlFor="dev-photo-upload-view" className="absolute bottom-1 right-1 h-8 w-8 md:h-10 md:w-10 bg-primary text-white rounded-xl flex items-center justify-center cursor-pointer shadow-lg hover:scale-110 transition-transform z-20 border-4 border-white opacity-0 group-hover:opacity-100 transition-opacity">
             <Camera className="h-4 w-4 md:h-5 w-5" />
-            <input 
-              id="dev-photo-upload-view" 
-              type="file" 
-              className="hidden" 
-              accept="image/*" 
-              onChange={handleFileChange} 
+            <input
+              id="dev-photo-upload-view"
+              type="file"
+              className="hidden"
+              accept="image/*"
+              onChange={handleFileChange}
             />
           </Label>
         )}
       </div>
-      
+
       <div className="space-y-3 flex-1">
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-3xl md:text-4xl font-black text-foreground tracking-tight">
@@ -181,9 +181,9 @@ export function ProfileHeader({ profile, isOwner, isEditing, onUpdate, onPhotoSe
             </Badge>
           )}
         </div>
-        
+
         <p className="text-xl font-medium text-muted-foreground">{profile.currentLastRole || 'Software Engineer'}</p>
-        
+
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-bold text-muted-foreground uppercase tracking-wider">
           <span className="flex items-center gap-1.5">
             <MapPin className="w-4 h-4 text-primary" />
@@ -191,9 +191,9 @@ export function ProfileHeader({ profile, isOwner, isEditing, onUpdate, onPhotoSe
           </span>
           <span className="hidden md:block text-muted-foreground/30">•</span>
           <span className="flex items-center gap-1.5">
-             <Briefcase className="w-4 h-4 text-primary" />
-             <span className="font-black uppercase tracking-wider text-[10px] text-slate-400">Years of Experience:</span>
-             <span className="text-foreground">{formatExperience(profile.yearsOfExperience)}</span>
+            <Briefcase className="w-4 h-4 text-primary" />
+            <span className="font-black uppercase tracking-wider text-[10px] text-slate-400">Years of Experience:</span>
+            <span className="text-foreground">{formatExperience(profile.yearsOfExperience)}</span>
           </span>
           <span className="hidden md:block text-muted-foreground/30">•</span>
           <span className="flex items-center gap-1.5 text-xs font-extrabold text-slate-700 normal-case">
@@ -202,7 +202,7 @@ export function ProfileHeader({ profile, isOwner, isEditing, onUpdate, onPhotoSe
             {formatWorkType(profile.preferredWorkType || 'REMOTE')}
           </span>
         </div>
-        
+
         <div className="flex items-center gap-2 pt-2">
           <span className="font-black uppercase tracking-widest text-[10px] text-slate-400">Availability:</span>
           <Badge variant={profile.availabilityStatus === 'OPEN_TO_OFFERS' ? 'default' : 'secondary'} className="rounded-lg font-black tracking-widest text-[10px] uppercase px-3 py-1">

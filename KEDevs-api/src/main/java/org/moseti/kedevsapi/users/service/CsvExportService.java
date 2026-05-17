@@ -138,4 +138,59 @@ public class CsvExportService {
             throw new RuntimeException("Failed to generate Verification CSV export", e);
         }
     }
+
+    public byte[] generatePastJobAdvertisementsCsv(List<org.moseti.kedevsapi.jobs.dto.PinnedJobSlotDtos.PastPinnedJobSlotResponse> slots) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             OutputStreamWriter osw = new OutputStreamWriter(baos, StandardCharsets.UTF_8);
+             com.opencsv.CSVWriter writer = new com.opencsv.CSVWriter(osw)) {
+
+            writer.writeNext(new String[]{
+                "Job Title", "Employer", "Duration Type", "Start Date", "End Date"
+            });
+
+            for (org.moseti.kedevsapi.jobs.dto.PinnedJobSlotDtos.PastPinnedJobSlotResponse s : slots) {
+                writer.writeNext(new String[]{
+                        s.jobTitle() != null ? s.jobTitle() : "",
+                        s.employerName() != null ? s.employerName() : "",
+                        s.durationType() != null ? s.durationType().name() : "",
+                        s.startDate() != null ? s.startDate().toString() : "",
+                        s.endDate() != null ? s.endDate().toString() : ""
+                });
+            }
+
+            writer.flush();
+            return baos.toByteArray();
+        } catch (Exception e) {
+            log.error("Failed to generate Job Advertisements CSV export", e);
+            throw new RuntimeException("Failed to generate Job Advertisements CSV export", e);
+        }
+    }
+
+    public byte[] generateFlagsCsv(List<org.moseti.kedevsapi.admin.dto.AdminDtos.FlagExportResponse> flags) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             OutputStreamWriter osw = new OutputStreamWriter(baos, java.nio.charset.StandardCharsets.UTF_8);
+             CSVWriter writer = new CSVWriter(osw)) {
+
+            writer.writeNext(new String[]{
+                "Date", "Category", "Flagged Content", "Violation Reason", "Flagged By", "Status"
+            });
+
+            for (org.moseti.kedevsapi.admin.dto.AdminDtos.FlagExportResponse f : flags) {
+                writer.writeNext(new String[]{
+                        f.date() != null ? f.date() : "",
+                        f.category() != null ? f.category() : "",
+                        f.content() != null ? f.content() : "",
+                        f.reason() != null ? f.reason() : "",
+                        f.flaggedBy() != null ? f.flaggedBy() : "",
+                        f.status() != null ? f.status() : ""
+                });
+            }
+
+            writer.flush();
+            return baos.toByteArray();
+        } catch (Exception e) {
+            log.error("Failed to generate Flags CSV export", e);
+            throw new RuntimeException("Failed to generate Flags CSV export", e);
+        }
+    }
 }

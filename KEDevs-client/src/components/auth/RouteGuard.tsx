@@ -35,6 +35,12 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
 
     if (exactPublics.includes(path)) return true;
 
+    // Check dynamic verify-email page: /verify-email/[id]
+    const verifyEmailRegex = /^\/verify-email\/[^\/]+$/;
+    if (verifyEmailRegex.test(path)) {
+      return true;
+    }
+
     // Check dynamic job detail page: /jobs/[id] (where [id] is a UUID/slug, but not special paths)
     // Avoid matching /jobs/post, /jobs/my-applications, /jobs/my-posts, etc.
     const genericJobDetailRegex = /^\/jobs\/[^\/]+$/;
@@ -93,6 +99,23 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      // 1.5. Force Email Verification for unverified users
+      if (!user.isEmailVerified) {
+        const verifyEmailPath = `/verify-email/${user.id}`;
+        if (pathname !== verifyEmailPath) {
+          router.push(verifyEmailPath);
+          return;
+        }
+        return; // stay on verify email page, don't execute onboarding redirect
+      }
+
+      // Prevent accessing verify-email if already verified
+      const verifyEmailRegex = /^\/verify-email\/[^\/]+$/;
+      if (user.isEmailVerified && verifyEmailRegex.test(pathname || '')) {
+        router.push(isDev ? '/jobs' : (isEmp ? '/developers' : '/admin/dashboard'));
+        return;
+      }
+
       const onboardingPath = isDev ? devOnboarding : empOnboarding;
 
       // 2. Force Onboarding
@@ -148,6 +171,13 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
   // Prevent flash of protected content
   if (!isLoggedIn && !isPublicRoute) {
     return null;
+  }
+
+  // Prevent flash if email verification is required
+  if (isLoggedIn && user && !user.isEmailVerified) {
+    if (pathname !== `/verify-email/${user.id}`) {
+      return null;
+    }
   }
 
   // Prevent flash of protected content if onboarding is required

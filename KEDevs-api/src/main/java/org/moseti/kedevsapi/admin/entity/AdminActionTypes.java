@@ -13,6 +13,7 @@ public class AdminActionTypes {
     public static final String REMOVE_JOB = "REMOVE_JOB";
     public static final String HIDE_COMMENT = "HIDE_COMMENT";
     public static final String OVERRIDE_SPOTLIGHT = "OVERRIDE_SPOTLIGHT";
+    public static final String REMOVE_JOB_ADVERTISEMENT = "REMOVE_JOB_ADVERTISEMENT";
     public static final String GRANT_VERIFIED_BADGE = "GRANT_VERIFIED_BADGE";
     public static final String REVOKE_VERIFIED_BADGE = "REVOKE_VERIFIED_BADGE";
     public static final String APPROVE_VERIFICATION = "APPROVE_VERIFICATION";

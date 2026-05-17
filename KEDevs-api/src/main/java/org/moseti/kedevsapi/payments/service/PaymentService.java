@@ -55,6 +55,7 @@ public class PaymentService {
     private final JobPostRepository jobPostRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final ObjectMapper objectMapper;
+    private final org.moseti.kedevsapi.jobs.service.PinnedJobSlotService pinnedJobSlotService;
 
     // ====================== Helper ======================
 
@@ -241,6 +242,8 @@ public class PaymentService {
             payment.setMpesaCheckoutId(stkResponse.checkoutRequestId());
             paymentRepository.save(payment);
 
+            pinnedJobSlotService.createInactiveSlot(jobId, userId, payment.getId(), type);
+
             return new PaymentInitiationResponse(stkResponse.checkoutRequestId(),
                     "STK push sent. Enter your M-Pesa PIN to complete payment.", amount);
         } catch (Exception e) {
@@ -332,6 +335,8 @@ public class PaymentService {
             // Clean up inactive spotlight slot (only on definitive FAILED or CANCELLED, not retries)
             if (payment.getType() == PaymentType.SPOTLIGHT_DAY || payment.getType() == PaymentType.SPOTLIGHT_WEEK) {
                 spotlightService.deleteInactiveSlotByPaymentId(payment.getId());
+            } else if (payment.getType() == PaymentType.PINNED_JOB_DAY || payment.getType() == PaymentType.PINNED_JOB_3DAYS || payment.getType() == PaymentType.PINNED_JOB_7DAYS) {
+                pinnedJobSlotService.deleteInactiveSlotByPaymentId(payment.getId());
             }
 
             messagingTemplate.convertAndSendToUser(
@@ -442,14 +447,11 @@ public class PaymentService {
             default               -> now.plusDays(1);
         };
 
-        job.setPinned(true);
-        job.setPinnedUntil(pinnedUntil);
-        job.setPinnedPaymentId(payment.getId());
-        jobPostRepository.save(job);
+        pinnedJobSlotService.activateExistingSlot(payment.getId(), job);
 
         User user = userRepository.findById(payment.getUserId()).orElse(null);
         if (user != null) {
-            String dateStr = pinnedUntil.toLocalDate().toString();
+            String dateStr = job.getPinnedUntil().toLocalDate().toString();
             notificationService.notify(
                     payment.getUserId(),
                     NotificationCategory.PINNED_JOB,
@@ -467,7 +469,7 @@ public class PaymentService {
             new WebSocketEvent<>("STATUS_UPDATE", Map.of(
                 "jobId", job.getId(),
                 "isPinned", true,
-                "pinnedUntil", pinnedUntil.toString()
+                "pinnedUntil", job.getPinnedUntil().toString()
             ))
         );
     }
