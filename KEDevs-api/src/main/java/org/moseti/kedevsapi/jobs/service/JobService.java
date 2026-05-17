@@ -53,29 +53,30 @@ public class JobService {
     private String apiBaseUrl;
 
     public byte[] exportJobsToPdf(JobSearchRequest request, UUID currentUserId) {
-        // Reuse the same logic as getJobFeed but without pagination (fetch all matching)
+        // Reuse the same logic as getJobFeed but without pagination (fetch all
+        // matching)
         Page<JobSummaryResponse> jobsPage = getJobFeed(request, Pageable.unpaged(), currentUserId);
         List<JobSummaryResponse> jobs = jobsPage.getContent();
-        
+
         String generatedBy = "Guest User";
         if (currentUserId != null) {
             generatedBy = userRepository.findById(currentUserId).map(User::getFullName).orElse("Unknown User");
         }
-        
+
         return pdfExportService.generateJobPdf(jobs, request, generatedBy);
     }
 
     public JobFilterMetadataResponse getFilterMetadata() {
         return new JobFilterMetadataResponse(
                 jobPostRepository.findUniqueQualifications(),
-                jobPostRepository.findUniqueExperienceYears()
-        );
+                jobPostRepository.findUniqueExperienceYears());
     }
 
     @Transactional
     public JobPostResponse createJobPost(UUID userId, CreateJobPostRequest request) {
         if (userId == null) {
-            throw new org.moseti.kedevsapi.shared.exception.UnauthorizedException("User context is missing or unauthenticated");
+            throw new org.moseti.kedevsapi.shared.exception.UnauthorizedException(
+                    "User context is missing or unauthenticated");
         }
         if (request.isPeerSourced() && (request.sourceUrl() == null || request.sourceUrl().isBlank())) {
             throw new BadRequestException("sourceUrl is required for peer-sourced jobs");
@@ -165,17 +166,18 @@ public class JobService {
             if (request.keyword() != null && !request.keyword().trim().isEmpty()) {
                 String pattern = "%" + request.keyword().trim().toLowerCase() + "%";
                 predicates.add(cb.or(
-                    cb.like(cb.lower(root.get("title")), pattern),
-                    cb.like(cb.lower(root.get("description")), pattern)
-                ));
+                        cb.like(cb.lower(root.get("title")), pattern),
+                        cb.like(cb.lower(root.get("description")), pattern)));
             }
 
             if (request.locationCity() != null && !request.locationCity().trim().isEmpty()) {
-                predicates.add(cb.like(cb.lower(root.get("locationCity")), "%" + request.locationCity().trim().toLowerCase() + "%"));
+                predicates.add(cb.like(cb.lower(root.get("locationCity")),
+                        "%" + request.locationCity().trim().toLowerCase() + "%"));
             }
 
             if (request.locationCountry() != null && !request.locationCountry().trim().isEmpty()) {
-                predicates.add(cb.like(cb.lower(root.get("locationCountry")), "%" + request.locationCountry().trim().toLowerCase() + "%"));
+                predicates.add(cb.like(cb.lower(root.get("locationCountry")),
+                        "%" + request.locationCountry().trim().toLowerCase() + "%"));
             }
 
             if (request.jobTypes() != null && !request.jobTypes().isEmpty()) {
@@ -199,7 +201,8 @@ public class JobService {
             }
 
             if (request.minQualification() != null && !request.minQualification().trim().isEmpty()) {
-                predicates.add(cb.like(cb.lower(root.get("minQualification")), "%" + request.minQualification().trim().toLowerCase() + "%"));
+                predicates.add(cb.like(cb.lower(root.get("minQualification")),
+                        "%" + request.minQualification().trim().toLowerCase() + "%"));
             }
 
             if (request.minExperienceYears() != null) {
@@ -255,9 +258,12 @@ public class JobService {
             throw new BadRequestException("Cannot edit a closed or removed job posting");
         }
 
-        if (request.title() != null) job.setTitle(request.title());
-        if (request.summary() != null) job.setSummary(request.summary());
-        if (request.description() != null) job.setDescription(request.description());
+        if (request.title() != null)
+            job.setTitle(request.title());
+        if (request.summary() != null)
+            job.setSummary(request.summary());
+        if (request.description() != null)
+            job.setDescription(request.description());
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -265,8 +271,9 @@ public class JobService {
             // Employers cannot make jobs peer sourced
             job.setPeerSourced(false);
             job.setSourceUrl(null);
-            
-            // If they provided a company name, ignore it and keep the one set on creation or profile
+
+            // If they provided a company name, ignore it and keep the one set on creation
+            // or profile
             if (request.companyName() != null) {
                 try {
                     var profile = employerProfileService.getProfileByUserId(userId);
@@ -276,24 +283,39 @@ public class JobService {
                 }
             }
         } else {
-            if (request.companyName() != null) job.setCompanyName(request.companyName());
-            if (request.sourceUrl() != null) job.setSourceUrl(request.sourceUrl());
-            if (request.isPeerSourced() != null) job.setPeerSourced(request.isPeerSourced());
+            if (request.companyName() != null)
+                job.setCompanyName(request.companyName());
+            if (request.sourceUrl() != null)
+                job.setSourceUrl(request.sourceUrl());
+            if (request.isPeerSourced() != null)
+                job.setPeerSourced(request.isPeerSourced());
         }
 
-        if (request.locationCity() != null) job.setLocationCity(request.locationCity());
-        if (request.locationCountry() != null) job.setLocationCountry(request.locationCountry());
-        if (request.jobType() != null) job.setJobType(request.jobType());
-        if (request.workType() != null) job.setWorkType(request.workType());
-        if (request.experienceLevel() != null) job.setExperienceLevel(request.experienceLevel());
-        if (request.minQualification() != null) job.setMinQualification(request.minQualification());
-        if (request.minExperienceYears() != null) job.setMinExperienceYears(request.minExperienceYears());
-        if (request.salaryRangeMin() != null) job.setSalaryRangeMin(request.salaryRangeMin());
-        if (request.salaryRangeMax() != null) job.setSalaryRangeMax(request.salaryRangeMax());
-        if (request.salaryCurrency() != null) job.setSalaryCurrency(request.salaryCurrency());
-        if (request.applicationDeadline() != null) job.setApplicationDeadline(request.applicationDeadline());
-        
-        if (request.visibility() != null) job.setVisibility(request.visibility());
+        if (request.locationCity() != null)
+            job.setLocationCity(request.locationCity());
+        if (request.locationCountry() != null)
+            job.setLocationCountry(request.locationCountry());
+        if (request.jobType() != null)
+            job.setJobType(request.jobType());
+        if (request.workType() != null)
+            job.setWorkType(request.workType());
+        if (request.experienceLevel() != null)
+            job.setExperienceLevel(request.experienceLevel());
+        if (request.minQualification() != null)
+            job.setMinQualification(request.minQualification());
+        if (request.minExperienceYears() != null)
+            job.setMinExperienceYears(request.minExperienceYears());
+        if (request.salaryRangeMin() != null)
+            job.setSalaryRangeMin(request.salaryRangeMin());
+        if (request.salaryRangeMax() != null)
+            job.setSalaryRangeMax(request.salaryRangeMax());
+        if (request.salaryCurrency() != null)
+            job.setSalaryCurrency(request.salaryCurrency());
+        if (request.applicationDeadline() != null)
+            job.setApplicationDeadline(request.applicationDeadline());
+
+        if (request.visibility() != null)
+            job.setVisibility(request.visibility());
 
         job = jobPostRepository.save(job);
 
@@ -301,7 +323,7 @@ public class JobService {
         if (request.tags() != null) {
             List<JobTag> existingTags = jobTagRepository.findByJobId(jobId);
             jobTagRepository.deleteAll(existingTags);
-            
+
             for (String tag : request.tags()) {
                 JobTag jobTag = new JobTag();
                 jobTag.setJobPost(job);
@@ -408,14 +430,14 @@ public class JobService {
                     org.moseti.kedevsapi.shared.enums.NotificationCategory.FLAG,
                     "Job Flagged",
                     "Job '" + job.getTitle() + "' has been flagged.",
-                    "{\"jobId\":\"" + jobId + "\"}"
-            );
+                    "{\"jobId\":\"" + jobId + "\"}");
             emailService.sendJobFlaggedEmail(admin.getEmail(), job.getTitle(), reporterName, request.reason());
         }
     }
 
     @Transactional
-    public JobApplicationResponse applyToJob(UUID userId, UUID jobId, MultipartFile resume, MultipartFile coverLetterFile, String coverLetterText) {
+    public JobApplicationResponse applyToJob(UUID userId, UUID jobId, MultipartFile resume,
+            MultipartFile coverLetterFile, String coverLetterText) {
         JobPost job = jobPostRepository.findById(jobId)
                 .orElseThrow(() -> new JobNotFoundException("Job not found"));
 
@@ -443,7 +465,8 @@ public class JobService {
         org.moseti.kedevsapi.users.entity.DeveloperProfile devProfile = developerProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Developer profile not found"));
         if (devProfile.getAvailabilityStatus() == AvailabilityStatus.NOT_AVAILABLE) {
-            throw new BadRequestException("You are currently marked as Not Available. Update your status to apply for jobs.");
+            throw new BadRequestException(
+                    "You are currently marked as Not Available. Update your status to apply for jobs.");
         }
 
         // Upload resume to Cloudinary (required)
@@ -466,16 +489,16 @@ public class JobService {
 
         User applicant = userRepository.findById(userId).orElse(null);
         User poster = userRepository.findById(job.getPostedById()).orElse(null);
-        
+
         if (applicant != null && poster != null) {
             notificationService.notify(
                     job.getPostedById(),
                     org.moseti.kedevsapi.shared.enums.NotificationCategory.JOB,
                     "New Application",
                     applicant.getFullName() + " applied to your job: " + job.getTitle(),
-                    "{\"jobId\":\"" + jobId + "\",\"applicationId\":\"" + application.getId() + "\"}"
-            );
-            emailService.sendJobApplicationEmail(poster.getEmail(), poster.getFullName(), job.getTitle(), applicant.getFullName());
+                    "{\"jobId\":\"" + jobId + "\",\"applicationId\":\"" + application.getId() + "\"}");
+            emailService.sendJobApplicationEmail(poster.getEmail(), poster.getFullName(), job.getTitle(),
+                    applicant.getFullName());
         }
 
         return toJobApplicationResponse(application);
@@ -495,7 +518,8 @@ public class JobService {
     }
 
     @Transactional
-    public JobApplicationResponse updateApplicationStatus(UUID userId, UUID jobId, UUID applicationId, UpdateApplicationStatusRequest request) {
+    public JobApplicationResponse updateApplicationStatus(UUID userId, UUID jobId, UUID applicationId,
+            UpdateApplicationStatusRequest request) {
         JobPost job = jobPostRepository.findById(jobId)
                 .orElseThrow(() -> new JobNotFoundException("Job not found"));
 
@@ -507,19 +531,24 @@ public class JobService {
                 .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
 
         application.setStatus(request.status());
+        if (request.employerMessage() != null) {
+            application.setEmployerMessage(request.employerMessage());
+        }
         application = jobApplicationRepository.save(application);
 
         String statusLabel = switch (request.status()) {
-            case SHORTLISTED -> "accepted ✅";
+            case SHORTLISTED -> "accepted";
             case REJECTED -> "not moved forward with at this time";
             case VIEWED -> "reviewed";
             default -> request.status().name().toLowerCase();
         };
 
-        String notifTitle = request.status() == ApplicationStatus.SHORTLISTED ? "Application Accepted 🎉" : "Application Update";
-        String notifBody = "Your application for '" + job.getTitle() + "' at " + job.getCompanyName() + " has been " + statusLabel + ".";
+        String notifTitle = request.status() == ApplicationStatus.SHORTLISTED ? "Application Accepted 🎉"
+                : (request.status() == ApplicationStatus.REJECTED ? "Application Rejected ✗" : "Application Update");
+        String notifBody = "Your application for '" + job.getTitle() + "' at " + job.getCompanyName() + " has been "
+                + statusLabel + ".";
 
-        if (request.status() == ApplicationStatus.SHORTLISTED && request.employerMessage() != null && !request.employerMessage().isBlank()) {
+        if (request.employerMessage() != null && !request.employerMessage().isBlank()) {
             notifBody += "\n\nMessage from the employer: " + request.employerMessage();
         }
 
@@ -528,8 +557,7 @@ public class JobService {
                 org.moseti.kedevsapi.shared.enums.NotificationCategory.JOB,
                 notifTitle,
                 notifBody,
-                "{\"jobId\":\"" + jobId + "\",\"applicationId\":\"" + application.getId() + "\"}"
-        );
+                "{\"jobId\":\"" + jobId + "\",\"applicationId\":\"" + application.getId() + "\"}");
 
         return toJobApplicationResponse(application);
     }
@@ -631,7 +659,8 @@ public class JobService {
         } else if (postedByRole == Role.EMPLOYER) {
             var employerProfile = employerProfileRepository.findByUserId(job.getPostedById());
             postedByProfileId = employerProfile.map(org.moseti.kedevsapi.shared.entity.BaseEntity::getId).orElse(null);
-            postedByCompanyName = employerProfile.map(org.moseti.kedevsapi.users.entity.EmployerProfile::getCompanyName).orElse(null);
+            postedByCompanyName = employerProfile.map(org.moseti.kedevsapi.users.entity.EmployerProfile::getCompanyName)
+                    .orElse(null);
         }
 
         boolean hasApplied = false;
@@ -645,7 +674,8 @@ public class JobService {
                     .orElse(null);
 
             if (job.getPostedById().equals(currentUserId)) {
-                applicationCount = (int) jobApplicationRepository.findByJobId(job.getId(), Pageable.unpaged()).getTotalElements();
+                applicationCount = (int) jobApplicationRepository.findByJobId(job.getId(), Pageable.unpaged())
+                        .getTotalElements();
             }
         }
 
@@ -692,8 +722,7 @@ public class JobService {
                 job.isPinned(),
                 job.getPinnedUntil(),
                 postedByProfileId,
-                postedByCompanyName
-        );
+                postedByCompanyName);
     }
 
     private JobSummaryResponse toJobSummaryResponse(JobPost job) {
@@ -726,8 +755,7 @@ public class JobService {
                 job.getCreatedAt(),
                 postedByRole,
                 job.isPinned(),
-                job.getPinnedUntil()
-        );
+                job.getPinnedUntil());
     }
 
     private JobApplicationResponse toJobApplicationResponse(JobApplication application) {
@@ -744,10 +772,12 @@ public class JobService {
                 .orElse(null);
 
         String coverLetterUrl = application.getCoverLetterUrl() != null
-                ? apiBaseUrl + "/api/v1/jobs/" + application.getJobPost().getId() + "/applications/" + application.getId() + "/cover-letter"
+                ? apiBaseUrl + "/api/v1/jobs/" + application.getJobPost().getId() + "/applications/"
+                        + application.getId() + "/cover-letter"
                 : null;
         String resumeUrl = application.getResumeUrl() != null
-                ? apiBaseUrl + "/api/v1/jobs/" + application.getJobPost().getId() + "/applications/" + application.getId() + "/resume"
+                ? apiBaseUrl + "/api/v1/jobs/" + application.getJobPost().getId() + "/applications/"
+                        + application.getId() + "/resume"
                 : null;
 
         return new JobApplicationResponse(
@@ -764,9 +794,9 @@ public class JobService {
                 coverLetterUrl,
                 resumeUrl,
                 application.getStatus(),
+                application.getEmployerMessage(),
                 application.getCreatedAt(),
-                application.getUpdatedAt()
-        );
+                application.getUpdatedAt());
     }
 
     /**
@@ -787,8 +817,7 @@ public class JobService {
                         job.getLocationCountry(),
                         job.getWorkType(),
                         job.getJobType(),
-                        job.getPinnedUntil()
-                ))
+                        job.getPinnedUntil()))
                 .toList();
     }
 
@@ -810,19 +839,21 @@ public class JobService {
                         job.getId(),
                         job.getTitle(),
                         job.getCompanyName(),
-                        job.getPinnedUntil()
-                ))
+                        job.getPinnedUntil()))
                 .toList();
 
         java.math.BigDecimal dayPrice = platformSettingRepository.findBySettingKey("PINNED_JOB_DAY_FEE")
                 .map(s -> new java.math.BigDecimal(s.getSettingValue()))
-                .orElse(java.math.BigDecimal.valueOf(org.moseti.kedevsapi.shared.util.Constants.DEFAULT_PINNED_JOB_DAY_FEE));
+                .orElse(java.math.BigDecimal
+                        .valueOf(org.moseti.kedevsapi.shared.util.Constants.DEFAULT_PINNED_JOB_DAY_FEE));
         java.math.BigDecimal threeDaysPrice = platformSettingRepository.findBySettingKey("PINNED_JOB_3DAYS_FEE")
                 .map(s -> new java.math.BigDecimal(s.getSettingValue()))
-                .orElse(java.math.BigDecimal.valueOf(org.moseti.kedevsapi.shared.util.Constants.DEFAULT_PINNED_JOB_3DAYS_FEE));
+                .orElse(java.math.BigDecimal
+                        .valueOf(org.moseti.kedevsapi.shared.util.Constants.DEFAULT_PINNED_JOB_3DAYS_FEE));
         java.math.BigDecimal sevenDaysPrice = platformSettingRepository.findBySettingKey("PINNED_JOB_7DAYS_FEE")
                 .map(s -> new java.math.BigDecimal(s.getSettingValue()))
-                .orElse(java.math.BigDecimal.valueOf(org.moseti.kedevsapi.shared.util.Constants.DEFAULT_PINNED_JOB_7DAYS_FEE));
+                .orElse(java.math.BigDecimal
+                        .valueOf(org.moseti.kedevsapi.shared.util.Constants.DEFAULT_PINNED_JOB_7DAYS_FEE));
 
         return new PinnedSlotAvailabilityResponse(
                 maxSlots,
@@ -831,7 +862,6 @@ public class JobService {
                 activeSlots,
                 dayPrice,
                 threeDaysPrice,
-                sevenDaysPrice
-        );
+                sevenDaysPrice);
     }
 }

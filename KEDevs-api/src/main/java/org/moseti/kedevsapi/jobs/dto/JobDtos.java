@@ -172,6 +172,7 @@ public class JobDtos {
             String coverLetterUrl,
             String resumeUrl,
             ApplicationStatus status,
+            String employerMessage,
             LocalDateTime createdAt,
             LocalDateTime updatedAt
     ) {}

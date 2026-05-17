@@ -29,6 +29,9 @@ public class JobApplication extends BaseEntity {
     @Column(name = "resume_url")
     private String resumeUrl;
 
+    @Column(name = "employer_message", columnDefinition = "TEXT")
+    private String employerMessage;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ApplicationStatus status = ApplicationStatus.PENDING;

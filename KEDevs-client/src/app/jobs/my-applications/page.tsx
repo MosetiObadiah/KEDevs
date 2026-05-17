@@ -40,7 +40,8 @@ export default function MyApplications() {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    const fetchApplications = async () => {
+    const fetchApplications = async (showLoading = true) => {
+      if (showLoading) setLoading(true);
       try {
         const response = await jobService.getMyApplications();
         if (response.success) {
@@ -51,10 +52,19 @@ export default function MyApplications() {
       } catch (err: any) {
         setError(err.message || 'An error occurred while loading applications.');
       } finally {
-        setLoading(false);
+        if (showLoading) setLoading(false);
       }
     };
-    fetchApplications();
+    
+    // Initial fetch with full spinner
+    fetchApplications(true);
+
+    // Dynamic background polling every 4 seconds
+    const interval = setInterval(() => {
+      fetchApplications(false);
+    }, 4000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const filteredApps = applications.filter(app => 
@@ -64,7 +74,7 @@ export default function MyApplications() {
 
   const stats = {
     total: applications.length,
-    pending: applications.filter(a => a.status === 'PENDING').length,
+    pending: applications.filter(a => a.status === 'PENDING' || a.status === 'VIEWED').length,
     shortlisted: applications.filter(a => a.status === 'SHORTLISTED').length,
     rejected: applications.filter(a => a.status === 'REJECTED').length,
   };
