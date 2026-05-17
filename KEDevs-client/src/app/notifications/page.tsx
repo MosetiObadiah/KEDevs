@@ -32,6 +32,7 @@ import {
 import { userService } from '@/services/userService';
 import { notificationService } from '@/services/notificationService';
 import { useNotification } from '@/context/NotificationContext';
+import { useAuth } from '@/context/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
@@ -73,6 +74,7 @@ export default function NotificationsPage() {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [activeFilter, setActiveFilter] = useState('ALL');
+  const { user } = useAuth();
   const { decrementUnreadCount, refreshUnreadCount, clearUnreadCount, latestNotification } = useNotification();
   const router = useRouter();
 
@@ -121,6 +123,54 @@ export default function NotificationsPage() {
       refreshUnreadCount();
     } catch (error) {
       toast.error('Failed to update status');
+    }
+  };
+
+  const handleNotificationClick = async (n: Notification) => {
+    if (!n.isRead) {
+      await handleMarkAsRead(n.id);
+    }
+
+    if (!n.metadata) return;
+
+    let meta = n.metadata;
+    if (typeof meta === 'string') {
+      try {
+        meta = JSON.parse(meta);
+      } catch (e) {
+        console.error('Failed to parse metadata', e);
+      }
+    }
+
+    if (!meta) return;
+
+    switch (n.category) {
+      case 'FORUM':
+        if (meta.jobId) {
+          router.push(`/jobs/${meta.jobId}${meta.commentId ? `#comment-${meta.commentId}` : ''}`);
+        }
+        break;
+      case 'JOB':
+        if (user?.role === 'DEVELOPER') {
+          router.push('/jobs/my-applications');
+        } else if (meta.jobId) {
+          router.push(`/jobs/${meta.jobId}/applications`);
+        }
+        break;
+      case 'CONTACT':
+        if (meta.senderDeveloperId) {
+          router.push(`/developers/${meta.senderDeveloperId}`);
+        } else if (meta.companyId) {
+          router.push(`/companies/${meta.companyId}`);
+        }
+        break;
+      case 'PAYMENT':
+        if (user?.role === 'EMPLOYER') {
+          router.push('/profile/me');
+        }
+        break;
+      default:
+        break;
     }
   };
 
@@ -289,7 +339,7 @@ export default function NotificationsPage() {
                   </div>
                   <div className="space-y-1">
                     <h3 className="text-2xl font-bold text-foreground">Inbox is empty</h3>
-                    <p className="text-muted-foreground font-medium max-w-xs">No active alerts found for this category. You're all caught up!</p>
+                    <p className="text-muted-foreground font-medium max-w-xs">No active alerts found for this category. You&apos;re all caught up!</p>
                   </div>
                   {activeFilter !== 'ALL' && (
                     <Button variant="outline" onClick={() => setActiveFilter('ALL')} className="font-bold border-primary/20">
@@ -311,7 +361,7 @@ export default function NotificationsPage() {
                         "group border-border/50 hover:shadow-xl hover:shadow-primary/5 transition-all overflow-hidden cursor-pointer",
                         n.isRead ? "bg-white/60" : "bg-white border-l-4 border-l-primary"
                       )}
-                      onClick={() => handleMarkAsRead(n.id)}
+                      onClick={() => handleNotificationClick(n)}
                     >
                       <CardContent className="p-8 flex items-start gap-6">
                         <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm", config.color)}>
@@ -348,7 +398,7 @@ export default function NotificationsPage() {
                                 <MessageSquare className="h-3 w-3" /> Message Content
                               </div>
                               <p className="text-sm font-medium text-foreground italic">
-                                "{n.metadata.message}"
+                                &quot;{n.metadata.message}&quot;
                               </p>
                               <div className="flex flex-wrap gap-2 pt-2">
                                 {n.metadata.senderDeveloperId ? (
