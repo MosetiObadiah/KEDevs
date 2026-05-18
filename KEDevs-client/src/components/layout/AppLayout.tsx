@@ -178,14 +178,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isLoggedIn) return;
     
-    // Check status immediately on transition
+    // Check status immediately on mount / connection change
     refreshUserStatus();
     
     // Poll status every 60 seconds for background enforcement
     const interval = setInterval(refreshUserStatus, 60000);
     
     return () => clearInterval(interval);
-  }, [pathname, isLoggedIn]);
+  }, [isLoggedIn, refreshUserStatus]);
 
   const handleLogout = () => {
     logout();

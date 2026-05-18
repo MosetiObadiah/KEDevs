@@ -1,5 +1,5 @@
 'use client';
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { notificationService } from '@/services/notificationService';
 import { Client } from '@stomp/stompjs';
@@ -24,7 +24,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [stompClient, setStompClient] = useState<Client | null>(null);
   const [latestNotification, setLatestNotification] = useState<any | null>(null);
 
-  const refreshUnreadCount = async () => {
+  const refreshUnreadCount = useCallback(async () => {
     if (!isLoggedIn || user?.accountStatus === 'BANNED' || user?.accountStatus === 'SUSPENDED') return;
     try {
       const response = await notificationService.getUnreadCount();
@@ -34,7 +34,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     } catch (err) {
       console.error('Failed to fetch unread count:', err);
     }
-  };
+  }, [isLoggedIn, user?.accountStatus]);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -42,14 +42,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     } else {
       setUnreadCount(0);
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, refreshUnreadCount]);
 
   useEffect(() => {
     if (!isLoggedIn || !user || user.accountStatus === 'BANNED' || user.accountStatus === 'SUSPENDED') {
-      if (stompClient) {
-        stompClient.deactivate();
-        setStompClient(null);
-      }
+      setStompClient(null);
       return;
     }
 
@@ -70,14 +67,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       client.subscribe('/user/queue/notifications', (message) => {
         try {
           const payload = JSON.parse(message.body);
-          // Web socket framing payloads map into `payload.data` or root if serialized differently.
-          // Standard backend pattern wraps into: WebSocketEvent { type, data }
           const notification = payload.data || payload;
           
-          // More robust approach: fetch the actual count from backend to ensure synchronization
           refreshUnreadCount();
           setLatestNotification(notification);
-          // Toast disabled per user request to keep notifications silent until inbox is visited
         } catch (err) {
           console.error('Error parsing websocket message:', err);
         }
@@ -99,18 +92,40 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     return () => {
       client.deactivate();
     };
-  }, [isLoggedIn, user?.id]);
+  }, [isLoggedIn, user?.id, user?.accountStatus, refreshUnreadCount]);
+
+  const decrementUnreadCount = useCallback(() => {
+    setUnreadCount(prev => Math.max(0, prev - 1));
+  }, []);
+
+  const incrementUnreadCount = useCallback(() => {
+    setUnreadCount(prev => prev + 1);
+  }, []);
+
+  const clearUnreadCount = useCallback(() => {
+    setUnreadCount(0);
+  }, []);
+
+  const contextValue = useMemo(() => ({
+    unreadCount,
+    decrementUnreadCount,
+    incrementUnreadCount,
+    refreshUnreadCount,
+    clearUnreadCount,
+    latestNotification,
+    stompClient
+  }), [
+    unreadCount,
+    decrementUnreadCount,
+    incrementUnreadCount,
+    refreshUnreadCount,
+    clearUnreadCount,
+    latestNotification,
+    stompClient
+  ]);
 
   return (
-    <NotificationContext.Provider value={{
-      unreadCount,
-      decrementUnreadCount: () => setUnreadCount(prev => Math.max(0, prev - 1)),
-      incrementUnreadCount: () => setUnreadCount(prev => prev + 1),
-      refreshUnreadCount,
-      clearUnreadCount: () => setUnreadCount(0),
-      latestNotification,
-      stompClient
-    }}>
+    <NotificationContext.Provider value={contextValue}>
       {children}
     </NotificationContext.Provider>
   );

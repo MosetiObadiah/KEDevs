@@ -1,6 +1,6 @@
 // src/components/chat/ChatSidebar.tsx
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNotification } from '@/context/NotificationContext';
 import { chatService, ConversationSummary } from '@/services/chatService';
 import { MessageSquare, Users, Loader2, Calendar } from 'lucide-react';
@@ -26,25 +26,31 @@ export default function ChatSidebar({ open, onOpenChange, onUnreadChange }: Chat
 
   const activeConv = conversations.find((c) => c.id === activeConversationId);
 
-  const fetchConversations = async () => {
+  const fetchConversations = useCallback(async (isCancelled: () => boolean = () => false) => {
     if (!open) return;
     setLoading(true);
     try {
       const response = await chatService.getConversations();
-      if (response.success && response.data) {
+      if (!isCancelled() && response.success && response.data) {
         setConversations(response.data);
         updateTotalUnread(response.data);
       }
     } catch (err) {
       console.error('Failed to fetch conversations:', err);
     } finally {
-      setLoading(false);
+      if (!isCancelled()) {
+        setLoading(false);
+      }
     }
-  };
+  }, [open, onUnreadChange]);
 
   useEffect(() => {
-    fetchConversations();
-  }, [open]);
+    let cancelled = false;
+    fetchConversations(() => cancelled);
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchConversations]);
 
   const updateTotalUnread = (list: ConversationSummary[]) => {
     const total = list.reduce((acc, curr) => acc + curr.unreadCount, 0);

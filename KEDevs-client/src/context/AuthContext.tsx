@@ -1,7 +1,7 @@
 // src/context/AuthContext.tsx
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useMemo, useCallback } from 'react';
 import { User } from '@/lib/types';
 import { authService } from '@/services/authService';
 import { useRouter } from 'next/navigation';
@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const handleAuthSuccess = (data: any) => {
+  const handleAuthSuccess = useCallback((data: any) => {
     const { accessToken, refreshToken, userId, email, fullName, role, emailVerified, requiresApproval, onboarded } = data;
 
     const userData: User = {
@@ -91,9 +91,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         router.push('/onboarding/employer');
       }
     }
-  };
+  }, [router]);
 
-  const login = async (credentials: any) => {
+  const login = useCallback(async (credentials: any) => {
     setIsLoading(true);
     try {
       const response = await authService.login(credentials);
@@ -111,9 +111,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [handleAuthSuccess]);
 
-  const googleLogin = async (idToken: string, role?: string) => {
+  const googleLogin = useCallback(async (idToken: string, role?: string) => {
     setIsLoading(true);
     try {
       const response = await authService.googleAuth({ idToken, role });
@@ -123,9 +123,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [handleAuthSuccess]);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     const refreshToken = localStorage.getItem('refreshToken');
     if (refreshToken) {
       authService.logout(refreshToken).catch(console.error);
@@ -137,14 +137,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('isOnboarded');
     router.push('/login');
-  };
+  }, [router]);
 
-  const completeOnboarding = () => {
+  const completeOnboarding = useCallback(() => {
     setIsOnboarded(true);
     localStorage.setItem('isOnboarded', 'true');
-  };
+  }, []);
 
-  const setAuthData = (userData: User, token: string, refreshToken?: string) => {
+  const setAuthData = useCallback((userData: User, token: string, refreshToken?: string) => {
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('token', token);
@@ -153,9 +153,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setIsOnboarded(false);
     localStorage.removeItem('isOnboarded');
-  };
+  }, []);
 
-  const refreshUserStatus = async () => {
+  const refreshUserStatus = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) return;
@@ -177,21 +177,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       console.error('Failed to refresh user status', e);
     }
-  };
+  }, []);
+
+  const contextValue = useMemo(() => ({
+    user,
+    isLoggedIn: !!user,
+    isOnboarded,
+    login,
+    googleLogin,
+    logout,
+    completeOnboarding,
+    setAuthData,
+    isLoading,
+    refreshUserStatus
+  }), [
+    user,
+    isOnboarded,
+    login,
+    googleLogin,
+    logout,
+    completeOnboarding,
+    setAuthData,
+    isLoading,
+    refreshUserStatus
+  ]);
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      isLoggedIn: !!user,
-      isOnboarded,
-      login,
-      googleLogin,
-      logout,
-      completeOnboarding,
-      setAuthData,
-      isLoading,
-      refreshUserStatus
-    }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
