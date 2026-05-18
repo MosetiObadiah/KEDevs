@@ -53,20 +53,20 @@ export default function PricingPage() {
     return (
       <div className="flex flex-col min-h-screen bg-muted/30 items-center justify-center space-y-4">
         <Loader2 className="h-10 w-10 text-primary animate-spin" />
-        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Loading pricing plans...</p>
+        <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Loading pricing plans...</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-muted/30">
+    <div className="flex flex-col min-h-screen bg-slate-50/30">
       <PageContainer className="max-w-full px-8 xl:px-16 pt-8 pb-12">
         
         {/* Page Title & Subtitle */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
           <div>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Pricing Plans</h1>
-            <p className="text-sm font-semibold text-slate-500 mt-1">
+            <p className="text-sm font-medium text-slate-500 mt-1">
               Simple, upfront pricing. Boost visibility, feature jobs, or verify identity with M-Pesa.
             </p>
           </div>
@@ -76,10 +76,10 @@ export default function PricingPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
 
           {/* Identity Verification */}
-          <Card className="bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col h-full hover:shadow-md transition-shadow relative">
+          <Card className="bg-white rounded-2xl border border-slate-100 flex flex-col h-full transition-all duration-300 hover:border-slate-200 relative shadow-none">
             <CardHeader className="p-8 pb-6">
               <CardTitle className="text-2xl font-black text-slate-900 tracking-tight mb-1">Verified Badge</CardTitle>
-              <CardDescription className="text-sm font-semibold text-slate-500">
+              <CardDescription className="text-sm font-medium text-slate-500">
                 Establish trust with a permanent identity check.
               </CardDescription>
             </CardHeader>
@@ -87,17 +87,17 @@ export default function PricingPage() {
               <div className="space-y-4">
                 <div className="flex items-end gap-2">
                   <div className="text-4xl font-black tracking-tighter text-slate-900">
-                    <span className="text-sm text-slate-400 mr-1 font-bold">KES</span>
+                    <span className="text-sm text-slate-500 mr-1 font-medium">KES</span>
                     {getPrice('VERIFICATION_FEE_DEVELOPER', '250')}
                   </div>
-                  <div className="text-xs font-bold text-slate-400 pb-1 uppercase tracking-widest">/ Devs</div>
+                  <div className="text-xs font-medium text-slate-500 pb-1 uppercase tracking-widest">/ Devs</div>
                 </div>
                 <div className="flex items-end gap-2">
                   <div className="text-3xl font-black tracking-tighter text-slate-700">
-                    <span className="text-xs text-slate-400 mr-1 font-bold">KES</span>
+                    <span className="text-xs text-slate-500 mr-1 font-medium">KES</span>
                     {getPrice('VERIFICATION_FEE_EMPLOYER', '500')}
                   </div>
-                  <div className="text-[10px] font-bold text-slate-400 pb-1 uppercase tracking-widest">/ Employers</div>
+                  <div className="text-[10px] font-medium text-slate-500 pb-1 uppercase tracking-widest">/ Employers</div>
                 </div>
               </div>
               <ul className="space-y-4 pt-6 border-t border-slate-100/60">
@@ -108,8 +108,8 @@ export default function PricingPage() {
                   'One-time payment, valid forever'
                 ].map((feature, i) => (
                   <li key={i} className="flex items-start gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-purple-600 shrink-0 mt-0.5" />
-                    <span className="text-sm font-semibold text-slate-600 leading-snug">{feature}</span>
+                    <CheckCircle2 className="h-5 w-5 text-azure-600 shrink-0 mt-0.5" />
+                    <span className="text-sm font-medium text-slate-700 leading-snug">{feature}</span>
                   </li>
                 ))}
               </ul>
@@ -117,7 +117,7 @@ export default function PricingPage() {
             <CardFooter className="p-8 pt-0">
               <Button 
                 onClick={() => handleAction('/verify')} 
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold h-14 text-sm uppercase tracking-wider transition-all"
+                className="w-full bg-azure-600 hover:bg-azure-700 text-white rounded-2xl font-medium h-14 text-sm uppercase tracking-wider transition-all"
               >
                 Get Verified <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -125,36 +125,36 @@ export default function PricingPage() {
           </Card>
 
           {/* Job Pinning */}
-          <Card className="bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col h-full hover:shadow-md transition-shadow relative">
+          <Card className="bg-white rounded-2xl border border-slate-100 flex flex-col h-full transition-all duration-300 hover:border-slate-200 relative shadow-none">
             <div className="absolute top-8 right-8">
-              <Badge className="bg-purple-100 text-purple-600 border-none font-bold uppercase tracking-wider text-[10px] py-1 px-3 rounded-full hover:bg-purple-200">
+              <Badge className="bg-azure-50 text-azure-600 border-none font-medium uppercase tracking-wider text-[10px] py-1 px-3 rounded-full hover:bg-azure-100">
                 Most Popular
               </Badge>
             </div>
             <CardHeader className="p-8 pb-6">
               <CardTitle className="text-2xl font-black text-slate-900 tracking-tight mb-1">Feature a Job</CardTitle>
-              <CardDescription className="text-sm font-semibold text-slate-500">
+              <CardDescription className="text-sm font-medium text-slate-500">
                 Pin your job to the top of the board for maximum reach.
               </CardDescription>
             </CardHeader>
             <CardContent className="p-8 pt-0 space-y-8 flex-1">
               <div className="space-y-4">
                 <div className="flex items-end justify-between border-b border-slate-100/60 pb-3">
-                  <div className="text-xs font-bold uppercase tracking-widest text-slate-500">1 Day Boost</div>
+                  <div className="text-xs font-medium uppercase tracking-widest text-slate-500">1 Day Boost</div>
                   <div className="text-xl font-black tracking-tighter text-slate-900">
-                    <span className="text-xs text-slate-400 mr-1 font-bold">KES</span>{getPrice('PINNED_JOB_DAY_FEE', '50')}
+                    <span className="text-xs text-slate-500 mr-1 font-medium">KES</span>{getPrice('PINNED_JOB_DAY_FEE', '50')}
                   </div>
                 </div>
                 <div className="flex items-end justify-between border-b border-slate-100/60 pb-3">
-                  <div className="text-xs font-bold uppercase tracking-widest text-purple-600">3 Days Featured</div>
-                  <div className="text-3xl font-black tracking-tighter text-purple-600">
-                    <span className="text-sm text-purple-400 mr-1 font-bold">KES</span>{getPrice('PINNED_JOB_3DAYS_FEE', '125')}
+                  <div className="text-xs font-medium uppercase tracking-widest text-azure-600">3 Days Featured</div>
+                  <div className="text-3xl font-black tracking-tighter text-azure-600">
+                    <span className="text-sm text-azure-400 mr-1 font-medium">KES</span>{getPrice('PINNED_JOB_3DAYS_FEE', '125')}
                   </div>
                 </div>
                 <div className="flex items-end justify-between">
-                  <div className="text-xs font-bold uppercase tracking-widest text-slate-500">7 Days Premium</div>
+                  <div className="text-xs font-medium uppercase tracking-widest text-slate-500">7 Days Premium</div>
                   <div className="text-xl font-black tracking-tighter text-slate-900">
-                    <span className="text-xs text-slate-400 mr-1 font-bold">KES</span>{getPrice('PINNED_JOB_7DAYS_FEE', '250')}
+                    <span className="text-xs text-slate-500 mr-1 font-medium">KES</span>{getPrice('PINNED_JOB_7DAYS_FEE', '250')}
                   </div>
                 </div>
               </div>
@@ -166,8 +166,8 @@ export default function PricingPage() {
                   'Only 3 slots available at any time'
                 ].map((feature, i) => (
                   <li key={i} className="flex items-start gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-purple-600 shrink-0 mt-0.5" />
-                    <span className="text-sm font-semibold text-slate-600 leading-snug">{feature}</span>
+                    <CheckCircle2 className="h-5 w-5 text-azure-600 shrink-0 mt-0.5" />
+                    <span className="text-sm font-medium text-slate-700 leading-snug">{feature}</span>
                   </li>
                 ))}
               </ul>
@@ -175,7 +175,7 @@ export default function PricingPage() {
             <CardFooter className="p-8 pt-0">
               <Button 
                 onClick={() => handleAction('/jobs/post')} 
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold h-14 text-sm uppercase tracking-wider transition-all"
+                className="w-full bg-azure-600 hover:bg-azure-700 text-white rounded-2xl font-medium h-14 text-sm uppercase tracking-wider transition-all"
               >
                 Post & Pin a Job <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -183,26 +183,26 @@ export default function PricingPage() {
           </Card>
 
           {/* Developer Spotlight */}
-          <Card className="bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col h-full hover:shadow-md transition-shadow relative">
+          <Card className="bg-white rounded-2xl border border-slate-100 flex flex-col h-full transition-all duration-300 hover:border-slate-200 relative shadow-none">
             <CardHeader className="p-8 pb-6">
               <CardTitle className="text-2xl font-black text-slate-900 tracking-tight mb-1">Talent Spotlight</CardTitle>
-              <CardDescription className="text-sm font-semibold text-slate-500">
+              <CardDescription className="text-sm font-medium text-slate-500">
                 Showcase your profile to top hiring companies.
               </CardDescription>
             </CardHeader>
             <CardContent className="p-8 pt-0 space-y-8 flex-1">
               <div className="space-y-4">
                 <div className="flex items-end justify-between border-b border-slate-100/60 pb-3">
-                  <div className="text-xs font-bold uppercase tracking-widest text-slate-500">24 Hour Feature</div>
+                  <div className="text-xs font-medium uppercase tracking-widest text-slate-500">24 Hour Feature</div>
                   <div className="text-xl font-black tracking-tighter text-slate-900">
-                    <span className="text-xs text-slate-400 mr-1 font-bold">KES</span>{getPrice('SPOTLIGHT_DAY_FEE', '50')}
+                    <span className="text-xs text-slate-500 mr-1 font-medium">KES</span>{getPrice('SPOTLIGHT_DAY_FEE', '50')}
                   </div>
                 </div>
                 <div className="flex items-end justify-between">
-                  <div className="text-xs font-bold uppercase tracking-widest text-purple-600">7 Day Feature</div>
-                  <div className="text-3xl font-black tracking-tighter text-purple-600">
+                  <div className="text-xs font-medium uppercase tracking-widest text-azure-600">7 Day Feature</div>
+                  <div className="text-3xl font-black tracking-tighter text-azure-600">
                     {/* DEVELOPER NOTE: Talent Spotlight KES 1 prices are placeholders. Ensure settings are seeded in production. */}
-                    <span className="text-sm text-purple-400 mr-1 font-bold">KES</span>{getPrice('SPOTLIGHT_WEEK_FEE', '250')}
+                    <span className="text-sm text-azure-400 mr-1 font-medium">KES</span>{getPrice('SPOTLIGHT_WEEK_FEE', '250')}
                   </div>
                 </div>
               </div>
@@ -214,8 +214,8 @@ export default function PricingPage() {
                   'Limited to 5 slots at any given time'
                 ].map((feature, i) => (
                   <li key={i} className="flex items-start gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-purple-600 shrink-0 mt-0.5" />
-                    <span className="text-sm font-semibold text-slate-600 leading-snug">{feature}</span>
+                    <CheckCircle2 className="h-5 w-5 text-azure-600 shrink-0 mt-0.5" />
+                    <span className="text-sm font-medium text-slate-700 leading-snug">{feature}</span>
                   </li>
                 ))}
               </ul>
@@ -223,7 +223,7 @@ export default function PricingPage() {
             <CardFooter className="p-8 pt-0">
               <Button 
                 onClick={() => handleAction('/spotlight')} 
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold h-14 text-sm uppercase tracking-wider transition-all"
+                className="w-full bg-azure-600 hover:bg-azure-700 text-white rounded-2xl font-medium h-14 text-sm uppercase tracking-wider transition-all"
               >
                 Join Spotlight <ArrowRight className="ml-2 h-4 w-4" />
               </Button>

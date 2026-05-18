@@ -43,11 +43,11 @@ function EmptySpotlightCard({ type }: { type: string }) {
       <div className="w-16 h-16 rounded-full bg-background flex items-center justify-center shadow-sm mb-6">
         <Zap className="h-8 w-8 text-muted-foreground" />
       </div>
-      <h3 className="text-xl font-bold mb-2">Slot Available</h3>
+      <h3 className="text-xl font-medium mb-2">Slot Available</h3>
       <p className="text-sm text-muted-foreground max-w-[260px] mb-8 leading-relaxed">
         This spotlight spot is currently vacant. Verified developers can claim it to boost their visibility.
       </p>
-      <Button variant="outline" className="font-semibold" asChild onClick={handleClaim}>
+      <Button variant="outline" className="font-medium" asChild onClick={handleClaim}>
         <Link href="/profile/me?buySpotlight=true">Claim This Spot</Link>
       </Button>
     </Card>
@@ -69,16 +69,16 @@ function SpotlightBigCard({ dev, type }: { dev: any, type: string }) {
             </AvatarFallback>
           </Avatar>
           <div className="mb-4">
-            <h3 className="text-xl font-bold flex items-center justify-center gap-1.5 mb-1">
+            <h3 className="text-xl font-medium flex items-center justify-center gap-1.5 mb-1">
               {dev.developerName}
               {dev.isVerified && <CheckCircle2 className="h-4 w-4 text-primary" />}
             </h3>
-            <p className="text-sm font-semibold text-muted-foreground">{dev.currentLastRole}</p>
+            <p className="text-sm font-medium text-muted-foreground">{dev.currentLastRole}</p>
           </div>
           <p className="text-sm text-muted-foreground mb-8 leading-relaxed line-clamp-3">
             {dev.bio || "Full-stack developer specializing in building scalable web applications."}
           </p>
-          <Button className="w-full font-bold group" asChild>
+          <Button className="w-full font-medium group" asChild>
             <Link href={`/developers/${dev.developerId || dev.id}`}>
               View Profile <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Link>
@@ -100,7 +100,7 @@ function SpotlightBigCard({ dev, type }: { dev: any, type: string }) {
                   </div>
                 )}
               </div>
-              <h4 className="text-lg font-bold mb-2">{project.title}</h4>
+              <h4 className="text-lg font-medium mb-2">{project.title}</h4>
               <p className="text-sm text-muted-foreground line-clamp-2 mb-6 flex-1">
                 {project.description}
               </p>
@@ -112,7 +112,7 @@ function SpotlightBigCard({ dev, type }: { dev: any, type: string }) {
                 ))}
               </div>
               {project.projectUrl && (
-                <Button variant="ghost" size="sm" className="w-fit -ml-2 text-primary font-bold hover:text-primary hover:bg-primary/5" asChild>
+                <Button variant="ghost" size="sm" className="w-fit -ml-2 text-primary font-medium hover:text-primary hover:bg-primary/5" asChild>
                   <a href={project.projectUrl} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="mr-2 h-3.5 w-3.5" /> Visit Live Project
                   </a>
@@ -137,7 +137,7 @@ export default function SpotlightSection({ dayDev, weekDev, loading, hideTitle }
       <div className="container mx-auto px-6">
         {!hideTitle && (
           <div className="flex flex-col items-start mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
+            <h2 className="text-3xl md:text-4xl font-medium tracking-tight mb-4">
               Featured <span className="text-primary">Talent</span>
             </h2>
             <p className="text-muted-foreground max-w-lg">

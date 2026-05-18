@@ -218,7 +218,7 @@ export default function DeveloperOnboarding() {
     return (
       <div className="min-h-screen bg-slate-50/50 flex flex-col items-center justify-center p-4">
         <div className="text-center space-y-6 max-w-md animate-in zoom-in-95 duration-500">
-          <div className="h-24 w-24 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto border-4 border-emerald-100 shadow-xl">
+          <div className="h-24 w-24 bg-cyan-50 text-cyan-600 rounded-full flex items-center justify-center mx-auto border-4 border-emerald-100 shadow-xl">
             <CheckCircle2 className="h-12 w-12" />
           </div>
           <div className="space-y-2">
@@ -242,7 +242,7 @@ export default function DeveloperOnboarding() {
       <div className="w-full max-w-2xl animate-in fade-in slide-in-from-bottom-8 duration-700">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-black tracking-tight text-slate-900">Developer Onboarding</h1>
-          <p className="text-slate-500 font-semibold mt-2">Let's build your professional presence</p>
+          <p className="text-slate-500 font-medium mt-2">Let's build your professional presence</p>
         </div>
 
         <div className="flex justify-between items-center mb-12 relative px-4 max-w-md mx-auto">
@@ -269,7 +269,7 @@ export default function DeveloperOnboarding() {
           })}
         </div>
 
-        <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-primary/5 overflow-hidden">
+        <Card className="rounded-xl-[2.5rem] border-none shadow-2xl shadow-primary/5 overflow-hidden">
           <CardHeader className="bg-slate-900 p-8 text-white">
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center">
@@ -279,7 +279,7 @@ export default function DeveloperOnboarding() {
               </div>
               <div>
                 <CardTitle className="text-2xl font-black uppercase tracking-tight">{steps[activeStep].label}</CardTitle>
-                <CardDescription className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+                <CardDescription className="text-slate-500 font-medium uppercase text-[10px] tracking-widest">
                   Step {activeStep + 1} of {steps.length}
                 </CardDescription>
               </div>
@@ -291,31 +291,31 @@ export default function DeveloperOnboarding() {
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">First Name</Label>
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">First Name</Label>
                     <Input
                       value={formData.firstName}
                       onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                      className="h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
+                      className="h-14 rounded-2xl border-slate-200 font-medium focus-visible:ring-primary/20"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Last Name</Label>
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">Last Name</Label>
                     <Input
                       value={formData.lastName}
                       onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                      className="h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
+                      className="h-14 rounded-2xl border-slate-200 font-medium focus-visible:ring-primary/20"
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Current Role</Label>
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">Current Role</Label>
                   <Popover open={isRoleOpen} onOpenChange={setIsRoleOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         role="combobox"
                         aria-expanded={isRoleOpen}
-                        className="w-full h-14 rounded-2xl border-slate-200 font-bold justify-between px-4 hover:bg-white active:scale-100"
+                        className="w-full h-14 rounded-2xl border-slate-200 font-medium justify-between px-4 hover:bg-white active:scale-100"
                       >
                         {formData.role || "Select your current role..."}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -324,10 +324,10 @@ export default function DeveloperOnboarding() {
                     <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 rounded-2xl border-slate-100 shadow-2xl overflow-hidden">
                       <div className="p-3 border-b border-slate-50 bg-slate-50/50">
                         <div className="relative">
-                          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                           <Input
                             placeholder="Search roles..."
-                            className="pl-10 h-10 rounded-xl border-none bg-white shadow-sm font-bold text-sm"
+                            className="pl-10 h-10 rounded-xl border-none bg-white shadow-sm font-medium text-sm"
                             value={roleSearch}
                             onChange={(e) => setRoleSearch(e.target.value)}
                           />
@@ -336,7 +336,7 @@ export default function DeveloperOnboarding() {
                       <ScrollArea className="h-[300px]">
                         <div className="p-2">
                           {COMMON_ROLES.filter(r => r.toLowerCase().includes(roleSearch.toLowerCase())).length === 0 && (
-                            <div className="py-6 text-center text-sm text-slate-400 font-medium italic">
+                            <div className="py-6 text-center text-sm text-slate-500 font-medium italic">
                               No roles found...
                             </div>
                           )}
@@ -344,8 +344,8 @@ export default function DeveloperOnboarding() {
                             <button
                               key={r}
                               className={cn(
-                                "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all",
-                                formData.role === r ? "bg-primary text-white" : "text-slate-600 hover:bg-slate-50"
+                                "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all",
+                                formData.role === r ? "bg-primary text-white" : "text-slate-700 hover:bg-slate-50"
                               )}
                               onClick={() => {
                                 setFormData({ ...formData, role: r });
@@ -363,35 +363,35 @@ export default function DeveloperOnboarding() {
                   </Popover>
                 </div>
                 <div className="space-y-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Location (Kenya)</Label>
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">Location (Kenya)</Label>
                   <Select value={formData.city} onValueChange={(v) => setFormData({ ...formData, city: v })}>
                     <SelectTrigger className="h-14 rounded-2xl border-slate-200 font-black">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl max-h-[300px]">
-                      {KENYA_COUNTIES.map(c => <SelectItem key={c} value={c} className="font-bold">{c}</SelectItem>)}
+                      {KENYA_COUNTIES.map(c => <SelectItem key={c} value={c} className="font-medium">{c}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Public Email</Label>
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">Public Email</Label>
                     <Input
                       type="email"
                       placeholder="e.g. hello@example.com"
                       value={formData.publicEmail}
                       onChange={(e) => setFormData({ ...formData, publicEmail: e.target.value })}
-                      className="h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
+                      className="h-14 rounded-2xl border-slate-200 font-medium focus-visible:ring-primary/20"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Public Phone (Optional)</Label>
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">Public Phone (Optional)</Label>
                     <Input
                       type="tel"
                       placeholder="e.g. 0712345678"
                       value={formData.publicPhone}
                       onChange={(e) => setFormData({ ...formData, publicPhone: e.target.value })}
-                      className="h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
+                      className="h-14 rounded-2xl border-slate-200 font-medium focus-visible:ring-primary/20"
                     />
                   </div>
                 </div>
@@ -401,7 +401,7 @@ export default function DeveloperOnboarding() {
             {activeStep === 1 && (
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div className="space-y-4">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Your Arsenal (Skills)</Label>
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">Your Arsenal (Skills)</Label>
                   <div className="flex flex-wrap gap-2 mb-4">
                     {formData.skills.map((skill: string) => (
                       <Badge key={skill} className="h-10 px-4 rounded-xl bg-primary text-white font-black text-sm flex items-center gap-2 group">
@@ -409,7 +409,7 @@ export default function DeveloperOnboarding() {
                         <button onClick={() => removeSkill(skill)}><X className="h-4 w-4" /></button>
                       </Badge>
                     ))}
-                    {formData.skills.length === 0 && <p className="text-slate-400 font-medium italic py-2">Select skills from below or type to add...</p>}
+                    {formData.skills.length === 0 && <p className="text-slate-500 font-medium italic py-2">Select skills from below or type to add...</p>}
                   </div>
 
                   <div className="space-y-2">
@@ -433,8 +433,8 @@ export default function DeveloperOnboarding() {
                           type="button"
                           onClick={() => addSkill(skill)}
                           className={cn(
-                            "px-4 py-2 rounded-xl border font-bold text-xs transition-all",
-                            formData.skills.includes(skill) ? "bg-slate-100 text-slate-400 border-slate-100" : "bg-white text-slate-600 border-slate-200 hover:border-primary hover:text-primary"
+                            "px-4 py-2 rounded-xl border font-medium text-xs transition-all",
+                            formData.skills.includes(skill) ? "bg-slate-100 text-slate-500 border-slate-100" : "bg-white text-slate-700 border-slate-200 hover:border-primary hover:text-primary"
                           )}
                         >
                           {skill}
@@ -446,27 +446,27 @@ export default function DeveloperOnboarding() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
                   <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Work Availability</Label>
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">Work Availability</Label>
                     <Select value={formData.availability} onValueChange={(v) => setFormData({ ...formData, availability: v })}>
                       <SelectTrigger className="h-14 rounded-2xl border-slate-200 font-black">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl">
-                        <SelectItem value="OPEN_TO_OFFERS" className="font-bold">Open to Offers</SelectItem>
-                        <SelectItem value="NOT_AVAILABLE" className="font-bold">Not Available</SelectItem>
+                        <SelectItem value="OPEN_TO_OFFERS" className="font-medium">Open to Offers</SelectItem>
+                        <SelectItem value="NOT_AVAILABLE" className="font-medium">Not Available</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Preferred Work Type</Label>
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">Preferred Work Type</Label>
                     <Select value={formData.preferredWorkType} onValueChange={(v) => setFormData({ ...formData, preferredWorkType: v })}>
                       <SelectTrigger className="h-14 rounded-2xl border-slate-200 font-black">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl">
-                        <SelectItem value="REMOTE" className="font-bold">Remote</SelectItem>
-                        <SelectItem value="HYBRID" className="font-bold">Hybrid</SelectItem>
-                        <SelectItem value="ONSITE" className="font-bold">On-site</SelectItem>
+                        <SelectItem value="REMOTE" className="font-medium">Remote</SelectItem>
+                        <SelectItem value="HYBRID" className="font-medium">Hybrid</SelectItem>
+                        <SelectItem value="ONSITE" className="font-medium">On-site</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -477,23 +477,23 @@ export default function DeveloperOnboarding() {
             {activeStep === 2 && (
               <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div className="space-y-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Years of Experience</Label>
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">Years of Experience</Label>
                   <Select value={formData.yearsOfExperience} onValueChange={(v) => setFormData({ ...formData, yearsOfExperience: v })}>
                     <SelectTrigger className="h-14 rounded-2xl border-slate-200 font-black">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
-                      {experienceLevels.map(l => <SelectItem key={l.value} value={l.value} className="font-bold">{l.label}</SelectItem>)}
+                      {experienceLevels.map(l => <SelectItem key={l.value} value={l.value} className="font-medium">{l.label}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Professional Summary</Label>
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">Professional Summary</Label>
                     <span className={cn(
-                      "text-[10px] font-bold tracking-widest uppercase",
-                      formData.bio.length >= 300 ? "text-red-500" : "text-slate-400"
+                      "text-[10px] font-medium tracking-widest uppercase",
+                      formData.bio.length >= 300 ? "text-danger-500" : "text-slate-500"
                     )}>
                       {formData.bio.length} / 300
                     </span>
@@ -519,10 +519,10 @@ export default function DeveloperOnboarding() {
                     className="mt-1"
                   />
                   <div className="grid gap-1.5 leading-none">
-                    <Label htmlFor="terms" className="text-sm font-bold text-slate-700 leading-relaxed cursor-pointer">
+                    <Label htmlFor="terms" className="text-sm font-medium text-slate-700 leading-relaxed cursor-pointer">
                       I agree to the <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link> and <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>.
                     </Label>
-                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Required to finalize account</p>
+                    <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Required to finalize account</p>
                   </div>
                 </div>
               </div>

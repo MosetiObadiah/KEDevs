@@ -160,7 +160,7 @@ export default function HomePage() {
         <div className={cn(LAYOUT.maxWidth, "mx-auto", LAYOUT.padding)}>
           <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-12">
             <div className="space-y-4">
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+              <h2 className="text-3xl md:text-4xl font-medium tracking-tight">
                 <span className="text-primary">Jobs</span>
               </h2>
               <p className="text-muted-foreground max-w-lg">
@@ -169,7 +169,7 @@ export default function HomePage() {
                   : "The most upvoted and newest jobs currently available for developers in Kenya."}
               </p>
             </div>
-            <Button variant="ghost" className="font-bold group" asChild>
+            <Button variant="ghost" className="font-medium group" asChild>
               <Link href="/jobs">
                 View Jobs Board <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Link>
@@ -198,7 +198,7 @@ export default function HomePage() {
                 <Card key={job.id} className="border-border/50 hover:shadow-lg hover:shadow-primary/5 transition-all group flex flex-col bg-card">
                   <CardHeader className="pb-4 flex-1">
                     <div className="flex justify-between items-start mb-4">
-                      <Badge variant="outline" className="font-bold border-muted-foreground/20 text-muted-foreground uppercase text-[10px]">
+                      <Badge variant="outline" className="font-medium border-muted-foreground/20 text-muted-foreground uppercase text-[10px]">
                         {formatJobType(job.jobType)}
                       </Badge>
                       {(job as any).pinnedUntil ? (
@@ -210,9 +210,9 @@ export default function HomePage() {
                       )}
                     </div>
                     <Link href={`/jobs/${job.id}`} className="group-hover:text-primary transition-colors inline-block">
-                      <h3 className="text-xl font-bold leading-tight mb-1">{job.title}</h3>
+                      <h3 className="text-xl font-medium leading-tight mb-1">{job.title}</h3>
                     </Link>
-                    <p className="text-sm font-semibold text-muted-foreground mt-1">
+                    <p className="text-sm font-medium text-muted-foreground mt-1">
                       {job.companyName} • {job.locationCity}
                     </p>
                   </CardHeader>
@@ -226,8 +226,8 @@ export default function HomePage() {
                     </div>
                   </CardContent>
                   <CardFooter className="pt-4 border-t border-border/50 flex justify-between items-center bg-muted/10">
-                    <span className="text-xs font-bold text-primary uppercase tracking-wider">{job.workType}</span>
-                    <Button variant="link" className="p-0 h-auto font-bold text-foreground group/btn" asChild>
+                    <span className="text-xs font-medium text-primary uppercase tracking-wider">{job.workType}</span>
+                    <Button variant="link" className="p-0 h-auto font-medium text-foreground group/btn" asChild>
                       <Link href={`/jobs/${job.id}`}>
                         Apply <ArrowRight className="ml-1 h-3.5 w-3.5 group-hover/btn:translate-x-1 transition-transform" />
                       </Link>
@@ -245,14 +245,14 @@ export default function HomePage() {
         <div className={cn(LAYOUT.maxWidth, "mx-auto", LAYOUT.padding)}>
           <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-12">
             <div className="space-y-4">
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+              <h2 className="text-3xl md:text-4xl font-medium tracking-tight">
                 <span className="text-primary">Developers</span>
               </h2>
               <p className="text-muted-foreground max-w-lg">
                 Connect with Kenya's most skilled engineers, designers, and technical experts.
               </p>
             </div>
-            <Button variant="ghost" className="font-bold group" asChild>
+            <Button variant="ghost" className="font-medium group" asChild>
               <Link href="/developers">
                 View Talent Pool <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Link>
@@ -281,15 +281,15 @@ export default function HomePage() {
                 <Card key={dev.id} className="border-border/50 hover:shadow-lg hover:shadow-primary/5 transition-all group flex flex-col bg-card">
                   <CardHeader className="pb-4 flex-1">
                     <div className="flex justify-between items-start mb-4">
-                      <Badge variant="outline" className="font-bold border-muted-foreground/20 text-muted-foreground uppercase text-[10px]">
+                      <Badge variant="outline" className="font-medium border-muted-foreground/20 text-muted-foreground uppercase text-[10px]">
                         {dev.availabilityStatus?.replace('_', ' ') || 'TALENT'}
                       </Badge>
                       {dev.isVerified && <CheckCircle2 className="h-5 w-5 text-primary fill-primary text-white" />}
                     </div>
                     <Link href={`/developers/${dev.id}`} className="group-hover:text-primary transition-colors inline-block">
-                      <h3 className="text-xl font-bold leading-tight mb-1">{dev.firstName} {dev.lastName}</h3>
+                      <h3 className="text-xl font-medium leading-tight mb-1">{dev.firstName} {dev.lastName}</h3>
                     </Link>
-                    <p className="text-sm font-semibold text-muted-foreground mt-1">
+                    <p className="text-sm font-medium text-muted-foreground mt-1">
                       {dev.currentLastRole || 'Software Engineer'} • {dev.locationCity || 'Nairobi'}
                     </p>
                   </CardHeader>
@@ -303,8 +303,8 @@ export default function HomePage() {
                     </div>
                   </CardContent>
                   <CardFooter className="pt-4 border-t border-border/50 flex justify-between items-center bg-muted/10">
-                    <span className="text-xs font-bold text-primary uppercase tracking-wider">{dev.locationCountry || 'KENYA'}</span>
-                    <Button variant="link" className="p-0 h-auto font-bold text-foreground group/btn" asChild>
+                    <span className="text-xs font-medium text-primary uppercase tracking-wider">{dev.locationCountry || 'KENYA'}</span>
+                    <Button variant="link" className="p-0 h-auto font-medium text-foreground group/btn" asChild>
                       <Link href={`/developers/${dev.id}`}>
                         View Profile <ArrowRight className="ml-1 h-3.5 w-3.5 group-hover/btn:translate-x-1 transition-transform" />
                       </Link>

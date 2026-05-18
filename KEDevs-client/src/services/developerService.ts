@@ -128,6 +128,10 @@ export const developerService = {
     return apiClient.post<ApiResponse<any>>(`/api/v1/developers/${profileId}/endorsements`, data);
   },
 
+  async deleteEndorsement(endorsementId: string): Promise<ApiResponse<void>> {
+    return apiClient.delete<ApiResponse<void>>(`/api/v1/developers/profile/endorsements/${endorsementId}`);
+  },
+
   async flagDeveloper(profileId: string, reason: string): Promise<ApiResponse<any>> {
     return apiClient.post<ApiResponse<any>>(`/api/v1/developers/${profileId}/flag`, { reason });
   },

@@ -44,9 +44,9 @@ export const SPACING = {
 } as const;
 
 export const TYPOGRAPHY = {
-  pageTitle: 'text-2xl font-bold',
-  sectionHeading: 'text-lg font-semibold',
-  cardTitle: 'text-base font-semibold',
+  pageTitle: 'text-2xl font-medium',
+  sectionHeading: 'text-lg font-medium',
+  cardTitle: 'text-base font-medium',
   body: 'text-sm text-muted-foreground',
   caption: 'text-xs text-muted-foreground',
 } as const;

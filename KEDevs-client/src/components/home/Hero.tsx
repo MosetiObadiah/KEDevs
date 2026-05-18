@@ -15,14 +15,8 @@ interface HeroProps {
 }
 
 const formatCompact = (num: number): string => {
-  if (num >= 1000) {
-    return (Math.floor(num / 100) / 10).toFixed(1).replace('.0', '') + 'k+';
-  }
-  if (num >= 100) {
-    return (Math.floor(num / 50) * 50) + '+';
-  }
-  if (num >= 10) {
-    return (Math.floor(num / 10) * 10) + '+';
+  if (num > 100) {
+    return '100+';
   }
   return num.toString();
 };
@@ -40,10 +34,10 @@ export const Hero = ({ randomJob, randomDev, stats }: HeroProps) => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
           <div className="max-w-2xl">
-            <Badge variant="secondary" className="mb-6 px-3 py-1 text-xs font-semibold tracking-wider uppercase bg-secondary/50 text-secondary-foreground border-none">
+            <Badge variant="secondary" className="mb-6 px-3 py-1 text-xs font-medium tracking-wider uppercase bg-secondary/50 text-secondary-foreground border-none">
               Kenya's Tech Talent Hub
             </Badge>
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-tight mb-6">
+            <h1 className="text-5xl md:text-6xl font-medium tracking-tight text-foreground leading-tight mb-6">
               Find Kenyan tech <span className="text-primary">talent</span> and <span className="text-primary">opportunity</span>.
             </h1>
             <p className="text-lg text-muted-foreground mb-10 leading-relaxed">
@@ -51,10 +45,10 @@ export const Hero = ({ randomJob, randomDev, stats }: HeroProps) => {
               Kenya's best developers. A clean, modern platform for the tech community.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
-              <Button size="lg" className="h-12 px-8 font-semibold" asChild>
+              <Button size="lg" className="h-12 px-8 font-medium" asChild>
                 <Link href="/jobs">Browse Jobs <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
-              <Button variant="outline" size="lg" className="h-12 px-8 font-semibold" asChild>
+              <Button variant="outline" size="lg" className="h-12 px-8 font-medium" asChild>
                 <Link href="/register">Join the Community</Link>
               </Button>
             </div>
@@ -67,7 +61,7 @@ export const Hero = ({ randomJob, randomDev, stats }: HeroProps) => {
                 { label: 'Jobs Posted', value: stats ? formatCompact(stats.jobCount) : '...' },
               ].map((stat) => (
                 <div key={stat.label}>
-                  <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                  <p className="text-2xl font-medium text-foreground">{stat.value}</p>
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mt-1">{stat.label}</p>
                 </div>
               ))}
@@ -78,7 +72,7 @@ export const Hero = ({ randomJob, randomDev, stats }: HeroProps) => {
           <div className="hidden lg:block relative h-[500px]">
             {/* Developer Card */}
             {randomDev && (
-              <Card className="absolute top-0 right-0 w-[320px] shadow-2xl shadow-primary/5 border-border/50 backdrop-blur-sm z-20 hover:translate-y-[-4px] transition-all duration-300 rounded-[1.5rem]">
+              <Card className="absolute top-0 right-0 w-[320px] shadow-2xl shadow-primary/5 border-border/50 backdrop-blur-sm z-20 hover:translate-y-[-4px] transition-all duration-300 rounded-xl-[1.5rem]">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4 mb-4">
                     <Avatar className="h-14 w-14 border-2 border-primary/20">
@@ -89,7 +83,7 @@ export const Hero = ({ randomJob, randomDev, stats }: HeroProps) => {
                     </Avatar>
                     <div className="flex-1 overflow-hidden">
                       <div className="flex items-center gap-1.5">
-                        <h3 className="font-bold text-foreground truncate text-sm">{randomDev.firstName} {randomDev.lastName}</h3>
+                        <h3 className="font-medium text-foreground truncate text-sm">{randomDev.firstName} {randomDev.lastName}</h3>
                         {randomDev.isVerified && <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />}
                       </div>
                       <p className="text-xs text-muted-foreground truncate">{randomDev.currentLastRole}</p>
@@ -97,17 +91,17 @@ export const Hero = ({ randomJob, randomDev, stats }: HeroProps) => {
                   </div>
                   <div className="flex flex-wrap gap-1.5 mb-6 h-[22px] overflow-hidden">
                     {randomDev.skills?.slice(0, 3).map(skill => (
-                      <Badge key={skill} variant="secondary" className="text-[9px] py-0.5 px-2 font-bold uppercase tracking-wider">
+                      <Badge key={skill} variant="secondary" className="text-[9px] py-0.5 px-2 font-medium uppercase tracking-wider">
                         {skill}
                       </Badge>
                     ))}
                     {(!randomDev.skills || randomDev.skills.length === 0) && (
-                      <Badge variant="secondary" className="text-[9px] py-0.5 px-2 font-bold uppercase tracking-wider">
+                      <Badge variant="secondary" className="text-[9px] py-0.5 px-2 font-medium uppercase tracking-wider">
                         Developer
                       </Badge>
                     )}
                   </div>
-                  <Button variant="outline" size="sm" className="w-full font-bold group rounded-xl h-10 border-border/50 hover:bg-primary hover:text-white transition-all" asChild>
+                  <Button variant="outline" size="sm" className="w-full font-medium group rounded-xl h-10 border-border/50 hover:bg-primary hover:text-white transition-all" asChild>
                     <Link href={`/developers/${randomDev.id}`}>
                       View Profile <ArrowRight className="ml-2 h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
                     </Link>
@@ -118,7 +112,7 @@ export const Hero = ({ randomJob, randomDev, stats }: HeroProps) => {
 
             {/* Job Card */}
             {randomJob && (
-              <Card className="absolute bottom-10 left-0 w-[320px] shadow-2xl shadow-primary/5 border-border/50 backdrop-blur-sm z-10 hover:translate-y-[-4px] transition-all duration-300 rounded-[1.5rem]">
+              <Card className="absolute bottom-10 left-0 w-[320px] shadow-2xl shadow-primary/5 border-border/50 backdrop-blur-sm z-10 hover:translate-y-[-4px] transition-all duration-300 rounded-xl-[1.5rem]">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4 mb-4">
                     <Avatar className="h-14 w-14 border-2 border-primary/20">
@@ -128,24 +122,24 @@ export const Hero = ({ randomJob, randomDev, stats }: HeroProps) => {
                     </Avatar>
                     <div className="flex-1 overflow-hidden">
                       <div className="flex items-center gap-1.5">
-                        <h3 className="font-bold text-foreground truncate text-sm">{randomJob.title}</h3>
+                        <h3 className="font-medium text-foreground truncate text-sm">{randomJob.title}</h3>
                       </div>
                       <p className="text-xs text-muted-foreground truncate">{randomJob.companyName} • {randomJob.locationCity}</p>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-1.5 mb-6 h-[22px] overflow-hidden">
                     {randomJob.jobType && (
-                      <Badge variant="secondary" className="text-[9px] py-0.5 px-2 font-bold uppercase tracking-wider">
+                      <Badge variant="secondary" className="text-[9px] py-0.5 px-2 font-medium uppercase tracking-wider">
                         {randomJob.jobType.replace('_', ' ')}
                       </Badge>
                     )}
                     {randomJob.workType && (
-                      <Badge variant="secondary" className="text-[9px] py-0.5 px-2 font-bold uppercase tracking-wider">
+                      <Badge variant="secondary" className="text-[9px] py-0.5 px-2 font-medium uppercase tracking-wider">
                         {randomJob.workType}
                       </Badge>
                     )}
                   </div>
-                  <Button variant="outline" size="sm" className="w-full font-bold group rounded-xl h-10 border-border/50 hover:bg-primary hover:text-white transition-all" asChild>
+                  <Button variant="outline" size="sm" className="w-full font-medium group rounded-xl h-10 border-border/50 hover:bg-primary hover:text-white transition-all" asChild>
                     <Link href={`/jobs/${randomJob.id}`}>
                       View Job <ArrowRight className="ml-2 h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
                     </Link>

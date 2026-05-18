@@ -46,7 +46,7 @@ export default function Forum({ jobId, initialComments, onRefresh }: ForumProps)
   return (
     <div className="mt-12 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-[1.25rem] bg-primary/10 text-primary flex items-center justify-center">
+        <div className="h-10 w-10 rounded-xl-[1.25rem] bg-primary/10 text-primary flex items-center justify-center">
           <MessageSquare className="h-5 w-5" />
         </div>
         <h2 className="text-2xl font-black tracking-tight text-slate-900">Forum Discussion</h2>
@@ -54,10 +54,10 @@ export default function Forum({ jobId, initialComments, onRefresh }: ForumProps)
 
       <div className="space-y-6">
         {initialComments.length === 0 ? (
-          <div className="py-20 text-center border-4 border-dashed border-slate-100 rounded-[3rem] animate-in fade-in duration-700">
+          <div className="py-20 text-center border-4 border-dashed border-slate-100 rounded-xl-[3rem] animate-in fade-in duration-700">
             <MessageSquare className="h-16 w-16 text-slate-200 mx-auto mb-4" />
-            <h3 className="text-xl font-black text-slate-400 uppercase tracking-widest">No comments yet</h3>
-            <p className="text-slate-400 font-medium">Be the first to start the discussion!</p>
+            <h3 className="text-xl font-black text-slate-500 uppercase tracking-widest">No comments yet</h3>
+            <p className="text-slate-500 font-medium">Be the first to start the discussion!</p>
           </div>
         ) : (
           <div className="space-y-0">
@@ -77,35 +77,35 @@ export default function Forum({ jobId, initialComments, onRefresh }: ForumProps)
 
       <div className="sticky bottom-6 z-30">
         {!isLoggedIn ? (
-          <div className="p-6 rounded-[2rem] bg-blue-50/90 backdrop-blur border border-blue-100 flex items-start gap-4 shadow-xl shadow-blue-500/5">
-            <Info className="h-6 w-6 text-blue-500 shrink-0 mt-1" />
+          <div className="p-6 rounded-xl-[2rem] bg-azure-50/90 backdrop-blur border border-azure-100 flex items-start gap-4 shadow-xl shadow-azure-500/5">
+            <Info className="h-6 w-6 text-azure-500 shrink-0 mt-1" />
             <div>
-              <p className="text-sm font-black text-blue-900 mb-1">Join the Conversation</p>
-              <p className="text-xs font-medium text-blue-700 leading-relaxed">
+              <p className="text-sm font-black text-azure-900 mb-1">Join the Conversation</p>
+              <p className="text-xs font-medium text-azure-700 leading-relaxed">
                 Sign in to join the discussion, ask questions, and see what other developers are saying about this role.
               </p>
             </div>
           </div>
         ) : (
-          <Card className="rounded-[2.5rem] border border-slate-200 shadow-2xl shadow-slate-200/40 overflow-hidden bg-white/95 backdrop-blur">
+          <Card className="rounded-xl-[2.5rem] border border-slate-200 shadow-2xl shadow-slate-200/40 overflow-hidden bg-white/95 backdrop-blur">
             <CardContent className="p-4 px-6">
               <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-between">
                    <div className="flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[8px] font-black uppercase">
+                      <div className="h-6 w-6 rounded-xl bg-slate-900 text-white flex items-center justify-center text-[8px] font-black uppercase">
                          {user?.fullName?.charAt(0) || 'U'}
                       </div>
                       <span className="text-[11px] font-black text-slate-900 uppercase tracking-widest">{user?.fullName}</span>
                       <Badge variant="outline" className="text-[7px] uppercase font-black px-1.5 h-3.5 border-primary/20 text-primary bg-primary/5">YOU</Badge>
                    </div>
-                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest px-2">
-                      <kbd className="font-sans px-1 py-0.5 rounded border border-slate-200 bg-white">Shift + Enter</kbd> for new line
+                   <p className="text-[9px] font-medium text-slate-500 uppercase tracking-widest px-2">
+                      <kbd className="font-sans px-1 py-0.5 rounded-xl border border-slate-200 bg-white">Shift + Enter</kbd> for new line
                    </p>
                 </div>
                 
                 <div className="flex gap-3 items-end">
                    <Textarea
-                     className="min-h-[48px] h-[48px] rounded-[1.25rem] border-slate-100 bg-slate-50/50 focus-visible:ring-primary/20 font-medium text-sm resize-none py-3"
+                     className="min-h-[48px] h-[48px] rounded-xl-[1.25rem] border-slate-100 bg-slate-50/50 focus-visible:ring-primary/20 font-medium text-sm resize-none py-3"
                      placeholder="Share an insight..."
                      value={newComment}
                      onChange={(e) => setNewComment(e.target.value)}

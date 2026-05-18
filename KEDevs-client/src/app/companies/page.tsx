@@ -162,7 +162,7 @@ function CompaniesPageContent() {
           <div className="flex items-center gap-3 print:hidden">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                 <Button variant="outline" className="font-bold border-primary/20 hover:bg-primary/5 h-12 px-6" disabled={isExporting}>
+                 <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-6" disabled={isExporting}>
                     <Download className="mr-2 h-4 w-4 text-primary" /> 
                     {isExporting ? 'Exporting...' : 'Export'}
                  </Button>
@@ -184,12 +184,12 @@ function CompaniesPageContent() {
           <aside className="lg:col-span-1 space-y-8 print:hidden">
             <Card className="border-border/50 shadow-sm sticky top-24">
               <CardHeader className="pb-4">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Filters</h3>
+                <h3 className="text-sm font-medium uppercase tracking-wider text-foreground">Filters</h3>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between bg-primary/5 p-3 rounded-xl border border-primary/10">
                   <div className="space-y-0.5">
-                    <Label htmlFor="open-jobs" className="text-xs font-bold text-primary uppercase">Hiring Now</Label>
+                    <Label htmlFor="open-jobs" className="text-xs font-medium text-primary uppercase">Hiring Now</Label>
                     <p className="text-[10px] text-muted-foreground font-medium">Show only companies with open roles</p>
                   </div>
                   <Checkbox 
@@ -200,7 +200,7 @@ function CompaniesPageContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Industry</label>
+                  <label className="text-xs font-medium text-muted-foreground uppercase">Industry</label>
                   <div className="space-y-2 bg-muted/10 p-3 rounded-xl max-h-[220px] overflow-y-auto">
                     {INDUSTRIES.map(ind => (
                       <div key={ind} className="flex items-center space-x-2">
@@ -222,7 +222,7 @@ function CompaniesPageContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Company Size</label>
+                  <label className="text-xs font-medium text-muted-foreground uppercase">Company Size</label>
                   <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
                     {COMPANY_SIZES.map(size => (
                       <div key={size.value} className="flex items-center space-x-2">
@@ -245,9 +245,9 @@ function CompaniesPageContent() {
 
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-muted-foreground uppercase">Country</label>
+                    <label className="text-xs font-medium text-muted-foreground uppercase">Country</label>
                     <Select value={country} onValueChange={(val) => { setCountry(val); setCity('All'); }}>
-                      <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-lg">
+                      <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-xl">
                         <SelectValue placeholder="Any Country" />
                       </SelectTrigger>
                       <SelectContent className="max-h-60 overflow-y-auto">
@@ -261,9 +261,9 @@ function CompaniesPageContent() {
 
                   {country === 'Kenya' && (
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-muted-foreground uppercase">City</label>
+                      <label className="text-xs font-medium text-muted-foreground uppercase">City</label>
                       <Select value={city} onValueChange={setCity}>
-                        <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-lg">
+                        <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-xl">
                           <SelectValue placeholder="Any City" />
                         </SelectTrigger>
                         <SelectContent className="max-h-60 overflow-y-auto">
@@ -281,7 +281,7 @@ function CompaniesPageContent() {
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="w-full text-xs font-bold text-muted-foreground mt-2"
+                    className="w-full text-xs font-medium text-muted-foreground mt-2"
                     onClick={() => {
                       setSelectedIndustries([]);
                       setSelectedSizes([]);
@@ -320,57 +320,52 @@ function CompaniesPageContent() {
                 ))
               ) : companies.length > 0 ? (
                 companies.map((company) => (
-                  <Card key={company.id} className="group border-border/50 hover:shadow-xl hover:shadow-primary/5 transition-all flex flex-col overflow-hidden bg-background">
+                  <Card key={company.id} className="group bg-white rounded-2xl border border-slate-100 hover:border-slate-200 transition-colors flex flex-col overflow-hidden shadow-none cursor-pointer" onClick={() => router.push(`/companies/${company.id}`)}>
                     <CardContent className="p-8 text-center flex-1 relative">
                       {company.openJobsCount > 0 && (
                         <div className="absolute top-4 right-4">
-                           <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                           <Badge className="bg-success-50 text-success-600 border-none text-[10px] font-medium px-2 py-0.5 rounded-full">
                               {company.openJobsCount} Open Roles
                            </Badge>
                         </div>
                       )}
                       
-                      <Link href={`/companies/${company.id}`} className="inline-block relative mb-6">
-                        <Avatar className="h-24 w-24 border-4 border-muted group-hover:border-primary/20 transition-colors shadow-sm bg-white">
-                          <AvatarImage src={company.logoUrl} className="object-contain p-3" />
-                          <AvatarFallback className="bg-slate-900 text-white font-black text-2xl uppercase">
-                             {company.companyName.charAt(0)}
+                      <div className="inline-block relative mb-6">
+                        <Avatar className="h-20 w-20 border border-slate-100 group-hover:border-azure-200 transition-colors shadow-sm bg-white mx-auto">
+                          <AvatarImage src={company.logoUrl} className="object-contain p-2" />
+                          <AvatarFallback className="bg-navy-700 text-white font-medium text-xl uppercase flex items-center justify-center">
+                             {company.companyName?.charAt(0)}
                           </AvatarFallback>
                         </Avatar>
-                      </Link>
+                      </div>
                       
                       <div className="mb-4">
-                        <Link href={`/companies/${company.id}`} className="flex items-center justify-center gap-2 group/title">
-                          <h3 className="text-xl font-bold group-hover:text-primary transition-colors">
+                        <div className="flex items-center justify-center gap-2">
+                          <h3 className="text-base font-medium text-navy-900 group-hover:text-azure-500 transition-colors truncate max-w-full">
                             {company.companyName}
                           </h3>
-                          {company.companyWebsite && (
-                            <a href={company.companyWebsite} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" onClick={(e) => e.stopPropagation()}>
-                               <Layers className="h-3.5 w-3.5" />
-                            </a>
-                          )}
-                        </Link>
-                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">
+                        </div>
+                        <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mt-1">
                           {company.industry || 'Tech Ecosystem'}
                         </p>
                       </div>
-
+ 
                       <div className="flex flex-wrap justify-center items-center gap-2">
-                        <Badge variant="outline" className="text-[10px] font-bold py-0.5 px-3 border-border bg-muted/20 text-muted-foreground rounded-full">
+                        <Badge className="text-[10px] font-medium py-0.5 px-3 bg-slate-100 text-slate-700 hover:bg-slate-100 border-none rounded-full">
                           {formatCompanySize(company.companySize)}
                         </Badge>
                       </div>
-
+ 
                     </CardContent>
-
-                    <CardFooter className="p-4 border-t border-border/50 bg-muted/5 flex justify-between items-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                      <div className="flex items-center gap-1.5">
-                        <MapPin className="h-3 w-3 text-primary" />
-                        {company.locationHQ}
+ 
+                    <CardFooter className="p-4 border-t border-slate-100 bg-transparent flex justify-between items-center text-[10px] font-medium text-slate-400 uppercase tracking-widest" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-1.5 truncate max-w-[60%]">
+                        <MapPin className="h-3 w-3 text-slate-400 shrink-0" />
+                        <span className="truncate capitalize">{company.locationHQ}</span>
                       </div>
-                      <Button size="sm" className="h-8 px-4 font-bold group/btn rounded-full" asChild>
+                      <Button size="sm" className="bg-azure-500 hover:bg-azure-600 text-white text-xs font-medium px-3.5 py-1.5 rounded-lg flex items-center gap-1 transition-colors h-8 border-none" asChild>
                         <Link href={`/companies/${company.id}`}>
-                          Profile <ArrowRight className="ml-1.5 h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
+                          Profile <ArrowRight className="h-3 w-3" />
                         </Link>
                       </Button>
                     </CardFooter>
@@ -382,7 +377,7 @@ function CompaniesPageContent() {
                     <Building2 className="h-10 w-10 text-muted-foreground" />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold">No companies found</h3>
+                    <h3 className="text-2xl font-medium">No companies found</h3>
                     <p className="text-muted-foreground">Try adjusting your filters to find what you're looking for.</p>
                   </div>
                   <Button variant="outline" className="rounded-full" onClick={() => {

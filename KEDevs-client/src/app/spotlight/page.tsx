@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { developerService } from '@/services/developerService';
 import SpotlightSection from '@/components/home/SpotlightSection';
-import { cn } from '@/lib/utils';
+import { cn, formatDateString } from '@/lib/utils';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -109,7 +109,7 @@ export default function SpotlightPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center space-y-4">
         <Loader2 className="h-10 w-10 text-primary animate-spin" />
-        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Illuminating talent...</p>
+        <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Illuminating talent...</p>
       </div>
     );
   }
@@ -129,20 +129,20 @@ export default function SpotlightPage() {
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <Award className="h-5 w-5 text-primary" />
-                <h2 className="text-2xl font-bold tracking-tight">History</h2>
+                <h2 className="text-2xl font-medium tracking-tight">History</h2>
               </div>
               <p className="text-sm text-muted-foreground">Past featured developers on KEDevs</p>
             </div>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="font-bold gap-2 border-primary/20 hover:bg-primary/5" disabled={isExporting}>
+                <Button variant="outline" size="sm" className="font-medium gap-2 border-primary/20 hover:bg-primary/5" disabled={isExporting}>
                   <Download className="h-4 w-4 text-primary" /> {isExporting ? 'Exporting...' : 'Export History'}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="rounded-xl border-border/50">
                 <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium py-2">
-                  <FileSpreadsheet className="mr-2 h-4 w-4 text-emerald-500" /> Download as CSV
+                  <FileSpreadsheet className="mr-2 h-4 w-4 text-cyan-600" /> Download as CSV
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium py-2">
                   <FileText className="mr-2 h-4 w-4 text-primary" /> Download as PDF
@@ -156,9 +156,9 @@ export default function SpotlightPage() {
               <table className="w-full text-sm text-left">
                 <thead className="bg-muted/50 border-b border-border/50">
                   <tr>
-                    <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-muted-foreground">Developer</th>
-                    <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-muted-foreground">Spotlight Type</th>
-                    <th className="px-6 py-4 font-bold text-[10px] uppercase tracking-widest text-muted-foreground text-right">Dates</th>
+                    <th className="px-6 py-4 font-medium text-[10px] uppercase tracking-widest text-muted-foreground">Developer</th>
+                    <th className="px-6 py-4 font-medium text-[10px] uppercase tracking-widest text-muted-foreground">Spotlight Type</th>
+                    <th className="px-6 py-4 font-medium text-[10px] uppercase tracking-widest text-muted-foreground text-right">Dates</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
@@ -172,7 +172,7 @@ export default function SpotlightPage() {
                             <Skeleton className="h-3 w-16" />
                           </div>
                         </td>
-                        <td className="px-6 py-4"><Skeleton className="h-5 w-20 rounded-lg" /></td>
+                        <td className="px-6 py-4"><Skeleton className="h-5 w-20 rounded-xl" /></td>
                         <td className="px-6 py-4 text-right"><Skeleton className="h-4 w-32 ml-auto" /></td>
                       </tr>
                     ))
@@ -188,7 +188,7 @@ export default function SpotlightPage() {
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="font-bold group-hover:text-primary transition-colors text-slate-900">{spot.developerName}</p>
+                              <p className="font-medium group-hover:text-primary transition-colors text-slate-900">{spot.developerName}</p>
                               <p className="text-[10px] text-muted-foreground font-black uppercase tracking-wider">{spot.currentLastRole}</p>
                             </div>
                           </Link>
@@ -201,7 +201,7 @@ export default function SpotlightPage() {
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
                             <Calendar className="h-3 w-3 text-primary" />
-                            {new Date(spot.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} — {new Date(spot.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            {formatDateString(spot.startDate)} — {formatDateString(spot.endDate)}
                           </div>
                         </td>
                       </tr>
@@ -210,7 +210,7 @@ export default function SpotlightPage() {
                     <tr>
                       <td colSpan={3} className="px-6 py-20 text-center flex flex-col items-center">
                         <Award className="h-12 w-12 text-muted/20 mb-4" />
-                        <p className="text-sm text-muted-foreground font-bold italic">No past spotlights recorded yet.</p>
+                        <p className="text-sm text-muted-foreground font-medium italic">No past spotlights recorded yet.</p>
                       </td>
                     </tr>
                   )}

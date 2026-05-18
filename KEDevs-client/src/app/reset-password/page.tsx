@@ -87,46 +87,46 @@ export default function ResetPasswordPage() {
       
       <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-8 duration-700">
         <div className="text-center mb-8">
-           <span className="inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-amber-50 text-amber-600 border border-amber-100 mb-4">
+           <span className="inline-flex items-center px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest bg-azure-50 text-azure-500 border border-azure-100 mb-4">
               IDENTITY PROTECTION
            </span>
            <h1 className="text-4xl font-black tracking-tight text-slate-900">
              {step === 1 ? 'Recover Account' : 'Reset Password'}
            </h1>
-           <p className="text-slate-500 font-semibold mt-2">
+           <p className="text-slate-500 font-medium mt-2">
              {step === 1 
                ? "Retrieve your dashboard access safely" 
                : "Finalize your new secure credentials"}
            </p>
         </div>
 
-        <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-primary/5 overflow-hidden bg-white">
+        <Card className="rounded-xl-[2.5rem] border-none shadow-2xl shadow-primary/5 overflow-hidden bg-white">
           <CardContent className="p-8 md:p-10">
             
             {error && (
-              <div className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center gap-3 text-red-900 mb-6 animate-in shake duration-300">
-                 <AlertCircle className="h-5 w-5 text-red-500 shrink-0" />
+              <div className="bg-danger-50 border border-danger-100 p-4 rounded-2xl flex items-center gap-3 text-danger-900 mb-6 animate-in shake duration-300">
+                 <AlertCircle className="h-5 w-5 text-danger-500 shrink-0" />
                  <p className="text-xs font-black">{error}</p>
               </div>
             )}
 
             {successMessage && step === 2 && (
-              <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl flex items-center gap-3 text-emerald-900 mb-6 animate-in slide-in-from-top-4">
-                 <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
-                 <p className="text-xs font-bold">{successMessage}</p>
+              <div className="bg-cyan-50 border border-emerald-100 p-4 rounded-2xl flex items-center gap-3 text-emerald-900 mb-6 animate-in slide-in-from-top-4">
+                 <CheckCircle2 className="h-5 w-5 text-cyan-600 shrink-0" />
+                 <p className="text-xs font-medium">{successMessage}</p>
               </div>
             )}
 
             {step === 1 ? (
               <form onSubmit={handleRequestReset} className="space-y-6">
                 <div className="space-y-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 px-1">Email Address</Label>
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500 px-1">Email Address</Label>
                   <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                     <Input 
                       type="email" 
                       placeholder="jane@example.com" 
-                      className="pl-11 h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
+                      className="pl-11 h-14 rounded-2xl border-slate-200 font-medium focus-visible:ring-primary/20"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -147,12 +147,12 @@ export default function ResetPasswordPage() {
               <form onSubmit={handleConfirmReset} className="space-y-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 px-1">Verification Code</Label>
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500 px-1">Verification Code</Label>
                     <div className="relative">
-                      <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                       <Input 
                         placeholder="Enter 6-digit code" 
-                        className="pl-11 h-14 rounded-2xl border-slate-200 font-bold tracking-widest focus-visible:ring-primary/20"
+                        className="pl-11 h-14 rounded-2xl border-slate-200 font-medium tracking-widest focus-visible:ring-primary/20"
                         value={code}
                         onChange={(e) => setCode(e.target.value)}
                         required
@@ -161,13 +161,13 @@ export default function ResetPasswordPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 px-1">New Password</Label>
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500 px-1">New Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                       <Input 
                         type="password" 
                         placeholder="••••••••" 
-                        className="pl-11 h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
+                        className="pl-11 h-14 rounded-2xl border-slate-200 font-medium focus-visible:ring-primary/20"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         required
@@ -176,13 +176,13 @@ export default function ResetPasswordPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 px-1">Confirm New Password</Label>
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500 px-1">Confirm New Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                       <Input 
                         type="password" 
                         placeholder="••••••••" 
-                        className="pl-11 h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
+                        className="pl-11 h-14 rounded-2xl border-slate-200 font-medium focus-visible:ring-primary/20"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         required
@@ -193,7 +193,7 @@ export default function ResetPasswordPage() {
 
                 <Button 
                   type="submit" 
-                  className="w-full h-14 rounded-2xl font-black text-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl shadow-emerald-600/20 transition-all active:scale-[0.98]"
+                  className="w-full h-14 rounded-2xl font-black text-lg bg-cyan-600 hover:bg-emerald-700 text-white shadow-xl shadow-emerald-600/20 transition-all active:scale-[0.98]"
                   disabled={loading}
                 >
                   {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <CheckCircle2 className="mr-2 h-5 w-5" />}
@@ -203,7 +203,7 @@ export default function ResetPasswordPage() {
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="flex items-center justify-center w-full text-[10px] font-black text-slate-400 hover:text-primary uppercase tracking-widest gap-2"
+                  className="flex items-center justify-center w-full text-[10px] font-black text-slate-500 hover:text-primary uppercase tracking-widest gap-2"
                 >
                   <ArrowLeft className="h-3 w-3" /> Change Email Address
                 </button>
@@ -212,7 +212,7 @@ export default function ResetPasswordPage() {
 
           </CardContent>
           <CardFooter className="bg-slate-50/50 p-8 flex justify-center border-t border-slate-100">
-             <p className="text-sm font-bold text-slate-500">
+             <p className="text-sm font-medium text-slate-500">
                 Remembered it? <Link href="/login" className="text-primary font-black hover:underline ml-1">Sign In</Link>
              </p>
           </CardFooter>

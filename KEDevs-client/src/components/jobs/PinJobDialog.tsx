@@ -155,14 +155,14 @@ export default function PinJobDialog({ open, onClose, jobId, jobTitle, onSuccess
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-[500px] rounded-[2.5rem] p-0 overflow-y-auto max-h-[90vh] border-none shadow-2xl">
+      <DialogContent className="sm:max-w-[500px] rounded-xl-[2.5rem] p-0 overflow-y-auto max-h-[90vh] border-none shadow-2xl">
         <div className="bg-gradient-to-br from-primary/5 via-background to-background p-8">
           <DialogHeader className="mb-8">
             <div className="mb-2">
               <DialogTitle className="text-2xl font-black tracking-tight">
                 {step === 'SELECT' ? 'Feature Your Job' : step === 'PAYING' ? 'Completing Payment' : 'Success!'}
               </DialogTitle>
-              <DialogDescription className="font-bold text-muted-foreground mt-2">
+              <DialogDescription className="font-medium text-muted-foreground mt-2">
                 {jobTitle}
               </DialogDescription>
             </div>
@@ -175,7 +175,7 @@ export default function PinJobDialog({ open, onClose, jobId, jobTitle, onSuccess
                 {slotsLoading ? (
                   <div className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-muted/30 border border-border/30">
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Checking slot availability...</span>
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Checking slot availability...</span>
                   </div>
                 ) : slots && (
                   <div className="space-y-3">
@@ -189,29 +189,29 @@ export default function PinJobDialog({ open, onClose, jobId, jobTitle, onSuccess
                             className={cn(
                               "rounded-xl p-3 border-2 text-center transition-all",
                               slot
-                                ? "border-amber-200 bg-amber-50/50"
-                                : "border-emerald-200 bg-emerald-50/50"
+                                ? "border-azure-200 bg-azure-50/50"
+                                : "border-emerald-200 bg-cyan-50/50"
                             )}
                           >
                             <div className={cn(
                               "text-[9px] font-black uppercase tracking-widest mb-1",
-                              slot ? "text-amber-600" : "text-emerald-600"
+                              slot ? "text-azure-500" : "text-cyan-600"
                             )}>
                               Slot {i + 1}
                             </div>
                             {slot ? (
-                              <p className="text-[10px] font-bold text-amber-700 leading-tight line-clamp-1" title={slot.jobTitle}>
+                              <p className="text-[10px] font-medium text-azure-700 leading-tight line-clamp-1" title={slot.jobTitle}>
                                 {slot.jobTitle}
                               </p>
                             ) : (
-                              <p className="text-[10px] font-bold text-emerald-700">Available</p>
+                              <p className="text-[10px] font-medium text-cyan-800">Available</p>
                             )}
                           </div>
                         );
                       })}
                     </div>
                     {slots.freeSlots === 0 && (
-                      <div className="flex gap-3 p-4 rounded-2xl bg-destructive/5 border border-destructive/10 text-destructive text-xs font-bold animate-in fade-in">
+                      <div className="flex gap-3 p-4 rounded-2xl bg-destructive/5 border border-destructive/10 text-destructive text-xs font-medium animate-in fade-in">
                         <AlertCircle className="h-4 w-4 shrink-0" />
                         <p>All 3 featured slots are currently occupied. Try again when one expires.</p>
                       </div>
@@ -240,7 +240,7 @@ export default function PinJobDialog({ open, onClose, jobId, jobTitle, onSuccess
                         key={opt.id}
                         htmlFor={opt.id}
                         className={cn(
-                          "flex items-center justify-between p-5 rounded-[1.5rem] border-2 cursor-pointer transition-all duration-300 relative group overflow-hidden",
+                          "flex items-center justify-between p-5 rounded-xl-[1.5rem] border-2 cursor-pointer transition-all duration-300 relative group overflow-hidden",
                           durationType === opt.id 
                             ? "border-primary bg-primary/[0.03] shadow-lg shadow-primary/5 ring-1 ring-primary/20" 
                             : "border-border/40 hover:border-primary/30 hover:bg-muted/30"
@@ -250,7 +250,7 @@ export default function PinJobDialog({ open, onClose, jobId, jobTitle, onSuccess
                           <RadioGroupItem value={opt.id} id={opt.id} className="border-primary/30 text-primary" />
                           <div className="flex flex-col">
                             <span className="font-black text-foreground">{opt.label}</span>
-                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{opt.desc}</span>
+                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{opt.desc}</span>
                           </div>
                         </div>
                         <div className="text-right relative z-10">
@@ -280,13 +280,13 @@ export default function PinJobDialog({ open, onClose, jobId, jobTitle, onSuccess
                   </div>
                   
                   {error && (
-                    <div className="flex gap-3 p-4 rounded-2xl bg-destructive/5 border border-destructive/10 text-destructive text-xs font-bold animate-in fade-in slide-in-from-top-2">
+                    <div className="flex gap-3 p-4 rounded-2xl bg-destructive/5 border border-destructive/10 text-destructive text-xs font-medium animate-in fade-in slide-in-from-top-2">
                       <AlertCircle className="h-4 w-4 shrink-0" />
                       <p>{error}</p>
                     </div>
                   )}
 
-                  <div className="flex items-center gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/10 text-[10px] font-bold text-primary uppercase tracking-wider">
+                  <div className="flex items-center gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/10 text-[10px] font-medium text-primary uppercase tracking-wider">
                     <Info className="h-4 w-4 shrink-0" />
                     <span>You will receive an M-Pesa STK push for KES {currentPrice}</span>
                   </div>
@@ -301,7 +301,7 @@ export default function PinJobDialog({ open, onClose, jobId, jobTitle, onSuccess
 
           <DialogFooter className="mt-8 pt-6 border-t border-border/50">
             <div className="flex w-full gap-3">
-              <Button variant="ghost" onClick={onClose} className="flex-1 h-12 rounded-xl font-bold hover:bg-muted/50 transition-colors">
+              <Button variant="ghost" onClick={onClose} className="flex-1 h-12 rounded-xl font-medium hover:bg-muted/50 transition-colors">
                 Cancel
               </Button>
               <Button 

@@ -93,7 +93,7 @@ function SidebarContent({ collapsed, setCollapsed, pathname, logout }: SidebarCo
       <div className="p-6 mt-auto border-t border-border">
          <Button 
             variant="ghost" 
-            className="w-full justify-start gap-4 px-4 h-12 rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10 font-bold"
+            className="w-full justify-start gap-4 px-4 h-12 rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10 font-medium"
             onClick={logout}
          >
             <LogOut className="h-5 w-5" />
@@ -156,7 +156,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                      <Link href="/notifications">
                         <Bell className="h-5 w-5" />
                         {unreadCount > 0 && (
-                           <span className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[9px] font-black bg-red-500 text-white rounded-full animate-in zoom-in shadow-sm shadow-red-500/20">
+                           <span className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[9px] font-black bg-danger-500 text-white rounded-full animate-in zoom-in shadow-sm shadow-red-500/20">
                               {unreadCount > 9 ? '9+' : unreadCount}
                            </span>
                         )}
@@ -165,7 +165,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   
                   <Separator orientation="vertical" className="h-6 bg-border" />
                   
-                  <Button variant="outline" size="sm" className="font-bold gap-2 h-9 border-border hover:bg-muted" asChild>
+                  <Button variant="outline" size="sm" className="font-medium gap-2 h-9 border-border hover:bg-muted" asChild>
                      <Link href="/">
                         <ExternalLink className="h-4 w-4" />
                         Live Site
@@ -174,7 +174,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                   <Avatar className="h-9 w-9 border border-border">
                      <AvatarImage src={user?.avatarUrl} />
-                     <AvatarFallback className="bg-primary text-primary-foreground font-bold text-xs uppercase">
+                     <AvatarFallback className="bg-primary text-primary-foreground font-medium text-xs uppercase">
                         {user?.fullName?.charAt(0)}
                      </AvatarFallback>
                   </Avatar>

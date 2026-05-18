@@ -8,7 +8,7 @@ import {
   Zap,
   Star
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatDateString } from '@/lib/utils';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -90,45 +90,45 @@ export default function SpotlightManagement() {
     <div className="space-y-8 animate-in fade-in duration-700">
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="rounded-[2.5rem] border-none shadow-xl shadow-amber-500/10 bg-amber-50/50 relative overflow-hidden">
+        <Card className="rounded-xl-[2.5rem] border-none shadow-xl shadow-amber-500/10 bg-azure-50/50 relative overflow-hidden">
            <div className="absolute top-0 right-0 p-8 opacity-10">
-              <Star className="w-32 h-32 text-amber-500" />
+              <Star className="w-32 h-32 text-azure-500" />
            </div>
            <CardHeader className="p-8 pb-4 relative z-10">
-              <Badge className="w-fit bg-amber-100 text-amber-700 border-none font-black text-[10px] uppercase tracking-widest px-3 py-1 mb-2">Dev of the Day</Badge>
-              <CardTitle className="text-2xl font-black text-amber-950">Current Active</CardTitle>
+              <Badge className="w-fit bg-azure-50 text-azure-700 border-none font-black text-[10px] uppercase tracking-widest px-3 py-1 mb-2">Dev of the Day</Badge>
+              <CardTitle className="text-2xl font-black text-warning-950">Current Active</CardTitle>
            </CardHeader>
            <CardContent className="p-8 pt-0 relative z-10">
               {activeDaySlot ? (
                  <div className="space-y-6">
                     <div className="flex items-center gap-4">
                        <Avatar className="h-16 w-16 rounded-2xl border-4 border-white shadow-md">
-                          <AvatarFallback className="bg-amber-900 text-white font-black text-xl uppercase">
+                          <AvatarFallback className="bg-warning-900 text-white font-black text-xl uppercase">
                              {activeDaySlot.developerName?.charAt(0) || 'D'}
                           </AvatarFallback>
                        </Avatar>
                        <div className="space-y-1">
-                          <p className="font-black text-amber-950 text-xl tracking-tight">{activeDaySlot.developerName}</p>
-                          <p className="text-[10px] font-bold text-amber-700/70 uppercase tracking-widest text-ellipsis overflow-hidden max-w-[200px]">{activeDaySlot.developerId}</p>
+                          <p className="font-black text-warning-950 text-xl tracking-tight">{activeDaySlot.developerName}</p>
+                          <p className="text-[10px] font-medium text-azure-700/70 uppercase tracking-widest text-ellipsis overflow-hidden max-w-[200px]">{activeDaySlot.developerId}</p>
                        </div>
                     </div>
                     <Button 
                        variant="outline" 
-                       className="w-full h-12 rounded-xl border-amber-200 bg-white hover:bg-red-50 hover:text-red-600 transition-all font-bold gap-2 text-xs"
+                       className="w-full h-12 rounded-xl border-azure-200 bg-white hover:bg-danger-50 hover:text-danger-500 transition-all font-medium gap-2 text-xs"
                        onClick={() => setOverrideSlot(activeDaySlot)}
                     >
                        <Trash2 className="h-4 w-4" /> Clear Day Slot
                     </Button>
                  </div>
               ) : (
-                 <div className="py-8 text-center bg-white/50 rounded-2xl border border-amber-100/50">
-                    <p className="text-[10px] font-bold text-amber-700/50 uppercase tracking-widest">No active day slot</p>
+                 <div className="py-8 text-center bg-white/50 rounded-2xl border border-azure-100/50">
+                    <p className="text-[10px] font-medium text-azure-700/50 uppercase tracking-widest">No active day slot</p>
                  </div>
               )}
            </CardContent>
         </Card>
 
-        <Card className="rounded-[2.5rem] border-none shadow-xl shadow-primary/10 bg-primary/5 relative overflow-hidden">
+        <Card className="rounded-xl-[2.5rem] border-none shadow-xl shadow-primary/10 bg-primary/5 relative overflow-hidden">
            <div className="absolute top-0 right-0 p-8 opacity-10">
               <Zap className="w-32 h-32 text-primary" />
            </div>
@@ -147,12 +147,12 @@ export default function SpotlightManagement() {
                        </Avatar>
                        <div className="space-y-1">
                           <p className="font-black text-slate-900 text-xl tracking-tight">{activeWeekSlot.developerName}</p>
-                          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-ellipsis overflow-hidden max-w-[200px]">{activeWeekSlot.developerId}</p>
+                          <p className="text-[10px] font-medium text-slate-500 uppercase tracking-widest text-ellipsis overflow-hidden max-w-[200px]">{activeWeekSlot.developerId}</p>
                        </div>
                     </div>
                     <Button 
                        variant="outline" 
-                       className="w-full h-12 rounded-xl border-primary/20 bg-white hover:bg-red-50 hover:text-red-600 transition-all font-bold gap-2 text-xs"
+                       className="w-full h-12 rounded-xl border-primary/20 bg-white hover:bg-danger-50 hover:text-danger-500 transition-all font-medium gap-2 text-xs"
                        onClick={() => setOverrideSlot(activeWeekSlot)}
                     >
                        <Trash2 className="h-4 w-4" /> Clear Week Slot
@@ -160,21 +160,21 @@ export default function SpotlightManagement() {
                  </div>
               ) : (
                  <div className="py-8 text-center bg-white/50 rounded-2xl border border-primary/10">
-                    <p className="text-[10px] font-bold text-primary/50 uppercase tracking-widest">No active week slot</p>
+                    <p className="text-[10px] font-medium text-primary/50 uppercase tracking-widest">No active week slot</p>
                  </div>
               )}
            </CardContent>
         </Card>
       </div>
 
-      <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-slate-200/40 overflow-hidden bg-white">
+      <Card className="rounded-xl-[2.5rem] border-none shadow-2xl shadow-slate-200/40 overflow-hidden bg-white">
          <CardHeader className="p-10 pb-6 border-b border-slate-50 flex flex-row items-center justify-between gap-4">
             <div className="space-y-1">
                <CardTitle className="text-2xl font-black">Visibility Registry</CardTitle>
-               <CardDescription className="font-bold text-slate-400 uppercase text-[10px] tracking-widest">Active and historic premium placement</CardDescription>
+               <CardDescription className="font-medium text-slate-500 uppercase text-[10px] tracking-widest">Active and historic premium placement</CardDescription>
             </div>
             <div className="flex gap-2">
-               <Badge className="bg-slate-100 text-slate-400 border-none font-black text-[10px] uppercase tracking-widest px-3 py-1">{activeSlots} Active</Badge>
+               <Badge className="bg-slate-100 text-slate-500 border-none font-black text-[10px] uppercase tracking-widest px-3 py-1">{activeSlots} Active</Badge>
             </div>
          </CardHeader>
 
@@ -182,30 +182,30 @@ export default function SpotlightManagement() {
             {loading ? (
                <div className="py-16 text-center flex flex-col items-center justify-center">
                   <Loader2 className="h-8 w-8 text-slate-300 animate-spin mb-4" />
-                  <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Loading history...</p>
+                  <p className="text-sm font-medium text-slate-500 uppercase tracking-widest">Loading history...</p>
                </div>
             ) : (
                <Table>
                   <TableHeader className="bg-slate-50/50">
                      <TableRow className="border-slate-100">
-                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-10">Professional Identity</TableHead>
-                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-10">Package Tier</TableHead>
-                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-10">Lifecycle Status</TableHead>
-                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-10">Expiration</TableHead>
-                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-10 text-right">Moderation</TableHead>
+                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-6 px-10">Professional Identity</TableHead>
+                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-6 px-10">Package Tier</TableHead>
+                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-6 px-10">Lifecycle Status</TableHead>
+                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-6 px-10">Expiration</TableHead>
+                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-6 px-10 text-right">Moderation</TableHead>
                      </TableRow>
                   </TableHeader>
                   <TableBody>
                      {slots.length === 0 ? (
                         <TableRow>
                            <TableCell colSpan={5} className="py-16 text-center">
-                              <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No spotlight subscriptions found</p>
+                              <p className="text-sm font-medium text-slate-500 uppercase tracking-widest">No spotlight subscriptions found</p>
                            </TableCell>
                         </TableRow>
                      ) : slots.map((slot) => (
                         <TableRow key={slot.id} className={cn(
                            "border-slate-50 transition-colors",
-                           slot.isActive ? "bg-amber-50/20 hover:bg-amber-50/40" : "hover:bg-slate-50/50"
+                           slot.isActive ? "bg-azure-50/20 hover:bg-azure-50/40" : "hover:bg-slate-50/50"
                         )}>
                            <TableCell className="py-6 px-10">
                               <div className="flex items-center gap-4">
@@ -216,12 +216,12 @@ export default function SpotlightManagement() {
                                  </Avatar>
                                  <div className="space-y-0.5">
                                     <p className="font-black text-slate-900 text-sm tracking-tight">{slot.developerName}</p>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-ellipsis overflow-hidden max-w-[120px]">{slot.developerId}</p>
+                                    <p className="text-[10px] font-medium text-slate-500 uppercase tracking-widest text-ellipsis overflow-hidden max-w-[120px]">{slot.developerId}</p>
                                  </div>
                               </div>
                            </TableCell>
                            <TableCell className="py-6 px-10">
-                              <Badge variant="outline" className="rounded-lg font-black text-[9px] uppercase tracking-widest border-slate-200 bg-white shadow-sm px-2 py-0.5">
+                              <Badge variant="outline" className="rounded-xl font-black text-[9px] uppercase tracking-widest border-slate-200 bg-white shadow-sm px-2 py-0.5">
                                  {slot.type}
                               </Badge>
                            </TableCell>
@@ -229,15 +229,15 @@ export default function SpotlightManagement() {
                               <div className="flex items-center gap-2">
                                  <div className={cn(
                                     "h-2 w-2 rounded-full",
-                                    slot.isActive ? "bg-emerald-500 animate-pulse" : (slot.overriddenByAdmin ? "bg-red-500" : "bg-slate-300")
+                                    slot.isActive ? "bg-cyan-600 animate-pulse" : (slot.overriddenByAdmin ? "bg-danger-500" : "bg-slate-300")
                                  )} />
-                                 <span className={cn("text-xs font-bold uppercase tracking-tight", slot.isActive ? "text-emerald-600" : (slot.overriddenByAdmin ? "text-red-500" : "text-slate-400"))}>
+                                 <span className={cn("text-xs font-medium uppercase tracking-tight", slot.isActive ? "text-cyan-600" : (slot.overriddenByAdmin ? "text-danger-500" : "text-slate-500"))}>
                                     {slot.isActive ? 'Active' : (slot.overriddenByAdmin ? 'Cleared' : 'Expired')}
                                  </span>
                               </div>
                            </TableCell>
-                           <TableCell className="py-6 px-10 text-xs font-bold text-slate-500">
-                              {new Date(slot.endDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                           <TableCell className="py-6 px-10 text-xs font-medium text-slate-500">
+                              {formatDateString(slot.endDate)}
                            </TableCell>
                            <TableCell className="py-6 px-10 text-right">
                               <div className="flex justify-end gap-2">
@@ -245,7 +245,7 @@ export default function SpotlightManagement() {
                                     <Button 
                                       size="sm" 
                                       variant="outline" 
-                                      className="h-10 px-3 rounded-xl border-slate-100 hover:bg-red-50 hover:text-red-600 transition-all font-bold gap-2 text-xs"
+                                      className="h-10 px-3 rounded-xl border-slate-100 hover:bg-danger-50 hover:text-danger-500 transition-all font-medium gap-2 text-xs"
                                       onClick={() => setOverrideSlot(slot)}
                                     >
                                        <Trash2 className="h-4 w-4" /> Clear Slot
@@ -263,7 +263,7 @@ export default function SpotlightManagement() {
       </Card>
 
       <Dialog open={!!overrideSlot} onOpenChange={(open) => !open && setOverrideSlot(null)}>
-        <DialogContent className="sm:max-w-[425px] rounded-[2rem]">
+        <DialogContent className="sm:max-w-[425px] rounded-xl-[2rem]">
           <DialogHeader>
             <DialogTitle className="font-black text-xl">Clear Spotlight Slot</DialogTitle>
             <DialogDescription className="font-medium">
@@ -272,7 +272,7 @@ export default function SpotlightManagement() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="reason" className="font-black text-[10px] uppercase tracking-widest text-slate-400">
+              <Label htmlFor="reason" className="font-black text-[10px] uppercase tracking-widest text-slate-500">
                 Reason for Revocation
               </Label>
               <Input
@@ -285,10 +285,10 @@ export default function SpotlightManagement() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" className="rounded-xl font-bold" onClick={() => setOverrideSlot(null)}>
+            <Button variant="outline" className="rounded-xl font-medium" onClick={() => setOverrideSlot(null)}>
               Cancel
             </Button>
-            <Button variant="destructive" className="rounded-xl font-bold gap-2" onClick={handleOverride} disabled={overriding || !overrideReason.trim()}>
+            <Button variant="destructive" className="rounded-xl font-medium gap-2" onClick={handleOverride} disabled={overriding || !overrideReason.trim()}>
               {overriding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
               Clear Slot
             </Button>

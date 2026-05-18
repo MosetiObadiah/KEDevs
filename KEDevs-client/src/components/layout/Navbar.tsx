@@ -3,18 +3,18 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { 
-  Menu, 
-  X, 
-  Bell, 
-  User, 
-  LogOut, 
-  Settings, 
-  ShieldCheck, 
-  Briefcase, 
-  Users, 
-  Sun, 
-  Moon, 
+import {
+  Menu,
+  X,
+  Bell,
+  User,
+  LogOut,
+  Settings,
+  ShieldCheck,
+  Briefcase,
+  Users,
+  Sun,
+  Moon,
   Palette,
   CreditCard,
   ChevronDown,
@@ -69,7 +69,7 @@ const Navbar = () => {
           {/* Brand Logo */}
           <Link href="/" className="flex items-center gap-2 group transition-all">
             <div className="h-10 w-10 bg-slate-900 rounded-xl flex items-center justify-center group-hover:rotate-6 transition-transform">
-               <Zap className="h-6 w-6 text-white fill-white" />
+              <Zap className="h-6 w-6 text-white fill-white" />
             </div>
             <span className="text-xl font-black text-slate-900 tracking-tighter">KE<span className="text-primary italic">Devs</span></span>
           </Link>
@@ -94,7 +94,7 @@ const Navbar = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-xl h-10 w-10 text-slate-400 hover:text-slate-900 hover:bg-slate-50"
+              className="rounded-xl h-10 w-10 text-slate-500 hover:text-slate-900 hover:bg-slate-50"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             >
               {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
@@ -112,12 +112,12 @@ const Navbar = () => {
             ) : (
               <div className="flex items-center gap-3">
                 <NotificationPopover unreadCount={unreadCount} onMarkAllAsRead={refreshUnreadCount}>
-                   <Button variant="ghost" size="icon" className="relative rounded-xl h-10 w-10 bg-slate-50 text-slate-400 hover:text-primary">
-                      <Bell className="h-5 w-5" />
-                      {unreadCount > 0 && (
-                        <span className="absolute top-2 right-2 h-2.5 w-2.5 bg-red-500 border-2 border-white rounded-full animate-in zoom-in" />
-                      )}
-                   </Button>
+                  <Button variant="ghost" size="icon" className="relative rounded-xl h-10 w-10 bg-slate-50 text-slate-500 hover:text-primary">
+                    <Bell className="h-5 w-5" />
+                    {unreadCount > 0 && (
+                      <span className="absolute top-2 right-2 h-2.5 w-2.5 bg-danger-500 border-2 border-white rounded-full animate-in zoom-in" />
+                    )}
+                  </Button>
                 </NotificationPopover>
 
                 <DropdownMenu>
@@ -131,46 +131,46 @@ const Navbar = () => {
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-64 rounded-[2rem] p-3 border-none shadow-3xl mt-4 mr-4 bg-white" align="end">
+                  <DropdownMenuContent className="w-64 rounded-xl-[2rem] p-3 border-none shadow-3xl mt-4 mr-4 bg-white" align="end">
                     <div className="p-4 mb-2">
-                       <p className="text-sm font-black text-slate-900 tracking-tight">{user?.fullName}</p>
-                       <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{user?.role} NODE</p>
+                      <p className="text-sm font-black text-slate-900 tracking-tight">{user?.fullName}</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{user?.role} NODE</p>
                     </div>
                     <DropdownMenuSeparator className="bg-slate-50 mx-2" />
-                    
+
                     <DropdownMenuItem asChild className="rounded-xl py-3 cursor-pointer group">
-                       <Link href="/profile/me" className="flex items-center gap-3 font-bold text-xs text-slate-600 group-hover:text-primary">
-                          <User className="h-4 w-4" /> Professional Profile
-                       </Link>
-                    </DropdownMenuItem>
-                    
-                    <DropdownMenuItem asChild className="rounded-xl py-3 cursor-pointer group">
-                       <Link href="/payments" className="flex items-center gap-3 font-bold text-xs text-slate-600 group-hover:text-primary">
-                          <CreditCard className="h-4 w-4" /> Financial Ledger
-                       </Link>
+                      <Link href="/profile/me" className="flex items-center gap-3 font-medium text-xs text-slate-700 group-hover:text-primary">
+                        <User className="h-4 w-4" /> Professional Profile
+                      </Link>
                     </DropdownMenuItem>
 
                     <DropdownMenuItem asChild className="rounded-xl py-3 cursor-pointer group">
-                       <Link href="/verify" className="flex items-center gap-3 font-bold text-xs text-slate-600 group-hover:text-emerald-500">
-                          <ShieldCheck className="h-4 w-4" /> Identity Protocol
-                       </Link>
+                      <Link href="/payments" className="flex items-center gap-3 font-medium text-xs text-slate-700 group-hover:text-primary">
+                        <CreditCard className="h-4 w-4" /> Financial Ledger
+                      </Link>
                     </DropdownMenuItem>
 
                     <DropdownMenuItem asChild className="rounded-xl py-3 cursor-pointer group">
-                       <Link href="/settings/notifications" className="flex items-center gap-3 font-bold text-xs text-slate-600 group-hover:text-primary">
-                          <Settings className="h-4 w-4" /> Preferences
-                       </Link>
+                      <Link href="/verify" className="flex items-center gap-3 font-medium text-xs text-slate-700 group-hover:text-cyan-600">
+                        <ShieldCheck className="h-4 w-4" /> Identity Protocol
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem asChild className="rounded-xl py-3 cursor-pointer group">
+                      <Link href="/settings/notifications" className="flex items-center gap-3 font-medium text-xs text-slate-700 group-hover:text-primary">
+                        <Settings className="h-4 w-4" /> Preferences
+                      </Link>
                     </DropdownMenuItem>
 
                     <DropdownMenuSeparator className="bg-slate-50 mx-2" />
-                    
-                    <DropdownMenuItem 
-                       className="rounded-xl py-3 cursor-pointer group focus:bg-red-50"
-                       onClick={() => logout()}
+
+                    <DropdownMenuItem
+                      className="rounded-xl py-3 cursor-pointer group focus:bg-danger-50"
+                      onClick={() => logout()}
                     >
-                       <div className="flex items-center gap-3 font-black text-xs text-red-500">
-                          <LogOut className="h-4 w-4" /> Terminate Session
-                       </div>
+                      <div className="flex items-center gap-3 font-black text-xs text-danger-500">
+                        <LogOut className="h-4 w-4" /> Terminate Session
+                      </div>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -181,7 +181,7 @@ const Navbar = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden rounded-xl h-10 w-10 bg-slate-50 text-slate-400"
+              className="md:hidden rounded-xl h-10 w-10 bg-slate-50 text-slate-500"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -191,29 +191,29 @@ const Navbar = () => {
 
         {/* Mobile Navigation Feed */}
         {isMobileMenuOpen && (
-           <div className="md:hidden border-t border-slate-50 py-6 space-y-2 animate-in slide-in-from-top-2 duration-300">
-              {navItems.map((item) => (
-                 <Link 
-                    key={item.label} 
-                    href={item.href}
-                    className="flex items-center justify-between p-4 rounded-2xl hover:bg-slate-50 transition-colors group"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                 >
-                    <span className="font-black text-xs uppercase tracking-widest text-slate-600 group-hover:text-slate-900">{item.label}</span>
-                    <ChevronDown className="h-4 w-4 text-slate-300 -rotate-90" />
-                 </Link>
-              ))}
-              {!isLoggedIn && (
-                 <div className="pt-6 grid grid-cols-2 gap-4 px-4">
-                    <Button asChild variant="outline" className="rounded-xl font-black text-[10px] uppercase tracking-widest h-12">
-                       <Link href="/login">Login</Link>
-                    </Button>
-                    <Button asChild className="rounded-xl font-black text-[10px] uppercase tracking-widest h-12 bg-slate-900">
-                       <Link href="/register">Join</Link>
-                    </Button>
-                 </div>
-              )}
-           </div>
+          <div className="md:hidden border-t border-slate-50 py-6 space-y-2 animate-in slide-in-from-top-2 duration-300">
+            {navItems.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="flex items-center justify-between p-4 rounded-2xl hover:bg-slate-50 transition-colors group"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <span className="font-black text-xs uppercase tracking-widest text-slate-700 group-hover:text-slate-900">{item.label}</span>
+                <ChevronDown className="h-4 w-4 text-slate-300 -rotate-90" />
+              </Link>
+            ))}
+            {!isLoggedIn && (
+              <div className="pt-6 grid grid-cols-2 gap-4 px-4">
+                <Button asChild variant="outline" className="rounded-xl font-black text-[10px] uppercase tracking-widest h-12">
+                  <Link href="/login">Login</Link>
+                </Button>
+                <Button asChild className="rounded-xl font-black text-[10px] uppercase tracking-widest h-12 bg-slate-900">
+                  <Link href="/register">Join</Link>
+                </Button>
+              </div>
+            )}
+          </div>
         )}
       </div>
     </nav>

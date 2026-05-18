@@ -25,7 +25,7 @@ import { developerService } from '@/services/developerService';
 import ApplyDialog from '@/components/jobs/ApplyDialog';
 import PinJobDialog from '@/components/jobs/PinJobDialog';
 import Forum from '@/components/forum/Forum';
-import { cn } from '@/lib/utils';
+import { cn, formatDateString } from '@/lib/utils';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -234,7 +234,7 @@ export default function JobDetailPage() {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
         <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
-        <h2 className="text-2xl font-bold mb-4">{error || 'Job not found'}</h2>
+        <h2 className="text-2xl font-medium mb-4">{error || 'Job not found'}</h2>
         <Button asChild>
           <Link href="/jobs">Back to Jobs</Link>
         </Button>
@@ -256,7 +256,7 @@ export default function JobDetailPage() {
           <div className="lg:col-span-7 space-y-10 min-w-0">
             {/* 1. Job Header */}
             <div className="space-y-4">
-              <h1 className="text-4xl font-bold text-foreground leading-tight break-words">
+              <h1 className="text-4xl font-medium text-foreground leading-tight break-words">
                 {job.title}
               </h1>
               
@@ -301,7 +301,7 @@ export default function JobDetailPage() {
 
             {/* 2. Job Description */}
             <div className="space-y-4 min-w-0 overflow-hidden">
-              <h2 className="text-lg font-semibold">Job Description</h2>
+              <h2 className="text-lg font-medium">Job Description</h2>
               <div className="space-y-2 min-w-0">
                 <h3 className="text-base font-medium text-foreground">About the Role</h3>
                 <div className="prose prose-sm prose-slate max-w-none text-muted-foreground leading-relaxed [word-break:break-word] [overflow-wrap:anywhere] overflow-hidden">
@@ -313,18 +313,18 @@ export default function JobDetailPage() {
             {/* 3. Requirements */}
             <Card className="rounded-xl border shadow-none">
               <CardContent className="p-6 space-y-6">
-                <h2 className="text-lg font-semibold">Requirements</h2>
+                <h2 className="text-lg font-medium">Requirements</h2>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide font-bold">Minimum Experience</p>
-                    <p className="text-base font-semibold text-foreground">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Minimum Experience</p>
+                    <p className="text-base font-medium text-foreground">
                       {job.minExperienceYears || 0} Years
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide font-bold">Min Qualification</p>
-                    <p className="text-base font-semibold text-foreground truncate">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Min Qualification</p>
+                    <p className="text-base font-medium text-foreground truncate">
                       {formatQualification(job.minQualification)}
                     </p>
                   </div>
@@ -332,7 +332,7 @@ export default function JobDetailPage() {
 
                 {job.tags && job.tags.length > 0 && (
                   <div className="space-y-3">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide font-bold">Keywords</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Keywords</p>
                     <div className="flex flex-wrap gap-2">
                       {job.tags.map((tag: string) => (
                         <Badge key={tag} variant="secondary" className="px-3 py-1 font-medium">
@@ -347,7 +347,7 @@ export default function JobDetailPage() {
 
             {/* 4. Forum Discussion */}
             <div className="space-y-6 pt-4">
-              <h2 className="text-lg font-semibold">Forum Discussion</h2>
+              <h2 className="text-lg font-medium">Forum Discussion</h2>
               <Forum 
                 jobId={id as string} 
                 initialComments={comments} 
@@ -369,7 +369,7 @@ export default function JobDetailPage() {
             {/* 5. Community Sentiment */}
             <Card className="rounded-xl border shadow-none">
               <CardContent className="p-5 space-y-4">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide font-bold">Community Sentiment</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Community Sentiment</p>
                 <div className="flex items-center gap-3">
                   <Button 
                     variant={isUpvoted ? "default" : "outline"} 
@@ -395,10 +395,10 @@ export default function JobDetailPage() {
             {/* 6. Apply Section */}
             <Card className="rounded-xl border shadow-none bg-card">
               <CardContent className="p-6 space-y-4">
-                <h3 className="text-base font-semibold">Ready to Apply?</h3>
+                <h3 className="text-base font-medium">Ready to Apply?</h3>
                 
                 {job.isPeerSourced ? (
-                  <Button size="lg" className="w-full font-bold" asChild>
+                  <Button size="lg" className="w-full font-medium" asChild>
                     <Link href={job.sourceUrl || '#'} target="_blank">
                       Apply on External Site
                       <ExternalLink className="ml-2 w-4 h-4" />
@@ -406,12 +406,12 @@ export default function JobDetailPage() {
                   </Button>
                 ) : isPoster ? (
                   <div className="space-y-2">
-                    <Badge variant="secondary" className="w-full py-3 justify-center text-sm font-semibold rounded-lg">
+                    <Badge variant="secondary" className="w-full py-3 justify-center text-sm font-medium rounded-xl">
                       You Posted This Job
                     </Badge>
                     {job.status !== 'CLOSED' && job.status !== 'REMOVED' && (
                       <div className="space-y-2">
-                        <Button size="sm" variant="outline" className="w-full font-semibold" onClick={handleEditJob}>
+                        <Button size="sm" variant="outline" className="w-full font-medium" onClick={handleEditJob}>
                           <Pencil className="w-3.5 h-3.5 mr-2" /> Edit Job
                         </Button>
                         {!job.isPinned && (
@@ -424,29 +424,29 @@ export default function JobDetailPage() {
                   </div>
                 ) : job.isFlagged ? (
                   <div className="space-y-2">
-                    <Button size="lg" className="w-full font-bold bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/30" disabled>
+                    <Button size="lg" className="w-full font-medium bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/30" disabled>
                       <AlertTriangle className="w-4 h-4 mr-2" />
                       Under Review
                     </Button>
                     <p className="text-xs text-center text-muted-foreground font-medium">Applications disabled during moderation</p>
                   </div>
                 ) : job.hasApplied ? (
-                  <Button size="lg" className="w-full bg-emerald-600 hover:bg-emerald-700 font-bold" disabled>
+                  <Button size="lg" className="w-full bg-cyan-600 hover:bg-emerald-700 font-medium" disabled>
                     Application Sent
                   </Button>
                 ) : viewerProfile?.availabilityStatus === 'NOT_AVAILABLE' ? (
                   <div className="space-y-2">
-                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center text-amber-800">
-                      <p className="text-xs font-semibold leading-snug">
+                    <div className="bg-azure-50 border border-azure-200 rounded-xl p-4 text-center text-azure-800">
+                      <p className="text-xs font-medium leading-snug">
                         You are currently marked as <strong>Not Available</strong>. Update your status to apply for jobs.
                       </p>
-                      <Button variant="link" size="sm" className="font-bold text-amber-700 h-auto p-0 mt-2" asChild>
+                      <Button variant="link" size="sm" className="font-medium text-azure-700 h-auto p-0 mt-2" asChild>
                         <Link href="/settings/visibility">Change Status &rarr;</Link>
                       </Button>
                     </div>
                   </div>
                 ) : (
-                  <Button size="lg" className="w-full font-bold" onClick={() => setApplyOpen(true)}>
+                  <Button size="lg" className="w-full font-medium" onClick={() => setApplyOpen(true)}>
                     Apply Now
                   </Button>
                 )}
@@ -455,7 +455,7 @@ export default function JobDetailPage() {
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     <CalendarIcon className="w-4 h-4 shrink-0" />
                     <span>
-                      Deadline: {job.applicationDeadline ? new Date(job.applicationDeadline).toLocaleDateString(undefined, { dateStyle: 'long' }) : 'Flexible'}
+                      Deadline: {job.applicationDeadline ? formatDateString(job.applicationDeadline) : 'Flexible'}
                     </span>
                   </div>
                   {job.contactEmail && (
@@ -473,23 +473,23 @@ export default function JobDetailPage() {
               <Card className="rounded-xl border shadow-none">
                 <CardContent className="p-6 space-y-4">
                   <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide font-bold">Shared By</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Shared By</p>
                     <div className="flex items-center gap-3 py-2">
                       <Avatar className="h-8 w-8">
-                        <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
+                        <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
                           {(job.postedByCompanyName || job.postedByName || 'C').charAt(0)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold">{job.postedByCompanyName || job.postedByName || 'Community Member'}</span>
-                        <Badge variant="outline" className="w-fit text-[10px] h-4 border-blue-200 bg-blue-50 text-blue-700 font-bold uppercase tracking-tighter">
+                        <span className="text-sm font-medium">{job.postedByCompanyName || job.postedByName || 'Community Member'}</span>
+                        <Badge variant="outline" className="w-fit text-[10px] h-4 border-azure-200 bg-azure-50 text-azure-700 font-medium uppercase tracking-tighter">
                           {job.postedByRole === 'EMPLOYER' ? 'Employer' : 'Community Member'}
                         </Badge>
                       </div>
                     </div>
                   </div>
                   
-                  <Button variant="outline" size="sm" className="w-full font-semibold" asChild>
+                  <Button variant="outline" size="sm" className="w-full font-medium" asChild>
                     <Link href={job.postedByRole === 'EMPLOYER' ? `/companies/${job.postedByProfileId}` : `/developers/${job.postedByProfileId}`}>
                       View Profile
                     </Link>
@@ -524,7 +524,7 @@ export default function JobDetailPage() {
 
       {/* Edit Job Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="sm:max-w-[700px] rounded-[1.5rem] max-h-[90vh] overflow-y-auto p-8">
+        <DialogContent className="sm:max-w-[700px] rounded-xl-[1.5rem] max-h-[90vh] overflow-y-auto p-8">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black">Edit Job Post</DialogTitle>
           </DialogHeader>
@@ -608,7 +608,7 @@ export default function JobDetailPage() {
             </div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" className="rounded-xl font-bold" onClick={() => setEditOpen(false)}>Cancel</Button>
+            <Button variant="outline" className="rounded-xl font-medium" onClick={() => setEditOpen(false)}>Cancel</Button>
             <Button className="rounded-xl font-black" onClick={handleEditSubmit} disabled={editLoading}>
               {editLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Save Changes

@@ -66,7 +66,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { cn } from '@/lib/utils';
+import { cn, formatDateString } from '@/lib/utils';
 import { toast } from 'sonner';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { LAYOUT, SPACING, TYPOGRAPHY } from '@/lib/constants';
@@ -401,7 +401,7 @@ function JobsPageContent() {
         <div className="flex justify-end items-center gap-3 mb-8 print:hidden">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="font-bold border-primary/20 hover:bg-primary/5 h-12 px-6" disabled={isExporting}>
+              <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-6" disabled={isExporting}>
                 <Download className="mr-2 h-4 w-4 text-primary" />
                 {isExporting ? 'Exporting...' : 'Export'}
               </Button>
@@ -417,7 +417,7 @@ function JobsPageContent() {
           </DropdownMenu>
 
           {isLoggedIn && (
-            <Button className="h-12 px-6 font-bold shadow-lg shadow-primary/20" asChild>
+            <Button className="h-12 px-6 font-medium shadow-lg shadow-primary/20" asChild>
               <Link href="/jobs/post">
                 <Plus className="mr-2 h-5 w-5" /> Post a Job
               </Link>
@@ -427,7 +427,7 @@ function JobsPageContent() {
 
         <div className="hidden print:block mb-8 border-b pb-4">
           <h1 className="text-2xl font-black text-black">KEDevs Job Market Report</h1>
-          <p className="text-sm text-gray-500">Generated on {new Date().toLocaleDateString()}</p>
+          <p className="text-sm text-slate-500">Generated on {formatDateString(new Date())}</p>
         </div>
 
         <div className={cn("grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-5 items-start", SPACING.cards)}>
@@ -435,12 +435,12 @@ function JobsPageContent() {
           <aside className="lg:col-span-1 space-y-6 print:hidden sticky top-24 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent pr-1">
             <Card className="border-border/50 shadow-sm">
               <CardHeader className="pb-4">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Filter Jobs</h3>
+                <h3 className="text-sm font-medium uppercase tracking-wider text-foreground">Filter Jobs</h3>
               </CardHeader>
               <CardContent className="space-y-6">
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Work Arrangements</label>
+                  <label className="text-xs font-medium text-muted-foreground uppercase">Work Arrangements</label>
                   <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
                     {WORK_TYPES.map(type => (
                       <div key={type.value} className="flex items-center space-x-2">
@@ -459,7 +459,7 @@ function JobsPageContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Job Types</label>
+                  <label className="text-xs font-medium text-muted-foreground uppercase">Job Types</label>
                   <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
                     {JOB_TYPES.map(type => (
                       <div key={type.value} className="flex items-center space-x-2">
@@ -478,7 +478,7 @@ function JobsPageContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Experience Levels</label>
+                  <label className="text-xs font-medium text-muted-foreground uppercase">Experience Levels</label>
                   <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
                     {EXPERIENCE_LEVELS.map(level => (
                       <div key={level.value} className="flex items-center space-x-2">
@@ -497,9 +497,9 @@ function JobsPageContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Location</label>
+                  <label className="text-xs font-medium text-muted-foreground uppercase">Location</label>
                   <Select value={city} onValueChange={setCity}>
-                    <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-lg">
+                    <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-xl">
                       <SelectValue placeholder="Any Location" />
                     </SelectTrigger>
                     <SelectContent className="max-h-60 overflow-y-auto">
@@ -512,13 +512,13 @@ function JobsPageContent() {
                 </div>
 
                 <div className="space-y-2 relative">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Skills</label>
+                  <label className="text-xs font-medium text-muted-foreground uppercase">Skills</label>
 
                   {/* Dropdown Trigger */}
                   <div className="relative">
                     <button
                       type="button"
-                      className="w-full flex items-center justify-between border border-border/50 bg-background text-xs h-9 px-3 rounded-lg hover:bg-slate-50 transition-all font-medium text-slate-700"
+                      className="w-full flex items-center justify-between border border-border/50 bg-background text-xs h-9 px-3 rounded-xl hover:bg-slate-50 transition-all font-medium text-slate-700"
                       onClick={() => setIsSkillsDropdownOpen(!isSkillsDropdownOpen)}
                     >
                       <span className="truncate text-left flex-1">
@@ -526,7 +526,7 @@ function JobsPageContent() {
                           ? "Select skills..."
                           : `${selectedSkills.length} skill${selectedSkills.length > 1 ? 's' : ''} selected`}
                       </span>
-                      <ChevronDown className="h-4 w-4 text-slate-400 shrink-0 ml-2" />
+                      <ChevronDown className="h-4 w-4 text-slate-500 shrink-0 ml-2" />
                     </button>
 
                     {/* Dropdown Menu Overlay */}
@@ -543,7 +543,7 @@ function JobsPageContent() {
                             <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
                             <Input
                               placeholder="Search or enter custom skill..."
-                              className="pl-8 text-xs h-8 rounded-lg border-border/50 focus-visible:ring-primary/20"
+                              className="pl-8 text-xs h-8 rounded-xl border-border/50 focus-visible:ring-primary/20"
                               value={skillSearch}
                               onChange={(e) => setSkillSearch(e.target.value)}
                               onKeyDown={(e) => {
@@ -565,7 +565,7 @@ function JobsPageContent() {
                             {skillSearch.trim() && !availableSkills.some(s => s.toLowerCase() === skillSearch.trim().toLowerCase()) && (
                               <button
                                 type="button"
-                                className="w-full flex items-center gap-2 p-2 rounded-lg bg-primary/5 text-primary hover:bg-primary/10 text-xs font-bold text-left transition-colors border border-primary/10"
+                                className="w-full flex items-center gap-2 p-2 rounded-xl bg-primary/5 text-primary hover:bg-primary/10 text-xs font-medium text-left transition-colors border border-primary/10"
                                 onClick={() => {
                                   const customSkill = skillSearch.trim();
                                   if (!selectedSkills.includes(customSkill)) {
@@ -585,7 +585,7 @@ function JobsPageContent() {
                                 return (
                                   <div
                                     key={skill}
-                                    className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors"
+                                    className="flex items-center space-x-2 p-1.5 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors"
                                     onClick={() => {
                                       if (isChecked) {
                                         setSelectedSkills(selectedSkills.filter(s => s !== skill));
@@ -621,7 +621,7 @@ function JobsPageContent() {
                         <Badge
                           key={skill}
                           variant="secondary"
-                          className="bg-primary/5 text-primary hover:bg-primary/10 border-primary/10 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1.5"
+                          className="bg-primary/5 text-primary hover:bg-primary/10 border-primary/10 text-[10px] font-medium px-2 py-0.5 rounded-2xl flex items-center gap-1.5"
                         >
                           {skill}
                           <button
@@ -638,10 +638,10 @@ function JobsPageContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Qualification & Exp</label>
+                  <label className="text-xs font-medium text-muted-foreground uppercase">Qualification & Exp</label>
                   <div className="space-y-2">
                     <Select value={minQualification || 'All'} onValueChange={(val) => setMinQualification(val === 'All' ? '' : val)}>
-                      <SelectTrigger className="text-xs h-9 rounded-lg">
+                      <SelectTrigger className="text-xs h-9 rounded-xl">
                         <SelectValue placeholder="Any Qualification" />
                       </SelectTrigger>
                       <SelectContent className="max-h-60 overflow-y-auto">
@@ -653,7 +653,7 @@ function JobsPageContent() {
                     </Select>
 
                     <Select value={minExperienceYears || 'All'} onValueChange={(val) => setMinExperienceYears(val === 'All' ? '' : val)}>
-                      <SelectTrigger className="text-xs h-9 rounded-lg">
+                      <SelectTrigger className="text-xs h-9 rounded-xl">
                         <SelectValue placeholder="Any Experience" />
                       </SelectTrigger>
                       <SelectContent className="max-h-60 overflow-y-auto">
@@ -667,22 +667,22 @@ function JobsPageContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Application Deadline</label>
+                  <label className="text-xs font-medium text-muted-foreground uppercase">Application Deadline</label>
                   <div className="flex flex-col gap-3 bg-muted/10 p-3 rounded-xl">
                     <div className="space-y-1">
-                      <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">From Date</Label>
+                      <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">From Date</Label>
                       <Input
                         type="date"
-                        className="text-xs border-border/50 h-9 rounded-lg focus-visible:ring-primary/20"
+                        className="text-xs border-border/50 h-9 rounded-xl focus-visible:ring-primary/20"
                         value={deadlineFrom}
                         onChange={(e) => setDeadlineFrom(e.target.value)}
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">To Date</Label>
+                      <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">To Date</Label>
                       <Input
                         type="date"
-                        className="text-xs border-border/50 h-9 rounded-lg focus-visible:ring-primary/20"
+                        className="text-xs border-border/50 h-9 rounded-xl focus-visible:ring-primary/20"
                         value={deadlineTo}
                         onChange={(e) => setDeadlineTo(e.target.value)}
                       />
@@ -691,7 +691,7 @@ function JobsPageContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Advanced</label>
+                  <label className="text-xs font-medium text-muted-foreground uppercase">Advanced</label>
                   <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
                     <div className="flex items-center space-x-2">
                       <Checkbox
@@ -715,9 +715,9 @@ function JobsPageContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Job Status</label>
+                  <label className="text-xs font-medium text-muted-foreground uppercase">Job Status</label>
                   <Select value={status} onValueChange={setStatus}>
-                    <SelectTrigger className="text-xs h-9 rounded-lg w-full">
+                    <SelectTrigger className="text-xs h-9 rounded-xl w-full">
                       <SelectValue placeholder="Filter by Status" />
                     </SelectTrigger>
                     <SelectContent className="max-h-60 overflow-y-auto">
@@ -728,9 +728,9 @@ function JobsPageContent() {
                 </div>
 
                 <div className="space-y-2 border-t pt-4">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Order Results By</label>
+                  <label className="text-xs font-medium text-muted-foreground uppercase">Order Results By</label>
                   <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-lg">
+                    <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-xl">
                       <SelectValue placeholder="Newest First" />
                     </SelectTrigger>
                     <SelectContent className="max-h-60 overflow-y-auto">
@@ -744,7 +744,7 @@ function JobsPageContent() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="w-full text-xs font-bold text-muted-foreground mt-2"
+                    className="w-full text-xs font-medium text-muted-foreground mt-2"
                     onClick={() => {
                       router.push(pathname);
                       setSelectedWorkTypes([]);
@@ -782,7 +782,7 @@ function JobsPageContent() {
             {!searchTerm && pinnedJobs.length > 0 && (
               <div className="space-y-4 mb-8">
                 <div className="flex items-center gap-2 px-1">
-                  <div className="bg-primary/10 p-2 rounded-lg">
+                  <div className="bg-primary/10 p-2 rounded-xl">
                   </div>
                   <h2 className="text-lg font-black uppercase tracking-tight text-foreground">Featured Listings</h2>
                 </div>
@@ -793,7 +793,7 @@ function JobsPageContent() {
                         <Link href={`/jobs/${pJob.id}`}>
                           <h3 className="font-black text-lg group-hover:text-primary transition-colors line-clamp-1">{pJob.title}</h3>
                         </Link>
-                        <p className="text-xs font-bold text-muted-foreground line-clamp-1">{pJob.companyName}</p>
+                        <p className="text-xs font-medium text-muted-foreground line-clamp-1">{pJob.companyName}</p>
                       </CardHeader>
                       <CardContent className="pb-3 text-xs space-y-2">
                         <div className="flex items-center gap-2 text-muted-foreground font-medium">
@@ -805,7 +805,7 @@ function JobsPageContent() {
                         </div>
                       </CardContent>
                       <CardFooter className="pt-0 flex justify-between items-center border-t border-primary/10 mt-2 bg-primary/[0.02]">
-                        <span className="text-[10px] font-bold text-muted-foreground flex items-center gap-1 mt-2">
+                        <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-1 mt-2">
                           <Clock className="h-3 w-3" /> Expires soon
                         </span>
                         <Link href={`/jobs/${pJob.id}`} className="mt-2">
@@ -865,163 +865,178 @@ function JobsPageContent() {
                   )}
                 </div>
               ) : (
-                filteredJobs.map((job) => (
-                  <Card key={job.id} className="group border-border/50 hover:shadow-xl hover:shadow-primary/5 transition-all overflow-hidden">
-                    <CardContent className="p-6">
-                      <div className="flex flex-col md:flex-row gap-6">
-                        {/* Job Content */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-wrap items-center gap-2 mb-2">
-                            <Link href={`/jobs/${job.id}`} className="flex-1 min-w-0">
-                              <h3 className="text-xl font-bold group-hover:text-primary transition-colors truncate">
-                                {job.title}
-                              </h3>
-                            </Link>
-                            {(() => {
-                              const isExpired = job.applicationDeadline && new Date(job.applicationDeadline) < new Date();
-                              if (isExpired) return <Badge variant="destructive" className="text-[10px] font-black uppercase tracking-widest py-0.5">Expired</Badge>;
-                              if (job.status === 'OPEN') return <Badge className="bg-emerald-500 hover:bg-emerald-500 text-[10px] font-black uppercase tracking-widest py-0.5">Open</Badge>;
-                              return <Badge variant="destructive" className="text-[10px] font-black uppercase tracking-widest py-0.5">Closed</Badge>;
-                            })()}
-                          </div>
-
-                          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground font-medium mb-6">
-                            <span className="font-bold text-foreground/80">
-                              {job.isPeerSourced || job.postedByRole !== 'EMPLOYER' ? (job.postedByName || 'Community Member') : job.companyName}
-                            </span>
-                            <span className="flex items-center gap-1.5">
-                              <MapPin className="h-4 w-4" /> {job.locationCity}, {job.locationCountry}
-                            </span>
-                            <span className="flex items-center gap-1.5">
-                              <Briefcase className="h-4 w-4" /> {formatExperienceLevel(job.experienceLevel)}
-                            </span>
-                            {(job.salaryRangeMin || job.salaryRangeMax) && (
-                              <span className="flex items-center gap-1.5 text-emerald-600 font-bold">
-                                {job.salaryRangeMin && `KES ${job.salaryRangeMin.toLocaleString()}`}
-                                {job.salaryRangeMin && job.salaryRangeMax && ' – '}
-                                {job.salaryRangeMax && `KES ${job.salaryRangeMax.toLocaleString()}`}
-                              </span>
-                            )}
-                            {job.applicationDeadline && (
-                              <span className={cn(
-                                "flex items-center gap-1.5 font-bold",
-                                new Date(job.applicationDeadline) < sevenDaysFromNow ? "text-rose-500" : "text-muted-foreground"
-                              )}>
-                                <Calendar className="h-4 w-4" />
-                                {new Date(job.applicationDeadline) < now ? 'Expired: ' : 'Deadline: '}
-                                {format(new Date(job.applicationDeadline), 'dd MMM yyyy')}
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="flex flex-wrap gap-2">
-                            <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest bg-violet-100 text-violet-700 hover:bg-violet-100 border-violet-200">
-                              {formatJobType(job.jobType)}
-                            </Badge>
-                            <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest bg-primary/10 text-primary hover:bg-primary/10 border-primary/20">
-                              {formatWorkType(job.workType)}
-                            </Badge>
-                            {job.tags.slice(0, 3).map(tag => (
-                              <Badge key={tag} variant="outline" className="text-[10px] font-medium bg-muted/30 border-muted text-muted-foreground">
-                                {tag}
-                              </Badge>
-                            ))}
-                            {job.tags.length > 3 && (
-                              <Badge variant="outline" className="text-[10px] font-medium bg-muted/30 border-muted text-muted-foreground">
-                                +{job.tags.length - 3} more
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Voting & CTA */}
-                        <div className="flex md:flex-col items-center md:items-end justify-between md:justify-between md:w-40 shrink-0 gap-4 print:hidden">
-                          <div className="flex items-center gap-1.5">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="secondary"
-                                    size="icon"
-                                    className={cn(
-                                      "h-9 w-9 rounded-full border border-border/50",
-                                      upvotedJobs.has(job.id) ? "bg-primary text-primary-foreground hover:bg-primary/90" : "hover:bg-primary/10 hover:text-primary"
-                                    )}
-                                    onClick={(e) => handleVote(job.id, 'UP', e)}
-                                    disabled={!isLoggedIn}
-                                  >
-                                    <ThumbsUp className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>{isLoggedIn ? "Upvote" : "Login to upvote"}</p></TooltipContent>
-                              </Tooltip>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="secondary"
-                                    size="icon"
-                                    className={cn(
-                                      "h-9 w-9 rounded-full border border-border/50",
-                                      downvotedJobs.has(job.id) ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : "hover:bg-destructive/10 hover:text-destructive"
-                                    )}
-                                    onClick={(e) => handleVote(job.id, 'DOWN', e)}
-                                    disabled={!isLoggedIn}
-                                  >
-                                    <ThumbsDown className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>{isLoggedIn ? "Downvote" : "Login to downvote"}</p></TooltipContent>
-                              </Tooltip>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className={cn(
-                                      "h-9 w-9 rounded-full",
-                                      job.isFlagged
-                                        ? "text-destructive bg-destructive/10"
-                                        : "text-slate-400 hover:text-destructive hover:bg-destructive/10"
-                                    )}
-                                    disabled={!isLoggedIn}
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      if (!isLoggedIn) {
-                                        toast.error("Please login to report jobs");
-                                        return;
-                                      }
-                                      setSelectedJobId(job.id);
-                                      setIsFlagOpen(true);
-                                    }}
-                                  >
-                                    <Flag className={cn("h-4 w-4", job.isFlagged && "fill-current")} />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>Report Job</p></TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-
-                          <div className="text-right flex-1 md:flex-none">
-                            <div className="hidden md:block mb-3">
-                              <span className="text-sm font-black text-primary uppercase tracking-widest">{job.upvoteCount} {Math.abs(job.upvoteCount) === 1 ? 'Vote' : 'Votes'}</span>
-                            </div>
-                            <Button
-                              variant={user?.role === 'DEVELOPER' ? 'default' : 'outline'}
-                              className="w-full font-bold group/btn"
-                              asChild
-                            >
-                              <Link href={isLoggedIn ? `/jobs/${job.id}` : '/register'}>
-                                {isLoggedIn ? (user?.role === 'DEVELOPER' ? 'Apply Now' : 'Details') : 'Register'}
-                                <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
+                filteredJobs.map((job) => {
+                  const userSkills = user?.skills || [];
+                  const isSkillsMatch = isLoggedIn && user?.role === 'DEVELOPER' && job.tags && job.tags.some(tag => userSkills.map(s => s.toLowerCase()).includes(tag.toLowerCase()));
+                  
+                  return (
+                    <Card key={job.id} className="group bg-white rounded-2xl border border-slate-100 hover:border-slate-200 transition-all overflow-hidden shadow-none">
+                      <CardContent className="p-6">
+                        <div className="flex flex-col md:flex-row gap-6">
+                          {/* Job Content */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                              <Link href={`/jobs/${job.id}`} className="flex-1 min-w-0">
+                                <h3 className="text-lg font-medium text-navy-900 group-hover:text-azure-500 transition-colors truncate">
+                                  {job.title}
+                                </h3>
                               </Link>
-                            </Button>
+                              
+                              {/* Skills Match Badge */}
+                              {isSkillsMatch && (
+                                <Badge className="bg-success-50 text-success-600 border-none font-medium text-[10px] uppercase tracking-wider shrink-0">
+                                  Skills Match
+                                </Badge>
+                              )}
+
+                              {(() => {
+                                const isExpired = job.applicationDeadline && new Date(job.applicationDeadline) < new Date();
+                                if (isExpired) return <Badge variant="destructive" className="bg-danger-50 text-danger-600 border-none text-[10px] font-medium uppercase tracking-wider py-0.5 shrink-0">Expired</Badge>;
+                                if (job.status === 'OPEN') return <Badge className="bg-success-50 text-success-600 border-none text-[10px] font-medium uppercase tracking-wider py-0.5 shrink-0">Open</Badge>;
+                                return <Badge variant="destructive" className="bg-danger-50 text-danger-600 border-none text-[10px] font-medium uppercase tracking-wider py-0.5 shrink-0">Closed</Badge>;
+                              })()}
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-500 font-medium mb-6">
+                              <span className="font-medium text-slate-700">
+                                {job.isPeerSourced || job.postedByRole !== 'EMPLOYER' ? (job.postedByName || 'Community Member') : job.companyName}
+                              </span>
+                              <span className="flex items-center gap-1.5 text-xs text-slate-400">
+                                <MapPin className="h-3.5 w-3.5" /> {job.locationCity}, {job.locationCountry}
+                              </span>
+                              <span className="flex items-center gap-1.5 text-xs text-slate-400">
+                                <Briefcase className="h-3.5 w-3.5" /> {formatExperienceLevel(job.experienceLevel)}
+                              </span>
+                              {(job.salaryRangeMin || job.salaryRangeMax) && (
+                                <span className="flex items-center gap-1.5 text-azure-500 font-medium text-xs">
+                                  {job.salaryRangeMin && `KES ${job.salaryRangeMin.toLocaleString()}`}
+                                  {job.salaryRangeMin && job.salaryRangeMax && ' – '}
+                                  {job.salaryRangeMax && `KES ${job.salaryRangeMax.toLocaleString()}`}
+                                </span>
+                              )}
+                              {job.applicationDeadline && (
+                                <span className={cn(
+                                  "flex items-center gap-1.5 font-medium text-xs",
+                                  new Date(job.applicationDeadline) < sevenDaysFromNow ? "text-danger-600" : "text-slate-400"
+                                )}>
+                                  <Calendar className="h-3.5 w-3.5" />
+                                  {new Date(job.applicationDeadline) < now ? 'Expired: ' : 'Deadline: '}
+                                  {format(new Date(job.applicationDeadline), 'dd MMM yyyy')}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex flex-wrap gap-1.5">
+                              <Badge className="text-[10px] font-medium uppercase tracking-wider bg-slate-100 text-slate-700 hover:bg-slate-100 border-none">
+                                {formatJobType(job.jobType)}
+                              </Badge>
+                              <Badge className="text-[10px] font-medium uppercase tracking-wider bg-slate-100 text-slate-700 hover:bg-slate-100 border-none">
+                                {formatWorkType(job.workType)}
+                              </Badge>
+                              {job.tags.slice(0, 3).map(tag => (
+                                <Badge key={tag} className="text-[10px] font-medium bg-slate-100 text-slate-700 hover:bg-slate-100 border-none">
+                                  {tag}
+                                </Badge>
+                              ))}
+                              {job.tags.length > 3 && (
+                                <Badge className="text-[10px] font-medium bg-slate-100 text-slate-700 hover:bg-slate-100 border-none">
+                                  +{job.tags.length - 3} more
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Voting & CTA */}
+                          <div className="flex md:flex-col items-center md:items-end justify-between md:justify-between md:w-40 shrink-0 gap-4 print:hidden">
+                            <div className="flex items-center gap-1.5">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="secondary"
+                                      size="icon"
+                                      className={cn(
+                                        "h-9 w-9 rounded-full border border-slate-100 shadow-sm",
+                                        upvotedJobs.has(job.id) ? "bg-azure-500 text-white hover:bg-azure-600" : "hover:bg-azure-50 hover:text-azure-500 bg-white"
+                                      )}
+                                      onClick={(e) => handleVote(job.id, 'UP', e)}
+                                      disabled={!isLoggedIn}
+                                    >
+                                      <ThumbsUp className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent><p>{isLoggedIn ? "Upvote" : "Login to upvote"}</p></TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="secondary"
+                                      size="icon"
+                                      className={cn(
+                                        "h-9 w-9 rounded-full border border-slate-100 shadow-sm",
+                                        downvotedJobs.has(job.id) ? "bg-danger-600 text-white hover:bg-danger-700" : "hover:bg-danger-50 hover:text-danger-600 bg-white"
+                                      )}
+                                      onClick={(e) => handleVote(job.id, 'DOWN', e)}
+                                      disabled={!isLoggedIn}
+                                    >
+                                      <ThumbsDown className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent><p>{isLoggedIn ? "Downvote" : "Login to downvote"}</p></TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className={cn(
+                                        "h-9 w-9 rounded-full",
+                                        job.isFlagged
+                                          ? "text-danger-600 bg-danger-50"
+                                          : "text-slate-400 hover:text-danger-600 hover:bg-danger-50"
+                                      )}
+                                      disabled={!isLoggedIn}
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        if (!isLoggedIn) {
+                                          toast.error("Please login to report jobs");
+                                          return;
+                                        }
+                                        setSelectedJobId(job.id);
+                                        setIsFlagOpen(true);
+                                      }}
+                                    >
+                                      <Flag className={cn("h-4 w-4", job.isFlagged && "fill-current")} />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent><p>Report Job</p></TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+
+                            <div className="text-right flex-1 md:flex-none">
+                              <div className="hidden md:block mb-3">
+                                <span className="text-sm font-medium text-azure-500">
+                                  {job.upvoteCount >= 0 ? `${job.upvoteCount} upvotes` : `${Math.abs(job.upvoteCount)} downvotes`}
+                                </span>
+                              </div>
+                              <Button
+                                variant={user?.role === 'DEVELOPER' ? 'default' : 'outline'}
+                                className="w-full font-medium group/btn h-10 rounded-xl bg-azure-500 hover:bg-azure-600 text-white border-none transition-colors"
+                                asChild
+                              >
+                                <Link href={isLoggedIn ? `/jobs/${job.id}` : '/register'}>
+                                  {isLoggedIn ? (user?.role === 'DEVELOPER' ? 'Apply Now' : 'Details') : 'Register'}
+                                  <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
+                                </Link>
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                      </CardContent>
+                    </Card>
+                  );
+                })
               )}
             </div>
           </main>
@@ -1030,7 +1045,7 @@ function JobsPageContent() {
 
       {/* Flag Modal */}
       <Dialog open={isFlagOpen} onOpenChange={setIsFlagOpen}>
-        <DialogContent className="sm:max-w-[500px] rounded-[2rem] p-8">
+        <DialogContent className="sm:max-w-[500px] rounded-xl-[2rem] p-8">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center text-destructive">
@@ -1061,7 +1076,7 @@ function JobsPageContent() {
           </div>
 
           <DialogFooter className="sm:justify-end gap-3">
-            <Button variant="ghost" className="rounded-xl font-bold" onClick={() => setIsFlagOpen(false)}>
+            <Button variant="ghost" className="rounded-xl font-medium" onClick={() => setIsFlagOpen(false)}>
               Cancel
             </Button>
             <Button

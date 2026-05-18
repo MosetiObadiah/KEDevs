@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { jobService } from '@/services/jobService';
 import { useAuth } from '@/context/AuthContext';
-import { cn } from '@/lib/utils';
+import { cn, formatDateString } from '@/lib/utils';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -120,7 +120,7 @@ export default function MyJobPosts() {
       <div className="container mx-auto px-6 pt-8 pb-12">
         {/* Actions Header - No Title as per request */}
         <div className="flex justify-end mb-8">
-          <Button className="h-12 px-6 font-bold shadow-lg shadow-primary/20" asChild>
+          <Button className="h-12 px-6 font-medium shadow-lg shadow-primary/20" asChild>
             <Link href="/jobs/post">
               <Plus className="mr-2 h-5 w-5" /> Post New Job
             </Link>
@@ -143,7 +143,7 @@ export default function MyJobPosts() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2">
                         <Link href={`/jobs/${post.id}`}>
-                          <h3 className="text-xl font-bold group-hover:text-primary transition-colors truncate">
+                          <h3 className="text-xl font-medium group-hover:text-primary transition-colors truncate">
                             {post.title}
                           </h3>
                         </Link>
@@ -151,26 +151,26 @@ export default function MyJobPosts() {
                           if (post.status === 'REMOVED') return <Badge variant="destructive" className="text-[10px] uppercase">Removed</Badge>;
                           const isExpired = post.applicationDeadline && new Date(post.applicationDeadline) < new Date();
                           if (isExpired) return <Badge variant="destructive" className="text-[10px] uppercase">Expired</Badge>;
-                          if (post.status === 'OPEN') return <Badge className="bg-emerald-500 hover:bg-emerald-500 text-[10px] uppercase">Active</Badge>;
+                          if (post.status === 'OPEN') return <Badge className="bg-cyan-600 hover:bg-cyan-600 text-[10px] uppercase">Active</Badge>;
                           return <Badge variant="secondary" className="text-[10px] uppercase">Closed</Badge>;
                         })()}
                         {post.isPinned && post.pinnedUntil && (
                           <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px] uppercase font-black tracking-widest gap-1">
                             <Pin className="h-3 w-3 fill-current" />
-                            Pinned until {new Date(post.pinnedUntil).toLocaleDateString()}
+                            Pinned until {formatDateString(post.pinnedUntil)}
                           </Badge>
                         )}
                       </div>
                       
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground font-medium mb-6">
-                        <span className="flex items-center gap-1.5 font-bold text-foreground/80">
+                        <span className="flex items-center gap-1.5 font-medium text-foreground/80">
                           <Building2 className="h-4 w-4" /> {post.isPeerSourced || post.postedByRole !== 'EMPLOYER' ? (post.postedByName || 'Community Member') : post.companyName}
                         </span>
                         <span className="flex items-center gap-1.5">
                           <MapPin className="h-4 w-4" /> {post.locationCity}, {post.locationCountry}
                         </span>
                         <span className="flex items-center gap-1.5">
-                          <Calendar className="h-4 w-4" /> {new Date(post.createdAt).toLocaleDateString()}
+                          <Calendar className="h-4 w-4" /> {formatDateString(post.createdAt)}
                         </span>
                       </div>
 
@@ -182,7 +182,7 @@ export default function MyJobPosts() {
                           {post.workType}
                         </Badge>
                         {!post.isPeerSourced && (
-                          <span className="flex items-center gap-1.5 text-xs font-bold text-slate-900 ml-2">
+                          <span className="flex items-center gap-1.5 text-xs font-medium text-slate-900 ml-2">
                              <Users className="h-3.5 w-3.5" /> {post.applicationCount || 0} Applicants
                           </span>
                         )}
@@ -199,14 +199,14 @@ export default function MyJobPosts() {
                       ) : (
                         <>
                           {!post.isPeerSourced ? (
-                            <Button variant="outline" className="w-full font-bold group/btn h-11" asChild>
+                            <Button variant="outline" className="w-full font-medium group/btn h-11" asChild>
                               <Link href={`/jobs/${post.id}/applications`}>
                                 Manage Talent
                                 <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
                               </Link>
                             </Button>
                           ) : (
-                            <div className="w-full py-2 px-4 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                            <div className="w-full py-2 px-4 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
                               <ExternalLink className="h-3 w-3" /> External Source
                             </div>
                           )}
@@ -214,7 +214,7 @@ export default function MyJobPosts() {
                           {!post.isPeerSourced && !post.isPinned && post.status === 'OPEN' && (
                             <Button 
                               variant="outline" 
-                              className="w-full font-bold h-11 border-primary/20 text-primary hover:bg-primary/5 hover:text-primary"
+                              className="w-full font-medium h-11 border-primary/20 text-primary hover:bg-primary/5 hover:text-primary"
                               onClick={() => {
                                 setSelectedJob({ id: post.id, title: post.title });
                                 setIsPinDialogOpen(true);
@@ -239,18 +239,18 @@ export default function MyJobPosts() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="rounded-xl p-2 border-slate-100 shadow-xl min-w-[180px]">
-                                <DropdownMenuItem className="rounded-lg font-bold gap-3" asChild>
+                                <DropdownMenuItem className="rounded-xl font-medium gap-3" asChild>
                                   <Link href={`/jobs/${post.id}`}>
                                     <Eye className="h-4 w-4" /> Preview Live
                                   </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 {post.status !== 'CLOSED' && (
-                                  <DropdownMenuItem className="rounded-lg font-bold gap-3 text-amber-600" onClick={() => handleClosePost(post.id)}>
+                                  <DropdownMenuItem className="rounded-xl font-medium gap-3 text-azure-500" onClick={() => handleClosePost(post.id)}>
                                     <Lock className="h-4 w-4" /> Close Listing
                                   </DropdownMenuItem>
                                 )}
-                                <DropdownMenuItem className="rounded-lg font-bold gap-3 text-destructive" onClick={() => handleDeletePost(post.id)}>
+                                <DropdownMenuItem className="rounded-xl font-medium gap-3 text-destructive" onClick={() => handleDeletePost(post.id)}>
                                   <Trash2 className="h-4 w-4" /> Delete Post
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
@@ -269,7 +269,7 @@ export default function MyJobPosts() {
                 <Briefcase className="h-8 w-8 text-muted-foreground" />
               </div>
               <div>
-                <h3 className="text-xl font-bold">No jobs posted yet</h3>
+                <h3 className="text-xl font-medium">No jobs posted yet</h3>
                 <p className="text-muted-foreground text-sm">Create your first listing to start connecting with talent.</p>
               </div>
               <Button asChild>

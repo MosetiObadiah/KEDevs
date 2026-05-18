@@ -51,7 +51,7 @@ export function PublicProfileSidebar({
         )}
         <Button 
           variant="ghost" 
-          className="w-full h-10 rounded-xl font-bold text-muted-foreground hover:text-destructive hover:bg-destructive/10 text-xs"
+          className="w-full h-10 rounded-xl font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 text-xs"
           onClick={onFlag}
           disabled={isOwnProfile}
         >
@@ -61,7 +61,7 @@ export function PublicProfileSidebar({
       </div>
 
       {/* Connectivity Card */}
-      <Card className="rounded-[2.5rem] border-border/50 shadow-sm overflow-hidden bg-background">
+      <Card className="rounded-xl-[2.5rem] border-border/50 shadow-sm overflow-hidden bg-background">
         <CardHeader className="pb-4 px-8 pt-8">
           <CardTitle className="text-sm font-black uppercase tracking-widest text-muted-foreground">Connectivity</CardTitle>
         </CardHeader>
@@ -69,7 +69,7 @@ export function PublicProfileSidebar({
           {!isLoggedIn ? (
             <div className="text-center py-4 space-y-4">
               <p className="text-sm font-medium text-muted-foreground">Sign up to view contact information.</p>
-              <Button variant="link" className="text-primary font-bold p-0 h-auto" asChild>
+              <Button variant="link" className="text-primary font-medium p-0 h-auto" asChild>
                 <Link href="/register">Unlock Full Profile</Link>
               </Button>
             </div>
@@ -81,16 +81,16 @@ export function PublicProfileSidebar({
                 </div>
                 <div className="min-w-0">
                   <p className="text-[10px] font-black uppercase text-muted-foreground">Email</p>
-                  <p className="text-sm font-bold truncate">{profile.publicEmail || profile.email || 'Not shared'}</p>
+                  <p className="text-sm font-medium truncate">{profile.publicEmail || profile.email || 'Not shared'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <div className="h-10 w-10 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center">
                   <Phone className="h-4 w-4" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-[10px] font-black uppercase text-muted-foreground">Phone</p>
-                  <p className="text-sm font-bold truncate">{profile.publicPhone || 'Not shared'}</p>
+                  <p className="text-sm font-medium truncate">{profile.publicPhone || 'Not shared'}</p>
                 </div>
               </div>
             </div>
@@ -99,7 +99,7 @@ export function PublicProfileSidebar({
           <div className="pt-2 border-t border-border/50">
             <div className="space-y-1">
               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Preferred Work</p>
-              <p className="font-bold text-foreground flex items-center gap-2 tracking-wide text-sm">
+              <p className="font-medium text-foreground flex items-center gap-2 tracking-wide text-sm">
                 <Globe className="h-3.5 w-3.5 text-primary" /> {formatWorkType(profile.preferredWorkType || 'REMOTE')}
               </p>
             </div>
@@ -126,7 +126,7 @@ export function PublicProfileSidebar({
       </Card>
 
       {/* Similar Profiles Placeholder */}
-      <Card className="rounded-[2.5rem] border-border/50 shadow-sm overflow-hidden bg-background">
+      <Card className="rounded-xl-[2.5rem] border-border/50 shadow-sm overflow-hidden bg-background">
         <CardHeader className="pb-4 px-8 pt-8">
           <CardTitle className="text-sm font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
             <Users className="w-4 h-4" /> Similar Profiles
@@ -135,8 +135,8 @@ export function PublicProfileSidebar({
         <CardContent className="px-8 pb-8">
           <div className="space-y-4">
              <div className="text-center py-6 border-2 border-dashed border-border/20 rounded-2xl">
-                <p className="text-xs font-bold text-muted-foreground uppercase">Discover More Talent</p>
-                <Button variant="link" className="text-primary font-bold h-auto mt-1" asChild>
+                <p className="text-xs font-medium text-muted-foreground uppercase">Discover More Talent</p>
+                <Button variant="link" className="text-primary font-medium h-auto mt-1" asChild>
                   <Link href="/developers">Browse Directory</Link>
                 </Button>
              </div>

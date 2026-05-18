@@ -486,16 +486,31 @@ public class DeveloperProfileService {
         
         User author = userRepository.findById(authorUserId).orElse(null);
         if (author != null) {
+            DeveloperProfile authorProfile = profileRepository.findByUserId(authorUserId).orElse(null);
+            String authorProfileIdStr = authorProfile != null ? authorProfile.getId().toString() : "";
             notificationService.notify(
                 recipient.getUserId(),
                 org.moseti.kedevsapi.shared.enums.NotificationCategory.ENDORSEMENT,
                 "New Endorsement",
                 author.getFullName() + " endorsed your profile!",
-                "{\"authorId\":\"" + authorUserId + "\"}"
+                "{\"authorId\":\"" + authorUserId + "\",\"authorDeveloperId\":\"" + authorProfileIdStr + "\"}"
             );
         }
 
         return toEndorsementResponse(endorsement, authorUserId);
+    }
+
+    @Transactional
+    public void deleteEndorsement(UUID userId, UUID endorsementId) {
+        DeveloperProfile profile = getProfileEntityByUserId(userId);
+        Endorsement endorsement = endorsementRepository.findById(endorsementId)
+                .orElseThrow(() -> new ResourceNotFoundException("Endorsement not found"));
+
+        if (!endorsement.getRecipientId().equals(profile.getId())) {
+            throw new BadRequestException("Endorsement does not belong to this profile");
+        }
+
+        endorsementRepository.delete(endorsement);
     }
 
     // ----------------------------------------------------------------

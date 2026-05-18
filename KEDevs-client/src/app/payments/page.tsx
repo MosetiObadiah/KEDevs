@@ -32,7 +32,7 @@ import { usePlatformSettings } from '@/hooks/usePlatformSettings';
 import { paymentService } from '@/services/paymentService';
 import { spotlightService } from '@/services/spotlightService';
 import { developerService } from '@/services/developerService';
-import { cn } from '@/lib/utils';
+import { cn, formatDateString } from '@/lib/utils';
 import { toast } from 'sonner';
 import BuySpotlightDialog from '@/components/profile/BuySpotlightDialog';
 
@@ -153,7 +153,7 @@ export default function PaymentsPage() {
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' });
+    return formatDateString(dateStr);
   };
 
   const formatTimeLeft = (endDate: string) => {
@@ -181,7 +181,7 @@ export default function PaymentsPage() {
     return (
       <div className="flex flex-col min-h-screen bg-muted/30 items-center justify-center space-y-4">
         <Loader2 className="h-10 w-10 text-primary animate-spin" />
-        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Synchronizing ledger...</p>
+        <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Synchronizing ledger...</p>
       </div>
     );
   }
@@ -195,7 +195,7 @@ export default function PaymentsPage() {
           </div>
           <div className="flex flex-wrap gap-3 print:hidden">
             {!user?.isVerified && (
-              <Button variant="outline" className="font-bold border-primary/20 hover:bg-primary/5 h-11" asChild>
+              <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-11" asChild>
                 <Link href="/verify">
                   <BadgeCheck className="mr-2 h-4 w-4 text-primary" /> Begin Verification
                 </Link>
@@ -206,13 +206,13 @@ export default function PaymentsPage() {
               <>
                 {hasSpotlightAvailability ? (
                   <Button
-                    className="font-bold h-11 shadow-lg shadow-primary/20"
+                    className="font-medium h-11 shadow-lg shadow-primary/20"
                     onClick={() => setBuySpotlightOpen(true)}
                   >
                     <Star className="mr-2 h-4 w-4 fill-white" /> Get Spotlight
                   </Button>
                 ) : (
-                  <Button variant="outline" disabled className="font-bold h-11 border-dashed opacity-70">
+                  <Button variant="outline" disabled className="font-medium h-11 border-dashed opacity-70">
                     <ShieldAlert className="mr-2 h-4 w-4" /> Spotlight Not Available
                   </Button>
                 )}
@@ -226,14 +226,14 @@ export default function PaymentsPage() {
           <main className="lg:col-span-12 space-y-8">
 
             {spotlightStatus?.active && (
-              <Card className="border-border/50 shadow-sm bg-amber-50/30 border-amber-100">
+              <Card className="border-border/50 shadow-sm bg-azure-50/30 border-azure-100">
                 <CardContent className="p-6 flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                  <div className="h-12 w-12 rounded-2xl bg-azure-500/10 text-azure-500 flex items-center justify-center">
                     <Star className="h-6 w-6 fill-amber-500" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-amber-600/70">Spotlight Time Remaining</p>
-                    <p className="text-xl font-bold text-amber-700">{formatTimeLeft(spotlightStatus.endDate)}</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-azure-500/70">Spotlight Time Remaining</p>
+                    <p className="text-xl font-medium text-azure-700">{formatTimeLeft(spotlightStatus.endDate)}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -242,20 +242,20 @@ export default function PaymentsPage() {
             <Card className="border-border/50 shadow-sm overflow-hidden bg-white">
               <CardHeader className="border-b border-border/50 bg-muted/10 p-6 flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle className="text-xl font-bold">Transaction Ledger</CardTitle>
+                  <CardTitle className="text-xl font-medium">Transaction Ledger</CardTitle>
                   <CardDescription className="text-xs font-medium text-muted-foreground">Historical record of all platform activity.</CardDescription>
                 </div>
                 <div className="flex items-center gap-4">
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="font-bold gap-2 border-primary/20 hover:bg-primary/5 h-9" disabled={isExporting}>
+                      <Button variant="outline" size="sm" className="font-medium gap-2 border-primary/20 hover:bg-primary/5 h-9" disabled={isExporting}>
                         <Download className="h-4 w-4 text-primary" /> {isExporting ? 'Exporting...' : 'Export'}
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="rounded-xl border-border/50 shadow-xl">
                       <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium py-2">
-                        <FileSpreadsheet className="mr-2 h-4 w-4 text-emerald-500" /> Download as CSV
+                        <FileSpreadsheet className="mr-2 h-4 w-4 text-cyan-600" /> Download as CSV
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium py-2">
                         <FileText className="mr-2 h-4 w-4 text-primary" /> Download as PDF
@@ -272,19 +272,19 @@ export default function PaymentsPage() {
                     <div className="h-16 w-16 bg-muted rounded-2xl flex items-center justify-center mx-auto">
                       <Receipt className="h-8 w-8 text-muted-foreground/30" />
                     </div>
-                    <p className="font-bold text-muted-foreground uppercase tracking-widest text-xs">No transactions detected in current cycle</p>
+                    <p className="font-medium text-muted-foreground uppercase tracking-widest text-xs">No transactions detected in current cycle</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader className="bg-muted/30">
                         <TableRow className="border-border/50">
-                          <TableHead className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground py-4 px-6">Timestamp</TableHead>
-                          <TableHead className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground py-4 px-6">Service Type</TableHead>
-                          <TableHead className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground py-4 px-6 text-center">Amount (KES)</TableHead>
-                          <TableHead className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground py-4 px-6">Phone</TableHead>
-                          <TableHead className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground py-4 px-6">Receipt / Note</TableHead>
-                          <TableHead className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground py-4 px-6 text-right">Status</TableHead>
+                          <TableHead className="font-medium text-[10px] uppercase tracking-widest text-muted-foreground py-4 px-6">Timestamp</TableHead>
+                          <TableHead className="font-medium text-[10px] uppercase tracking-widest text-muted-foreground py-4 px-6">Service Type</TableHead>
+                          <TableHead className="font-medium text-[10px] uppercase tracking-widest text-muted-foreground py-4 px-6 text-center">Amount (KES)</TableHead>
+                          <TableHead className="font-medium text-[10px] uppercase tracking-widest text-muted-foreground py-4 px-6">Phone</TableHead>
+                          <TableHead className="font-medium text-[10px] uppercase tracking-widest text-muted-foreground py-4 px-6">Receipt / Note</TableHead>
+                          <TableHead className="font-medium text-[10px] uppercase tracking-widest text-muted-foreground py-4 px-6 text-right">Status</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -298,17 +298,17 @@ export default function PaymentsPage() {
                             onClick={() => { if (row.status === 'COMPLETED') setSelectedPayment(row); }}
                           >
                             <TableCell className="py-5 px-6">
-                              <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
+                              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                                 {formatDate(row.paidAt || row.createdAt)}
                               </div>
                             </TableCell>
                             <TableCell className="py-5 px-6">
-                              <span className="font-bold text-foreground text-sm tracking-tight">
+                              <span className="font-medium text-foreground text-sm tracking-tight">
                                 {row.type?.split('_').map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(' ') || 'Platform Service'}
                               </span>
                             </TableCell>
                             <TableCell className="py-5 px-6 text-center">
-                              <span className="font-bold text-primary text-sm">
+                              <span className="font-medium text-primary text-sm">
                                 {Number(row.amount || 0).toLocaleString()}
                               </span>
                             </TableCell>
@@ -319,7 +319,7 @@ export default function PaymentsPage() {
                             </TableCell>
                             <TableCell className="py-5 px-6 max-w-[200px]">
                               {row.status === 'COMPLETED' && row.mpesaReceiptNo ? (
-                                <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+                                <span className="text-xs font-mono font-medium text-cyan-800 bg-cyan-50 px-2 py-0.5 rounded-2xl">
                                   {row.mpesaReceiptNo}
                                 </span>
                               ) : row.failReason ? (
@@ -332,10 +332,10 @@ export default function PaymentsPage() {
                             </TableCell>
                             <TableCell className="py-5 px-6 text-right">
                               <Badge className={cn(
-                                "rounded-lg font-black text-[9px] uppercase tracking-widest border-none px-2 py-0.5 text-white",
-                                row.status === 'COMPLETED' ? "bg-emerald-500"
-                                  : row.status === 'PENDING' ? "bg-amber-500"
-                                    : row.status === 'CANCELLED' ? "bg-slate-400"
+                                "rounded-xl font-black text-[9px] uppercase tracking-widest border-none px-2 py-0.5 text-white",
+                                row.status === 'COMPLETED' ? "bg-cyan-600"
+                                  : row.status === 'PENDING' ? "bg-azure-500"
+                                    : row.status === 'CANCELLED' ? "bg-slate-500"
                                       : "bg-destructive"
                               )}>
                                 {row.status}
@@ -350,7 +350,7 @@ export default function PaymentsPage() {
 
                 <div className="p-6 bg-muted/20 border-t border-border/50 flex items-center gap-3">
                   <AlertCircle className="h-3.5 w-3.5 text-muted-foreground" />
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-60">All transactions are processed via MPESA</p>
+                  <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground opacity-60">All transactions are processed via MPESA</p>
                 </div>
               </CardContent>
             </Card>
@@ -359,7 +359,7 @@ export default function PaymentsPage() {
             <Card className="border-border/50 shadow-sm bg-white overflow-hidden rounded-2xl">
               <CardHeader className="p-6 pb-2">
                 <div className="flex items-center gap-2">
-                  <CardTitle className="text-lg font-bold">Financial Overview</CardTitle>
+                  <CardTitle className="text-lg font-medium">Financial Overview</CardTitle>
                 </div>
                 <CardDescription className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Comprehensive payment statistics from the database</CardDescription>
               </CardHeader>
@@ -369,7 +369,7 @@ export default function PaymentsPage() {
                     <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Total Volume</p>
                     <div className="flex items-baseline gap-1">
                       <span className="text-2xl font-black text-foreground">KES {stats.totalVolume.toLocaleString()}</span>
-                      <TrendingUp className="h-3 w-3 text-emerald-500" />
+                      <TrendingUp className="h-3 w-3 text-cyan-600" />
                     </div>
                   </div>
 
@@ -378,42 +378,42 @@ export default function PaymentsPage() {
                       {stats.total}
                     </div>
                     <div>
-                      <p className="text-sm font-bold">Total Events</p>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">All Statuses</p>
+                      <p className="text-sm font-medium">Total Events</p>
+                      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">All Statuses</p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-4 border-l border-border/50 pl-6">
-                    <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 font-black">
+                    <div className="h-10 w-10 rounded-xl bg-cyan-50 flex items-center justify-center text-cyan-600 font-black">
                       {stats.completed}
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-emerald-600">Approved</p>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Completed</p>
+                      <p className="text-sm font-medium text-cyan-600">Approved</p>
+                      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">Completed</p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-4 border-l border-border/50 pl-6">
-                    <div className="h-10 w-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 font-black">
+                    <div className="h-10 w-10 rounded-xl bg-azure-50 flex items-center justify-center text-azure-500 font-black">
                       {stats.pending}
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-amber-600">Pending</p>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Processing</p>
+                      <p className="text-sm font-medium text-azure-500">Pending</p>
+                      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">Processing</p>
                     </div>
                   </div>
                 </div>
 
                 {stats.failed > 0 && (
-                  <div className="mt-8 p-4 rounded-xl bg-red-50 border border-red-100 flex items-center justify-between">
+                  <div className="mt-8 p-4 rounded-xl bg-danger-50 border border-danger-100 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <AlertTriangle className="h-5 w-5 text-red-500" />
+                      <AlertTriangle className="h-5 w-5 text-danger-500" />
                       <div>
-                        <p className="text-sm font-bold text-red-700">Failed Transactions Detected</p>
-                        <p className="text-xs text-red-600/70">{stats.failed} transaction(s) were cancelled or failed the protocol.</p>
+                        <p className="text-sm font-medium text-danger-700">Failed Transactions Detected</p>
+                        <p className="text-xs text-danger-500/70">{stats.failed} transaction(s) were cancelled or failed the protocol.</p>
                       </div>
                     </div>
-                    <Badge className="bg-red-500 text-white border-none font-black">{stats.failed}</Badge>
+                    <Badge className="bg-danger-500 text-white border-none font-black">{stats.failed}</Badge>
                   </div>
                 )}
               </CardContent>
@@ -421,43 +421,43 @@ export default function PaymentsPage() {
 
             {/* Receipt Dialog */}
             <Dialog open={!!selectedPayment} onOpenChange={(open) => !open && setSelectedPayment(null)}>
-              <DialogContent className="sm:max-w-[425px] rounded-[2rem]">
+              <DialogContent className="sm:max-w-[425px] rounded-xl-[2rem]">
                 <DialogHeader className="text-center sm:text-center pb-4 border-b border-border/50">
-                  <div className="mx-auto w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
+                  <div className="mx-auto w-12 h-12 bg-cyan-50 text-cyan-600 rounded-full flex items-center justify-center mb-4">
                     <CheckCircle2 className="w-6 h-6" />
                   </div>
                   <DialogTitle className="font-black text-2xl text-slate-900">Payment Receipt</DialogTitle>
-                  <DialogDescription className="font-bold text-[10px] uppercase tracking-widest text-slate-500">
+                  <DialogDescription className="font-medium text-[10px] uppercase tracking-widest text-slate-500">
                     Secure transaction record
                   </DialogDescription>
                 </DialogHeader>
                 {selectedPayment && (
                   <div className="space-y-4 py-4">
                     <div className="flex justify-between items-center py-2 border-b border-dashed border-border/50">
-                      <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Receipt No</span>
-                      <span className="text-sm font-mono font-bold text-emerald-700">{selectedPayment.mpesaReceiptNo || '—'}</span>
+                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Receipt No</span>
+                      <span className="text-sm font-mono font-medium text-cyan-800">{selectedPayment.mpesaReceiptNo || '—'}</span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-dashed border-border/50">
-                      <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Date</span>
-                      <span className="text-sm font-bold text-slate-900">{formatDate(selectedPayment.paidAt || selectedPayment.createdAt)}</span>
+                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Date</span>
+                      <span className="text-sm font-medium text-slate-900">{formatDate(selectedPayment.paidAt || selectedPayment.createdAt)}</span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-dashed border-border/50">
-                      <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Service</span>
-                      <span className="text-sm font-bold text-slate-900">
+                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Service</span>
+                      <span className="text-sm font-medium text-slate-900">
                         {selectedPayment.type?.split('_').map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(' ') || 'Platform Service'}
                       </span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-dashed border-border/50">
-                      <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Amount</span>
+                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Amount</span>
                       <span className="text-sm font-black text-slate-900">KES {Number(selectedPayment.amount || 0).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-dashed border-border/50">
-                      <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Phone</span>
+                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Phone</span>
                       <span className="text-sm font-medium text-slate-900">{selectedPayment.phoneNumber || '—'}</span>
                     </div>
                     <div className="flex justify-between items-center py-2">
-                      <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Status</span>
-                      <Badge className="bg-emerald-500 text-white font-black text-[10px] uppercase tracking-widest border-none px-2 py-0.5">
+                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Status</span>
+                      <Badge className="bg-cyan-600 text-white font-black text-[10px] uppercase tracking-widest border-none px-2 py-0.5">
                         {selectedPayment.status}
                       </Badge>
                     </div>

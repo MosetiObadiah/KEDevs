@@ -86,10 +86,10 @@ export default function AdminDashboard() {
   }, []);
 
   const stats = [
-    { label: 'Total Platform Users', value: data?.totalUsers || 0, icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
-    { label: 'Total Applications', value: data?.totalApplications || 0, icon: Briefcase, color: "text-emerald-600", bg: "bg-emerald-50" },
-    { label: 'Pending Review', value: data?.pendingEmployerApprovals || 0, icon: ShieldCheck, color: "text-amber-600", bg: "bg-amber-50" },
-    { label: 'Gross Liquidity', value: `KES ${data?.revenue?.totalRevenue?.toLocaleString() || 0}`, icon: CreditCard, color: "text-purple-600", bg: "bg-purple-50" },
+    { label: 'Total Platform Users', value: data?.totalUsers || 0, icon: Users, color: "text-navy-600", bg: "bg-navy-50" },
+    { label: 'Total Applications', value: data?.totalApplications || 0, icon: Briefcase, color: "text-azure-600", bg: "bg-azure-50" },
+    { label: 'Pending Review', value: data?.pendingEmployerApprovals || 0, icon: ShieldCheck, color: "text-warning-600", bg: "bg-warning-50" },
+    { label: 'Gross Liquidity', value: `KES ${data?.revenue?.totalRevenue?.toLocaleString() || 0}`, icon: CreditCard, color: "text-cyan-600", bg: "bg-cyan-50" },
   ];
 
   const handleExport = async (chartsToExport: string[]) => {
@@ -155,12 +155,12 @@ export default function AdminDashboard() {
       <div className="space-y-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
            {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-32 w-full rounded-[2.5rem]" />
+              <Skeleton key={i} className="h-32 w-full rounded-xl-[2.5rem]" />
            ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-           <Skeleton className="lg:col-span-8 h-[450px] rounded-[3rem]" />
-           <Skeleton className="lg:col-span-4 h-[450px] rounded-[3rem]" />
+           <Skeleton className="lg:col-span-8 h-[450px] rounded-xl-[3rem]" />
+           <Skeleton className="lg:col-span-4 h-[450px] rounded-xl-[3rem]" />
         </div>
       </div>
     );
@@ -178,10 +178,10 @@ export default function AdminDashboard() {
             </span>
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            <Button variant="outline" size="sm" onClick={() => setSelectedCharts([])} className="font-bold rounded-2xl text-xs w-full sm:w-auto">
+            <Button variant="outline" size="sm" onClick={() => setSelectedCharts([])} className="font-medium rounded-2xl text-xs w-full sm:w-auto">
               Clear Selection
             </Button>
-            <Button size="sm" onClick={() => handleExport(selectedCharts)} disabled={isExporting} className="font-bold rounded-2xl text-xs gap-2 w-full sm:w-auto">
+            <Button size="sm" onClick={() => handleExport(selectedCharts)} disabled={isExporting} className="font-medium rounded-2xl text-xs gap-2 w-full sm:w-auto">
               {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
               Export Selected PDF
             </Button>
@@ -203,7 +203,7 @@ export default function AdminDashboard() {
                     </div>
                  </div>
                  <div className="space-y-1">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{stat.label}</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{stat.label}</p>
                     <p className="text-3xl font-black text-slate-900">{stat.value.toLocaleString()}</p>
                  </div>
               </CardContent>
@@ -223,9 +223,9 @@ export default function AdminDashboard() {
                     type="checkbox" 
                     checked={selectedCharts.includes('signups')}
                     onChange={() => toggleSelectChart('signups')}
-                    className="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4"
+                    className="rounded-xl border-slate-300 text-primary focus:ring-primary h-4 w-4"
                   />
-                  <span className="text-[10px] font-bold text-slate-600 select-none">Select to Export</span>
+                  <span className="text-[10px] font-medium text-slate-700 select-none">Select to Export</span>
                 </label>
                 <Button 
                   variant="outline" 
@@ -234,16 +234,16 @@ export default function AdminDashboard() {
                   disabled={isExporting}
                   className="bg-white/95 backdrop-blur border border-border rounded-xl shadow-sm h-8 w-8 hover:bg-slate-50"
                 >
-                  <Download className="h-4 w-4 text-slate-600" />
+                  <Download className="h-4 w-4 text-slate-700" />
                 </Button>
               </div>
               <Card className="border-border/50 shadow-sm overflow-hidden h-[450px] flex flex-col bg-card">
                  <CardHeader className="p-8 border-b border-slate-50 flex flex-row items-center justify-between">
                     <div>
                        <CardTitle className="text-xl font-black text-slate-900 tracking-tight">User Growth Ecosystem</CardTitle>
-                       <CardDescription className="font-bold text-slate-400">Developer vs Employer signup frequency</CardDescription>
+                       <CardDescription className="font-medium text-slate-500">Developer vs Employer signup frequency</CardDescription>
                     </div>
-                    <Badge className="rounded-xl bg-slate-100 text-slate-600 border-none">Last 30 Days</Badge>
+                    <Badge className="rounded-xl bg-slate-100 text-slate-700 border-none">Last 30 Days</Badge>
                  </CardHeader>
                  <CardContent className="p-6 flex-1 min-h-0">
                     <ResponsiveContainer width="100%" height="100%">
@@ -307,9 +307,9 @@ export default function AdminDashboard() {
                     type="checkbox" 
                     checked={selectedCharts.includes('applications-over-time')}
                     onChange={() => toggleSelectChart('applications-over-time')}
-                    className="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4"
+                    className="rounded-xl border-slate-300 text-primary focus:ring-primary h-4 w-4"
                   />
-                  <span className="text-[10px] font-bold text-slate-600 select-none">Select to Export</span>
+                  <span className="text-[10px] font-medium text-slate-700 select-none">Select to Export</span>
                 </label>
                 <Button 
                   variant="outline" 
@@ -318,13 +318,13 @@ export default function AdminDashboard() {
                   disabled={isExporting}
                   className="bg-white/95 backdrop-blur border border-border rounded-xl shadow-sm h-8 w-8 hover:bg-slate-50"
                 >
-                  <Download className="h-4 w-4 text-slate-600" />
+                  <Download className="h-4 w-4 text-slate-700" />
                 </Button>
               </div>
               <Card className="border-border/50 shadow-sm overflow-hidden h-[400px] flex flex-col bg-card">
                  <CardHeader className="p-8 border-b border-slate-50">
                     <CardTitle className="text-xl font-black text-slate-900 tracking-tight">Job Applications Trend</CardTitle>
-                    <CardDescription className="font-bold text-slate-400">Daily candidates applying for roles</CardDescription>
+                    <CardDescription className="font-medium text-slate-500">Daily candidates applying for roles</CardDescription>
                  </CardHeader>
                  <CardContent className="p-6 flex-1 min-h-0">
                     <ResponsiveContainer width="100%" height="100%">
@@ -349,32 +349,32 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent className="p-8 space-y-4">
                  <Link href="/admin/verification" className="block group">
-                    <div className="flex items-center justify-between p-4 rounded-2xl bg-red-50 border border-red-100 group-hover:bg-red-100 transition-all">
+                    <div className="flex items-center justify-between p-4 rounded-2xl bg-danger-50 border border-danger-100 group-hover:bg-danger-50 transition-all">
                        <div className="flex items-center gap-4">
-                          <div className="h-10 w-10 rounded-xl bg-red-500 text-white flex items-center justify-center font-black">
+                          <div className="h-10 w-10 rounded-xl bg-danger-500 text-white flex items-center justify-center font-black">
                              {data?.pendingEmployers || 0}
                           </div>
                           <div>
-                             <p className="text-sm font-black text-red-900">Pending Approvals</p>
-                             <p className="text-[10px] font-bold text-red-700/60 uppercase">Employer Verification</p>
+                             <p className="text-sm font-black text-danger-900">Pending Approvals</p>
+                             <p className="text-[10px] font-medium text-danger-700/60 uppercase">Employer Verification</p>
                           </div>
                        </div>
-                       <ChevronRight className="h-5 w-5 text-red-300 group-hover:translate-x-1 transition-all" />
+                       <ChevronRight className="h-5 w-5 text-danger-300 group-hover:translate-x-1 transition-all" />
                     </div>
                  </Link>
 
                  <Link href="/admin/flags" className="block group">
-                    <div className="flex items-center justify-between p-4 rounded-2xl bg-amber-50 border border-amber-100 group-hover:bg-amber-100 transition-all">
+                    <div className="flex items-center justify-between p-4 rounded-2xl bg-azure-50 border border-azure-100 group-hover:bg-azure-50 transition-all">
                        <div className="flex items-center gap-4">
-                          <div className="h-10 w-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black">
+                          <div className="h-10 w-10 rounded-xl bg-azure-500 text-white flex items-center justify-center font-black">
                              {(data?.flaggedJobs || 0) + (data?.flaggedUsers || 0)}
                           </div>
                           <div>
-                             <p className="text-sm font-black text-amber-900">Flagged Reports</p>
-                             <p className="text-[10px] font-bold text-amber-700/60 uppercase">Moderation Required</p>
+                             <p className="text-sm font-black text-warning-900">Flagged Reports</p>
+                             <p className="text-[10px] font-medium text-azure-700/60 uppercase">Moderation Required</p>
                           </div>
                        </div>
-                       <ChevronRight className="h-5 w-5 text-amber-300 group-hover:translate-x-1 transition-all" />
+                       <ChevronRight className="h-5 w-5 text-warning-300 group-hover:translate-x-1 transition-all" />
                     </div>
                  </Link>
               </CardContent>
@@ -388,7 +388,7 @@ export default function AdminDashboard() {
               </div>
               <div className="space-y-4">
                  <div className="flex justify-between items-center border-b border-white/10 pb-2">
-                    <span className="text-xs font-bold text-slate-300">Total Payments Completed</span>
+                    <span className="text-xs font-medium text-slate-300">Total Payments Completed</span>
                     <span className="text-sm font-black">{data?.revenue?.completedPayments || 0}</span>
                  </div>
               </div>
@@ -407,9 +407,9 @@ export default function AdminDashboard() {
                 type="checkbox" 
                 checked={selectedCharts.includes('job-types')}
                 onChange={() => toggleSelectChart('job-types')}
-                className="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4"
+                className="rounded-xl border-slate-300 text-primary focus:ring-primary h-4 w-4"
               />
-              <span className="text-[10px] font-bold text-slate-600 select-none">Select to Export</span>
+              <span className="text-[10px] font-medium text-slate-700 select-none">Select to Export</span>
             </label>
             <Button 
               variant="outline" 
@@ -418,13 +418,13 @@ export default function AdminDashboard() {
               disabled={isExporting}
               className="bg-white/95 backdrop-blur border border-border rounded-xl shadow-sm h-8 w-8 hover:bg-slate-50"
             >
-              <Download className="h-4 w-4 text-slate-600" />
+              <Download className="h-4 w-4 text-slate-700" />
             </Button>
           </div>
           <Card className="border-border/50 shadow-sm h-[400px] flex flex-col bg-card">
             <CardHeader className="p-8 pb-2">
               <CardTitle className="text-lg font-black tracking-tight">Job Types &amp; Work Types</CardTitle>
-              <CardDescription className="font-bold text-slate-400">Environment and structural classifications</CardDescription>
+              <CardDescription className="font-medium text-slate-500">Environment and structural classifications</CardDescription>
             </CardHeader>
             <CardContent className="p-6 flex-1 min-h-0 flex items-center justify-center">
               {jobTypeData.length > 0 ? (
@@ -436,11 +436,11 @@ export default function AdminDashboard() {
                       ))}
                     </Pie>
                     <Tooltip />
-                    <Legend verticalAlign="bottom" height={36} formatter={(value) => <span className="text-xs font-bold text-slate-600 capitalize">{value}</span>} />
+                    <Legend verticalAlign="bottom" height={36} formatter={(value) => <span className="text-xs font-medium text-slate-700 capitalize">{value}</span>} />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="text-slate-400 font-bold text-xs">No job postings recorded.</p>
+                <p className="text-slate-500 font-medium text-xs">No job postings recorded.</p>
               )}
             </CardContent>
           </Card>
@@ -454,9 +454,9 @@ export default function AdminDashboard() {
                 type="checkbox" 
                 checked={selectedCharts.includes('availability-status')}
                 onChange={() => toggleSelectChart('availability-status')}
-                className="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4"
+                className="rounded-xl border-slate-300 text-primary focus:ring-primary h-4 w-4"
               />
-              <span className="text-[10px] font-bold text-slate-600 select-none">Select to Export</span>
+              <span className="text-[10px] font-medium text-slate-700 select-none">Select to Export</span>
             </label>
             <Button 
               variant="outline" 
@@ -465,13 +465,13 @@ export default function AdminDashboard() {
               disabled={isExporting}
               className="bg-white/95 backdrop-blur border border-border rounded-xl shadow-sm h-8 w-8 hover:bg-slate-50"
             >
-              <Download className="h-4 w-4 text-slate-600" />
+              <Download className="h-4 w-4 text-slate-700" />
             </Button>
           </div>
           <Card className="border-border/50 shadow-sm h-[400px] flex flex-col bg-card">
             <CardHeader className="p-8 pb-2">
               <CardTitle className="text-lg font-black tracking-tight">Developer Availability Pool</CardTitle>
-              <CardDescription className="font-bold text-slate-400">Talent pool search and hire aggregates</CardDescription>
+              <CardDescription className="font-medium text-slate-500">Talent pool search and hire aggregates</CardDescription>
             </CardHeader>
             <CardContent className="p-6 flex-1 min-h-0 flex items-center justify-center">
               {availabilityData[0].value > 0 || availabilityData[1].value > 0 ? (
@@ -483,11 +483,11 @@ export default function AdminDashboard() {
                       ))}
                     </Pie>
                     <Tooltip />
-                    <Legend verticalAlign="bottom" height={36} formatter={(value) => <span className="text-xs font-bold text-slate-600">{value}</span>} />
+                    <Legend verticalAlign="bottom" height={36} formatter={(value) => <span className="text-xs font-medium text-slate-700">{value}</span>} />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="text-slate-400 font-bold text-xs">No developers registered.</p>
+                <p className="text-slate-500 font-medium text-xs">No developers registered.</p>
               )}
             </CardContent>
           </Card>
@@ -501,9 +501,9 @@ export default function AdminDashboard() {
                 type="checkbox" 
                 checked={selectedCharts.includes('top-skills')}
                 onChange={() => toggleSelectChart('top-skills')}
-                className="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4"
+                className="rounded-xl border-slate-300 text-primary focus:ring-primary h-4 w-4"
               />
-              <span className="text-[10px] font-bold text-slate-600 select-none">Select to Export</span>
+              <span className="text-[10px] font-medium text-slate-700 select-none">Select to Export</span>
             </label>
             <Button 
               variant="outline" 
@@ -512,13 +512,13 @@ export default function AdminDashboard() {
               disabled={isExporting}
               className="bg-white/95 backdrop-blur border border-border rounded-xl shadow-sm h-8 w-8 hover:bg-slate-50"
             >
-              <Download className="h-4 w-4 text-slate-600" />
+              <Download className="h-4 w-4 text-slate-700" />
             </Button>
           </div>
           <Card className="border-border/50 shadow-sm h-[400px] flex flex-col bg-card">
             <CardHeader className="p-8 pb-2">
               <CardTitle className="text-lg font-black tracking-tight">Top Skills Popularity</CardTitle>
-              <CardDescription className="font-bold text-slate-400">Total frequency listed in developer profiles</CardDescription>
+              <CardDescription className="font-medium text-slate-500">Total frequency listed in developer profiles</CardDescription>
             </CardHeader>
             <CardContent className="p-6 flex-1 min-h-0">
               {topSkills.length > 0 ? (
@@ -532,7 +532,7 @@ export default function AdminDashboard() {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="text-slate-400 font-bold text-xs flex items-center justify-center h-full">No skill registry data found.</p>
+                <p className="text-slate-500 font-medium text-xs flex items-center justify-center h-full">No skill registry data found.</p>
               )}
             </CardContent>
           </Card>
@@ -546,9 +546,9 @@ export default function AdminDashboard() {
                 type="checkbox" 
                 checked={selectedCharts.includes('geographic-distribution')}
                 onChange={() => toggleSelectChart('geographic-distribution')}
-                className="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4"
+                className="rounded-xl border-slate-300 text-primary focus:ring-primary h-4 w-4"
               />
-              <span className="text-[10px] font-bold text-slate-600 select-none">Select to Export</span>
+              <span className="text-[10px] font-medium text-slate-700 select-none">Select to Export</span>
             </label>
             <Button 
               variant="outline" 
@@ -557,13 +557,13 @@ export default function AdminDashboard() {
               disabled={isExporting}
               className="bg-white/95 backdrop-blur border border-border rounded-xl shadow-sm h-8 w-8 hover:bg-slate-50"
             >
-              <Download className="h-4 w-4 text-slate-600" />
+              <Download className="h-4 w-4 text-slate-700" />
             </Button>
           </div>
           <Card className="border-border/50 shadow-sm h-[400px] flex flex-col bg-card">
             <CardHeader className="p-8 pb-2">
               <CardTitle className="text-lg font-black tracking-tight">Geographic Distribution</CardTitle>
-              <CardDescription className="font-bold text-slate-400">Developer concentration by metropolitan area</CardDescription>
+              <CardDescription className="font-medium text-slate-500">Developer concentration by metropolitan area</CardDescription>
             </CardHeader>
             <CardContent className="p-6 flex-1 min-h-0">
               {locations.length > 0 ? (
@@ -577,7 +577,7 @@ export default function AdminDashboard() {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="text-slate-400 font-bold text-xs flex items-center justify-center h-full">No location parameters loaded.</p>
+                <p className="text-slate-500 font-medium text-xs flex items-center justify-center h-full">No location parameters loaded.</p>
               )}
             </CardContent>
           </Card>
@@ -591,9 +591,9 @@ export default function AdminDashboard() {
                 type="checkbox" 
                 checked={selectedCharts.includes('revenue-by-type')}
                 onChange={() => toggleSelectChart('revenue-by-type')}
-                className="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4"
+                className="rounded-xl border-slate-300 text-primary focus:ring-primary h-4 w-4"
               />
-              <span className="text-[10px] font-bold text-slate-600 select-none">Select to Export</span>
+              <span className="text-[10px] font-medium text-slate-700 select-none">Select to Export</span>
             </label>
             <Button 
               variant="outline" 
@@ -602,13 +602,13 @@ export default function AdminDashboard() {
               disabled={isExporting}
               className="bg-white/95 backdrop-blur border border-border rounded-xl shadow-sm h-8 w-8 hover:bg-slate-50"
             >
-              <Download className="h-4 w-4 text-slate-600" />
+              <Download className="h-4 w-4 text-slate-700" />
             </Button>
           </div>
           <Card className="border-border/50 shadow-sm h-[400px] flex flex-col bg-card">
             <CardHeader className="p-8 pb-2">
               <CardTitle className="text-lg font-black tracking-tight">Revenue Streams Breakdown</CardTitle>
-              <CardDescription className="font-bold text-slate-400">Monthly allocations by spotlight, pin, and badges</CardDescription>
+              <CardDescription className="font-medium text-slate-500">Monthly allocations by spotlight, pin, and badges</CardDescription>
             </CardHeader>
             <CardContent className="p-6 flex-1 min-h-0">
               {flatRevenueByType.length > 0 ? (
@@ -618,14 +618,14 @@ export default function AdminDashboard() {
                     <XAxis dataKey="month" tick={{fontSize: 9, fontWeight: 900, fill: '#94a3b8'}} axisLine={false} tickLine={false} />
                     <YAxis tick={{fontSize: 9, fontWeight: 900, fill: '#94a3b8'}} axisLine={false} tickLine={false} />
                     <Tooltip />
-                    <Legend formatter={(value) => <span className="text-xs font-bold text-slate-600">{value}</span>} />
+                    <Legend formatter={(value) => <span className="text-xs font-medium text-slate-700">{value}</span>} />
                     <Bar dataKey="SPOTLIGHT" name="Spotlight Postings" stackId="revenue" fill="#3b82f6" />
                     <Bar dataKey="PINNED" name="Pinned Listings" stackId="revenue" fill="#f59e0b" />
                     <Bar dataKey="VERIFIED" name="Verification Badges" stackId="revenue" fill="#10b981" />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="text-slate-400 font-bold text-xs flex items-center justify-center h-full">No active revenue logs.</p>
+                <p className="text-slate-500 font-medium text-xs flex items-center justify-center h-full">No active revenue logs.</p>
               )}
             </CardContent>
           </Card>
@@ -639,9 +639,9 @@ export default function AdminDashboard() {
                 type="checkbox" 
                 checked={selectedCharts.includes('verification-outcomes')}
                 onChange={() => toggleSelectChart('verification-outcomes')}
-                className="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4"
+                className="rounded-xl border-slate-300 text-primary focus:ring-primary h-4 w-4"
               />
-              <span className="text-[10px] font-bold text-slate-600 select-none">Select to Export</span>
+              <span className="text-[10px] font-medium text-slate-700 select-none">Select to Export</span>
             </label>
             <Button 
               variant="outline" 
@@ -650,13 +650,13 @@ export default function AdminDashboard() {
               disabled={isExporting}
               className="bg-white/95 backdrop-blur border border-border rounded-xl shadow-sm h-8 w-8 hover:bg-slate-50"
             >
-              <Download className="h-4 w-4 text-slate-600" />
+              <Download className="h-4 w-4 text-slate-700" />
             </Button>
           </div>
           <Card className="border-border/50 shadow-sm h-[400px] flex flex-col bg-card">
             <CardHeader className="p-8 pb-2">
               <CardTitle className="text-lg font-black tracking-tight">Verification Outcomes</CardTitle>
-              <CardDescription className="font-bold text-slate-400">Monthly breakdown of processing status results</CardDescription>
+              <CardDescription className="font-medium text-slate-500">Monthly breakdown of processing status results</CardDescription>
             </CardHeader>
             <CardContent className="p-6 flex-1 min-h-0">
               {verificationChartData.length > 0 ? (
@@ -666,14 +666,14 @@ export default function AdminDashboard() {
                     <XAxis dataKey="month" tick={{fontSize: 9, fontWeight: 900, fill: '#94a3b8'}} axisLine={false} tickLine={false} />
                     <YAxis tick={{fontSize: 9, fontWeight: 900, fill: '#94a3b8'}} axisLine={false} tickLine={false} />
                     <Tooltip />
-                    <Legend formatter={(value) => <span className="text-xs font-bold text-slate-600">{value}</span>} />
+                    <Legend formatter={(value) => <span className="text-xs font-medium text-slate-700">{value}</span>} />
                     <Bar dataKey="Under Review" fill="#f59e0b" radius={[6, 6, 0, 0]} />
                     <Bar dataKey="Approved" fill="#10b981" radius={[6, 6, 0, 0]} />
                     <Bar dataKey="Rejected" fill="#ef4444" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="text-slate-400 font-bold text-xs flex items-center justify-center h-full">No verification requests found.</p>
+                <p className="text-slate-500 font-medium text-xs flex items-center justify-center h-full">No verification requests found.</p>
               )}
             </CardContent>
           </Card>

@@ -39,26 +39,26 @@ export function ProfileSidebar({
   return (
     <div className="space-y-6">
       {/* Quick Actions Card */}
-      <Card className="rounded-[2rem] border-border/50 shadow-sm overflow-hidden bg-background">
+      <Card className="rounded-xl-[2rem] border-border/50 shadow-sm overflow-hidden bg-background">
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-black uppercase tracking-widest text-muted-foreground">Quick Actions</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Button variant="outline" className="w-full justify-start h-12 rounded-xl font-bold group" asChild>
+          <Button variant="outline" className="w-full justify-start h-12 rounded-xl font-medium group" asChild>
             <Link href={`/developers/${profile.id}`}>
               <Eye className="w-4 h-4 mr-3 text-primary group-hover:scale-110 transition-transform" />
               Preview Public View
             </Link>
           </Button>
-          <Button variant="outline" className="w-full justify-start h-12 rounded-xl font-bold group" onClick={onVerifyIdentity}>
-            <ShieldCheck className="w-4 h-4 mr-3 text-emerald-500 group-hover:scale-110 transition-transform" />
+          <Button variant="outline" className="w-full justify-start h-12 rounded-xl font-medium group" onClick={onVerifyIdentity}>
+            <ShieldCheck className="w-4 h-4 mr-3 text-cyan-600 group-hover:scale-110 transition-transform" />
             Verify Identity
           </Button>
         </CardContent>
       </Card>
 
       {/* Connectivity Card */}
-      <Card className="rounded-[2.5rem] border-border/50 shadow-sm overflow-hidden bg-background">
+      <Card className="rounded-xl-[2.5rem] border-border/50 shadow-sm overflow-hidden bg-background">
         <CardHeader className="pb-4 px-8 pt-8">
           <CardTitle className="text-sm font-black uppercase tracking-widest text-muted-foreground">Connectivity</CardTitle>
         </CardHeader>
@@ -101,16 +101,16 @@ export function ProfileSidebar({
                 </div>
                 <div className="min-w-0">
                   <p className="text-[10px] font-black uppercase text-muted-foreground">Email</p>
-                  <p className="text-sm font-bold truncate">{profile.publicEmail || profile.email || 'Not shared'}</p>
+                  <p className="text-sm font-medium truncate">{profile.publicEmail || profile.email || 'Not shared'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <div className="h-10 w-10 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center">
                   <Phone className="h-4 w-4" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-[10px] font-black uppercase text-muted-foreground">Phone</p>
-                  <p className="text-sm font-bold truncate">{profile.publicPhone || 'Not shared'}</p>
+                  <p className="text-sm font-medium truncate">{profile.publicPhone || 'Not shared'}</p>
                 </div>
               </div>
             </div>
@@ -119,7 +119,7 @@ export function ProfileSidebar({
       </Card>
 
       {/* Personal Links Card */}
-      <Card className="rounded-[2rem] border-border/50 shadow-sm overflow-hidden bg-background">
+      <Card className="rounded-xl-[2rem] border-border/50 shadow-sm overflow-hidden bg-background">
         <CardHeader className="pb-4">
           <CardTitle className="text-sm font-black uppercase tracking-widest text-muted-foreground">Personal Links</CardTitle>
         </CardHeader>
@@ -157,7 +157,7 @@ export function ProfileSidebar({
           ) : (
             <div className="space-y-3">
               {profile.linkedinUrl ? (
-                <Button variant="outline" className="w-full justify-start h-12 rounded-xl font-bold group" asChild>
+                <Button variant="outline" className="w-full justify-start h-12 rounded-xl font-medium group" asChild>
                   <a href={profile.linkedinUrl} target="_blank">
                     <LinkIcon className="w-4 h-4 mr-3 text-[#0077b5]" />
                     LinkedIn
@@ -169,7 +169,7 @@ export function ProfileSidebar({
               )}
               
               {profile.githubUrl ? (
-                <Button variant="outline" className="w-full justify-start h-12 rounded-xl font-bold group" asChild>
+                <Button variant="outline" className="w-full justify-start h-12 rounded-xl font-medium group" asChild>
                   <a href={profile.githubUrl} target="_blank">
                     <GitBranch className="w-4 h-4 mr-3 text-foreground" />
                     GitHub
@@ -181,7 +181,7 @@ export function ProfileSidebar({
               )}
 
               {profile.portfolioUrl ? (
-                <Button variant="outline" className="w-full justify-start h-12 rounded-xl font-bold group" asChild>
+                <Button variant="outline" className="w-full justify-start h-12 rounded-xl font-medium group" asChild>
                   <a href={profile.portfolioUrl} target="_blank">
                     <Globe className="w-4 h-4 mr-3 text-primary" />
                     Portfolio
@@ -197,7 +197,7 @@ export function ProfileSidebar({
         <div className="px-8 pb-8 pt-2 border-t border-border/50 mx-2">
           <div className="space-y-1">
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Preferred Work</p>
-            <p className="font-bold text-foreground flex items-center gap-2 uppercase tracking-tight text-xs">
+            <p className="font-medium text-foreground flex items-center gap-2 uppercase tracking-tight text-xs">
               <Globe className="h-3.5 w-3.5 text-primary" /> {profile.preferredWorkType || 'REMOTE'}
             </p>
           </div>
@@ -205,21 +205,21 @@ export function ProfileSidebar({
       </Card>
 
       {/* Spotlight Card */}
-      <Card className="rounded-[2.5rem] border-amber-100 bg-amber-50/50 shadow-sm overflow-hidden relative group">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-amber-500/20 transition-all pointer-events-none" />
+      <Card className="rounded-xl-[2.5rem] border-azure-100 bg-azure-50/50 shadow-sm overflow-hidden relative group">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-azure-500/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-azure-500/20 transition-all pointer-events-none" />
         <CardContent className="p-8 space-y-6">
           <div className="flex items-start gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-lg shadow-amber-500/20 shrink-0">
+            <div className="h-12 w-12 rounded-2xl bg-azure-500 text-white flex items-center justify-center shadow-lg shadow-amber-500/20 shrink-0">
               <Sparkles className="h-6 w-6" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-lg font-black text-amber-900 leading-tight">Get Spotlight</h3>
-              <p className="text-xs font-medium text-amber-700 leading-relaxed">
-                Boost your reach. Get featured on the homepage and attract up to <span className="font-bold">10x more</span> views.
+              <h3 className="text-lg font-black text-warning-900 leading-tight">Get Spotlight</h3>
+              <p className="text-xs font-medium text-azure-700 leading-relaxed">
+                Boost your reach. Get featured on the homepage and attract up to <span className="font-medium">10x more</span> views.
               </p>
             </div>
           </div>
-          <Button className="w-full h-12 rounded-xl font-black bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20" onClick={onBuySpotlight}>
+          <Button className="w-full h-12 rounded-xl font-black bg-azure-500 hover:bg-azure-500 text-white shadow-lg shadow-amber-500/20" onClick={onBuySpotlight}>
             Boost Profile Now
           </Button>
         </CardContent>

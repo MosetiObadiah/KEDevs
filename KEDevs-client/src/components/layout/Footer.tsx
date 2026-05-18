@@ -16,7 +16,7 @@ const Footer = () => {
           </div>
           
           <div>
-            <h3 className="text-sm font-semibold mb-4">Platform</h3>
+            <h3 className="text-sm font-medium mb-4">Platform</h3>
             <ul className="space-y-2">
               {[
                 { label: 'Browse Jobs', href: '/jobs' },
@@ -33,7 +33,7 @@ const Footer = () => {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold mb-4">Resources</h3>
+            <h3 className="text-sm font-medium mb-4">Resources</h3>
             <ul className="space-y-2">
               {['Pricing'].map(item => (
                 <li key={item}>

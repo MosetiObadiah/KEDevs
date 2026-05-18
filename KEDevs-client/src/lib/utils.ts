@@ -4,7 +4,7 @@ import { twMerge } from "tailwind-merge"
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
-export function formatExperience(level: string) {
+export function formatExperience(level: string | undefined | null) {
   if (!level) return 'N/A';
   const mapping: Record<string, string> = {
     'ZERO_TO_ONE': '0–1 Years',
@@ -16,7 +16,7 @@ export function formatExperience(level: string) {
   return mapping[level] || level.replace(/_/g, ' ');
 }
 
-export function formatWorkType(type: string) {
+export function formatWorkType(type: string | undefined | null) {
   if (!type) return 'N/A';
   const mapping: Record<string, string> = {
     'REMOTE': 'Remote',
@@ -28,7 +28,7 @@ export function formatWorkType(type: string) {
   return mapping[type] || type;
 }
 
-export function formatJobType(type: string) {
+export function formatJobType(type: string | undefined | null) {
   if (!type) return 'N/A';
   const mapping: Record<string, string> = {
     'FULL_TIME': 'Full-time',
@@ -40,7 +40,7 @@ export function formatJobType(type: string) {
   return mapping[type] || type.replace(/_/g, ' ');
 }
 
-export function formatExperienceLevel(level: string) {
+export function formatExperienceLevel(level: string | undefined | null) {
   if (!level) return 'N/A';
   const mapping: Record<string, string> = {
     'ENTRY': 'Entry Level',
@@ -52,7 +52,7 @@ export function formatExperienceLevel(level: string) {
   return mapping[level] || level.replace(/_/g, ' ');
 }
 
-export function formatCompanySize(size: string) {
+export function formatCompanySize(size: string | undefined | null) {
   if (!size) return 'N/A';
   const cleanSize = size.toUpperCase().replace(/\s+/g, '_');
   const mapping: Record<string, string> = {
@@ -64,7 +64,7 @@ export function formatCompanySize(size: string) {
   return mapping[cleanSize] || size;
 }
 
-export function formatAvailability(status: string) {
+export function formatAvailability(status: string | undefined | null) {
   if (!status) return 'N/A';
   const mapping: Record<string, string> = {
     'NOT_AVAILABLE': 'Not Available',
@@ -73,7 +73,7 @@ export function formatAvailability(status: string) {
   return mapping[status] || status.replace(/_/g, ' ');
 }
 
-export function formatLocation(city: string) {
+export function formatLocation(city: string | undefined | null) {
   if (!city) return 'N/A';
   return toTitleCase(city);
 }
@@ -82,3 +82,18 @@ export function toTitleCase(str: string) {
   if (!str) return '';
   return str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
 }
+
+export function formatDateString(dateInput: string | Date | null | undefined): string {
+  if (!dateInput) return 'N/A';
+  const date = new Date(dateInput);
+  if (isNaN(date.getTime())) return 'N/A';
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+export function formatTimeString(dateInput: string | Date | null | undefined): string {
+  if (!dateInput) return 'N/A';
+  const date = new Date(dateInput);
+  if (isNaN(date.getTime())) return 'N/A';
+  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+}
+

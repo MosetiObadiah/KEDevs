@@ -125,7 +125,7 @@ export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerifie
       <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">Requirements Missing</DialogTitle>
+            <DialogTitle className="text-xl font-medium">Requirements Missing</DialogTitle>
             <DialogDescription>
               To maintain quality, featured developers must meet certain criteria.
             </DialogDescription>
@@ -133,13 +133,13 @@ export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerifie
           
           <div className="space-y-4 py-4">
             {!isVerified && (
-              <div className="flex gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm">
+              <div className="flex gap-3 p-4 rounded-xl bg-azure-50 border border-azure-200 text-azure-800 text-sm">
                 <AlertCircle className="h-5 w-5 shrink-0" />
                 <p>You must be a <strong>Verified Developer</strong> to buy a spotlight slot.</p>
               </div>
             )}
             {!hasFeaturedProject && (
-              <div className="flex gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm">
+              <div className="flex gap-3 p-4 rounded-xl bg-azure-50 border border-azure-200 text-azure-800 text-sm">
                 <AlertCircle className="h-5 w-5 shrink-0" />
                 <p>You must have at least one <strong>Featured Project</strong> (with a screenshot and live URL).</p>
               </div>
@@ -147,8 +147,8 @@ export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerifie
           </div>
 
           <DialogFooter className="flex sm:justify-between gap-3">
-            <Button variant="ghost" onClick={onClose} className="font-bold">Close</Button>
-            <Button className="font-bold" asChild>
+            <Button variant="ghost" onClick={onClose} className="font-medium">Close</Button>
+            <Button className="font-medium" asChild>
               <Link href={!isVerified ? "/verify" : "/profile/me"}>
                 {!isVerified ? "Get Verified" : "Add Project"}
               </Link>
@@ -190,13 +190,13 @@ export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerifie
                   <Label htmlFor="day" className="flex-1 cursor-pointer">
                     <div className="flex justify-between items-start">
                       <div>
-                        <span className="text-base font-bold block mb-0.5">Developer of the Day</span>
+                        <span className="text-base font-medium block mb-0.5">Developer of the Day</span>
                         <span className="text-xs text-muted-foreground font-medium block">
                           KES {getPrice('SPOTLIGHT_DAY_FEE', '50')} • Active for 24 hours
                         </span>
                       </div>
                       {!availability?.daySlotAvailable && (
-                        <Badge variant="destructive" className="text-[10px] py-0 px-2 font-bold uppercase">Taken</Badge>
+                        <Badge variant="destructive" className="text-[10px] py-0 px-2 font-medium uppercase">Taken</Badge>
                       )}
                     </div>
                   </Label>
@@ -213,13 +213,13 @@ export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerifie
                   <Label htmlFor="week" className="flex-1 cursor-pointer">
                     <div className="flex justify-between items-start">
                       <div>
-                        <span className="text-base font-bold block mb-0.5">Developer of the Week</span>
+                        <span className="text-base font-medium block mb-0.5">Developer of the Week</span>
                         <span className="text-xs text-muted-foreground font-medium block">
                           KES {getPrice('SPOTLIGHT_WEEK_FEE', '250')} • Active for 7 days
                         </span>
                       </div>
                       {!availability?.weekSlotAvailable && (
-                        <Badge variant="destructive" className="text-[10px] py-0 px-2 font-bold uppercase">Taken</Badge>
+                        <Badge variant="destructive" className="text-[10px] py-0 px-2 font-medium uppercase">Taken</Badge>
                       )}
                     </div>
                   </Label>
@@ -238,7 +238,7 @@ export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerifie
                       onChange={(e) => setPhoneNumber(e.target.value)}
                     />
                   </div>
-                  <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground">
+                  <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground">
                     <Info className="h-3.5 w-3.5" />
                     <span>You will receive an STK push on your phone.</span>
                   </div>
@@ -261,7 +261,7 @@ export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerifie
                 <Smartphone className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-8 w-8 text-primary" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-xl font-bold">Waiting for Payment...</h3>
+                <h3 className="text-xl font-medium">Waiting for Payment...</h3>
                 <p className="text-sm text-muted-foreground max-w-sm font-medium">
                   Check your phone for the M-Pesa PIN prompt. Once you enter your PIN, the spotlight will activate automatically.
                 </p>
@@ -271,8 +271,8 @@ export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerifie
 
           {step === 'SUCCESS' && (
             <div className="py-10 text-center flex flex-col items-center space-y-6">
-              <div className="h-24 w-24 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                <Zap className="h-12 w-12 text-emerald-500 fill-emerald-500" />
+              <div className="h-24 w-24 rounded-full bg-cyan-600/10 flex items-center justify-center">
+                <Zap className="h-12 w-12 text-cyan-600 fill-emerald-500" />
               </div>
               <div className="space-y-2">
                 <h3 className="text-2xl font-black">Spotlight Active!</h3>
@@ -287,7 +287,7 @@ export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerifie
         <DialogFooter className="flex sm:justify-between gap-3 pt-4 border-t border-border/50">
           {step === 'SELECT' ? (
             <>
-              <Button variant="ghost" onClick={onClose} className="font-bold">Cancel</Button>
+              <Button variant="ghost" onClick={onClose} className="font-medium">Cancel</Button>
               <Button 
                 className="font-black h-12 px-8 rounded-xl shadow-xl shadow-primary/20"
                 disabled={
@@ -305,7 +305,7 @@ export default function BuySpotlightDialog({ open, onClose, onSuccess, isVerifie
               </Button>
             </>
           ) : (
-            <Button className="font-bold w-full h-12 rounded-xl" onClick={onClose}>
+            <Button className="font-medium w-full h-12 rounded-xl" onClick={onClose}>
               Done
             </Button>
           )}

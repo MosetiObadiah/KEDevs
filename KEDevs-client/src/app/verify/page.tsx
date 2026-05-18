@@ -26,7 +26,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { verificationService, VerificationStatus, VerificationStatusResponse } from '@/services/verificationService';
 import { usePlatformSettings } from '@/hooks/usePlatformSettings';
-import { cn } from '@/lib/utils';
+import { cn, formatDateString } from '@/lib/utils';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -211,7 +211,7 @@ export default function VerificationFlow() {
       return (
          <div className="min-h-screen flex flex-col items-center justify-center space-y-4">
             <Loader2 className="h-10 w-10 text-primary animate-spin" />
-            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Accessing protocol state...</p>
+            <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Accessing protocol state...</p>
          </div>
       );
    }
@@ -220,15 +220,15 @@ export default function VerificationFlow() {
       return (
          <div className="min-h-screen bg-muted/30 pb-20 pt-12 animate-in fade-in duration-700">
             <div className="container mx-auto px-6 max-w-2xl">
-               <Card className="rounded-[2.5rem] border-none shadow-xl overflow-hidden bg-white">
+               <Card className="rounded-xl-[2.5rem] border-none shadow-xl overflow-hidden bg-white">
                   <CardContent className="p-16 text-center space-y-8">
-                     <div className="h-24 w-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto">
-                        <BadgeCheck className="h-12 w-12 text-emerald-500" />
+                     <div className="h-24 w-24 bg-cyan-50 rounded-full flex items-center justify-center mx-auto">
+                        <BadgeCheck className="h-12 w-12 text-cyan-600" />
                      </div>
                      <div className="space-y-3">
                         <h2 className="text-3xl font-black text-slate-900">Already Verified</h2>
                         <p className="text-slate-500 font-medium leading-relaxed">
-                           Your identity has already been verified. You carry the <span className="text-emerald-600 font-black">Verified Badge</span> on the KEDevs platform.
+                           Your identity has already been verified. You carry the <span className="text-cyan-600 font-black">Verified Badge</span> on the KEDevs platform.
                         </p>
                      </div>
                      <Button asChild className="h-14 rounded-2xl font-black bg-slate-900 px-10 shadow-xl">
@@ -247,17 +247,17 @@ export default function VerificationFlow() {
             <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
                <div className="space-y-2">
                   <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">Identity Verification</h1>
-                  <p className="text-muted-foreground font-semibold text-lg leading-relaxed">
-                     Complete the verification sequence to earn your <span className="text-emerald-500 font-black italic">Verified Badge</span>.
+                  <p className="text-muted-foreground font-medium text-lg leading-relaxed">
+                     Complete the verification sequence to earn your <span className="text-cyan-600 font-black italic">Verified Badge</span>.
                   </p>
                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                   <div className="lg:col-span-1 order-2 lg:order-1 space-y-6">
-                     <Card className="rounded-[2.5rem] border-none shadow-xl shadow-slate-200/50 bg-white sticky top-24 overflow-hidden">
+                     <Card className="rounded-xl-[2.5rem] border-none shadow-xl shadow-slate-200/50 bg-white sticky top-24 overflow-hidden">
                         <CardHeader className="pb-4 pt-8 px-8">
-                           <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-400">Sequence Progress</h3>
+                           <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-500">Sequence Progress</h3>
                         </CardHeader>
                         <CardContent className="px-8 pb-10 space-y-6">
                            {steps.map((step, i) => {
@@ -270,8 +270,8 @@ export default function VerificationFlow() {
                                     <div className={cn(
                                        "h-12 w-12 rounded-2xl flex items-center justify-center transition-all duration-500 border-2",
                                        isActive ? "bg-primary text-white border-primary shadow-lg shadow-primary/20 scale-105" :
-                                          isCompleted ? "bg-emerald-500 text-white border-emerald-500" :
-                                             "bg-slate-50 text-slate-400 border-slate-100"
+                                          isCompleted ? "bg-cyan-600 text-white border-emerald-500" :
+                                             "bg-slate-50 text-slate-500 border-slate-100"
                                     )}>
                                        {isCompleted ? <CheckCircle2 className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
                                     </div>
@@ -282,7 +282,7 @@ export default function VerificationFlow() {
                                        )}>
                                           {step.label}
                                        </span>
-                                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                       <span className="text-[10px] font-medium text-slate-500 uppercase tracking-widest">
                                           {isActive ? 'Active Phase' : isCompleted ? 'Completed' : 'Pending'}
                                        </span>
                                     </div>
@@ -295,7 +295,7 @@ export default function VerificationFlow() {
                   </div>
 
                   <div className="lg:col-span-2 order-1 lg:order-2 space-y-10">
-                     <Card className="rounded-[2.5rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden bg-white">
+                     <Card className="rounded-xl-[2.5rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden bg-white">
                         <CardContent className="p-10 md:p-14">
                            {activeStep === 0 && (
                               <div className="space-y-10">
@@ -314,18 +314,18 @@ export default function VerificationFlow() {
                                           key={req} 
                                           className={cn(
                                              "p-5 rounded-2xl border transition-all flex items-center gap-4 group cursor-pointer",
-                                             met ? "bg-emerald-50/30 border-emerald-100" : "bg-slate-50 border-slate-100 hover:border-primary/30 hover:bg-white hover:shadow-lg hover:shadow-primary/5 active:scale-[0.98]"
+                                             met ? "bg-cyan-50/30 border-emerald-100" : "bg-slate-50 border-slate-100 hover:border-primary/30 hover:bg-white hover:shadow-lg hover:shadow-primary/5 active:scale-[0.98]"
                                           )}
                                        >
                                           <div className={cn(
                                              "h-10 w-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm transition-all duration-300",
-                                             met ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-400 group-hover:bg-primary group-hover:text-white group-hover:rotate-12"
+                                             met ? "bg-cyan-600 text-white" : "bg-slate-200 text-slate-500 group-hover:bg-primary group-hover:text-white group-hover:rotate-12"
                                           )}>
                                              {met ? <CheckCircle2 className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
                                           </div>
                                           <div className="flex flex-col">
-                                             <span className={cn("text-xs font-black uppercase tracking-widest transition-colors", met ? "text-emerald-900" : "text-slate-400 group-hover:text-primary")}>{req}</span>
-                                             <span className="text-[10px] font-bold text-slate-400">{met ? 'Verified' : 'Click to fix'}</span>
+                                             <span className={cn("text-xs font-black uppercase tracking-widest transition-colors", met ? "text-emerald-900" : "text-slate-500 group-hover:text-primary")}>{req}</span>
+                                             <span className="text-[10px] font-medium text-slate-500">{met ? 'Verified' : 'Click to fix'}</span>
                                           </div>
                                        </Link>
                                     ))}
@@ -351,7 +351,7 @@ export default function VerificationFlow() {
 
                                  <div className="max-w-sm mx-auto space-y-6">
                                     <div className="relative">
-                                       <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                                       <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
                                        <Input
                                           value={phoneNumber}
                                           onChange={(e) => setPhoneNumber(e.target.value)}
@@ -360,7 +360,7 @@ export default function VerificationFlow() {
                                        />
                                     </div>
                                     <Button
-                                       className="w-full h-16 rounded-[2rem] bg-slate-900 text-white font-black text-lg shadow-xl shadow-slate-900/10 gap-3"
+                                       className="w-full h-16 rounded-xl-[2rem] bg-slate-900 text-white font-black text-lg shadow-xl shadow-slate-900/10 gap-3"
                                        onClick={handleInitiate}
                                        disabled={isSubmitting || isPollingPayment || (verifyStatus?.status !== VerificationStatus.NONE && verifyStatus?.status !== VerificationStatus.PENDING_PAYMENT && verifyStatus?.status !== VerificationStatus.REJECTED)}
                                     >
@@ -369,11 +369,11 @@ export default function VerificationFlow() {
                                     </Button>
 
                                     {isPollingPayment && (
-                                       <div className="flex items-center justify-center gap-3 p-4 rounded-2xl bg-amber-50 border border-amber-100">
-                                          <Loader2 className="h-4 w-4 text-amber-500 animate-spin shrink-0" />
+                                       <div className="flex items-center justify-center gap-3 p-4 rounded-2xl bg-azure-50 border border-azure-100">
+                                          <Loader2 className="h-4 w-4 text-azure-500 animate-spin shrink-0" />
                                           <div className="text-left">
-                                             <p className="text-xs font-black text-amber-800 uppercase tracking-widest">Awaiting M-Pesa Confirmation</p>
-                                             <p className="text-[10px] font-medium text-amber-600 mt-0.5">Checking every 5 seconds · up to 50 seconds</p>
+                                             <p className="text-xs font-black text-azure-800 uppercase tracking-widest">Awaiting M-Pesa Confirmation</p>
+                                             <p className="text-[10px] font-medium text-azure-500 mt-0.5">Checking every 5 seconds · up to 50 seconds</p>
                                           </div>
                                        </div>
                                     )}
@@ -397,16 +397,16 @@ export default function VerificationFlow() {
                                     <div
                                        onClick={() => idFile ? setIdFile(null) : idRef.current?.click()}
                                        className={cn(
-                                          "p-8 rounded-[2.5rem] border-2 border-dashed flex flex-col items-center justify-center gap-4 cursor-pointer transition-all group relative",
-                                          idFile ? "bg-emerald-50/50 border-emerald-500/30 hover:border-red-200" : "bg-slate-50 border-slate-100 hover:border-primary/30"
+                                          "p-8 rounded-xl-[2.5rem] border-2 border-dashed flex flex-col items-center justify-center gap-4 cursor-pointer transition-all group relative",
+                                          idFile ? "bg-cyan-50/50 border-emerald-500/30 hover:border-danger-200" : "bg-slate-50 border-slate-100 hover:border-primary/30"
                                        )}
                                     >
-                                       <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center transition-colors", idFile ? "bg-emerald-500 text-white group-hover:bg-red-500" : "bg-white text-slate-400")}>
+                                       <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center transition-colors", idFile ? "bg-cyan-600 text-white group-hover:bg-danger-500" : "bg-white text-slate-500")}>
                                           {idFile ? <X className="h-6 w-6" /> : <FileText className="h-6 w-6" />}
                                        </div>
                                        <div className="text-center">
                                           <p className="font-black text-slate-900">{idFile ? idFile.name : 'National ID / Passport Archive'}</p>
-                                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">
+                                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">
                                              {idFile ? 'Click to remove' : 'PNG, JPEG, WEBP or PDF (Max 10MB)'}
                                           </p>
                                        </div>
@@ -416,16 +416,16 @@ export default function VerificationFlow() {
                                     <div
                                        onClick={() => passportFile ? setPassportFile(null) : passportRef.current?.click()}
                                        className={cn(
-                                          "p-8 rounded-[2.5rem] border-2 border-dashed flex flex-col items-center justify-center gap-4 cursor-pointer transition-all group relative",
-                                          passportFile ? "bg-emerald-50/50 border-emerald-500/30 hover:border-red-200" : "bg-slate-50 border-slate-100 hover:border-primary/30"
+                                          "p-8 rounded-xl-[2.5rem] border-2 border-dashed flex flex-col items-center justify-center gap-4 cursor-pointer transition-all group relative",
+                                          passportFile ? "bg-cyan-50/50 border-emerald-500/30 hover:border-danger-200" : "bg-slate-50 border-slate-100 hover:border-primary/30"
                                        )}
                                     >
-                                       <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center transition-colors", passportFile ? "bg-emerald-500 text-white group-hover:bg-red-500" : "bg-slate-400")}>
+                                       <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center transition-colors", passportFile ? "bg-cyan-600 text-white group-hover:bg-danger-500" : "bg-slate-500")}>
                                           {passportFile ? <X className="h-6 w-6" /> : <ShieldCheck className="h-6 w-6" />}
                                        </div>
                                        <div className="text-center">
                                           <p className="font-black text-slate-900">{passportFile ? passportFile.name : 'Passport Photo'}</p>
-                                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">
+                                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">
                                              {passportFile ? 'Click to remove' : 'Images only (PNG, JPEG, WEBP)'}
                                           </p>
                                        </div>
@@ -437,15 +437,15 @@ export default function VerificationFlow() {
                                              {certFiles.map((file, idx) => (
                                                 <div key={idx} className="flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-100 shadow-sm animate-in fade-in slide-in-from-top-1 duration-200">
                                                    <div className="flex items-center gap-3 overflow-hidden">
-                                                      <div className="h-8 w-8 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400">
+                                                      <div className="h-8 w-8 bg-slate-50 rounded-xl flex items-center justify-center text-slate-500">
                                                          <FileText className="h-4 w-4" />
                                                       </div>
-                                                      <span className="text-xs font-bold text-slate-600 truncate">{file.name}</span>
+                                                      <span className="text-xs font-medium text-slate-700 truncate">{file.name}</span>
                                                    </div>
                                                    <button
                                                       type="button"
                                                       onClick={() => setCertFiles(prev => prev.filter((_, i) => i !== idx))}
-                                                      className="h-8 w-8 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                      className="h-8 w-8 flex items-center justify-center text-slate-500 hover:text-danger-500 hover:bg-danger-50 rounded-xl transition-all"
                                                    >
                                                       <X className="h-4 w-4" />
                                                    </button>
@@ -473,8 +473,8 @@ export default function VerificationFlow() {
                                  <div className="relative mx-auto h-32 w-32">
                                     <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
                                     <div className={cn(
-                                       "relative h-32 w-32 rounded-[3rem] flex items-center justify-center shadow-2xl",
-                                       (verifyStatus?.status as string) === VerificationStatus.APPROVED ? "bg-emerald-500 text-white" : "bg-slate-900 text-white"
+                                       "relative h-32 w-32 rounded-xl-[3rem] flex items-center justify-center shadow-2xl",
+                                       (verifyStatus?.status as string) === VerificationStatus.APPROVED ? "bg-cyan-600 text-white" : "bg-slate-900 text-white"
                                     )}>
                                        {(verifyStatus?.status as string) === VerificationStatus.APPROVED ? <BadgeCheck className="h-16 w-16" /> : <Clock className="h-16 w-16 animate-spin-slow" />}
                                     </div>
@@ -492,24 +492,24 @@ export default function VerificationFlow() {
                                     </p>
                                  </div>
 
-                                 <div className="p-10 rounded-[3rem] bg-slate-50 border-2 border-slate-100 max-w-md mx-auto space-y-4">
+                                 <div className="p-10 rounded-xl-[3rem] bg-slate-50 border-2 border-slate-100 max-w-md mx-auto space-y-4">
                                     <div className="flex justify-between items-center text-xs font-black uppercase tracking-widest">
-                                       <span className="text-slate-400">Timestamp</span>
-                                       <span className="text-slate-900">{verifyStatus?.createdAt ? new Date(verifyStatus.createdAt).toLocaleDateString() : 'N/A'}</span>
+                                       <span className="text-slate-500">Timestamp</span>
+                                       <span className="text-slate-900">{verifyStatus?.createdAt ? formatDateString(verifyStatus.createdAt) : 'N/A'}</span>
                                     </div>
                                     <Separator className="bg-slate-200/50" />
                                     <div className="flex justify-between items-center text-xs font-black uppercase tracking-widest">
-                                       <span className="text-slate-400">Current Phase</span>
+                                       <span className="text-slate-500">Current Phase</span>
                                        <Badge className={cn(
-                                          "rounded-lg font-black text-[10px] border-none shadow-sm",
-                                          (verifyStatus?.status as string) === VerificationStatus.APPROVED ? "bg-emerald-500" : "bg-amber-500"
+                                          "rounded-xl font-black text-[10px] border-none shadow-sm",
+                                          (verifyStatus?.status as string) === VerificationStatus.APPROVED ? "bg-cyan-600" : "bg-azure-500"
                                        )}>
                                           {(verifyStatus?.status as string) === VerificationStatus.APPROVED ? 'AUTHORIZED' : 'UNDER_AUDIT'}
                                        </Badge>
                                     </div>
                                  </div>
 
-                                 <Button asChild className="h-16 rounded-[2rem] px-12 font-black bg-slate-900 shadow-2xl shadow-slate-900/20 text-lg">
+                                 <Button asChild className="h-16 rounded-xl-[2rem] px-12 font-black bg-slate-900 shadow-2xl shadow-slate-900/20 text-lg">
                                     <Link href="/profile/me">Access Profile</Link>
                                  </Button>
                               </div>

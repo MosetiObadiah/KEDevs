@@ -1,4 +1,5 @@
 'use client';
+import { formatDateString } from '@/lib/utils';
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
@@ -112,6 +113,7 @@ function DevelopersPageContent() {
   const [isSkillsDropdownOpen, setIsSkillsDropdownOpen] = useState(false);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [isVerifiedOnly, setIsVerifiedOnly] = useState(false);
+  const [sortBy, setSortBy] = useState('recently-active');
 
   // Flagging state
   const [isFlagOpen, setIsFlagOpen] = useState(false);
@@ -155,6 +157,18 @@ function DevelopersPageContent() {
     (selectedLanguages.length === 0 || dev.languages.some(l => selectedLanguages.includes(l))) &&
     (!isVerifiedOnly || dev.isVerified)
   );
+
+  const sortedDevs = [...filteredDevs].sort((a, b) => {
+    if (sortBy === 'most-endorsed') {
+      return (b.endorsementCount || 0) - (a.endorsementCount || 0);
+    }
+    if (sortBy === 'most-projects') {
+      return (b.numberOfProjects || 0) - (a.numberOfProjects || 0);
+    }
+    const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+    const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+    return dateB - dateA;
+  });
 
   const handleExport = async (format: 'csv' | 'pdf') => {
     setIsExporting(true);
@@ -254,7 +268,7 @@ function DevelopersPageContent() {
         <div className="flex justify-end items-center gap-3 mb-8 print:hidden">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="font-bold border-primary/20 hover:bg-primary/5 h-12 px-6" disabled={isExporting}>
+              <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-6" disabled={isExporting}>
                 <Download className="mr-2 h-4 w-4 text-primary" />
                 {isExporting ? 'Exporting...' : 'Export'}
               </Button>
@@ -272,7 +286,7 @@ function DevelopersPageContent() {
 
         <div className="hidden print:block mb-8 border-b pb-4">
           <h1 className="text-2xl font-black text-black">KEDevs Talent Report</h1>
-          <p className="text-sm text-gray-500">Generated on {new Date().toLocaleDateString()}</p>
+          <p className="text-sm text-slate-500">Generated on {formatDateString(new Date())}</p>
         </div>
 
         <div className={cn("grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-5 items-start", SPACING_CONST.cards)}>
@@ -280,12 +294,12 @@ function DevelopersPageContent() {
           <aside className="lg:col-span-1 space-y-6 print:hidden sticky top-24 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent pr-1">
             <Card className="border-border/50 shadow-sm">
               <CardHeader className="pb-4">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Filter Developers</h3>
+                <h3 className="text-sm font-medium uppercase tracking-wider text-foreground">Filter Developers</h3>
               </CardHeader>
               <CardContent className="space-y-6">
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Availability</label>
+                  <label className="text-xs font-medium text-muted-foreground uppercase">Availability</label>
                   <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
                     {AVAILABILITY_STATUSES.map(avail => (
                       <div key={avail.value} className="flex items-center space-x-2">
@@ -307,7 +321,7 @@ function DevelopersPageContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Experience Level</label>
+                  <label className="text-xs font-medium text-muted-foreground uppercase">Experience Level</label>
                   <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
                     {EXPERIENCE_RANGES.map(exp => (
                       <div key={exp.value} className="flex items-center space-x-2">
@@ -329,7 +343,7 @@ function DevelopersPageContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Work Preference</label>
+                  <label className="text-xs font-medium text-muted-foreground uppercase">Work Preference</label>
                   <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
                     {WORK_TYPES.map(type => (
                       <div key={type.value} className="flex items-center space-x-2">
@@ -351,9 +365,9 @@ function DevelopersPageContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Location</label>
+                  <label className="text-xs font-medium text-muted-foreground uppercase">Location</label>
                   <Select value={location} onValueChange={setLocation}>
-                    <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-lg">
+                    <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-xl">
                       <SelectValue placeholder="Any Location" />
                     </SelectTrigger>
                     <SelectContent className="max-h-60 overflow-y-auto">
@@ -366,13 +380,13 @@ function DevelopersPageContent() {
                 </div>
 
                 <div className="space-y-2 relative">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Skills</label>
+                  <label className="text-xs font-medium text-muted-foreground uppercase">Skills</label>
 
                   {/* Dropdown Trigger */}
                   <div className="relative">
                     <button
                       type="button"
-                      className="w-full flex items-center justify-between border border-border/50 bg-background text-xs h-10 px-3 rounded-lg hover:bg-slate-50 transition-all font-medium text-slate-700"
+                      className="w-full flex items-center justify-between border border-border/50 bg-background text-xs h-10 px-3 rounded-xl hover:bg-slate-50 transition-all font-medium text-slate-700"
                       onClick={() => setIsSkillsDropdownOpen(!isSkillsDropdownOpen)}
                     >
                       <span className="truncate">
@@ -380,7 +394,7 @@ function DevelopersPageContent() {
                           ? "Select skills..."
                           : `${selectedSkills.length} skill${selectedSkills.length > 1 ? 's' : ''} selected`}
                       </span>
-                      <ChevronDown className="h-4 w-4 text-slate-400 shrink-0 ml-2" />
+                      <ChevronDown className="h-4 w-4 text-slate-500 shrink-0 ml-2" />
                     </button>
 
                     {/* Dropdown Menu Overlay */}
@@ -397,7 +411,7 @@ function DevelopersPageContent() {
                             <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
                             <Input
                               placeholder="Search or enter custom skill..."
-                              className="pl-8 text-xs h-8.5 rounded-lg border-border/50 focus-visible:ring-primary/20"
+                              className="pl-8 text-xs h-8.5 rounded-xl border-border/50 focus-visible:ring-primary/20"
                               value={skillSearch}
                               onChange={(e) => setSkillSearch(e.target.value)}
                               onKeyDown={(e) => {
@@ -419,7 +433,7 @@ function DevelopersPageContent() {
                             {skillSearch.trim() && !availableSkills.some(s => s.toLowerCase() === skillSearch.trim().toLowerCase()) && (
                               <button
                                 type="button"
-                                className="w-full flex items-center gap-2 p-2 rounded-lg bg-primary/5 text-primary hover:bg-primary/10 text-xs font-bold text-left transition-colors border border-primary/10"
+                                className="w-full flex items-center gap-2 p-2 rounded-xl bg-primary/5 text-primary hover:bg-primary/10 text-xs font-medium text-left transition-colors border border-primary/10"
                                 onClick={() => {
                                   const customSkill = skillSearch.trim();
                                   if (!selectedSkills.includes(customSkill)) {
@@ -439,7 +453,7 @@ function DevelopersPageContent() {
                                 return (
                                   <div
                                     key={skill}
-                                    className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors"
+                                    className="flex items-center space-x-2 p-1.5 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors"
                                     onClick={() => {
                                       if (isChecked) {
                                         setSelectedSkills(selectedSkills.filter(s => s !== skill));
@@ -453,7 +467,7 @@ function DevelopersPageContent() {
                                       checked={isChecked}
                                       onCheckedChange={() => { }} // handled by div click
                                     />
-                                    <label htmlFor={`skill-filter-${skill}`} className="text-xs font-semibold text-slate-700 cursor-pointer truncate flex-1 select-none">
+                                    <label htmlFor={`skill-filter-${skill}`} className="text-xs font-medium text-slate-700 cursor-pointer truncate flex-1 select-none">
                                       {skill}
                                     </label>
                                   </div>
@@ -477,7 +491,7 @@ function DevelopersPageContent() {
                         <Badge
                           key={skill}
                           variant="secondary"
-                          className="bg-primary/5 text-primary hover:bg-primary/10 border-primary/10 text-[10px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1.5"
+                          className="bg-primary/5 text-primary hover:bg-primary/10 border-primary/10 text-[10px] font-medium px-2 py-0.5 rounded-2xl flex items-center gap-1.5"
                         >
                           {skill}
                           <button
@@ -494,8 +508,8 @@ function DevelopersPageContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Languages</label>
-                  <div className="flex flex-wrap gap-1 mb-2 max-h-24 overflow-y-auto p-1 bg-muted/5 rounded-lg border border-border/20">
+                  <label className="text-xs font-medium text-muted-foreground uppercase">Languages</label>
+                  <div className="flex flex-wrap gap-1 mb-2 max-h-24 overflow-y-auto p-1 bg-muted/5 rounded-xl border border-border/20">
                     {Array.from(new Set(devs.flatMap(d => d.languages || []))).sort().map(lang => (
                       <Badge
                         key={lang}
@@ -520,7 +534,7 @@ function DevelopersPageContent() {
 
                 <div className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-card shadow-inner">
                   <div className="space-y-0.5">
-                    <Label htmlFor="verified" className="text-sm font-bold cursor-pointer">Verified Only</Label>
+                    <Label htmlFor="verified" className="text-sm font-medium cursor-pointer">Verified Only</Label>
                     <p className="text-[10px] text-muted-foreground">Show only verified profiles</p>
                   </div>
                   <Checkbox
@@ -534,7 +548,7 @@ function DevelopersPageContent() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="w-full text-xs font-bold text-muted-foreground mt-2"
+                    className="w-full text-xs font-medium text-muted-foreground mt-2"
                     onClick={() => {
                       router.push(pathname);
                       setSelectedAvails([]);
@@ -560,7 +574,28 @@ function DevelopersPageContent() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {/* Results Bar */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 print:hidden bg-white p-4 rounded-2xl border border-slate-100">
+              <p className="text-sm font-medium text-slate-500">
+                Showing <span className="text-navy-900 font-medium">{filteredDevs.length}</span> developer{filteredDevs.length !== 1 && 's'}
+              </p>
+              
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Sort by:</span>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-44 border-slate-200 focus:ring-azure-200 text-xs h-9 rounded-xl">
+                    <SelectValue placeholder="Sort" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="recently-active">Recently Active</SelectItem>
+                    <SelectItem value="most-endorsed">Most Endorsed</SelectItem>
+                    <SelectItem value="most-projects">Most Projects</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-6">
               {isLoading ? (
                 [1, 2, 3, 4, 5, 6].map(i => (
                   <Card key={i} className="p-8 flex flex-col items-center border-border/50">
@@ -573,127 +608,83 @@ function DevelopersPageContent() {
                     </div>
                   </Card>
                 ))
-              ) : filteredDevs.length > 0 ? (
-                filteredDevs.map((dev) => (
-                  <Card key={dev.id} className="group border-border/50 hover:shadow-xl hover:shadow-primary/5 transition-all flex flex-col overflow-hidden">
-                    <CardContent className="p-8 text-center flex-1">
-                      <Link href={`/developers/${dev.id}`} className="inline-block relative mb-6">
-                        <Avatar className="h-20 w-20 border-4 border-muted group-hover:border-primary/20 transition-colors shadow-sm">
-                          <AvatarImage src={dev.profilePhoto} />
-                          <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-black">
-                            {dev.firstName.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        {dev.isVerified && (
-                          <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-0.5 shadow-sm">
-                            <BadgeCheck className="h-6 w-6 text-primary" />
-                          </div>
-                        )}
-                      </Link>
-
-                      <div className="flex justify-center mb-4">
-                        <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[10px] font-black px-3 py-1 rounded-full">
-                          {dev.numberOfProjects || 0} {dev.numberOfProjects === 1 ? 'Project' : 'Projects'}
-                        </Badge>
-                      </div>
-
-                      <div className="mb-4">
-                        <Link href={`/developers/${dev.id}`}>
-                          <h3 className="text-xl font-black group-hover:text-primary transition-colors mb-1 tracking-tight">
-                            {toTitleCase(`${dev.firstName} ${dev.lastName}`)}
-                          </h3>
-                        </Link>
-                        <p className="text-sm font-semibold text-muted-foreground">{dev.currentLastRole}</p>
-                      </div>
-
-                      <div className="flex flex-wrap justify-center items-center gap-1.5 mb-6">
-                        <Badge
-                          variant={dev.availabilityStatus === 'OPEN_TO_OFFERS' ? 'default' : 'secondary'}
-                          className={cn(
-                            "text-[9px] uppercase font-black px-2 shadow-sm tracking-wider",
-                            dev.availabilityStatus === 'OPEN_TO_OFFERS' ? "bg-emerald-500 hover:bg-emerald-500" : ""
-                          )}
-                        >
-                          {formatAvailability(dev.availabilityStatus)}
-                        </Badge>
-                      </div>
-
-                      <div className="space-y-1 mb-6 text-center">
-                        {dev.yearsOfExperience && (
-                          <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider">
-                            Years of Experience: <span className="text-foreground font-bold">{formatExperience(dev.yearsOfExperience)}</span>
-                          </p>
-                        )}
-                        {dev.preferredWorkType && (
-                          <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider">
-                            Work Preference: <span className="text-foreground font-bold">{formatWorkType(dev.preferredWorkType)}</span>
-                          </p>
-                        )}
-                      </div>
-
-                      {dev.endorsementCount > 0 && (
-                        <div className="mb-6">
-                          <p className="text-[10px] font-black text-primary uppercase tracking-tighter">
-                            {dev.endorsementCount} {dev.endorsementCount === 1 ? 'Endorsement' : 'Endorsements'}
-                          </p>
+              ) : sortedDevs.length > 0 ? (
+                sortedDevs.map((dev) => (
+                  <Card key={dev.id} className="bg-white rounded-2xl border border-slate-100 hover:border-slate-200 transition-colors p-5 flex flex-col items-center text-center cursor-pointer group shadow-none" onClick={() => router.push(`/developers/${dev.id}`)}>
+                    {/* Avatar */}
+                    <div className="relative mb-2 shrink-0">
+                      <Avatar className="w-14 h-14 border border-slate-100 mx-auto">
+                        <AvatarImage src={dev.profilePhoto} />
+                        <AvatarFallback className="bg-navy-700 text-white text-xl font-medium uppercase">
+                          {dev.firstName?.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      {/* Verified badge — only show if is_verified = true */}
+                      {dev.isVerified && (
+                        <div className="absolute bottom-0 right-[calc(50%-1.75rem)] w-5 h-5 rounded-full bg-cyan-400 border-2 border-white flex items-center justify-center shadow-sm z-10">
+                          <BadgeCheck className="h-3 w-3 text-white fill-current" />
                         </div>
                       )}
+                    </div>
 
-                      {isLoggedIn && (user?.role === 'EMPLOYER' || user?.id === dev.id) && (
-                        <div className="flex justify-center gap-2 mb-6">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full border border-border/50">
-                                  <Mail className="h-3.5 w-3.5" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent><p>Email</p></TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full border border-border/50">
-                                  <ExternalLink className="h-3.5 w-3.5" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent><p>LinkedIn Profile</p></TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full border border-border/50">
-                                  <Phone className="h-3.5 w-3.5" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent><p>Phone</p></TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
+                    {/* Projects — only show if > 0 */}
+                    {dev.numberOfProjects > 0 ? (
+                      <p className="text-xs text-azure-500 font-medium mb-1">{dev.numberOfProjects} {dev.numberOfProjects === 1 ? 'Project' : 'Projects'}</p>
+                    ) : (
+                      <div className="h-4 mb-1" />
+                    )}
+
+                    <h3 className="text-sm font-medium text-navy-900 mb-0.5 truncate max-w-full capitalize">
+                      {toTitleCase(`${dev.firstName} ${dev.lastName}`)}
+                    </h3>
+                    <p className="text-xs text-slate-500 mb-3 truncate max-w-full">{dev.currentLastRole}</p>
+
+                    {/* Status badge */}
+                    <div className="mb-3 shrink-0">
+                      {dev.availabilityStatus === 'OPEN_TO_OFFERS' ? (
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-success-50 text-success-600">Open to Offers</span>
+                      ) : (
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-500">Not Available</span>
                       )}
+                    </div>
 
-                      <div className="flex flex-wrap justify-center gap-1.5">
-                        {dev.skills.slice(0, 3).map(skill => (
-                          <Badge key={skill} variant="outline" className="text-[10px] py-0 px-2 font-medium bg-muted/30 border-muted">
-                            {skill}
-                          </Badge>
-                        ))}
-                        {dev.skills.length > 3 && (
-                          <Badge variant="ghost" className="text-[9px] font-bold text-muted-foreground p-0">
-                            +{dev.skills.length - 3} more
-                          </Badge>
-                        )}
-                      </div>
-                    </CardContent>
+                    {/* Meta */}
+                    <p className="text-xs text-slate-500 mb-1">
+                      {formatExperience(dev.yearsOfExperience)} · <span className="text-slate-700 font-medium">{formatWorkType(dev.preferredWorkType)}</span>
+                    </p>
 
-                    <CardFooter className="p-4 border-t border-border/50 bg-muted/10 flex justify-between items-center text-[10px] font-bold text-muted-foreground uppercase tracking-widest print:hidden">
-                      <div className="flex items-center gap-1.5">
-                        <MapPin className="h-3 w-3" />
-                        {formatLocation(dev.locationCity)}
-                      </div>
-                      <div className="flex gap-2">
+                    {/* Endorsements — only if > 0 */}
+                    {dev.endorsementCount > 0 ? (
+                      <p className="text-xs text-azure-500 font-medium my-1">{dev.endorsementCount} {dev.endorsementCount === 1 ? 'Endorsement' : 'Endorsements'}</p>
+                    ) : (
+                      <div className="h-4 my-1" />
+                    )}
+
+                    {/* Skills */}
+                    <div className="flex flex-wrap gap-1 justify-center my-2 shrink-0">
+                      {dev.skills.slice(0, 3).map(skill => (
+                        <span key={skill} className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full text-xs truncate max-w-[80px]">
+                          {skill}
+                        </span>
+                      ))}
+                      {dev.skills.length > 3 && (
+                        <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full text-xs">
+                          +{dev.skills.length - 3}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="w-full mt-auto pt-3 border-t border-slate-100 flex items-center justify-between gap-2 uppercase tracking-widest text-[10px] font-medium text-slate-400 print:hidden" onClick={(e) => e.stopPropagation()}>
+                      <span className="text-xs text-slate-400 flex items-center gap-1 truncate max-w-[60%]">
+                        <MapPin className="h-3 w-3 shrink-0" />
+                        <span className="capitalize truncate">{formatLocation(dev.locationCity)}</span>
+                      </span>
+                      <div className="flex items-center gap-1.5 shrink-0">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 rounded-full hover:text-destructive"
+                          className="h-8 w-8 rounded-full hover:text-danger-600 hover:bg-danger-50 transition-colors"
                           onClick={() => {
                             if (!isLoggedIn) {
                               toast.error("Please sign in to report profiles");
@@ -706,13 +697,13 @@ function DevelopersPageContent() {
                         >
                           <Flag className="h-4 w-4" />
                         </Button>
-                        <Button size="sm" className="h-8 px-3 font-bold group/btn" asChild>
+                        <Button size="sm" className="bg-azure-500 hover:bg-azure-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors h-8 border-none" asChild>
                           <Link href={`/developers/${dev.id}`}>
-                            View <ArrowRight className="ml-1.5 h-3 w-3 group-hover/btn:translate-x-0.5 transition-transform" />
+                            View <ArrowRight className="h-3 w-3" />
                           </Link>
                         </Button>
                       </div>
-                    </CardFooter>
+                    </div>
                   </Card>
                 ))
               ) : (
@@ -721,7 +712,7 @@ function DevelopersPageContent() {
                     <FilterX className="h-8 w-8 text-muted-foreground" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold">No developers found</h3>
+                    <h3 className="text-xl font-medium">No developers found</h3>
                     <p className="text-muted-foreground">Try adjusting your filters or search term.</p>
                   </div>
                   {(searchTerm || selectedAvails.length > 0 || selectedWorkTypes.length > 0 || selectedExperiences.length > 0 || location !== 'All' || isVerifiedOnly) && (
@@ -744,7 +735,7 @@ function DevelopersPageContent() {
 
         {/* Flag Modal */}
         <Dialog open={isFlagOpen} onOpenChange={setIsFlagOpen}>
-          <DialogContent className="sm:max-w-[500px] rounded-[2rem] p-8">
+          <DialogContent className="sm:max-w-[500px] rounded-xl-[2rem] p-8">
             <DialogHeader>
               <DialogTitle className="text-2xl font-black flex items-center gap-3">
                 <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center text-destructive">
@@ -775,7 +766,7 @@ function DevelopersPageContent() {
             </div>
 
             <DialogFooter className="sm:justify-end gap-3">
-              <Button variant="ghost" className="rounded-xl font-bold" onClick={() => {
+              <Button variant="ghost" className="rounded-xl font-medium" onClick={() => {
                 setIsFlagOpen(false);
                 setSelectedDevId(null);
               }}>

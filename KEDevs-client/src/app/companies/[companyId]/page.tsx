@@ -187,14 +187,14 @@ export default function CompanyProfilePage() {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 pt-4 pb-12 animate-pulse space-y-12">
-        <div className="h-[300px] w-full rounded-[3rem] bg-slate-100" />
+        <div className="h-[300px] w-full rounded-xl-[3rem] bg-slate-100" />
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           <div className="md:col-span-8 space-y-6">
-            <div className="h-[200px] w-full rounded-[2.5rem] bg-slate-100" />
-            <div className="h-[400px] w-full rounded-[2.5rem] bg-slate-100" />
+            <div className="h-[200px] w-full rounded-xl-[2.5rem] bg-slate-100" />
+            <div className="h-[400px] w-full rounded-xl-[2.5rem] bg-slate-100" />
           </div>
           <div className="md:col-span-4 space-y-6">
-            <div className="h-[300px] w-full rounded-[2.5rem] bg-slate-100" />
+            <div className="h-[300px] w-full rounded-xl-[2.5rem] bg-slate-100" />
           </div>
         </div>
       </div>
@@ -231,17 +231,17 @@ export default function CompanyProfilePage() {
           {/* Left Column (65%) - Main Profile Data */}
           <div className="lg:col-span-2 space-y-10">
             {/* Company Header Simulation */}
-            <div className="flex flex-col md:flex-row items-start gap-8 mb-10 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/30">
+            <div className="flex flex-col md:flex-row items-start gap-8 mb-10 bg-white p-8 rounded-xl-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/30">
               <div className="relative group">
-                <Avatar className="w-24 h-24 md:w-32 md:h-32 rounded-[2rem] border-4 border-background shadow-xl overflow-hidden bg-white">
+                <Avatar className="w-24 h-24 md:w-32 md:h-32 rounded-xl-[2rem] border-4 border-background shadow-xl overflow-hidden bg-white">
                   <AvatarImage src={company.logoUrl} className="object-contain p-4" />
-                  <AvatarFallback className="bg-emerald-600 text-white text-4xl font-black">
+                  <AvatarFallback className="bg-cyan-600 text-white text-4xl font-black">
                     {company.companyName.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 {company.isVerified && (
                   <div className="absolute -bottom-1 -right-1 bg-white rounded-xl p-1 shadow-lg">
-                    <BadgeCheck className="h-6 w-6 text-emerald-500" />
+                    <BadgeCheck className="h-6 w-6 text-cyan-600" />
                   </div>
                 )}
               </div>
@@ -252,7 +252,7 @@ export default function CompanyProfilePage() {
                     {company.companyName}
                   </h1>
                   {company.isVerified && (
-                    <Badge className="bg-emerald-500 hover:bg-emerald-600 rounded-lg font-bold tracking-wider text-[10px] uppercase h-6 px-2">
+                    <Badge className="bg-cyan-600 hover:bg-cyan-600 rounded-xl font-medium tracking-wider text-[10px] uppercase h-6 px-2">
                       <BadgeCheck className="w-3 h-3 mr-1" /> VERIFIED EMPLOYER
                     </Badge>
                   )}
@@ -260,14 +260,14 @@ export default function CompanyProfilePage() {
 
                 <p className="text-xl font-medium text-muted-foreground">{company.industry || 'Industry Unknown'}</p>
 
-                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-medium text-muted-foreground uppercase tracking-wider">
                   <span className="flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4 text-emerald-600" />
+                    <MapPin className="w-4 h-4 text-cyan-600" />
                     {company.locationHQ || 'Nairobi, Kenya'}
                   </span>
                   <span className="hidden md:block text-muted-foreground/30">•</span>
                   <span className="flex items-center gap-1.5">
-                    <Users className="w-4 h-4 text-emerald-600" />
+                    <Users className="w-4 h-4 text-cyan-600" />
                     {company.companySize ? formatCompanySize(company.companySize) : 'Size unknown'}
                   </span>
                   {company.companyWebsite && (
@@ -277,9 +277,9 @@ export default function CompanyProfilePage() {
                         href={company.companyWebsite.startsWith('http') ? company.companyWebsite : `https://${company.companyWebsite}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700 hover:underline normal-case transition-colors"
+                        className="flex items-center gap-1.5 text-cyan-600 hover:text-cyan-800 hover:underline normal-case transition-colors"
                       >
-                        <Globe className="w-4 h-4 text-emerald-600" />
+                        <Globe className="w-4 h-4 text-cyan-600" />
                         {company.companyWebsite.replace(/^(https?:\/\/)?(www\.)?/, '')}
                       </a>
                     </>
@@ -289,36 +289,36 @@ export default function CompanyProfilePage() {
             </div>
 
             {/* About Section */}
-            <Card className="rounded-[2.5rem] border-none shadow-xl shadow-slate-200/40 overflow-hidden bg-white">
+            <Card className="rounded-xl-[2.5rem] border-none shadow-xl shadow-slate-200/40 overflow-hidden bg-white">
               <CardHeader className="px-10 pt-10 pb-4">
                 <CardTitle className="text-2xl font-black flex items-center gap-3">
-                  <div className="h-7 w-1.5 bg-emerald-500 rounded-full" />
+                  <div className="h-7 w-1.5 bg-cyan-600 rounded-full" />
                   About the Company
                 </CardTitle>
               </CardHeader>
               <CardContent className="px-10 pb-10">
-                <p className="text-lg leading-relaxed text-slate-600 font-medium whitespace-pre-wrap">
+                <p className="text-lg leading-relaxed text-slate-700 font-medium whitespace-pre-wrap">
                   {company.companyBio || 'This company profile has no extended biography.'}
                 </p>
               </CardContent>
             </Card>
 
             {/* Careers Section */}
-            <Card className="rounded-[2.5rem] border-none shadow-xl shadow-slate-200/40 overflow-hidden bg-white">
+            <Card className="rounded-xl-[2.5rem] border-none shadow-xl shadow-slate-200/40 overflow-hidden bg-white">
               <CardHeader className="px-10 pt-10 pb-4">
                 <CardTitle className="text-2xl font-black flex items-center gap-3">
-                  <div className="h-7 w-1.5 bg-emerald-500 rounded-full" />
+                  <div className="h-7 w-1.5 bg-cyan-600 rounded-full" />
                   Open Positions
                 </CardTitle>
               </CardHeader>
               <CardContent className="px-10 pb-10">
                 {isLoadingJobs ? (
                   <div className="flex flex-col items-center justify-center py-12">
-                    <Loader2 className="h-8 w-8 text-emerald-500 animate-spin" />
-                    <p className="text-sm font-bold text-muted-foreground mt-2">Loading opportunities...</p>
+                    <Loader2 className="h-8 w-8 text-cyan-600 animate-spin" />
+                    <p className="text-sm font-medium text-muted-foreground mt-2">Loading opportunities...</p>
                   </div>
                 ) : jobs.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center text-center p-12 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-100">
+                  <div className="flex flex-col items-center justify-center text-center p-12 bg-slate-50 rounded-xl-[2rem] border-2 border-dashed border-slate-100">
                     <Briefcase className="h-10 w-10 text-slate-300 mb-4" />
                     <h4 className="text-xl font-black text-slate-900 mb-1">No Open Positions</h4>
                     <p className="text-slate-500 font-medium mb-6">
@@ -333,32 +333,32 @@ export default function CompanyProfilePage() {
                     {jobs.map((job) => (
                       <div
                         key={job.id}
-                        className="group border border-slate-100 hover:border-emerald-500/20 hover:shadow-xl hover:shadow-slate-100 transition-all rounded-[2rem] p-6 bg-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+                        className="group border border-slate-100 hover:border-emerald-500/20 hover:shadow-xl hover:shadow-slate-100 transition-all rounded-xl-[2rem] p-6 bg-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
                       >
                         <div className="space-y-2.5 flex-1 w-full min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
                             {job.isPinned && (
-                              <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200 text-[9px] font-black uppercase tracking-widest gap-1 py-0.5 px-2">
+                              <Badge className="bg-azure-50 text-azure-700 hover:bg-azure-50 border-azure-200 text-[9px] font-black uppercase tracking-widest gap-1 py-0.5 px-2">
                                 Featured
                               </Badge>
                             )}
                             <Link href={`/jobs/${job.id}`} className="min-w-0 flex-1">
-                              <h4 className="text-xl font-black text-slate-900 group-hover:text-emerald-500 transition-colors truncate">
+                              <h4 className="text-xl font-black text-slate-900 group-hover:text-cyan-600 transition-colors truncate">
                                 {job.title}
                               </h4>
                             </Link>
                           </div>
 
-                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500 font-bold">
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500 font-medium">
                             <span className="flex items-center gap-1 shrink-0">
-                              <MapPin className="h-4 w-4 text-emerald-500" /> {job.locationCity}, {job.locationCountry}
+                              <MapPin className="h-4 w-4 text-cyan-600" /> {job.locationCity}, {job.locationCountry}
                             </span>
                             <span className="flex items-center gap-1 shrink-0">
-                              <Briefcase className="h-4 w-4 text-emerald-500" /> {formatExperienceLevel(job.experienceLevel)}
+                              <Briefcase className="h-4 w-4 text-cyan-600" /> {formatExperienceLevel(job.experienceLevel)}
                             </span>
                             {job.applicationDeadline && (
                               <span className="flex items-center gap-1 shrink-0">
-                                <Clock className="h-4 w-4 text-emerald-500" /> {format(new Date(job.applicationDeadline), 'dd MMM yyyy')}
+                                <Clock className="h-4 w-4 text-cyan-600" /> {format(new Date(job.applicationDeadline), 'dd MMM yyyy')}
                               </span>
                             )}
                           </div>
@@ -367,7 +367,7 @@ export default function CompanyProfilePage() {
                             <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest bg-violet-100 text-violet-700 hover:bg-violet-100 border-violet-200">
                               {formatJobType(job.jobType)}
                             </Badge>
-                            <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-emerald-200">
+                            <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest bg-cyan-50 text-cyan-800 hover:bg-cyan-50 border-emerald-200">
                               {formatWorkType(job.workType)}
                             </Badge>
                           </div>
@@ -376,14 +376,14 @@ export default function CompanyProfilePage() {
                         <div className="flex flex-col sm:flex-row items-center gap-2.5 shrink-0 w-full md:w-auto">
                           <Button
                             variant="outline"
-                            className="font-bold rounded-xl h-11 px-5 border-slate-200 hover:bg-slate-50 text-slate-700 w-full sm:w-auto"
+                            className="font-medium rounded-xl h-11 px-5 border-slate-200 hover:bg-slate-50 text-slate-700 w-full sm:w-auto"
                             asChild
                           >
                             <Link href={`/jobs/${job.id}`}>View Details</Link>
                           </Button>
                           <Button
                             onClick={() => handleApplyClick(job)}
-                            className="font-black rounded-xl h-11 px-6 shadow-md bg-emerald-600 hover:bg-emerald-700 text-white w-full sm:w-auto"
+                            className="font-black rounded-xl h-11 px-6 shadow-md bg-cyan-600 hover:bg-emerald-700 text-white w-full sm:w-auto"
                           >
                             Apply Now
                           </Button>
@@ -398,12 +398,12 @@ export default function CompanyProfilePage() {
 
           {/* Right Column (35%) - Sidebar */}
           <div className="lg:col-span-1 space-y-6">
-            <Card className="rounded-[2.5rem] border-none shadow-xl shadow-slate-200/40 overflow-hidden bg-white">
+            <Card className="rounded-xl-[2.5rem] border-none shadow-xl shadow-slate-200/40 overflow-hidden bg-white">
               <CardContent className="p-8 space-y-8">
                 {/* Core Contact Action */}
                 <div className="space-y-4">
                   <Button
-                    className="w-full h-14 rounded-2xl font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow-xl shadow-emerald-600/20"
+                    className="w-full h-14 rounded-2xl font-black bg-cyan-600 hover:bg-emerald-700 text-white shadow-xl shadow-emerald-600/20"
                     onClick={() => {
                       if (!isLoggedIn) {
                         toast.error('Please sign in to send an inquiry.');
@@ -420,7 +420,7 @@ export default function CompanyProfilePage() {
                     <Mail className="mr-2 h-5 w-5" /> {isOwnProfile ? 'Your Company Profile' : 'Send Inquiry'}
                   </Button>
                   {company.companyWebsite && (
-                    <Button variant="outline" className="w-full h-14 rounded-2xl font-bold border-slate-200 hover:bg-slate-50 gap-2" asChild>
+                    <Button variant="outline" className="w-full h-14 rounded-2xl font-medium border-slate-200 hover:bg-slate-50 gap-2" asChild>
                       <a href={company.companyWebsite} target="_blank" rel="noreferrer">
                         <Globe className="h-4 w-4" /> Visit Website
                       </a>
@@ -432,15 +432,15 @@ export default function CompanyProfilePage() {
 
                 {/* Details List */}
                 <div className="space-y-6">
-                  <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Entity Identity</h3>
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Entity Identity</h3>
 
                   <div className="flex items-center gap-4">
                     <div className="h-10 w-10 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center shrink-0 border border-slate-100">
                       <Info className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Contact Person</p>
-                      <p className="font-bold text-slate-900">{company.contactPersonName || 'General Team'}</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Contact Person</p>
+                      <p className="font-medium text-slate-900">{company.contactPersonName || 'General Team'}</p>
                     </div>
                   </div>
 
@@ -449,8 +449,8 @@ export default function CompanyProfilePage() {
                       <Mail className="h-5 w-5" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Support Email</p>
-                      <p className="font-bold text-slate-900 truncate">{company.contactEmail}</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Support Email</p>
+                      <p className="font-medium text-slate-900 truncate">{company.contactEmail}</p>
                     </div>
                   </div>
                 </div>
@@ -461,7 +461,7 @@ export default function CompanyProfilePage() {
                     <Separator className="bg-slate-100" />
                     <div className="space-y-3">
                       {company.linkedinUrl && (
-                        <Button variant="ghost" className="w-full justify-start rounded-xl h-12 px-4 font-bold gap-3 text-slate-600 hover:text-slate-900 hover:bg-slate-50" asChild>
+                        <Button variant="ghost" className="w-full justify-start rounded-xl h-12 px-4 font-medium gap-3 text-slate-700 hover:text-slate-900 hover:bg-slate-50" asChild>
                           <a href={company.linkedinUrl} target="_blank" rel="noreferrer">
                             <ExternalLink className="h-4 w-4 text-[#0077b5]" /> LinkedIn Profile
                           </a>
@@ -473,12 +473,12 @@ export default function CompanyProfilePage() {
 
                 {/* Verified Status Box */}
                 {company.isVerified && (
-                  <div className="p-6 rounded-[1.5rem] bg-slate-900 text-white space-y-3 shadow-xl">
+                  <div className="p-6 rounded-xl-[1.5rem] bg-slate-900 text-white space-y-3 shadow-xl">
                     <div className="flex items-center gap-2">
                       <Sparkles className="h-5 w-5 text-emerald-400" />
                       <span className="font-black text-sm uppercase tracking-wider">Authenticated</span>
                     </div>
-                    <p className="text-xs font-medium text-slate-400 leading-relaxed">
+                    <p className="text-xs font-medium text-slate-500 leading-relaxed">
                       This entity has undergone formal operational audit by KEDevs compliance teams.
                     </p>
                   </div>
@@ -489,7 +489,7 @@ export default function CompanyProfilePage() {
                   <div className="pt-4 border-t border-slate-100 flex justify-center">
                     <button
                       onClick={() => setIsFlagOpen(true)}
-                      className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-destructive transition-colors"
+                      className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-destructive transition-colors"
                     >
                       <Flag className="h-3.5 w-3.5" /> Report Employer Profile
                     </button>
@@ -505,7 +505,7 @@ export default function CompanyProfilePage() {
 
       {/* Flag Modal */}
       <Dialog open={isFlagOpen} onOpenChange={setIsFlagOpen}>
-        <DialogContent className="sm:max-w-[500px] rounded-[2rem] p-8">
+        <DialogContent className="sm:max-w-[500px] rounded-xl-[2rem] p-8">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center text-destructive">
@@ -536,7 +536,7 @@ export default function CompanyProfilePage() {
           </div>
 
           <DialogFooter className="sm:justify-end gap-3">
-            <Button variant="ghost" className="rounded-xl font-bold" onClick={() => setIsFlagOpen(false)}>
+            <Button variant="ghost" className="rounded-xl font-medium" onClick={() => setIsFlagOpen(false)}>
               Cancel
             </Button>
             <Button
@@ -554,10 +554,10 @@ export default function CompanyProfilePage() {
 
       {/* Contact Modal */}
       <Dialog open={isContactOpen} onOpenChange={setIsContactOpen}>
-        <DialogContent className="sm:max-w-[500px] rounded-[2rem] p-8">
+        <DialogContent className="sm:max-w-[500px] rounded-xl-[2rem] p-8">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <div className="h-10 w-10 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center shrink-0">
                 <Mail className="h-5 w-5" />
               </div>
               Send Inquiry
@@ -585,11 +585,11 @@ export default function CompanyProfilePage() {
           </div>
 
           <DialogFooter className="sm:justify-end gap-3">
-            <Button variant="ghost" className="rounded-xl font-bold" onClick={() => setIsContactOpen(false)}>
+            <Button variant="ghost" className="rounded-xl font-medium" onClick={() => setIsContactOpen(false)}>
               Cancel
             </Button>
             <Button
-              className="rounded-xl font-black px-8 bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-600/20"
+              className="rounded-xl font-black px-8 bg-cyan-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-600/20"
               onClick={handleSendInquiry}
               disabled={isRequesting || !message.trim()}
             >

@@ -56,31 +56,31 @@ export function ProfileTabs({
       <TabsList className="w-full border-b rounded-none bg-transparent h-auto p-0 mb-8 justify-start gap-8">
         <TabsTrigger 
           value="overview" 
-          className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-4 text-sm font-bold uppercase tracking-widest text-muted-foreground data-[state=active]:text-primary"
+          className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-4 text-sm font-medium uppercase tracking-widest text-muted-foreground data-[state=active]:text-primary"
         >
           Overview
         </TabsTrigger>
         <TabsTrigger 
           value="projects" 
-          className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-4 text-sm font-bold uppercase tracking-widest text-muted-foreground data-[state=active]:text-primary"
+          className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-4 text-sm font-medium uppercase tracking-widest text-muted-foreground data-[state=active]:text-primary"
         >
           Projects
         </TabsTrigger>
         <TabsTrigger 
           value="experience" 
-          className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-4 text-sm font-bold uppercase tracking-widest text-muted-foreground data-[state=active]:text-primary"
+          className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-4 text-sm font-medium uppercase tracking-widest text-muted-foreground data-[state=active]:text-primary"
         >
           Experience
         </TabsTrigger>
         <TabsTrigger 
           value="oss" 
-          className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-4 text-sm font-bold uppercase tracking-widest text-muted-foreground data-[state=active]:text-primary"
+          className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-4 text-sm font-medium uppercase tracking-widest text-muted-foreground data-[state=active]:text-primary"
         >
           OSS & Achievements
         </TabsTrigger>
         <TabsTrigger 
           value="endorsements" 
-          className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-4 text-sm font-bold uppercase tracking-widest text-muted-foreground data-[state=active]:text-primary flex items-center gap-2"
+          className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-4 text-sm font-medium uppercase tracking-widest text-muted-foreground data-[state=active]:text-primary flex items-center gap-2"
         >
           Endorsements
           {profile.endorsements?.length > 0 && (
@@ -118,14 +118,14 @@ export function ProfileTabs({
               Technical Skills
             </h3>
             {isOwner && (
-              <Button variant="ghost" size="sm" className="text-primary font-bold hover:bg-primary/5" onClick={onAddSkill}>
+              <Button variant="ghost" size="sm" className="text-primary font-medium hover:bg-primary/5" onClick={onAddSkill}>
                 <Plus className="w-4 h-4 mr-1" /> Add Skill
               </Button>
             )}
           </div>
           <div className="flex flex-wrap gap-2">
             {profile.skills?.map((skill: string) => (
-              <Badge key={skill} variant="secondary" className="rounded-full px-4 py-1.5 text-sm font-bold bg-muted/50 border border-border/50 text-foreground group relative">
+              <Badge key={skill} variant="secondary" className="rounded-full px-4 py-1.5 text-sm font-medium bg-muted/50 border border-border/50 text-foreground group relative">
                 {skill}
                 {isOwner && (
                   <button 
@@ -151,7 +151,7 @@ export function ProfileTabs({
             Projects
           </h3>
           {isOwner && (
-            <Button size="sm" className="rounded-xl font-bold" onClick={onAddProject}>
+            <Button size="sm" className="rounded-xl font-medium" onClick={onAddProject}>
               <Plus className="w-4 h-4 mr-2" /> New Project
             </Button>
           )}
@@ -162,7 +162,7 @@ export function ProfileTabs({
             {/* Featured Projects Section */}
             {profile.projects.filter((p: any) => p.isFeatured).length > 0 && (
               <div className="space-y-4">
-                <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Featured</h4>
+                <h4 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Featured</h4>
                 <div className="grid grid-cols-1 gap-6">
                   {profile.projects.filter((p: any) => p.isFeatured).map((project: any) => (
                     <Card key={project.id} className="group border-border/50 hover:shadow-xl hover:shadow-primary/5 transition-all overflow-hidden bg-background rounded-3xl">
@@ -190,17 +190,17 @@ export function ProfileTabs({
                           </p>
                           <div className="flex flex-wrap gap-2 mb-6">
                             {project.techStack?.map((t: string) => (
-                              <Badge key={t} variant="secondary" className="text-[10px] font-bold uppercase rounded-lg bg-muted/50 border-none px-2">{t}</Badge>
+                              <Badge key={t} variant="secondary" className="text-[10px] font-medium uppercase rounded-xl bg-muted/50 border-none px-2">{t}</Badge>
                             ))}
                           </div>
                           <div className="flex gap-4">
                             {project.projectUrl && (
-                              <Button variant="outline" size="sm" className="rounded-xl font-bold gap-2 border-border/50" asChild>
+                              <Button variant="outline" size="sm" className="rounded-xl font-medium gap-2 border-border/50" asChild>
                                 <a href={project.projectUrl} target="_blank"><ExternalLink className="h-3.5 w-3.5" /> Demo</a>
                               </Button>
                             )}
                             {project.repoUrl && (
-                              <Button variant="outline" size="sm" className="rounded-xl font-bold gap-2 border-border/50" asChild>
+                              <Button variant="outline" size="sm" className="rounded-xl font-medium gap-2 border-border/50" asChild>
                                 <a href={project.repoUrl} target="_blank"><GitBranch className="h-3.5 w-3.5" /> Source</a>
                               </Button>
                             )}
@@ -216,7 +216,7 @@ export function ProfileTabs({
             {/* Other Projects Section */}
             {profile.projects.filter((p: any) => !p.isFeatured).length > 0 && (
               <div className="space-y-4">
-                <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Other Projects</h4>
+                <h4 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Other Projects</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {profile.projects.filter((p: any) => !p.isFeatured).map((project: any) => (
                     <Card key={project.id} className="group border-border/50 hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5 transition-all bg-background rounded-3xl p-6 flex flex-col h-full">
@@ -236,17 +236,17 @@ export function ProfileTabs({
                       </p>
                       <div className="flex flex-wrap gap-2 mb-6">
                         {project.techStack?.map((t: string) => (
-                          <Badge key={t} variant="secondary" className="text-[10px] font-bold uppercase rounded-lg bg-muted/50 border-none px-2">{t}</Badge>
+                          <Badge key={t} variant="secondary" className="text-[10px] font-medium uppercase rounded-xl bg-muted/50 border-none px-2">{t}</Badge>
                         ))}
                       </div>
                       <div className="flex gap-4 mt-auto">
                         {project.projectUrl && (
-                          <Button variant="outline" size="sm" className="rounded-xl font-bold gap-2 border-border/50 w-full" asChild>
+                          <Button variant="outline" size="sm" className="rounded-xl font-medium gap-2 border-border/50 w-full" asChild>
                             <a href={project.projectUrl} target="_blank"><ExternalLink className="h-3.5 w-3.5" /> Demo</a>
                           </Button>
                         )}
                         {project.repoUrl && (
-                          <Button variant="outline" size="sm" className="rounded-xl font-bold gap-2 border-border/50 w-full" asChild>
+                          <Button variant="outline" size="sm" className="rounded-xl font-medium gap-2 border-border/50 w-full" asChild>
                             <a href={project.repoUrl} target="_blank"><GitBranch className="h-3.5 w-3.5" /> Source</a>
                           </Button>
                         )}
@@ -258,7 +258,7 @@ export function ProfileTabs({
             )}
           </div>
         ) : (
-          <div className="py-16 text-center border-4 border-dashed border-border/20 rounded-[3rem] bg-background/50">
+          <div className="py-16 text-center border-4 border-dashed border-border/20 rounded-xl-[3rem] bg-background/50">
             <Layers className="h-16 w-16 text-muted/30 mx-auto mb-4" />
             <p className="text-muted-foreground font-black text-lg">No projects showcased yet.</p>
             {isOwner && <p className="text-sm text-muted-foreground mt-2">Showcase your work to impress employers.</p>}
@@ -274,7 +274,7 @@ export function ProfileTabs({
               Education
             </h3>
             {isOwner && (
-              <Button variant="ghost" size="sm" className="text-primary font-bold hover:bg-primary/5" onClick={onAddEducation}>
+              <Button variant="ghost" size="sm" className="text-primary font-medium hover:bg-primary/5" onClick={onAddEducation}>
                 <Plus className="w-4 h-4 mr-1" /> Add Education
               </Button>
             )}
@@ -294,8 +294,8 @@ export function ProfileTabs({
                       </Button>
                     )}
                   </div>
-                  <p className="text-sm font-bold text-primary">{edu.qualification} • {edu.fieldOfStudy}</p>
-                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mt-1">{edu.startYear} — {edu.yearCompleted || 'Present'}</p>
+                  <p className="text-sm font-medium text-primary">{edu.qualification} • {edu.fieldOfStudy}</p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mt-1">{edu.startYear} — {edu.yearCompleted || 'Present'}</p>
                 </div>
               </div>
             ))}
@@ -312,20 +312,20 @@ export function ProfileTabs({
               Certifications
             </h3>
             {isOwner && (
-              <Button variant="ghost" size="sm" className="text-primary font-bold hover:bg-primary/5" onClick={() => onAddEducation}>
+              <Button variant="ghost" size="sm" className="text-primary font-medium hover:bg-primary/5" onClick={() => onAddEducation}>
                 <Plus className="w-4 h-4 mr-1" /> Add Certificate
               </Button>
             )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {profile.certifications?.map((c: any) => (
-              <div key={c.id} className="p-5 rounded-2xl bg-background border border-border/50 flex items-center gap-4 group hover:border-amber-200 transition-colors">
-                <div className="h-10 w-10 rounded-xl bg-amber-500/5 text-amber-600 flex items-center justify-center shrink-0 group-hover:bg-amber-500/10 transition-colors">
+              <div key={c.id} className="p-5 rounded-2xl bg-background border border-border/50 flex items-center gap-4 group hover:border-azure-200 transition-colors">
+                <div className="h-10 w-10 rounded-xl bg-azure-500/5 text-azure-500 flex items-center justify-center shrink-0 group-hover:bg-azure-500/10 transition-colors">
                   <Award className="h-5 w-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-foreground truncate text-sm">{c.name}</h4>
-                  <p className="text-muted-foreground font-bold text-[10px] uppercase">{c.issuedBy}</p>
+                  <h4 className="font-medium text-foreground truncate text-sm">{c.name}</h4>
+                  <p className="text-muted-foreground font-medium text-[10px] uppercase">{c.issuedBy}</p>
                 </div>
                 {isOwner && (
                   <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive/50 hover:text-destructive" onClick={() => onRemoveItem?.('certification', c.id)}>
@@ -349,7 +349,7 @@ export function ProfileTabs({
               OSS Contributions
             </h3>
             {isOwner && (
-              <Button variant="ghost" size="sm" className="text-primary font-bold hover:bg-primary/5" onClick={onAddOSS}>
+              <Button variant="ghost" size="sm" className="text-primary font-medium hover:bg-primary/5" onClick={onAddOSS}>
                 <Plus className="w-4 h-4 mr-1" /> Add Contribution
               </Button>
             )}
@@ -360,7 +360,7 @@ export function ProfileTabs({
                 <div className="flex justify-between items-start">
                   <div className="min-w-0">
                     <h4 className="font-black text-foreground truncate">{oss.projectName}</h4>
-                    <p className="text-primary font-bold text-xs uppercase tracking-wider">{oss.role}</p>
+                    <p className="text-primary font-medium text-xs uppercase tracking-wider">{oss.role}</p>
                   </div>
                   {isOwner && (
                     <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive/50 hover:text-destructive" onClick={() => onRemoveItem?.('oss', oss.id)}>
@@ -389,27 +389,27 @@ export function ProfileTabs({
               Achievements
             </h3>
             {isOwner && (
-              <Button variant="ghost" size="sm" className="text-primary font-bold hover:bg-primary/5" onClick={onAddAchievement}>
+              <Button variant="ghost" size="sm" className="text-primary font-medium hover:bg-primary/5" onClick={onAddAchievement}>
                 <Plus className="w-4 h-4 mr-1" /> Add Achievement
               </Button>
             )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {profile.achievements?.map((ach: any) => (
-              <div key={ach.id} className="p-5 rounded-2xl bg-background border border-border/50 flex gap-4 hover:border-amber-200 transition-colors group">
-                <div className="h-10 w-10 rounded-xl bg-amber-500/5 text-amber-600 flex items-center justify-center shrink-0 group-hover:bg-amber-500/10 transition-colors">
+              <div key={ach.id} className="p-5 rounded-2xl bg-background border border-border/50 flex gap-4 hover:border-azure-200 transition-colors group">
+                <div className="h-10 w-10 rounded-xl bg-azure-500/5 text-azure-500 flex items-center justify-center shrink-0 group-hover:bg-azure-500/10 transition-colors">
                   <Trophy className="h-5 w-5" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start">
-                    <h4 className="font-bold text-foreground truncate text-sm">{ach.title}</h4>
+                    <h4 className="font-medium text-foreground truncate text-sm">{ach.title}</h4>
                     {isOwner && (
                       <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive/50 hover:text-destructive" onClick={() => onRemoveItem?.('achievement', ach.id)}>
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     )}
                   </div>
-                  <p className="text-muted-foreground font-bold text-[10px] uppercase tracking-wider">{ach.year}</p>
+                  <p className="text-muted-foreground font-medium text-[10px] uppercase tracking-wider">{ach.year}</p>
                   <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{ach.description}</p>
                 </div>
               </div>
@@ -428,7 +428,7 @@ export function ProfileTabs({
             Professional Endorsements
           </h3>
           {!isOwner && onEndorse && (
-            <Button size="sm" className="rounded-xl font-bold bg-primary text-white shadow-md shadow-primary/10 hover:shadow-lg active:scale-95 transition-all flex items-center gap-1.5" onClick={onEndorse}>
+            <Button size="sm" className="rounded-xl font-medium bg-primary text-white shadow-md shadow-primary/10 hover:shadow-lg active:scale-95 transition-all flex items-center gap-1.5" onClick={onEndorse}>
               <Plus className="w-4 h-4" /> Endorse Developer
             </Button>
           )}
@@ -437,7 +437,20 @@ export function ProfileTabs({
         {profile.endorsements?.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {profile.endorsements.map((endorsement: any) => (
-              <Card key={endorsement.id} className="relative bg-background rounded-[2rem] border-border/50 p-8 shadow-sm hover:shadow-md transition-all overflow-hidden group">
+              <Card key={endorsement.id} className="relative bg-background rounded-xl-[2rem] border-border/50 p-8 shadow-sm hover:shadow-md transition-all overflow-hidden group">
+                {isOwner && (
+                  <div className="absolute top-4 right-4 z-10">
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-8 w-8 text-destructive/50 hover:text-destructive hover:bg-destructive/10 rounded-xl" 
+                      onClick={() => onRemoveItem?.('endorsement', endorsement.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+                
                 <div className="absolute -top-6 -right-6 h-24 w-24 bg-primary/5 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-500 flex items-center justify-center">
                   <MessageSquareQuote className="h-10 w-10 text-primary/20" />
                 </div>
@@ -455,7 +468,7 @@ export function ProfileTabs({
                     </Avatar>
                     <div>
                       <p className="text-sm font-black text-foreground">{endorsement.authorName}</p>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase">
+                      <p className="text-[10px] font-medium text-muted-foreground uppercase">
                         {endorsement.createdAt ? formatDistanceToNow(new Date(endorsement.createdAt), { addSuffix: true }) : 'Recently'}
                       </p>
                     </div>
@@ -465,7 +478,7 @@ export function ProfileTabs({
             ))}
           </div>
         ) : (
-          <div className="py-16 text-center border-4 border-dashed border-border/20 rounded-[3rem] bg-background/50">
+          <div className="py-16 text-center border-4 border-dashed border-border/20 rounded-xl-[3rem] bg-background/50">
             <ThumbsUp className="h-16 w-16 text-muted/30 mx-auto mb-4" />
             <p className="text-muted-foreground font-black text-lg">No endorsements yet.</p>
             <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">

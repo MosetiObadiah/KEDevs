@@ -74,32 +74,32 @@ export default function LoginPage() {
       
       <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-8 duration-700">
         <div className="text-center mb-8">
-           <Badge variant="outline" className="rounded-lg font-black tracking-widest text-[10px] uppercase bg-emerald-50 text-emerald-600 border-emerald-100 mb-4 px-3 py-1">
+           <Badge variant="outline" className="rounded-xl font-black tracking-widest text-[10px] uppercase bg-cyan-50 text-cyan-600 border-emerald-100 mb-4 px-3 py-1">
               WELCOME BACK
            </Badge>
            <h1 className="text-4xl font-black tracking-tight text-slate-900">Sign In</h1>
-           <p className="text-slate-500 font-semibold mt-2">Access your professional dashboard</p>
+           <p className="text-slate-500 font-medium mt-2">Access your professional dashboard</p>
         </div>
 
-        <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-primary/5 overflow-hidden">
+        <Card className="rounded-xl-[2.5rem] border-none shadow-2xl shadow-primary/5 overflow-hidden">
           <CardContent className="p-8 md:p-10">
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
-                <div className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center gap-3 text-red-900 animate-in shake duration-300">
-                   <AlertCircle className="h-5 w-5 text-red-500 shrink-0" />
+                <div className="bg-danger-50 border border-danger-100 p-4 rounded-2xl flex items-center gap-3 text-danger-900 animate-in shake duration-300">
+                   <AlertCircle className="h-5 w-5 text-danger-500 shrink-0" />
                    <p className="text-xs font-black">{error}</p>
                 </div>
               )}
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 px-1">Email Address</Label>
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500 px-1">Email Address</Label>
                   <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                     <Input 
                       type="email" 
                       placeholder="jane@example.com" 
-                      className="pl-11 h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
+                      className="pl-11 h-14 rounded-2xl border-slate-200 font-medium focus-visible:ring-primary/20"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -109,16 +109,16 @@ export default function LoginPage() {
 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center px-1">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Password</Label>
+                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">Password</Label>
                     <Link href="/reset-password" className="text-[10px] font-black text-primary hover:underline uppercase tracking-widest">
                       Forgot?
                     </Link>
                   </div>
                   <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                     <Input 
                       type={showPassword ? "text" : "password"} 
-                      className="pl-11 pr-12 h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
+                      className="pl-11 pr-12 h-14 rounded-2xl border-slate-200 font-medium focus-visible:ring-primary/20"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
@@ -126,7 +126,7 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition-colors focus:outline-none"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -149,7 +149,7 @@ export default function LoginPage() {
                   <Separator className="w-full bg-slate-100" />
                </div>
                <div className="relative flex justify-center text-[10px] font-black uppercase tracking-widest">
-                  <span className="bg-white px-4 text-slate-400">Or continue with</span>
+                  <span className="bg-white px-4 text-slate-500">Or continue with</span>
                </div>
             </div>
 
@@ -181,7 +181,7 @@ export default function LoginPage() {
             </Button>
           </CardContent>
           <CardFooter className="bg-slate-50/50 p-8 flex justify-center border-t border-slate-100">
-             <p className="text-sm font-bold text-slate-500">
+             <p className="text-sm font-medium text-slate-500">
                 Don't have an account? <Link href="/register" className="text-primary font-black hover:underline ml-1">Join Community</Link>
              </p>
           </CardFooter>

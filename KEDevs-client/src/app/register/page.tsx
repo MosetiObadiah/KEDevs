@@ -99,37 +99,37 @@ export default function RegisterPage() {
       
       <div className="w-full max-w-lg animate-in fade-in slide-in-from-bottom-8 duration-700">
         <div className="text-center mb-8">
-           <Badge className="rounded-lg font-black tracking-widest text-[10px] uppercase bg-emerald-50 text-emerald-600 border-emerald-100 mb-4 px-3 py-1">
+           <Badge className="rounded-xl font-black tracking-widest text-[10px] uppercase bg-cyan-50 text-cyan-600 border-emerald-100 mb-4 px-3 py-1">
               JOIN THE COMMUNITY
            </Badge>
            <h1 className="text-4xl font-black tracking-tight text-slate-900">Create Account</h1>
-           <p className="text-slate-500 font-semibold mt-2">Start your journey with KEDevs-Connect</p>
+           <p className="text-slate-500 font-medium mt-2">Start your journey with KEDevs-Connect</p>
         </div>
 
-        <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-primary/5 overflow-hidden">
+        <Card className="rounded-xl-[2.5rem] border-none shadow-2xl shadow-primary/5 overflow-hidden">
           <CardContent className="p-8 md:p-10">
             <form onSubmit={handleSubmit} className="space-y-8">
               {error && (
-                <div className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center gap-3 text-red-900">
-                   <AlertCircle className="h-5 w-5 text-red-500 shrink-0" />
+                <div className="bg-danger-50 border border-danger-100 p-4 rounded-2xl flex items-center gap-3 text-danger-900">
+                   <AlertCircle className="h-5 w-5 text-danger-500 shrink-0" />
                    <p className="text-xs font-black">{error}</p>
                 </div>
               )}
 
               <div className="space-y-4">
-                 <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 text-center block">I am joining as a:</Label>
+                 <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500 text-center block">I am joining as a:</Label>
                  <div className="grid grid-cols-2 gap-4">
                     <button
                        type="button"
                        onClick={() => setRole('DEVELOPER')}
                        className={cn(
-                          "flex flex-col items-center gap-3 p-6 rounded-[2rem] border-2 transition-all group",
+                          "flex flex-col items-center gap-3 p-6 rounded-xl-[2rem] border-2 transition-all group",
                           role === 'DEVELOPER' ? "border-primary bg-primary/5 shadow-lg shadow-primary/5" : "border-slate-100 hover:border-slate-200"
                        )}
                     >
                        <div className={cn(
                           "h-12 w-12 rounded-2xl flex items-center justify-center transition-all",
-                          role === 'DEVELOPER' ? "bg-primary text-white" : "bg-slate-100 text-slate-400 group-hover:bg-slate-200"
+                          role === 'DEVELOPER' ? "bg-primary text-white" : "bg-slate-100 text-slate-500 group-hover:bg-slate-200"
                        )}>
                           <Code2 className="h-6 w-6" />
                        </div>
@@ -141,30 +141,30 @@ export default function RegisterPage() {
                        type="button"
                        onClick={() => setRole('EMPLOYER')}
                        className={cn(
-                          "flex flex-col items-center gap-3 p-6 rounded-[2rem] border-2 transition-all group relative",
-                          role === 'EMPLOYER' ? "border-emerald-500 bg-emerald-50 shadow-lg shadow-emerald-500/5" : "border-slate-100 hover:border-slate-200"
+                          "flex flex-col items-center gap-3 p-6 rounded-xl-[2rem] border-2 transition-all group relative",
+                          role === 'EMPLOYER' ? "border-emerald-500 bg-cyan-50 shadow-lg shadow-emerald-500/5" : "border-slate-100 hover:border-slate-200"
                        )}
                     >
                        <div className={cn(
                           "h-12 w-12 rounded-2xl flex items-center justify-center transition-all",
-                          role === 'EMPLOYER' ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-400 group-hover:bg-slate-200"
+                          role === 'EMPLOYER' ? "bg-cyan-600 text-white" : "bg-slate-100 text-slate-500 group-hover:bg-slate-200"
                        )}>
                           <Building2 className="h-6 w-6" />
                        </div>
-                       <span className={cn("font-black text-sm uppercase tracking-wide", role === 'EMPLOYER' ? "text-emerald-600" : "text-slate-500")}>Employer</span>
-                       {role === 'EMPLOYER' && <CheckCircle2 className="h-4 w-4 text-emerald-500 absolute top-4 right-4" />}
+                       <span className={cn("font-black text-sm uppercase tracking-wide", role === 'EMPLOYER' ? "text-cyan-600" : "text-slate-500")}>Employer</span>
+                       {role === 'EMPLOYER' && <CheckCircle2 className="h-4 w-4 text-cyan-600 absolute top-4 right-4" />}
                     </button>
                  </div>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 px-1">Full Name</Label>
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500 px-1">Full Name</Label>
                   <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                     <Input 
                       placeholder="Jane Doe" 
-                      className="pl-11 h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
+                      className="pl-11 h-14 rounded-2xl border-slate-200 font-medium focus-visible:ring-primary/20"
                       value={fullName}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -179,13 +179,13 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 px-1">Email Address</Label>
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500 px-1">Email Address</Label>
                   <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                     <Input 
                       type="email" 
                       placeholder="jane@example.com" 
-                      className="pl-11 h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
+                      className="pl-11 h-14 rounded-2xl border-slate-200 font-medium focus-visible:ring-primary/20"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -194,13 +194,13 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 px-1">Password</Label>
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500 px-1">Password</Label>
                   <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                     <Input 
                       type={showPassword ? "text" : "password"} 
                       placeholder="••••••••"
-                      className="pl-11 pr-12 h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20"
+                      className="pl-11 pr-12 h-14 rounded-2xl border-slate-200 font-medium focus-visible:ring-primary/20"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
@@ -208,7 +208,7 @@ export default function RegisterPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition-colors focus:outline-none"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -216,15 +216,15 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 px-1">Confirm Password</Label>
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500 px-1">Confirm Password</Label>
                   <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                     <Input 
                       type={showConfirmPassword ? "text" : "password"} 
                       placeholder="••••••••"
                       className={cn(
-                        "pl-11 pr-12 h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20",
-                        confirmPassword && password !== confirmPassword && "border-red-500 focus-visible:ring-red-500/20"
+                        "pl-11 pr-12 h-14 rounded-2xl border-slate-200 font-medium focus-visible:ring-primary/20",
+                        confirmPassword && password !== confirmPassword && "border-danger-500 focus-visible:ring-danger-500/20"
                       )}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
@@ -233,13 +233,13 @@ export default function RegisterPage() {
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition-colors focus:outline-none"
                     >
                       {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                   {confirmPassword && password !== confirmPassword && (
-                    <p className="text-[10px] font-black text-red-500 uppercase tracking-widest px-1 animate-in fade-in slide-in-from-top-1">
+                    <p className="text-[10px] font-black text-danger-500 uppercase tracking-widest px-1 animate-in fade-in slide-in-from-top-1">
                       Passwords must match
                     </p>
                   )}
@@ -250,7 +250,7 @@ export default function RegisterPage() {
                 type="submit" 
                 className={cn(
                    "w-full h-14 rounded-2xl font-black text-lg shadow-xl transition-all active:scale-[0.98]",
-                   role === 'DEVELOPER' ? "bg-primary shadow-primary/20" : "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20"
+                   role === 'DEVELOPER' ? "bg-primary shadow-primary/20" : "bg-cyan-600 hover:bg-cyan-600 shadow-emerald-500/20"
                 )}
                 disabled={loading}
               >
@@ -264,7 +264,7 @@ export default function RegisterPage() {
                   <Separator className="w-full bg-slate-100" />
                </div>
                <div className="relative flex justify-center text-[10px] font-black uppercase tracking-widest">
-                  <span className="bg-white px-4 text-slate-400">Or continue with</span>
+                  <span className="bg-white px-4 text-slate-500">Or continue with</span>
                </div>
             </div>
 
@@ -284,7 +284,7 @@ export default function RegisterPage() {
             </Button>
           </CardContent>
           <CardFooter className="bg-slate-50/50 p-8 flex justify-center border-t border-slate-100">
-             <p className="text-sm font-bold text-slate-500">
+             <p className="text-sm font-medium text-slate-500">
                 Already have an account? <Link href="/login" className="text-primary font-black hover:underline ml-1">Log In</Link>
              </p>
           </CardFooter>

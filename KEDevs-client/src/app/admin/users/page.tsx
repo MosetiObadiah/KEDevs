@@ -39,7 +39,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { jsPDF } from 'jspdf';
 import { adminService } from '@/services/adminService';
-import { cn } from '@/lib/utils';
+import { cn, formatDateString, formatTimeString } from '@/lib/utils';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -151,7 +151,7 @@ export default function UserManagement() {
 
           doc.setFontSize(8);
           doc.setTextColor(100, 116, 139); // slate-500
-          const exportDate = new Date().toLocaleDateString('en-GB') + ' ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+          const exportDate = formatDateString(new Date()) + ' ' + formatTimeString(new Date());
           doc.text(`EXPORTED: ${exportDate}`, 195, 15, { align: 'right' });
           doc.text(`PAGE: ${pageNum}`, 195, 20, { align: 'right' });
 
@@ -287,7 +287,7 @@ export default function UserManagement() {
           // Joined Date
           doc.setFont('helvetica', 'normal');
           doc.setTextColor(71, 85, 105);
-          doc.text(new Date(u.createdAt).toLocaleDateString('en-GB'), 165, y);
+          doc.text(formatDateString(u.createdAt), 165, y);
 
           // Divider line
           doc.setDrawColor(241, 245, 249); // slate-50
@@ -310,7 +310,7 @@ export default function UserManagement() {
       `"${u.email}"`,
       `"${u.role}"`,
       `"${u.accountStatus}"`,
-      `"${new Date(u.createdAt).toLocaleDateString()}"`
+      `"${formatDateString(u.createdAt)}"`
     ].join(','));
     
     const csvContent = [headers.join(','), ...rows].join('\n');
@@ -399,7 +399,7 @@ export default function UserManagement() {
                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                <Input 
                   placeholder="Search by name or email..." 
-                  className="pl-10 h-11 text-sm border-border bg-muted/20 shadow-none font-bold"
+                  className="pl-10 h-11 text-sm border-border bg-muted/20 shadow-none font-medium"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                />
@@ -407,7 +407,7 @@ export default function UserManagement() {
 
             {/* Role Select */}
             <Select value={filterRole} onValueChange={setFilterRole}>
-               <SelectTrigger className="w-[130px] h-11 border-border bg-muted/20 font-bold">
+               <SelectTrigger className="w-[130px] h-11 border-border bg-muted/20 font-medium">
                   <SelectValue placeholder="Role" />
                </SelectTrigger>
                <SelectContent>
@@ -420,7 +420,7 @@ export default function UserManagement() {
 
             {/* Status Select */}
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-               <SelectTrigger className="w-[140px] h-11 border-border bg-muted/20 font-bold">
+               <SelectTrigger className="w-[140px] h-11 border-border bg-muted/20 font-medium">
                   <SelectValue placeholder="Status" />
                </SelectTrigger>
                <SelectContent>
@@ -433,7 +433,7 @@ export default function UserManagement() {
 
             {/* Auth Provider Select */}
             <Select value={filterAuthProvider} onValueChange={setFilterAuthProvider}>
-               <SelectTrigger className="w-[140px] h-11 border-border bg-muted/20 font-bold">
+               <SelectTrigger className="w-[140px] h-11 border-border bg-muted/20 font-medium">
                   <SelectValue placeholder="Auth Provider" />
                </SelectTrigger>
                <SelectContent>
@@ -444,21 +444,21 @@ export default function UserManagement() {
             </Select>
 
             {/* Date Picker Range (Last Login Between) */}
-            <div className="flex items-center gap-2 bg-muted/20 border border-border rounded-lg px-3 h-11">
+            <div className="flex items-center gap-2 bg-muted/20 border border-border rounded-xl px-3 h-11">
                <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
-               <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 shrink-0">Last Login Between</span>
+               <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 shrink-0">Last Login Between</span>
                <input 
                   type="date" 
                   value={dateAfter} 
                   onChange={(e) => setDateAfter(e.target.value)}
-                  className="bg-transparent border-none text-xs font-bold outline-none w-[110px]"
+                  className="bg-transparent border-none text-xs font-medium outline-none w-[110px]"
                />
                <span className="text-muted-foreground font-black text-xs shrink-0">—</span>
                <input 
                   type="date" 
                   value={dateBefore} 
                   onChange={(e) => setDateBefore(e.target.value)}
-                  className="bg-transparent border-none text-xs font-bold outline-none w-[110px]"
+                  className="bg-transparent border-none text-xs font-medium outline-none w-[110px]"
                />
             </div>
 
@@ -474,7 +474,7 @@ export default function UserManagement() {
                      setDateAfter('');
                      setDateBefore('');
                   }}
-                  className="h-11 px-3 text-muted-foreground hover:text-foreground font-bold text-xs uppercase tracking-widest gap-2 hover:bg-destructive/5"
+                  className="h-11 px-3 text-muted-foreground hover:text-foreground font-medium text-xs uppercase tracking-widest gap-2 hover:bg-destructive/5"
                >
                   <XCircle className="h-4 w-4 text-destructive" /> Clear Filters
                </Button>
@@ -484,15 +484,15 @@ export default function UserManagement() {
          {/* Export Dropdown Menu (Style matches /jobs) */}
          <DropdownMenu>
             <DropdownMenuTrigger asChild>
-               <Button variant="outline" className="font-bold gap-2 h-11 border-border shadow-sm shrink-0 w-full lg:w-auto">
+               <Button variant="outline" className="font-medium gap-2 h-11 border-border shadow-sm shrink-0 w-full lg:w-auto">
                   <Download className="h-4 w-4 text-primary" /> Export
                </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="rounded-xl border border-border bg-card shadow-lg">
-               <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-bold text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground gap-2 p-3">
-                  <FileSpreadsheet className="h-4 w-4 text-emerald-500" /> Download as CSV
+               <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground gap-2 p-3">
+                  <FileSpreadsheet className="h-4 w-4 text-cyan-600" /> Download as CSV
                </DropdownMenuItem>
-               <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-bold text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground gap-2 p-3">
+               <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground gap-2 p-3">
                   <FileText className="h-4 w-4 text-primary" /> Print / Save as PDF
                </DropdownMenuItem>
             </DropdownMenuContent>
@@ -506,16 +506,16 @@ export default function UserManagement() {
               {isLoading ? (
                 <div className="py-20 flex flex-col items-center gap-4">
                    <Loader2 className="h-10 w-10 text-primary animate-spin" />
-                   <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Accessing repository...</p>
+                   <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Accessing repository...</p>
                 </div>
               ) : (
                 <Table>
                    <TableHeader className="bg-slate-50/50">
                       <TableRow className="border-slate-100">
-                         <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-8">Identity</TableHead>
-                         <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-8">Class</TableHead>
-                         <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-8">Account Status</TableHead>
-                         <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-8">Last Login At</TableHead>
+                         <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-6 px-8">Identity</TableHead>
+                         <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-6 px-8">Class</TableHead>
+                         <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-6 px-8">Account Status</TableHead>
+                         <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-6 px-8">Last Login At</TableHead>
                       </TableRow>
                    </TableHeader>
                    <TableBody>
@@ -535,14 +535,14 @@ export default function UserManagement() {
                                   </Avatar>
                                   <div className="space-y-0.5">
                                      <p className="font-black text-slate-900 text-sm capitalize">{user.fullName || 'Unnamed Account'}</p>
-                                     <p className="text-xs font-medium text-slate-400 flex items-center gap-1.5"><Mail className="h-3 w-3" /> {user.email}</p>
+                                     <p className="text-xs font-medium text-slate-500 flex items-center gap-1.5"><Mail className="h-3 w-3" /> {user.email}</p>
                                   </div>
                                </div>
                             </TableCell>
                             <TableCell className="py-4 px-8">
                                <Badge variant="outline" className={cn(
-                                  "rounded-lg font-black text-[9px] uppercase tracking-widest border-none px-2 py-0.5",
-                                  user.role === 'DEVELOPER' ? "bg-blue-50 text-blue-600" : "bg-emerald-50 text-emerald-600"
+                                  "rounded-xl font-black text-[9px] uppercase tracking-widest border-none px-2 py-0.5",
+                                  user.role === 'DEVELOPER' ? "bg-azure-50 text-azure-600" : "bg-cyan-50 text-cyan-600"
                                 )}>
                                   {user.role}
                                </Badge>
@@ -551,16 +551,15 @@ export default function UserManagement() {
                                <Badge 
                                  variant="secondary" 
                                  className={cn(
-                                    "rounded-md font-black text-[10px] tracking-widest px-2 py-0.5 uppercase",
-                                    user.accountStatus === 'ACTIVE' ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400" :
-                                    user.accountStatus === 'SUSPENDED' ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"
+                                    "rounded-2xl font-black text-[10px] tracking-widest px-2 py-0.5 uppercase",
+                                    user.accountStatus === 'ACTIVE' ? "bg-cyan-50 text-cyan-800 dark:bg-cyan-600/20 dark:text-emerald-400" : "bg-slate-100 text-slate-500"
                                  )}
                                >
-                                  {user.accountStatus || 'UNKNOWN'}
+                                  {user.accountStatus === 'ACTIVE' ? 'ACTIVE' : 'DEACTIVATED'}
                                </Badge>
                             </TableCell>
                             <TableCell className="py-4 px-8">
-                               <span className="text-xs font-bold text-slate-500">
+                               <span className="text-xs font-medium text-slate-500">
                                   {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}
                                 </span>
                             </TableCell>
@@ -585,19 +584,19 @@ export default function UserManagement() {
                       <div className="bg-card border-b border-border p-8 relative">
                          <SheetHeader className="relative z-10">
                             <SheetTitle className="text-xl font-black tracking-tight">Identity Details</SheetTitle>
-                            <SheetDescription className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest">Administrative Control</SheetDescription>
+                            <SheetDescription className="text-muted-foreground font-medium uppercase text-[10px] tracking-widest">Administrative Control</SheetDescription>
                          </SheetHeader>
                          
                          <div className="mt-6 flex items-center gap-4 relative z-10">
                             <Avatar className="h-16 w-16 border-2 border-border shadow-sm">
                                <AvatarImage src={selectedUser.avatarUrl} />
-                               <AvatarFallback className="bg-primary text-primary-foreground text-xl font-bold uppercase">
+                               <AvatarFallback className="bg-primary text-primary-foreground text-xl font-medium uppercase">
                                   {selectedUser.fullName?.charAt(0)}
                                </AvatarFallback>
                             </Avatar>
                             <div className="space-y-1">
-                               <h3 className="text-lg font-bold capitalize">{selectedUser.fullName || 'Anonymous'}</h3>
-                               <Badge className="font-bold text-[10px] uppercase tracking-widest">{selectedUser.role}</Badge>
+                               <h3 className="text-lg font-medium capitalize">{selectedUser.fullName || 'Anonymous'}</h3>
+                               <Badge className="font-medium text-[10px] uppercase tracking-widest">{selectedUser.role}</Badge>
                             </div>
                          </div>
                       </div>
@@ -606,32 +605,31 @@ export default function UserManagement() {
                          <div className="space-y-6">
                             {/* Account Ecosystem Section */}
                             <div className="space-y-4">
-                               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Account Ecosystem</p>
+                               <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Account Ecosystem</p>
                                <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 space-y-4">
                                   <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                                     <span className="text-xs font-bold text-slate-500">Account Status</span>
+                                     <span className="text-xs font-medium text-slate-500">Account Status</span>
                                      <Badge 
                                        variant="secondary" 
                                        className={cn(
-                                          "rounded-md font-black text-[9px] tracking-widest px-2 py-0.5 uppercase",
-                                          selectedUser.accountStatus === 'ACTIVE' ? "bg-emerald-100 text-emerald-700" :
-                                          selectedUser.accountStatus === 'SUSPENDED' ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"
+                                          "rounded-2xl font-black text-[9px] tracking-widest px-2 py-0.5 uppercase",
+                                          selectedUser.accountStatus === 'ACTIVE' ? "bg-cyan-50 text-cyan-800" : "bg-slate-100 text-slate-500"
                                        )}
                                      >
-                                        {selectedUser.accountStatus || 'UNKNOWN'}
+                                        {selectedUser.accountStatus === 'ACTIVE' ? 'ACTIVE' : 'DEACTIVATED'}
                                      </Badge>
                                   </div>
                                   <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                                     <span className="text-xs font-bold text-slate-500">Sign-in Method</span>
+                                     <span className="text-xs font-medium text-slate-500">Sign-in Method</span>
                                      <span className="text-xs font-extrabold text-slate-700 capitalize">{selectedUser.authProvider?.toLowerCase() || 'local'}</span>
                                   </div>
                                   <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                                     <span className="text-xs font-bold text-slate-500">Email Status</span>
+                                     <span className="text-xs font-medium text-slate-500">Email Status</span>
                                      <Badge 
                                        variant="secondary" 
                                        className={cn(
-                                          "rounded-md font-black text-[9px] tracking-widest px-2 py-0.5 uppercase",
-                                          isEmailVerified ? "bg-emerald-50 text-emerald-600 border border-emerald-200" : "bg-red-50 text-red-600 border border-red-200"
+                                          "rounded-2xl font-black text-[9px] tracking-widest px-2 py-0.5 uppercase",
+                                          isEmailVerified ? "bg-cyan-50 text-cyan-600 border border-emerald-200" : "bg-danger-50 text-danger-500 border border-danger-200"
                                        )}
                                      >
                                         {isEmailVerified ? 'Email Verified' : 'Email Not Verified'}
@@ -639,12 +637,12 @@ export default function UserManagement() {
                                   </div>
                                   {selectedUser.role === 'EMPLOYER' && (
                                      <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                                        <span className="text-xs font-bold text-slate-500">Employer Approval</span>
+                                        <span className="text-xs font-medium text-slate-500">Employer Approval</span>
                                         <Badge 
                                           variant="secondary" 
                                           className={cn(
-                                             "rounded-md font-black text-[9px] tracking-widest px-2 py-0.5 uppercase",
-                                             approvedByAdmin ? "bg-emerald-50 text-emerald-600 border border-emerald-200" : "bg-amber-50 text-amber-600 border border-amber-200"
+                                             "rounded-2xl font-black text-[9px] tracking-widest px-2 py-0.5 uppercase",
+                                             approvedByAdmin ? "bg-cyan-50 text-cyan-600 border border-emerald-200" : "bg-azure-50 text-azure-500 border border-azure-200"
                                           )}
                                         >
                                            {approvedByAdmin ? 'Admin Approved' : 'Pending Approval'}
@@ -652,14 +650,14 @@ export default function UserManagement() {
                                      </div>
                                   )}
                                   <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                                     <span className="text-xs font-bold text-slate-500">Last Login</span>
-                                     <span className="text-xs font-extrabold text-slate-600">
+                                     <span className="text-xs font-medium text-slate-500">Last Login</span>
+                                     <span className="text-xs font-extrabold text-slate-700">
                                         {selectedUser.lastLoginAt ? new Date(selectedUser.lastLoginAt).toLocaleString() : 'Never'}
                                      </span>
                                   </div>
                                   <div className="flex items-center justify-between">
-                                     <span className="text-xs font-bold text-slate-500">Date Joined</span>
-                                     <span className="text-xs font-extrabold text-slate-600">
+                                     <span className="text-xs font-medium text-slate-500">Date Joined</span>
+                                     <span className="text-xs font-extrabold text-slate-700">
                                         {formatDate(selectedUser.createdAt)}
                                      </span>
                                   </div>
@@ -670,86 +668,94 @@ export default function UserManagement() {
           
                             {/* Moderation Commands Section */}
                             <div className="space-y-3">
-                               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Moderation Commands</p>
+                               <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Moderation Commands</p>
                                <div className="grid grid-cols-1 gap-2">
-                                  {/* Warn User */}
-                                  <Button 
-                                     variant="outline" 
-                                     className="h-12 font-bold justify-start gap-3 border-border hover:bg-accent"
-                                     onClick={() => setIsWarningModalOpen(true)}
-                                  >
-                                     <AlertTriangle className="h-4 w-4 text-amber-500" /> Send Warning
-                                  </Button>
- 
-                                  {/* Suspend / Restore Access */}
-                                  {selectedUser.accountStatus === 'ACTIVE' ? (
-                                     <Button 
-                                        variant="outline" 
-                                        className="h-12 font-bold justify-start gap-3 border-border hover:bg-destructive/10 text-destructive hover:text-destructive"
-                                        onClick={() => handleUserAction(selectedUser.id, 'SUSPEND')}
-                                     >
-                                        <UserX className="h-4 w-4" /> Suspend Access
-                                     </Button>
+                                  {selectedUser.accountStatus !== 'ACTIVE' ? (
+                                     <>
+                                        {/* Restore Access */}
+                                        <Button 
+                                           variant="outline" 
+                                           className="h-12 font-medium justify-start gap-3 border-emerald-100 bg-cyan-50 text-cyan-800 hover:bg-cyan-50"
+                                           onClick={() => handleUserAction(selectedUser.id, 'REACTIVATE')}
+                                        >
+                                           <UserCheck className="h-4 w-4 text-cyan-600" /> Restore Access
+                                        </Button>
+                                        <p className="text-[10px] font-medium text-slate-400 text-center italic mt-2">
+                                           Restore account access to enable moderation controls.
+                                        </p>
+                                     </>
                                   ) : (
-                                     <Button 
-                                        variant="outline" 
-                                        className="h-12 font-bold justify-start gap-3 border-emerald-100 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                                        onClick={() => handleUserAction(selectedUser.id, 'REACTIVATE')}
-                                     >
-                                        <UserCheck className="h-4 w-4 text-emerald-600" /> Restore Access
-                                     </Button>
-                                  )}
+                                     <>
+                                        {/* Warn User */}
+                                        <Button 
+                                           variant="outline" 
+                                           className="h-12 font-medium justify-start gap-3 border-border hover:bg-accent"
+                                           onClick={() => setIsWarningModalOpen(true)}
+                                        >
+                                           <AlertTriangle className="h-4 w-4 text-azure-500" /> Send Warning
+                                        </Button>
  
-                                  {/* Developer Verified Badge Gate */}
-                                  {selectedUser.role === 'DEVELOPER' && (
-                                     isVerified ? (
+                                        {/* Suspend Access */}
                                         <Button 
                                            variant="outline" 
-                                           className="h-12 font-bold justify-start gap-3 border-red-100 bg-red-50 text-red-700 hover:bg-red-100"
-                                           onClick={() => handleBadgeAction('REVOKE')}
+                                           className="h-12 font-medium justify-start gap-3 border-border hover:bg-destructive/10 text-destructive hover:text-destructive"
+                                           onClick={() => handleUserAction(selectedUser.id, 'SUSPEND')}
                                         >
-                                           <XCircle className="h-4 w-4 text-red-500" /> Revoke Verified Badge
+                                           <UserX className="h-4 w-4" /> Suspend Access
                                         </Button>
-                                     ) : (
-                                        <Button 
-                                           variant="outline" 
-                                           className="h-12 font-bold justify-start gap-3 border-emerald-100 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                                           onClick={() => handleBadgeAction('GRANT')}
-                                        >
-                                           <ShieldCheck className="h-4 w-4 text-emerald-600" /> Grant Verified Badge
-                                        </Button>
-                                     )
-                                  )}
  
-                                  {/* Employer Approval Gate */}
-                                  {selectedUser.role === 'EMPLOYER' && (
-                                     approvedByAdmin ? (
-                                        <Button 
-                                           variant="outline" 
-                                           className="h-12 font-bold justify-start gap-3 border-red-100 bg-red-50 text-red-700 hover:bg-red-100"
-                                           onClick={() => handleEmployerApprovalAction(false)}
-                                        >
-                                           <X className="h-4 w-4 text-red-500" /> Revoke Approval
-                                        </Button>
-                                     ) : (
-                                        <Button 
-                                           variant="outline" 
-                                           className="h-12 font-bold justify-start gap-3 border-emerald-100 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                                           onClick={() => handleEmployerApprovalAction(true)}
-                                        >
-                                           <Check className="h-4 w-4 text-emerald-600" /> Approve Employer
-                                        </Button>
-                                     )
-                                  )}
+                                        {/* Developer Verified Badge Gate */}
+                                        {selectedUser.role === 'DEVELOPER' && (
+                                           isVerified ? (
+                                              <Button 
+                                                 variant="outline" 
+                                                 className="h-12 font-medium justify-start gap-3 border-danger-100 bg-danger-50 text-danger-700 hover:bg-danger-50"
+                                                 onClick={() => handleBadgeAction('REVOKE')}
+                                              >
+                                                 <XCircle className="h-4 w-4 text-danger-500" /> Revoke Verified Badge
+                                              </Button>
+                                           ) : (
+                                              <Button 
+                                                 variant="outline" 
+                                                 className="h-12 font-medium justify-start gap-3 border-emerald-100 bg-cyan-50 text-cyan-800 hover:bg-cyan-50"
+                                                 onClick={() => handleBadgeAction('GRANT')}
+                                              >
+                                                 <ShieldCheck className="h-4 w-4 text-cyan-600" /> Grant Verified Badge
+                                              </Button>
+                                           )
+                                        )}
  
-                                  {/* Deactivate Account (Destructive permanent action) */}
-                                  <Button 
-                                     variant="destructive" 
-                                     className="h-12 font-bold justify-start gap-3 bg-red-800 hover:bg-red-900 text-white shadow-sm"
-                                     onClick={() => setIsDeactivateConfirmOpen(true)}
-                                  >
-                                     <Ban className="h-4 w-4" /> Deactivate Account
-                                  </Button>
+                                        {/* Employer Approval Gate */}
+                                        {selectedUser.role === 'EMPLOYER' && (
+                                           approvedByAdmin ? (
+                                              <Button 
+                                                 variant="outline" 
+                                                 className="h-12 font-medium justify-start gap-3 border-danger-100 bg-danger-50 text-danger-700 hover:bg-danger-50"
+                                                 onClick={() => handleEmployerApprovalAction(false)}
+                                              >
+                                                 <X className="h-4 w-4 text-danger-500" /> Revoke Approval
+                                              </Button>
+                                           ) : (
+                                              <Button 
+                                                 variant="outline" 
+                                                 className="h-12 font-medium justify-start gap-3 border-emerald-100 bg-cyan-50 text-cyan-800 hover:bg-cyan-50"
+                                                 onClick={() => handleEmployerApprovalAction(true)}
+                                              >
+                                                 <Check className="h-4 w-4 text-cyan-600" /> Approve Employer
+                                              </Button>
+                                           )
+                                        )}
+ 
+                                        {/* Deactivate Account */}
+                                        <Button 
+                                           variant="destructive" 
+                                           className="h-12 font-medium justify-start gap-3 bg-danger-800 hover:bg-danger-900 text-white shadow-sm"
+                                           onClick={() => setIsDeactivateConfirmOpen(true)}
+                                        >
+                                           <Ban className="h-4 w-4" /> Deactivate Account
+                                        </Button>
+                                     </>
+                                  )}
                                </div>
                             </div>
                          </div>
@@ -758,7 +764,7 @@ export default function UserManagement() {
                       {/* Bottom Action Footer */}
                       <div className="p-6 bg-card border-t border-border mt-auto">
                          <Button 
-                           className="w-full h-12 font-bold shadow-sm" 
+                           className="w-full h-12 font-medium shadow-sm" 
                            disabled={!selectedUser.profileId}
                            asChild={!!selectedUser.profileId}
                          >
@@ -776,19 +782,19 @@ export default function UserManagement() {
                       {isDeactivateConfirmOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
                           <div className="bg-card border border-border max-w-md w-full p-8 rounded-3xl shadow-2xl space-y-6 animate-in zoom-in-95 duration-200">
-                            <div className="flex items-center gap-3 text-red-600">
-                              <ShieldAlert className="h-6 w-6 animate-pulse text-red-600" />
+                            <div className="flex items-center gap-3 text-danger-500">
+                              <ShieldAlert className="h-6 w-6 animate-pulse text-danger-500" />
                               <h3 className="text-lg font-black tracking-tight text-slate-900">Deactivate Account Permanently?</h3>
                             </div>
-                            <p className="text-sm text-slate-500 font-semibold leading-relaxed">
+                            <p className="text-sm text-slate-500 font-medium leading-relaxed">
                               Are you sure you want to deactivate <span className="font-black text-slate-800 capitalize">{selectedUser.fullName}</span>? 
                               This action is permanent and will restrict their platform access indefinitely.
                             </p>
                             <div className="flex items-center gap-3 justify-end">
-                              <Button variant="outline" size="sm" onClick={() => setIsDeactivateConfirmOpen(false)} className="rounded-xl font-bold text-xs">
+                              <Button variant="outline" size="sm" onClick={() => setIsDeactivateConfirmOpen(false)} className="rounded-xl font-medium text-xs">
                                 Cancel Action
                               </Button>
-                              <Button variant="destructive" size="sm" onClick={handleDeactivateAccount} className="bg-red-800 hover:bg-red-900 rounded-xl font-bold text-xs text-white">
+                              <Button variant="destructive" size="sm" onClick={handleDeactivateAccount} className="bg-danger-800 hover:bg-danger-900 rounded-xl font-medium text-xs text-white">
                                 Deactivate Account Indefinitely
                               </Button>
                             </div>
@@ -800,13 +806,13 @@ export default function UserManagement() {
                       {isWarningModalOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
                           <div className="bg-card border border-border max-w-md w-full p-8 rounded-3xl shadow-2xl space-y-6 animate-in zoom-in-95 duration-200">
-                            <div className="flex items-center gap-3 text-amber-500">
-                              <AlertTriangle className="h-6 w-6 text-amber-500" />
+                            <div className="flex items-center gap-3 text-azure-500">
+                              <AlertTriangle className="h-6 w-6 text-azure-500" />
                               <h3 className="text-lg font-black tracking-tight text-slate-900">Send Administrative Warning</h3>
                             </div>
                             
                             <div className="space-y-2">
-                              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Warning Message</label>
+                              <label className="text-xs font-medium text-slate-500 uppercase tracking-widest">Warning Message</label>
                               <textarea
                                 placeholder="Explain clearly what violation occurred or specify platform guidelines they need to follow..."
                                 className="w-full min-h-[120px] rounded-2xl border border-border p-4 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none bg-slate-50/50"
@@ -816,7 +822,7 @@ export default function UserManagement() {
                             </div>
 
                             <div className="flex items-center gap-3 justify-end">
-                              <Button variant="outline" size="sm" onClick={() => { setIsWarningModalOpen(false); setWarningText(''); }} className="rounded-xl font-bold text-xs">
+                              <Button variant="outline" size="sm" onClick={() => { setIsWarningModalOpen(false); setWarningText(''); }} className="rounded-xl font-medium text-xs">
                                 Cancel
                               </Button>
                               <Button 
@@ -827,7 +833,7 @@ export default function UserManagement() {
                                   setIsWarningModalOpen(false);
                                   setWarningText('');
                                 }} 
-                                className="bg-amber-500 hover:bg-amber-600 rounded-xl font-bold text-xs text-white"
+                                className="bg-azure-500 hover:bg-azure-500 rounded-xl font-medium text-xs text-white"
                               >
                                 Send Warning Message
                               </Button>

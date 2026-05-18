@@ -453,6 +453,22 @@ public class DeveloperController {
                 developerProfileService.addEndorsement(userId, profileId, request)));
     }
 
+    @Operation(summary = "Delete an endorsement", description = "Requires DEVELOPER role.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Endorsement deleted successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "404", description = "Endorsement not found")
+    })
+    @DeleteMapping("/profile/endorsements/{id}")
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> deleteEndorsement(
+            Authentication authentication,
+            @Parameter(description = "ID of the endorsement to delete") @PathVariable UUID id) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        developerProfileService.deleteEndorsement(userId, id);
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Endorsement deleted"));
+    }
+
     @Operation(summary = "List all public developer profiles", security = {})
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Developers retrieved successfully")

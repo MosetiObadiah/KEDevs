@@ -52,6 +52,8 @@ export interface DeveloperSummary {
   numberOfProjects: number;
   endorsementCount: number;
   languages: string[];
+  createdAt?: string | null;
+  updatedAt?: string | null;
 }
 
 export interface DeveloperSpotlightCard {
@@ -94,6 +96,7 @@ export interface User {
     type?: "Day" | "Week";
   };
   accountStatus?: string;
+  skills?: string[];
 }
 
 export interface AuthResponse {

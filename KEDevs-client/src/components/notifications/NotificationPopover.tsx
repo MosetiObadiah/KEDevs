@@ -119,16 +119,16 @@ const NotificationPopover: React.FC<NotificationPopoverProps> = ({
         </div>
       </DropdownMenuTrigger>
       
-      <DropdownMenuContent className="w-96 rounded-[2.5rem] p-0 border-none shadow-3xl shadow-slate-200/50 overflow-hidden bg-white mt-4 mr-4 animate-in fade-in slide-in-from-top-2 duration-300">
+      <DropdownMenuContent className="w-96 rounded-xl-[2.5rem] p-0 border-none shadow-3xl shadow-slate-200/50 overflow-hidden bg-white mt-4 mr-4 animate-in fade-in slide-in-from-top-2 duration-300">
         <div className="p-6 pb-4 flex items-center justify-between bg-slate-50/50 border-b border-slate-50">
            <div className="flex items-center gap-2">
-              <Bell className="h-4 w-4 text-slate-400" />
+              <Bell className="h-4 w-4 text-slate-500" />
               <h3 className="font-black text-slate-900 tracking-tight text-sm">Notifications</h3>
            </div>
            <Button 
               variant="ghost" 
               size="sm" 
-              className="h-8 rounded-lg font-black text-[9px] uppercase tracking-widest text-primary hover:bg-primary/5 px-3"
+              className="h-8 rounded-xl font-black text-[9px] uppercase tracking-widest text-primary hover:bg-primary/5 px-3"
               onClick={handleMarkAllRead}
            >
               <CheckCheck className="h-3 w-3 mr-1" /> Mark All Read
@@ -139,16 +139,16 @@ const NotificationPopover: React.FC<NotificationPopoverProps> = ({
            {loading ? (
               <div className="h-full flex flex-col items-center justify-center py-20 gap-4">
                  <Loader2 className="h-8 w-8 text-primary animate-spin" />
-                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Polling feed...</p>
+                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Polling feed...</p>
               </div>
            ) : notifications.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center py-24 gap-6 px-12 text-center">
-                 <div className="h-16 w-16 bg-slate-50 rounded-[1.5rem] flex items-center justify-center">
+                 <div className="h-16 w-16 bg-slate-50 rounded-xl-[1.5rem] flex items-center justify-center">
                     <Inbox className="h-8 w-8 text-slate-200" />
                  </div>
                  <div className="space-y-1">
                     <p className="font-black text-slate-900 text-sm">Clear Horizon</p>
-                    <p className="text-xs font-medium text-slate-400 leading-relaxed">No new transmissions detected in your local notification sphere.</p>
+                    <p className="text-xs font-medium text-slate-500 leading-relaxed">No new transmissions detected in your local notification sphere.</p>
                  </div>
               </div>
            ) : (
@@ -166,7 +166,7 @@ const NotificationPopover: React.FC<NotificationPopoverProps> = ({
                           <Avatar className="h-10 w-10 rounded-xl border border-slate-100 shadow-sm">
                              <AvatarFallback className={cn(
                                 "font-black text-[10px] transition-colors",
-                                !n.isRead ? "bg-primary text-white" : "bg-slate-100 text-slate-400 group-hover:bg-slate-200"
+                                !n.isRead ? "bg-primary text-white" : "bg-slate-100 text-slate-500 group-hover:bg-slate-200"
                              )}>
                                 <Bell className="h-4 w-4" />
                              </AvatarFallback>
@@ -184,11 +184,11 @@ const NotificationPopover: React.FC<NotificationPopoverProps> = ({
                              )}>
                                 {n.title}
                              </h4>
-                             <span className="text-[9px] font-bold text-slate-300 whitespace-nowrap mt-0.5">
+                             <span className="text-[9px] font-medium text-slate-300 whitespace-nowrap mt-0.5">
                                 {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
                              </span>
                           </div>
-                          <p className="text-xs font-medium text-slate-400 leading-relaxed line-clamp-2">
+                          <p className="text-xs font-medium text-slate-500 leading-relaxed line-clamp-2">
                              {n.message}
                           </p>
                        </div>

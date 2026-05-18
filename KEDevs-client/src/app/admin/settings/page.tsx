@@ -127,29 +127,29 @@ export default function PlatformSettings() {
 
 
       {showSecurityNotice && (
-        <div className="p-6 rounded-[2.5rem] bg-blue-50 border-2 border-blue-100 flex gap-4 shadow-sm relative animate-in slide-in-from-top duration-500">
-           <Info className="h-6 w-6 text-blue-500 shrink-0" />
+        <div className="p-6 rounded-xl-[2.5rem] bg-azure-50 border-2 border-azure-100 flex gap-4 shadow-sm relative animate-in slide-in-from-top duration-500">
+           <Info className="h-6 w-6 text-azure-500 shrink-0" />
            <div className="space-y-1">
-              <p className="text-sm font-black text-blue-900 uppercase tracking-tight">Security Notice</p>
-              <p className="text-xs font-medium text-blue-700 leading-relaxed">
+              <p className="text-sm font-black text-azure-900 uppercase tracking-tight">Security Notice</p>
+              <p className="text-xs font-medium text-azure-700 leading-relaxed">
                  Modifications to platform variables impact real-time transactions, fee structures, and visibility logic. Changes are auditable.
               </p>
            </div>
            <button 
              onClick={() => setShowSecurityNotice(false)} 
-             className="absolute top-3 right-3 p-1 rounded-lg hover:bg-blue-100 text-blue-700/70 hover:text-blue-900 transition-colors"
+             className="absolute top-3 right-3 p-1 rounded-xl hover:bg-azure-100 text-azure-700/70 hover:text-azure-900 transition-colors"
            >
              <X className="h-4 w-4" />
            </button>
         </div>
       )}
 
-      <Card className="rounded-[3rem] border-none shadow-2xl shadow-slate-200/40 overflow-hidden bg-white">
+      <Card className="rounded-xl-[3rem] border-none shadow-2xl shadow-slate-200/40 overflow-hidden bg-white">
          <CardHeader className="p-10 pb-6 border-b border-slate-50">
             <div className="flex items-center justify-between">
                <div>
                   <CardTitle className="text-2xl font-black">Configuration</CardTitle>
-                  <CardDescription className="font-bold text-slate-400 uppercase text-[10px] tracking-widest">Master environment variables</CardDescription>
+                  <CardDescription className="font-medium text-slate-500 uppercase text-[10px] tracking-widest">Master environment variables</CardDescription>
                </div>
             </div>
          </CardHeader>
@@ -158,18 +158,18 @@ export default function PlatformSettings() {
             {isLoading ? (
                <div className="py-20 flex flex-col items-center gap-4">
                   <Loader2 className="h-10 w-10 text-primary animate-spin" />
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Synchronizing state...</p>
+                  <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Synchronizing state...</p>
                </div>
             ) : error ? (
-               <div className="p-10 text-center text-red-500 font-bold">{error}</div>
+               <div className="p-10 text-center text-danger-500 font-medium">{error}</div>
             ) : (
                <Table>
                   <TableHeader className="bg-slate-50/50">
                      <TableRow className="border-slate-100">
-                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-10">Parameter Key</TableHead>
-                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-10">Current Value</TableHead>
-                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-10">Dimension</TableHead>
-                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-10 text-right">Control</TableHead>
+                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-6 px-10">Parameter Key</TableHead>
+                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-6 px-10">Current Value</TableHead>
+                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-6 px-10">Dimension</TableHead>
+                        <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-6 px-10 text-right">Control</TableHead>
                      </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -178,8 +178,8 @@ export default function PlatformSettings() {
                            <TableCell className="py-6 px-10">
                               <div className="flex items-center gap-3">
                                  <div className={cn(
-                                    "h-8 w-8 rounded-lg flex items-center justify-center text-white",
-                                    s.key.includes('fee') ? "bg-emerald-500" : s.key.includes('api') ? "bg-blue-500" : "bg-slate-900"
+                                    "h-8 w-8 rounded-xl flex items-center justify-center text-white",
+                                    s.key.includes('fee') ? "bg-cyan-600" : s.key.includes('api') ? "bg-azure-500" : "bg-slate-900"
                                  )}>
                                     {s.key.includes('fee') ? <Wallet className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
                                  </div>
@@ -188,13 +188,13 @@ export default function PlatformSettings() {
                            </TableCell>
                            <TableCell className="py-6 px-10">
                               <Input 
-                                 className="h-10 rounded-xl bg-slate-50 border-none font-bold text-slate-900 w-32 focus-visible:ring-primary/20" 
+                                 className="h-10 rounded-xl bg-slate-50 border-none font-medium text-slate-900 w-32 focus-visible:ring-primary/20" 
                                  value={s.value} 
                                  onChange={(e) => handleChange(s.key, e.target.value)}
                               />
                            </TableCell>
                            <TableCell className="py-6 px-10">
-                              <Badge variant="outline" className="rounded-lg font-black text-[9px] uppercase tracking-widest border-slate-200">
+                              <Badge variant="outline" className="rounded-xl font-black text-[9px] uppercase tracking-widest border-slate-200">
                                  {s.unit || 'VALUE'}
                               </Badge>
                            </TableCell>

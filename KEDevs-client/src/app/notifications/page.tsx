@@ -59,14 +59,14 @@ interface Notification {
 }
 
 const categoryConfig: Record<string, { color: string, icon: any, label: string }> = {
-  'JOB': { color: 'text-blue-600 bg-blue-50', icon: Briefcase, label: 'Talent Acquisition' },
-  'PAYMENT': { color: 'text-emerald-600 bg-emerald-50', icon: Wallet, label: 'Financial Alerts' },
-  'ADMIN': { color: 'text-red-600 bg-red-50', icon: ShieldCheck, label: 'Platform & Verification' },
+  'JOB': { color: 'text-azure-600 bg-azure-50', icon: Briefcase, label: 'Talent Acquisition' },
+  'PAYMENT': { color: 'text-cyan-600 bg-cyan-50', icon: Wallet, label: 'Financial Alerts' },
+  'ADMIN': { color: 'text-danger-500 bg-danger-50', icon: ShieldCheck, label: 'Platform & Verification' },
   'FLAG': { color: 'text-rose-600 bg-rose-50', icon: Info, label: 'Moderation Alerts' },
-  'ENDORSEMENT': { color: 'text-purple-600 bg-purple-50', icon: Sparkles, label: 'Endorsements' },
-  'SPOTLIGHT': { color: 'text-amber-600 bg-amber-50', icon: Bell, label: 'Visibility' },
+  'ENDORSEMENT': { color: 'text-cyan-600 bg-cyan-50', icon: Sparkles, label: 'Endorsements' },
+  'SPOTLIGHT': { color: 'text-azure-500 bg-azure-50', icon: Bell, label: 'Visibility' },
   'CONTACT': { color: 'text-indigo-600 bg-indigo-50', icon: Mail, label: 'Contact Requests' },
-  'default': { color: 'text-slate-600 bg-slate-50', icon: Bell, label: 'System Alerts' },
+  'default': { color: 'text-slate-700 bg-slate-50', icon: Bell, label: 'System Alerts' },
 };
 
 export default function NotificationsPage() {
@@ -192,6 +192,11 @@ export default function NotificationsPage() {
           router.push('/profile/me');
         }
         break;
+      case 'ENDORSEMENT':
+        if (meta.authorDeveloperId) {
+          router.push(`/developers/${meta.authorDeveloperId}`);
+        }
+        break;
       default:
         break;
     }
@@ -263,10 +268,10 @@ export default function NotificationsPage() {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-end items-center mb-6 space-y-4 md:space-y-0 print:hidden">
           <div className="flex gap-3">
-            <Button variant="outline" className="font-bold border-primary/20 hover:bg-primary/5 h-11" onClick={handleMarkAllRead} disabled={notifications.every(n => n.isRead)}>
+            <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-11" onClick={handleMarkAllRead} disabled={notifications.every(n => n.isRead)}>
               <CheckCheck className="mr-2 h-4 w-4 text-primary" /> Mark All Read
             </Button>
-            <Button className="font-bold h-11 shadow-lg shadow-primary/20 px-6" asChild>
+            <Button className="font-medium h-11 shadow-lg shadow-primary/20 px-6" asChild>
               <Link href="/settings/notifications">
                 <Settings className="mr-2 h-4 w-4" /> Preferences
               </Link>
@@ -279,13 +284,13 @@ export default function NotificationsPage() {
           <aside className="lg:col-span-1 space-y-8">
             <Card className="border-border/50 shadow-sm sticky top-24">
               <CardHeader className="pb-4">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Categories</h3>
+                <h3 className="text-sm font-medium uppercase tracking-wider text-foreground">Categories</h3>
               </CardHeader>
               <CardContent className="p-2 space-y-1">
                 <Button
                   variant={activeFilter === 'ALL' ? 'secondary' : 'ghost'}
                   className={cn(
-                    "w-full justify-between font-bold h-10 gap-3",
+                    "w-full justify-between font-medium h-10 gap-3",
                     activeFilter === 'ALL' ? "bg-primary/5 text-primary border-none" : "text-muted-foreground"
                   )}
                   onClick={() => setActiveFilter('ALL')}
@@ -299,7 +304,7 @@ export default function NotificationsPage() {
                 <Button
                   variant={activeFilter === 'UNREAD' ? 'secondary' : 'ghost'}
                   className={cn(
-                    "w-full justify-between font-bold h-10 gap-3",
+                    "w-full justify-between font-medium h-10 gap-3",
                     activeFilter === 'UNREAD' ? "bg-primary/5 text-primary border-none" : "text-muted-foreground"
                   )}
                   onClick={() => setActiveFilter('UNREAD')}
@@ -347,8 +352,8 @@ export default function NotificationsPage() {
                     <div className="p-8 flex gap-6 animate-pulse">
                       <div className="h-12 w-12 rounded-2xl bg-muted shrink-0" />
                       <div className="flex-1 space-y-4">
-                        <div className="h-4 w-1/4 bg-muted rounded" />
-                        <div className="h-4 w-3/4 bg-muted rounded" />
+                        <div className="h-4 w-1/4 bg-muted rounded-xl" />
+                        <div className="h-4 w-3/4 bg-muted rounded-xl" />
                       </div>
                     </div>
                   </Card>
@@ -357,15 +362,15 @@ export default function NotificationsPage() {
             ) : filteredNotifications.length === 0 ? (
               <Card className="border-border/50 shadow-sm bg-white rounded-3xl py-20">
                 <CardContent className="flex flex-col items-center text-center space-y-6">
-                  <div className="h-20 w-20 bg-muted/30 rounded-[2.5rem] flex items-center justify-center text-muted-foreground border-2 border-dashed border-border">
+                  <div className="h-20 w-20 bg-muted/30 rounded-xl-[2.5rem] flex items-center justify-center text-muted-foreground border-2 border-dashed border-border">
                     <Inbox className="h-10 w-10" />
                   </div>
                   <div className="space-y-1">
-                    <h3 className="text-2xl font-bold text-foreground">Inbox is empty</h3>
+                    <h3 className="text-2xl font-medium text-foreground">Inbox is empty</h3>
                     <p className="text-muted-foreground font-medium max-w-xs">No active alerts found for this category. You&apos;re all caught up!</p>
                   </div>
                   {activeFilter !== 'ALL' && (
-                    <Button variant="outline" onClick={() => setActiveFilter('ALL')} className="font-bold border-primary/20">
+                    <Button variant="outline" onClick={() => setActiveFilter('ALL')} className="font-medium border-primary/20">
                       View All Alerts
                     </Button>
                   )}
@@ -394,14 +399,14 @@ export default function NotificationsPage() {
                         <div className="flex-1 min-w-0 space-y-2">
                           <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-3">
-                              <h3 className={cn("text-lg font-bold tracking-tight", n.isRead ? "text-muted-foreground" : "text-foreground")}>
+                              <h3 className={cn("text-lg font-medium tracking-tight", n.isRead ? "text-muted-foreground" : "text-foreground")}>
                                 {n.title}
                               </h3>
                               {!n.isRead && (
-                                <Badge className="bg-primary text-white font-black text-[8px] uppercase tracking-widest px-1.5 py-0.5 rounded-md">NEW</Badge>
+                                <Badge className="bg-primary text-white font-black text-[8px] uppercase tracking-widest px-1.5 py-0.5 rounded-2xl">NEW</Badge>
                               )}
                             </div>
-                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 whitespace-nowrap">
+                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 whitespace-nowrap">
                               <Clock className="h-3 w-3 text-primary" /> {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
                             </span>
                           </div>
@@ -415,6 +420,16 @@ export default function NotificationsPage() {
                             </p>
                           )}
 
+                          {n.category === 'ENDORSEMENT' && n.metadata?.authorDeveloperId && (
+                            <div className="mt-4 flex flex-wrap gap-2">
+                              <Button size="sm" variant="outline" className="h-8 rounded-xl font-medium text-[10px] uppercase gap-1.5 border-primary/20 hover:bg-primary/5" asChild onClick={(e) => e.stopPropagation()}>
+                                <Link href={`/developers/${n.metadata.authorDeveloperId}`}>
+                                  <User className="h-3 w-3" /> View Profile
+                                </Link>
+                              </Button>
+                            </div>
+                          )}
+
                           {n.category === 'CONTACT' && n.metadata?.message && (
                             <div className="mt-4 p-4 rounded-2xl bg-muted/30 border border-border/50 space-y-3">
                               <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
@@ -425,27 +440,27 @@ export default function NotificationsPage() {
                               </p>
                               <div className="flex flex-wrap gap-2 pt-2">
                                 {n.metadata.senderDeveloperId ? (
-                                  <Button size="sm" variant="outline" className="h-8 rounded-lg font-bold text-[10px] uppercase gap-1.5 border-primary/20 hover:bg-primary/5" asChild onClick={(e) => e.stopPropagation()}>
+                                  <Button size="sm" variant="outline" className="h-8 rounded-xl font-medium text-[10px] uppercase gap-1.5 border-primary/20 hover:bg-primary/5" asChild onClick={(e) => e.stopPropagation()}>
                                     <Link href={`/developers/${n.metadata.senderDeveloperId}`}>
                                       <User className="h-3 w-3" /> View Developer
                                     </Link>
                                   </Button>
                                 ) : n.metadata.companyId ? (
-                                  <Button size="sm" variant="outline" className="h-8 rounded-lg font-bold text-[10px] uppercase gap-1.5 border-primary/20 hover:bg-primary/5" asChild onClick={(e) => e.stopPropagation()}>
+                                  <Button size="sm" variant="outline" className="h-8 rounded-xl font-medium text-[10px] uppercase gap-1.5 border-primary/20 hover:bg-primary/5" asChild onClick={(e) => e.stopPropagation()}>
                                     <Link href={`/companies/${n.metadata.companyId}`}>
                                       <Building2 className="h-3 w-3" /> View Employer
                                     </Link>
                                   </Button>
                                 ) : null}
                                 {!n.metadata.isSenderBlocked ? (
-                                  <Button size="sm" variant="ghost" className="h-8 rounded-lg font-bold text-[10px] uppercase gap-1.5 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={(e) => {
+                                  <Button size="sm" variant="ghost" className="h-8 rounded-xl font-medium text-[10px] uppercase gap-1.5 text-danger-500 hover:text-danger-700 hover:bg-danger-50" onClick={(e) => {
                                     e.stopPropagation();
                                     handleBlockUser(n.metadata.senderUserId);
                                   }}>
                                     <UserX className="h-3 w-3" /> Block
                                   </Button>
                                 ) : (
-                                  <Button size="sm" variant="ghost" className="h-8 rounded-lg font-bold text-[10px] uppercase gap-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50" onClick={(e) => {
+                                  <Button size="sm" variant="ghost" className="h-8 rounded-xl font-medium text-[10px] uppercase gap-1.5 text-cyan-600 hover:text-cyan-800 hover:bg-cyan-50" onClick={(e) => {
                                     e.stopPropagation();
                                     handleUnblockUser(n.metadata.senderUserId);
                                   }}>
@@ -459,7 +474,7 @@ export default function NotificationsPage() {
 
                           <div className="flex items-center justify-between pt-4">
                             <div className="flex items-center gap-3">
-                              <Badge variant="outline" className="rounded-lg font-bold text-[9px] uppercase tracking-widest bg-muted/30 border-border/50 text-muted-foreground px-2 py-0.5">
+                              <Badge variant="outline" className="rounded-xl font-medium text-[9px] uppercase tracking-widest bg-muted/30 border-border/50 text-muted-foreground px-2 py-0.5">
                                 {config.label}
                               </Badge>
                             </div>
@@ -467,7 +482,7 @@ export default function NotificationsPage() {
                               {!n.isRead && (
                                 <Button
                                   variant="ghost"
-                                  className="h-8 px-3 rounded-xl text-[10px] font-bold uppercase tracking-widest text-primary gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  className="h-8 px-3 rounded-xl text-[10px] font-medium uppercase tracking-widest text-primary gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleMarkAsRead(n.id);
@@ -476,13 +491,13 @@ export default function NotificationsPage() {
                                   Mark as Read
                                 </Button>
                               )}
-                              <Button variant="ghost" className="h-8 px-3 rounded-xl text-[10px] font-bold uppercase tracking-widest text-muted-foreground gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button variant="ghost" className="h-8 px-3 rounded-xl text-[10px] font-medium uppercase tracking-widest text-muted-foreground gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                 Acknowledge <ChevronRight className="h-4 w-4" />
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 rounded-xl text-muted-foreground hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="h-8 w-8 rounded-xl text-muted-foreground hover:text-danger-500 hover:bg-danger-50 opacity-0 group-hover:opacity-100 transition-opacity"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleDeleteNotification(n.id);
@@ -500,7 +515,7 @@ export default function NotificationsPage() {
 
                 {hasMore && (
                   <div className="pt-6 flex justify-center">
-                    <Button variant="outline" className="rounded-2xl font-bold h-12 px-8 border-primary/20 hover:bg-primary/5 gap-2" onClick={() => fetchNotifications(true)} disabled={loading}>
+                    <Button variant="outline" className="rounded-2xl font-medium h-12 px-8 border-primary/20 hover:bg-primary/5 gap-2" onClick={() => fetchNotifications(true)} disabled={loading}>
                       {loading ? <Loader2 className="h-4 w-4 animate-spin text-primary" /> : <MoreVertical className="h-4 w-4 text-primary" />} Load Historical Records
                     </Button>
                   </div>

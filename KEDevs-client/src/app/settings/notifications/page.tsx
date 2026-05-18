@@ -107,7 +107,7 @@ export default function NotificationSettingsPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center space-y-4 bg-muted/30">
         <Loader2 className="h-10 w-10 text-primary animate-spin" />
-        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Configuring preferences...</p>
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Configuring preferences...</p>
       </div>
     );
   }
@@ -133,7 +133,7 @@ export default function NotificationSettingsPage() {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-end items-center mb-6 space-y-4 md:space-y-0">
           <div className="flex gap-3">
-            <Button variant="outline" className="font-bold border-primary/20 hover:bg-primary/5 h-11" asChild>
+            <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-11" asChild>
               <Link href="/notifications">
                 <ChevronLeft className="mr-2 h-4 w-4" /> Back to Inbox
               </Link>
@@ -146,10 +146,10 @@ export default function NotificationSettingsPage() {
           <aside className="lg:col-span-1 space-y-8">
             <Card className="border-border/50 shadow-sm sticky top-24">
               <CardHeader className="pb-4">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Navigation</h3>
+                <h3 className="text-sm font-medium uppercase tracking-wider text-foreground">Navigation</h3>
               </CardHeader>
               <CardContent className="p-2 space-y-1">
-                <Button variant="secondary" className="w-full justify-start font-bold h-10 gap-3 bg-primary/5 text-primary border-none">
+                <Button variant="secondary" className="w-full justify-start font-medium h-10 gap-3 bg-primary/5 text-primary border-none">
                   <Bell className="h-4 w-4" /> Notifications
                 </Button>
                 <Button variant="ghost" className="w-full justify-start font-medium h-10 gap-3 text-muted-foreground" asChild>
@@ -166,8 +166,8 @@ export default function NotificationSettingsPage() {
               </CardContent>
               <Separator className="bg-border/50" />
               <CardFooter className="p-4 flex flex-col items-start gap-2">
-                <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                  <ShieldCheck className="h-3 w-3 text-emerald-500" /> Secure Protocol
+                <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
+                  <ShieldCheck className="h-3 w-3 text-cyan-600" /> Secure Protocol
                 </div>
                 <p className="text-[10px] text-muted-foreground leading-tight">Preferences are encrypted and stored according to our privacy policy.</p>
               </CardFooter>
@@ -184,7 +184,7 @@ export default function NotificationSettingsPage() {
                       {section.icon}
                     </div>
                     <div>
-                      <CardTitle className="text-lg font-bold">{section.title}</CardTitle>
+                      <CardTitle className="text-lg font-medium">{section.title}</CardTitle>
                       <CardDescription className="text-xs font-medium text-muted-foreground">{section.description}</CardDescription>
                     </div>
                   </div>
@@ -194,7 +194,7 @@ export default function NotificationSettingsPage() {
                     {section.items.map((item) => (
                       <div key={item.key} className="p-6 flex items-center justify-between gap-6 hover:bg-muted/10 transition-colors">
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-foreground text-sm tracking-tight">{item.label}</h3>
+                          <h3 className="font-medium text-foreground text-sm tracking-tight">{item.label}</h3>
                           <p className="text-xs font-medium text-muted-foreground leading-relaxed">{item.desc}</p>
                         </div>
                         <Switch
@@ -215,7 +215,7 @@ export default function NotificationSettingsPage() {
                   <Sparkles className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-900">Push Notifications</h4>
+                  <h4 className="font-medium text-slate-900">Push Notifications</h4>
                   <p className="text-xs text-muted-foreground">
                     {permission === 'granted'
                       ? 'Your terminal is currently synchronized with desktop alerts.'
@@ -225,8 +225,8 @@ export default function NotificationSettingsPage() {
               </div>
               <Button
                 className={cn(
-                  "font-bold gap-2 transition-all",
-                  permission === 'granted' ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20" : ""
+                  "font-medium gap-2 transition-all",
+                  permission === 'granted' ? "bg-cyan-600 hover:bg-cyan-600 shadow-emerald-500/20" : ""
                 )}
                 onClick={requestPermission}
                 disabled={permission === 'granted'}

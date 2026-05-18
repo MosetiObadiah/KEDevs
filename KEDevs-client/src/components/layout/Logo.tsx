@@ -19,7 +19,7 @@ export function Logo() {
 
   return (
     <Link href={href} className="flex items-center gap-2">
-      <span className="text-xl font-bold tracking-tight text-primary">
+      <span className="text-xl font-medium tracking-tight text-primary">
         KEDevs<span className="text-foreground/50">.</span>
       </span>
     </Link>

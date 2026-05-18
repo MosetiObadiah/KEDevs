@@ -29,9 +29,9 @@ export function ProfileHeader({ profile, isOwner, isEditing, onUpdate, onPhotoSe
 
   if (isEditing) {
     return (
-      <div className="flex flex-col md:flex-row items-start gap-8 mb-10 bg-white p-8 rounded-[2.5rem] border border-primary/20 shadow-xl shadow-primary/5">
+      <div className="flex flex-col md:flex-row items-start gap-8 mb-10 bg-white p-8 rounded-xl-[2.5rem] border border-primary/20 shadow-xl shadow-primary/5">
         <div className="relative group">
-          <Avatar className="w-32 h-32 rounded-[2rem] border-4 border-background shadow-xl overflow-hidden bg-white">
+          <Avatar className="w-32 h-32 rounded-xl-[2rem] border-4 border-background shadow-xl overflow-hidden bg-white">
             <AvatarImage src={profileImage} className="object-cover" />
             <AvatarFallback className="bg-primary text-white text-4xl font-black">
               {initials || 'DEV'}
@@ -150,7 +150,7 @@ export function ProfileHeader({ profile, isOwner, isEditing, onUpdate, onPhotoSe
   return (
     <div className="flex flex-col md:flex-row items-start gap-8 mb-10">
       <div className="relative group">
-        <Avatar className="w-24 h-24 md:w-32 md:h-32 rounded-[2rem] border-4 border-background shadow-xl overflow-hidden bg-white">
+        <Avatar className="w-24 h-24 md:w-32 md:h-32 rounded-xl-[2rem] border-4 border-background shadow-xl overflow-hidden bg-white">
           <AvatarImage src={profileImage} className="object-cover" />
           <AvatarFallback className="bg-primary text-white text-4xl font-black">
             {initials || 'DEV'}
@@ -176,7 +176,7 @@ export function ProfileHeader({ profile, isOwner, isEditing, onUpdate, onPhotoSe
             {toTitleCase(`${profile.firstName || ''} ${profile.lastName || ''}`)}
           </h1>
           {profile.isVerified && (
-            <Badge className="bg-emerald-500 hover:bg-emerald-600 rounded-lg font-bold tracking-wider text-[10px] uppercase h-6 px-2">
+            <Badge className="bg-cyan-600 hover:bg-cyan-600 rounded-xl font-medium tracking-wider text-[10px] uppercase h-6 px-2">
               <ShieldCheck className="w-3 h-3 mr-1" /> VERIFIED
             </Badge>
           )}
@@ -184,7 +184,7 @@ export function ProfileHeader({ profile, isOwner, isEditing, onUpdate, onPhotoSe
 
         <p className="text-xl font-medium text-muted-foreground">{profile.currentLastRole || 'Software Engineer'}</p>
 
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-bold text-muted-foreground uppercase tracking-wider">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-medium text-muted-foreground uppercase tracking-wider">
           <span className="flex items-center gap-1.5">
             <MapPin className="w-4 h-4 text-primary" />
             {toTitleCase(profile.locationCity || 'Nairobi')}, {toTitleCase(profile.locationCountry || 'Kenya')}
@@ -192,20 +192,20 @@ export function ProfileHeader({ profile, isOwner, isEditing, onUpdate, onPhotoSe
           <span className="hidden md:block text-muted-foreground/30">•</span>
           <span className="flex items-center gap-1.5">
             <Briefcase className="w-4 h-4 text-primary" />
-            <span className="font-black uppercase tracking-wider text-[10px] text-slate-400">Years of Experience:</span>
+            <span className="font-black uppercase tracking-wider text-[10px] text-slate-500">Years of Experience:</span>
             <span className="text-foreground">{formatExperience(profile.yearsOfExperience)}</span>
           </span>
           <span className="hidden md:block text-muted-foreground/30">•</span>
           <span className="flex items-center gap-1.5 text-xs font-extrabold text-slate-700 normal-case">
             <Globe className="w-3.5 h-3.5 text-primary" />
-            <span className="font-black uppercase tracking-wider text-[10px] text-slate-400">Preferred Work:</span>
+            <span className="font-black uppercase tracking-wider text-[10px] text-slate-500">Preferred Work:</span>
             {formatWorkType(profile.preferredWorkType || 'REMOTE')}
           </span>
         </div>
 
         <div className="flex items-center gap-2 pt-2">
-          <span className="font-black uppercase tracking-widest text-[10px] text-slate-400">Availability:</span>
-          <Badge variant={profile.availabilityStatus === 'OPEN_TO_OFFERS' ? 'default' : 'secondary'} className="rounded-lg font-black tracking-widest text-[10px] uppercase px-3 py-1">
+          <span className="font-black uppercase tracking-widest text-[10px] text-slate-500">Availability:</span>
+          <Badge variant={profile.availabilityStatus === 'OPEN_TO_OFFERS' ? 'default' : 'secondary'} className="rounded-xl font-black tracking-widest text-[10px] uppercase px-3 py-1">
             {formatAvailability(profile.availabilityStatus)}
           </Badge>
         </div>

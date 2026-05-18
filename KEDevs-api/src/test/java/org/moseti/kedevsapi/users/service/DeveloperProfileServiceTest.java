@@ -203,6 +203,11 @@ class DeveloperProfileServiceTest {
         when(profileRepository.findById(profileId)).thenReturn(Optional.of(testProfile));
         when(userRepository.findById(authorUserId)).thenReturn(Optional.of(testUser));
 
+        DeveloperProfile authorProfile = new DeveloperProfile();
+        authorProfile.setId(UUID.randomUUID());
+        authorProfile.setUserId(authorUserId);
+        when(profileRepository.findByUserId(authorUserId)).thenReturn(Optional.of(authorProfile));
+
         Endorsement endorsement = new Endorsement();
         endorsement.setId(UUID.randomUUID());
         endorsement.setRecipientId(profileId);
@@ -210,7 +215,6 @@ class DeveloperProfileServiceTest {
         endorsement.setContent("Great developer!");
 
         when(endorsementRepository.save(any(Endorsement.class))).thenReturn(endorsement);
-        when(userRepository.findById(authorUserId)).thenReturn(Optional.of(testUser));
 
         UserDtos.CreateEndorsementRequest request = new UserDtos.CreateEndorsementRequest("Great developer!");
         UserDtos.EndorsementResponse response = developerProfileService.addEndorsement(authorUserId, profileId, request);
@@ -230,6 +234,42 @@ class DeveloperProfileServiceTest {
         assertThrows(EndorsementNotAllowedException.class,
                 () -> developerProfileService.addEndorsement(userId, profileId, request));
         verify(endorsementRepository, never()).save(any());
+    }
+
+    @Test
+    void deleteEndorsement_Success() {
+        UUID endorsementId = UUID.randomUUID();
+        when(profileRepository.findByUserId(userId)).thenReturn(Optional.of(testProfile));
+
+        Endorsement endorsement = new Endorsement();
+        endorsement.setId(endorsementId);
+        endorsement.setRecipientId(profileId);
+        endorsement.setAuthorId(UUID.randomUUID());
+        endorsement.setContent("Great dev");
+
+        when(endorsementRepository.findById(endorsementId)).thenReturn(Optional.of(endorsement));
+
+        developerProfileService.deleteEndorsement(userId, endorsementId);
+
+        verify(endorsementRepository).delete(endorsement);
+    }
+
+    @Test
+    void deleteEndorsement_WrongProfile_ThrowsBadRequestException() {
+        UUID endorsementId = UUID.randomUUID();
+        when(profileRepository.findByUserId(userId)).thenReturn(Optional.of(testProfile));
+
+        Endorsement endorsement = new Endorsement();
+        endorsement.setId(endorsementId);
+        endorsement.setRecipientId(UUID.randomUUID()); // different profile
+        endorsement.setAuthorId(UUID.randomUUID());
+        endorsement.setContent("Great dev");
+
+        when(endorsementRepository.findById(endorsementId)).thenReturn(Optional.of(endorsement));
+
+        assertThrows(BadRequestException.class,
+                () -> developerProfileService.deleteEndorsement(userId, endorsementId));
+        verify(endorsementRepository, never()).delete(any());
     }
 
     @Test

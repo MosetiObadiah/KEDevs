@@ -62,37 +62,37 @@ const ACTION_TYPES = [
 ];
 
 const ACTION_COLORS: Record<string, string> = {
-  APPROVE_EMPLOYER: 'bg-emerald-100 text-emerald-700',
-  REJECT_EMPLOYER: 'bg-red-100 text-red-700',
-  APPROVE_VERIFICATION: 'bg-emerald-100 text-emerald-700',
-  REJECT_VERIFICATION: 'bg-red-100 text-red-700',
-  SUSPEND_USER: 'bg-amber-100 text-amber-700',
-  BAN_USER: 'bg-red-100 text-red-700',
-  REACTIVATE_USER: 'bg-blue-100 text-blue-700',
+  APPROVE_EMPLOYER: 'bg-cyan-50 text-cyan-800',
+  REJECT_EMPLOYER: 'bg-danger-50 text-danger-700',
+  APPROVE_VERIFICATION: 'bg-cyan-50 text-cyan-800',
+  REJECT_VERIFICATION: 'bg-danger-50 text-danger-700',
+  SUSPEND_USER: 'bg-azure-50 text-azure-700',
+  BAN_USER: 'bg-danger-50 text-danger-700',
+  REACTIVATE_USER: 'bg-azure-100 text-azure-700',
   GRANT_VERIFIED_BADGE: 'bg-violet-100 text-violet-700',
-  REVOKE_VERIFIED_BADGE: 'bg-slate-100 text-slate-600',
+  REVOKE_VERIFIED_BADGE: 'bg-slate-100 text-slate-700',
   REVIEW_JOB_FLAG: 'bg-orange-100 text-orange-700',
   REVIEW_USER_FLAG: 'bg-orange-100 text-orange-700',
   REVIEW_COMMENT_FLAG: 'bg-orange-100 text-orange-700',
-  UPDATE_PLATFORM_SETTING: 'bg-blue-100 text-blue-700',
+  UPDATE_PLATFORM_SETTING: 'bg-azure-100 text-azure-700',
   OVERRIDE_SPOTLIGHT: 'bg-indigo-100 text-indigo-700',
 };
 
 const OUTCOME_COLORS: Record<string, string> = {
-  APPROVED: 'bg-emerald-500',
-  REJECTED: 'bg-red-500',
-  SUSPENDED: 'bg-amber-500',
-  BANNED: 'bg-red-600',
-  ACTIVE: 'bg-blue-500',
+  APPROVED: 'bg-cyan-600',
+  REJECTED: 'bg-danger-500',
+  SUSPENDED: 'bg-azure-500',
+  BANNED: 'bg-danger-500',
+  ACTIVE: 'bg-azure-500',
   GRANT: 'bg-violet-500',
   REVOKE: 'bg-slate-500',
-  UPDATED: 'bg-blue-500',
-  LEGITIMATE: 'bg-slate-400',
-  REMOVE: 'bg-red-500',
-  REMOVED: 'bg-red-500',
+  UPDATED: 'bg-azure-500',
+  LEGITIMATE: 'bg-slate-500',
+  REMOVE: 'bg-danger-500',
+  REMOVED: 'bg-danger-500',
   KEPT: 'bg-emerald-400',
   CLEARED: 'bg-emerald-400',
-  WARNED: 'bg-amber-400',
+  WARNED: 'bg-warning-400',
 };
 
 function formatActionLabel(action: string) {
@@ -161,7 +161,7 @@ export default function AuditLog() {
     <div className="space-y-6 animate-in fade-in duration-700">
       {/* Action Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
+        <div className="flex items-center gap-2 text-xs font-medium text-slate-500 uppercase tracking-widest">
           <ShieldAlert className="h-4 w-4" />
           <span>{totalElements.toLocaleString()} total entries</span>
         </div>
@@ -182,12 +182,12 @@ export default function AuditLog() {
         </div>
       </div>
 
-      <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-slate-200/40 overflow-hidden bg-white">
+      <Card className="rounded-xl-[2.5rem] border-none shadow-2xl shadow-slate-200/40 overflow-hidden bg-white">
         <CardContent className="p-10 space-y-6">
           {/* Filters */}
           <div className="flex flex-col md:flex-row md:items-center gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
               <Input
                 placeholder="Search by admin, action, or target ID..."
                 value={search}
@@ -196,8 +196,8 @@ export default function AuditLog() {
               />
             </div>
             <Select value={actionFilter} onValueChange={(v) => { setActionFilter(v || 'ALL'); setPage(0); }}>
-              <SelectTrigger className="h-12 rounded-2xl bg-slate-50 border-none font-bold text-sm min-w-[200px]">
-                <Filter className="h-4 w-4 mr-2 text-slate-400" />
+              <SelectTrigger className="h-12 rounded-2xl bg-slate-50 border-none font-medium text-sm min-w-[200px]">
+                <Filter className="h-4 w-4 mr-2 text-slate-500" />
                 <SelectValue placeholder="Filter by action" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
@@ -211,16 +211,16 @@ export default function AuditLog() {
           </div>
 
           {/* Table */}
-          <div className="rounded-[2rem] border border-slate-100 overflow-hidden">
+          <div className="rounded-xl-[2rem] border border-slate-100 overflow-hidden">
             <Table>
               <TableHeader className="bg-slate-50/50">
                 <TableRow className="border-slate-100">
-                  <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-5 px-6">Timestamp</TableHead>
-                  <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-5 px-6">Admin Actor</TableHead>
-                  <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-5 px-6">Action</TableHead>
-                  <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-5 px-6">Target</TableHead>
-                  <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-5 px-6">Outcome</TableHead>
-                  <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-5 px-6 text-right">Details</TableHead>
+                  <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-5 px-6">Timestamp</TableHead>
+                  <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-5 px-6">Admin Actor</TableHead>
+                  <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-5 px-6">Action</TableHead>
+                  <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-5 px-6">Target</TableHead>
+                  <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-5 px-6">Outcome</TableHead>
+                  <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-5 px-6 text-right">Details</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -229,7 +229,7 @@ export default function AuditLog() {
                     <TableCell colSpan={6} className="py-20 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <Loader2 className="h-8 w-8 text-slate-300 animate-spin" />
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Loading audit trail...</p>
+                        <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">Loading audit trail...</p>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -237,9 +237,9 @@ export default function AuditLog() {
                   <TableRow>
                     <TableCell colSpan={6} className="py-16 text-center">
                       <div className="flex flex-col items-center gap-2">
-                        <AlertCircle className="h-8 w-8 text-red-300" />
-                        <p className="text-sm font-bold text-red-400">{error}</p>
-                        <Button variant="outline" size="sm" onClick={fetchLogs} className="mt-2 rounded-xl font-bold">
+                        <AlertCircle className="h-8 w-8 text-danger-300" />
+                        <p className="text-sm font-medium text-danger-400">{error}</p>
+                        <Button variant="outline" size="sm" onClick={fetchLogs} className="mt-2 rounded-xl font-medium">
                           Try Again
                         </Button>
                       </div>
@@ -250,7 +250,7 @@ export default function AuditLog() {
                     <TableCell colSpan={6} className="py-20 text-center">
                       <div className="flex flex-col items-center gap-2">
                         <Activity className="h-8 w-8 text-slate-200" />
-                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
+                        <p className="text-sm font-medium text-slate-500 uppercase tracking-widest">
                           {search || actionFilter ? 'No matching entries' : 'No audit entries yet'}
                         </p>
                         <p className="text-xs text-slate-300 font-medium">Admin actions will appear here as they occur</p>
@@ -265,26 +265,26 @@ export default function AuditLog() {
                         onClick={() => setExpandedRow(expandedRow === log.id ? null : log.id)}
                       >
                         <TableCell className="py-4 px-6">
-                          <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
+                          <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
                             <Clock className="h-3.5 w-3.5 text-primary/50 shrink-0" />
                             <span className="whitespace-nowrap">{formatDate(log.createdAt)}</span>
                           </div>
                         </TableCell>
                         <TableCell className="py-4 px-6">
                           <div className="flex items-center gap-2">
-                            <div className="h-8 w-8 rounded-lg bg-slate-900 text-white flex items-center justify-center shrink-0">
+                            <div className="h-8 w-8 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0">
                               <User className="h-4 w-4" />
                             </div>
                             <div>
                               <p className="font-black text-slate-900 text-sm">{log.adminName || 'Admin'}</p>
-                              <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">ADMIN</p>
+                              <p className="text-[10px] font-medium text-slate-500 uppercase tracking-widest">ADMIN</p>
                             </div>
                           </div>
                         </TableCell>
                         <TableCell className="py-4 px-6">
                           <Badge className={cn(
-                            "rounded-lg font-black text-[9px] uppercase tracking-widest border-none px-2 py-0.5",
-                            ACTION_COLORS[log.actionType] || 'bg-slate-100 text-slate-600'
+                            "rounded-xl font-black text-[9px] uppercase tracking-widest border-none px-2 py-0.5",
+                            ACTION_COLORS[log.actionType] || 'bg-slate-100 text-slate-700'
                           )}>
                             {formatActionLabel(log.actionType)}
                           </Badge>
@@ -293,8 +293,8 @@ export default function AuditLog() {
                           <div className="flex items-center gap-2">
                             <Target className="h-3.5 w-3.5 text-slate-300 shrink-0" />
                             <div>
-                              <p className="text-xs font-bold text-slate-700 uppercase">{log.targetType}</p>
-                              <p className="text-[10px] font-medium text-slate-400 font-mono truncate max-w-[120px]">
+                              <p className="text-xs font-medium text-slate-700 uppercase">{log.targetType}</p>
+                              <p className="text-[10px] font-medium text-slate-500 font-mono truncate max-w-[120px]">
                                 {log.targetId ? log.targetId.substring(0, 8) + '...' : '—'}
                               </p>
                             </div>
@@ -303,18 +303,18 @@ export default function AuditLog() {
                         <TableCell className="py-4 px-6">
                           {log.outcome ? (
                             <Badge className={cn(
-                              "rounded-lg font-black text-[9px] uppercase tracking-widest border-none text-white px-2 py-0.5",
-                              OUTCOME_COLORS[log.outcome] || 'bg-slate-400'
+                              "rounded-xl font-black text-[9px] uppercase tracking-widest border-none text-white px-2 py-0.5",
+                              OUTCOME_COLORS[log.outcome] || 'bg-slate-500'
                             )}>
                               {log.outcome}
                             </Badge>
                           ) : <span className="text-slate-300 text-xs">—</span>}
                         </TableCell>
                         <TableCell className="py-4 px-6 text-right">
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-lg hover:bg-slate-100">
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-xl hover:bg-slate-100">
                             {expandedRow === log.id
-                              ? <ChevronUp className="h-4 w-4 text-slate-400" />
-                              : <ChevronDown className="h-4 w-4 text-slate-400" />}
+                              ? <ChevronUp className="h-4 w-4 text-slate-500" />
+                              : <ChevronDown className="h-4 w-4 text-slate-500" />}
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -323,17 +323,17 @@ export default function AuditLog() {
                           <TableCell colSpan={6} className="py-4 px-10">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Full Target ID</p>
-                                <code className="text-xs font-mono text-slate-600 bg-white border border-slate-100 px-2 py-1 rounded-lg block">{log.targetId || '—'}</code>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Full Target ID</p>
+                                <code className="text-xs font-mono text-slate-700 bg-white border border-slate-100 px-2 py-1 rounded-xl block">{log.targetId || '—'}</code>
                               </div>
                               <div>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Admin ID</p>
-                                <code className="text-xs font-mono text-slate-600 bg-white border border-slate-100 px-2 py-1 rounded-lg block">{log.adminId || '—'}</code>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Admin ID</p>
+                                <code className="text-xs font-mono text-slate-700 bg-white border border-slate-100 px-2 py-1 rounded-xl block">{log.adminId || '—'}</code>
                               </div>
                               {log.notes && (
                                 <div className="md:col-span-2">
-                                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Notes / Reason</p>
-                                  <p className="text-sm font-medium text-slate-600 bg-white border border-slate-100 px-3 py-2 rounded-lg">{log.notes}</p>
+                                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Notes / Reason</p>
+                                  <p className="text-sm font-medium text-slate-700 bg-white border border-slate-100 px-3 py-2 rounded-xl">{log.notes}</p>
                                 </div>
                               )}
                             </div>
@@ -349,7 +349,7 @@ export default function AuditLog() {
 
           {/* Pagination */}
           <div className="flex items-center justify-between">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 italic flex items-center gap-2">
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic flex items-center gap-2">
               <ShieldAlert className="h-3 w-3" />
               {filtered.length} of {totalElements.toLocaleString()} entries shown
             </p>
@@ -363,7 +363,7 @@ export default function AuditLog() {
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span className="text-xs font-bold text-slate-500 px-2">
+              <span className="text-xs font-medium text-slate-500 px-2">
                 Page {page + 1} of {Math.max(1, totalPages)}
               </span>
               <Button

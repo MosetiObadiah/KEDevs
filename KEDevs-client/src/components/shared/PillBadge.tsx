@@ -20,13 +20,13 @@ export const PillBadge = ({
   const getVariantStyles = () => {
     switch (variant) {
       case 'mint':
-        return "bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100";
+        return "bg-cyan-50 text-cyan-600 border-emerald-100 hover:bg-cyan-50";
       case 'sage':
         return "bg-primary/5 text-primary border-primary/10 hover:bg-primary/10";
       case 'amber':
-        return "bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-100";
+        return "bg-azure-50 text-azure-500 border-azure-100 hover:bg-azure-50";
       case 'red':
-        return "bg-red-50 text-red-600 border-red-100 hover:bg-red-100";
+        return "bg-danger-50 text-danger-500 border-danger-100 hover:bg-danger-50";
       case 'neutral':
       default:
         return "bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200";
@@ -37,7 +37,7 @@ export const PillBadge = ({
     <Badge 
       variant="outline"
       className={cn(
-        "rounded-md font-black text-[10px] uppercase tracking-widest px-2.5 py-0.5 border shadow-sm transition-all duration-300",
+        "rounded-2xl font-black text-[10px] uppercase tracking-widest px-2.5 py-0.5 border shadow-sm transition-all duration-300",
         getVariantStyles(),
         className
       )}

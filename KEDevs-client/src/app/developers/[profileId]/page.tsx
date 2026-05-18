@@ -190,12 +190,12 @@ export default function DeveloperProfilePage() {
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
              <div className="lg:col-span-8 space-y-6">
-                <Skeleton className="h-[300px] w-full rounded-[2rem]" />
-                <Skeleton className="h-[400px] w-full rounded-[2rem]" />
+                <Skeleton className="h-[300px] w-full rounded-xl-[2rem]" />
+                <Skeleton className="h-[400px] w-full rounded-xl-[2rem]" />
              </div>
              <div className="lg:col-span-4 space-y-6">
-                <Skeleton className="h-[200px] w-full rounded-[2rem]" />
-                <Skeleton className="h-[300px] w-full rounded-[2rem]" />
+                <Skeleton className="h-[200px] w-full rounded-xl-[2rem]" />
+                <Skeleton className="h-[300px] w-full rounded-xl-[2rem]" />
              </div>
           </div>
         </div>
@@ -206,7 +206,7 @@ export default function DeveloperProfilePage() {
   if (error || !dev) {
     return (
       <div className="min-h-screen bg-muted/30 flex items-center justify-center p-6">
-        <Card className="max-w-md w-full p-12 text-center rounded-[2.5rem] border-border/50 shadow-xl">
+        <Card className="max-w-md w-full p-12 text-center rounded-xl-[2.5rem] border-border/50 shadow-xl">
            <div className="h-20 w-20 bg-destructive/10 text-destructive rounded-3xl flex items-center justify-center mx-auto mb-6">
               <User className="h-10 w-10" />
            </div>
@@ -291,7 +291,7 @@ export default function DeveloperProfilePage() {
 
       {/* Endorsement Modal */}
       <Dialog open={isEndorseOpen} onOpenChange={setIsEndorseOpen}>
-        <DialogContent className="sm:max-w-[500px] rounded-[2rem] p-8">
+        <DialogContent className="sm:max-w-[500px] rounded-xl-[2rem] p-8">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-500">
@@ -322,7 +322,7 @@ export default function DeveloperProfilePage() {
           </div>
 
           <DialogFooter className="sm:justify-end gap-3">
-            <Button variant="ghost" className="rounded-xl font-bold" onClick={() => setIsEndorseOpen(false)}>
+            <Button variant="ghost" className="rounded-xl font-medium" onClick={() => setIsEndorseOpen(false)}>
               Cancel
             </Button>
             <Button 
@@ -340,7 +340,7 @@ export default function DeveloperProfilePage() {
 
       {/* Flag Modal */}
       <Dialog open={isFlagOpen} onOpenChange={setIsFlagOpen}>
-        <DialogContent className="sm:max-w-[500px] rounded-[2rem] p-8">
+        <DialogContent className="sm:max-w-[500px] rounded-xl-[2rem] p-8">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center text-destructive">
@@ -371,7 +371,7 @@ export default function DeveloperProfilePage() {
           </div>
 
           <DialogFooter className="sm:justify-end gap-3">
-            <Button variant="ghost" className="rounded-xl font-bold" onClick={() => setIsFlagOpen(false)}>
+            <Button variant="ghost" className="rounded-xl font-medium" onClick={() => setIsFlagOpen(false)}>
               Cancel
             </Button>
             <Button 
@@ -389,7 +389,7 @@ export default function DeveloperProfilePage() {
 
       {/* Contact Modal */}
       <Dialog open={isContactOpen} onOpenChange={setIsContactOpen}>
-        <DialogContent className="sm:max-w-[500px] rounded-[2rem] p-8">
+        <DialogContent className="sm:max-w-[500px] rounded-xl-[2rem] p-8">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
@@ -420,7 +420,7 @@ export default function DeveloperProfilePage() {
           </div>
 
           <DialogFooter className="sm:justify-end gap-3">
-            <Button variant="ghost" className="rounded-xl font-bold" onClick={() => setIsContactOpen(false)}>
+            <Button variant="ghost" className="rounded-xl font-medium" onClick={() => setIsContactOpen(false)}>
               Cancel
             </Button>
             <Button 

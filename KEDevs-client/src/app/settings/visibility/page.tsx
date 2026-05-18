@@ -108,7 +108,7 @@ export default function VisibilitySettingsPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center space-y-4 bg-muted/30">
         <Loader2 className="h-10 w-10 text-primary animate-spin" />
-        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Configuring visibility...</p>
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Configuring visibility...</p>
       </div>
     );
   }
@@ -126,7 +126,7 @@ export default function VisibilitySettingsPage() {
           {/* Header Section */}
           <div className="flex flex-col md:flex-row justify-end items-center mb-6 space-y-4 md:space-y-0">
             <div className="flex gap-3">
-               <Button variant="outline" className="font-bold border-primary/20 hover:bg-primary/5 h-11" onClick={() => router.back()}>
+               <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-11" onClick={() => router.back()}>
                   <ChevronLeft className="mr-2 h-4 w-4" /> Back
                </Button>
             </div>
@@ -137,7 +137,7 @@ export default function VisibilitySettingsPage() {
             <aside className="lg:col-span-1 space-y-8">
               <Card className="border-border/50 shadow-sm sticky top-24">
                 <CardHeader className="pb-4">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Navigation</h3>
+                  <h3 className="text-sm font-medium uppercase tracking-wider text-foreground">Navigation</h3>
                 </CardHeader>
                 <CardContent className="p-2 space-y-1">
                   <Button variant="ghost" className="w-full justify-start font-medium h-10 gap-3 text-muted-foreground" asChild>
@@ -145,7 +145,7 @@ export default function VisibilitySettingsPage() {
                         <Bell className="h-4 w-4" /> Notifications
                      </Link>
                   </Button>
-                  <Button variant="secondary" className="w-full justify-start font-bold h-10 gap-3 bg-primary/5 text-primary border-none">
+                  <Button variant="secondary" className="w-full justify-start font-medium h-10 gap-3 bg-primary/5 text-primary border-none">
                     <Eye className="h-4 w-4" /> Visibility
                   </Button>
                   <Button variant="ghost" className="w-full justify-start font-medium h-10 gap-3 text-muted-foreground opacity-50 cursor-not-allowed">
@@ -157,8 +157,8 @@ export default function VisibilitySettingsPage() {
                 </CardContent>
                 <Separator className="bg-border/50" />
                 <CardFooter className="p-4 flex flex-col items-start gap-2">
-                  <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                    <ShieldCheck className="h-3 w-3 text-emerald-500" /> Secure Protocol
+                  <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
+                    <ShieldCheck className="h-3 w-3 text-cyan-600" /> Secure Protocol
                   </div>
                   <p className="text-[10px] text-muted-foreground leading-tight">Preferences are synchronized in real-time with your profile.</p>
                 </CardFooter>
@@ -174,7 +174,7 @@ export default function VisibilitySettingsPage() {
                       <MessageSquare className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg font-bold">Visibility & Preferences</CardTitle>
+                      <CardTitle className="text-lg font-medium">Visibility & Preferences</CardTitle>
                       <CardDescription className="text-xs font-medium text-muted-foreground">Control your accessibility to potential employers</CardDescription>
                     </div>
                   </div>
@@ -183,7 +183,7 @@ export default function VisibilitySettingsPage() {
                   <div className="divide-y divide-border/50">
                     <div className="p-6 flex items-center justify-between gap-6 hover:bg-muted/10 transition-colors">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-foreground text-sm tracking-tight">Recruitment Pulse</h3>
+                        <h3 className="font-medium text-foreground text-sm tracking-tight">Recruitment Pulse</h3>
                         <p className="text-xs font-medium text-muted-foreground leading-relaxed">Can other users reach out to me directly?</p>
                       </div>
                       <Switch 
@@ -196,12 +196,12 @@ export default function VisibilitySettingsPage() {
                     <div className="p-6 flex flex-col gap-4 hover:bg-muted/10 transition-colors">
                       <div className="flex items-center justify-between gap-6">
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-foreground text-sm tracking-tight">Availability Status</h3>
+                          <h3 className="font-medium text-foreground text-sm tracking-tight">Availability Status</h3>
                           <p className="text-xs font-medium text-muted-foreground leading-relaxed">Let employers know your current commitment level</p>
                         </div>
                       </div>
                       <Select value={profile?.availabilityStatus} onValueChange={handleAvailabilityChange}>
-                        <SelectTrigger className="w-full h-11 rounded-xl border-border/50 font-bold bg-muted/5">
+                        <SelectTrigger className="w-full h-11 rounded-xl border-border/50 font-medium bg-muted/5">
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl border-border/50 shadow-xl">
@@ -215,7 +215,7 @@ export default function VisibilitySettingsPage() {
                       <div className="flex items-center justify-between gap-6">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                             <h3 className="font-bold text-foreground text-sm tracking-tight">Privacy Mode</h3>
+                             <h3 className="font-medium text-foreground text-sm tracking-tight">Privacy Mode</h3>
                              <Tooltip>
                                 <TooltipTrigger asChild>
                                    <Info className="h-4 w-4 text-muted-foreground cursor-help" />
@@ -229,7 +229,7 @@ export default function VisibilitySettingsPage() {
                         </div>
                       </div>
                       <Select value={profile?.profileVisibility} onValueChange={handleVisibilityChange}>
-                        <SelectTrigger className="w-full h-11 rounded-xl border-border/50 font-bold bg-muted/5">
+                        <SelectTrigger className="w-full h-11 rounded-xl border-border/50 font-medium bg-muted/5">
                           <SelectValue placeholder="Select visibility" />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl border-border/50 shadow-xl">
@@ -265,7 +265,7 @@ export default function VisibilitySettingsPage() {
                     <Search className="h-6 w-6 text-primary" />
                  </div>
                  <div>
-                    <h4 className="font-bold text-slate-900">SEO Synchronization</h4>
+                    <h4 className="font-medium text-slate-900">SEO Synchronization</h4>
                     <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                        When your profile is set to Public, it will be indexed by our internal search protocols and external search engines. 
                        Private profiles are only accessible via direct encrypted links.

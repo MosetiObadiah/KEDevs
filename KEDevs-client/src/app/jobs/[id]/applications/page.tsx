@@ -25,7 +25,7 @@ import {
 import { jsPDF } from 'jspdf';
 import { jobService } from '@/services/jobService';
 import { apiClient } from '@/lib/api-client';
-import { cn } from '@/lib/utils';
+import { cn, formatDateString, formatTimeString } from '@/lib/utils';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -49,6 +49,14 @@ import {
    DialogFooter,
 } from "@/components/ui/dialog";
 import {
+   Sheet,
+   SheetContent,
+   SheetHeader,
+   SheetTitle,
+   SheetDescription,
+   SheetFooter,
+} from "@/components/ui/sheet";
+import {
    DropdownMenu,
    DropdownMenuContent,
    DropdownMenuItem,
@@ -58,10 +66,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 
 const statusConfig: Record<string, { label: string, color: string }> = {
-   'PENDING': { label: 'Pending', color: 'bg-amber-100 text-amber-600' },
-   'VIEWED': { label: 'Under Review', color: 'bg-blue-100 text-blue-600' },
-   'SHORTLISTED': { label: 'Shortlisted', color: 'bg-emerald-100 text-emerald-600' },
-   'REJECTED': { label: 'Rejected', color: 'bg-red-100 text-red-600' },
+   'PENDING': { label: 'Pending', color: 'bg-warning-50 text-warning-600' },
+   'VIEWED': { label: 'Under Review', color: 'bg-warning-50 text-warning-600' },
+   'SHORTLISTED': { label: 'Shortlisted', color: 'bg-success-50 text-success-600' },
+   'REJECTED': { label: 'Rejected', color: 'bg-danger-50 text-danger-600' },
 };
 
 export default function ApplicationsInbox() {
@@ -175,7 +183,7 @@ export default function ApplicationsInbox() {
    const formatDate = (dateStr: string) => {
       if (!dateStr) return '';
       const date = new Date(dateStr);
-      return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      return formatDateString(date);
    };
 
     const handleExport = async (format: 'csv' | 'pdf') => {
@@ -201,7 +209,7 @@ export default function ApplicationsInbox() {
 
                 doc.setFontSize(8);
                 doc.setTextColor(100, 116, 139); // slate-500
-                const exportDate = new Date().toLocaleDateString('en-GB') + ' ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                const exportDate = formatDateString(new Date()) + ' ' + formatTimeString(new Date());
                 doc.text(`EXPORTED: ${exportDate}`, 195, 15, { align: 'right' });
                 doc.text(`PAGE: ${pageNum}`, 195, 20, { align: 'right' });
 
@@ -397,7 +405,7 @@ export default function ApplicationsInbox() {
       return (
          <div className="container mx-auto px-4 py-20 flex flex-col items-center justify-center space-y-4">
             <Loader2 className="h-10 w-10 text-primary animate-spin" />
-            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Accessing applications inbox...</p>
+            <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Accessing applications inbox...</p>
          </div>
       );
    }
@@ -463,20 +471,20 @@ export default function ApplicationsInbox() {
       <div className="container mx-auto px-4 py-20 max-w-6xl animate-in fade-in duration-700">
          <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8 print:hidden">
             <div className="space-y-4">
-               <Link href="/jobs/my-posts" className="inline-flex items-center text-slate-400 hover:text-slate-900 font-black uppercase text-[10px] tracking-widest transition-all group">
+               <Link href="/jobs/my-posts" className="inline-flex items-center text-slate-500 hover:text-slate-900 font-black uppercase text-[10px] tracking-widest transition-all group">
                   <ChevronLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
                   Back to Listings
                </Link>
                <div className="space-y-1">
                   <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">Applications Inbox</h1>
-                  <p className="text-lg font-bold text-primary flex items-center gap-2">
-                     <span className="text-slate-400 font-medium">Applicants for</span> {job.title}
+                  <p className="text-lg font-medium text-primary flex items-center gap-2">
+                     <span className="text-slate-500 font-medium">Applicants for</span> {job.title}
                   </p>
                </div>
             </div>
             <div className="flex items-center gap-4">
                <div className="text-right hidden sm:block">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Pipeline</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Total Pipeline</p>
                   <p className="text-2xl font-black text-slate-900">{applicants.length}</p>
                </div>
                <Separator orientation="vertical" className="h-12 hidden sm:block" />
@@ -490,10 +498,10 @@ export default function ApplicationsInbox() {
                      </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="rounded-xl border border-slate-100 shadow-xl bg-white">
-                     <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-bold text-xs uppercase tracking-widest text-slate-600 hover:text-slate-900 gap-2 p-3">
-                        <FileSpreadsheet className="h-4 w-4 text-emerald-500" /> Download as CSV
+                     <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium text-xs uppercase tracking-widest text-slate-700 hover:text-slate-900 gap-2 p-3">
+                        <FileSpreadsheet className="h-4 w-4 text-cyan-600" /> Download as CSV
                      </DropdownMenuItem>
-                     <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-bold text-xs uppercase tracking-widest text-slate-600 hover:text-slate-900 gap-2 p-3">
+                     <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium text-xs uppercase tracking-widest text-slate-700 hover:text-slate-900 gap-2 p-3">
                         <FileText className="h-4 w-4 text-primary" /> Print / Save as PDF
                      </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -508,9 +516,9 @@ export default function ApplicationsInbox() {
          {/* Print Header (Only visible during PDF Print) */}
          <div className="hidden print:block mb-8 border-b-2 pb-6">
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Applications Inbox Report</h1>
-            <p className="text-md font-bold text-slate-600 mt-1">Applicants for: {job.title} at {job.companyName}</p>
-            <p className="text-xs text-slate-400 mt-2 font-bold uppercase tracking-widest">
-               Generated on: {new Date().toLocaleDateString('en-GB')} {startDate && ` | From: ${formatDate(startDate)}`} {endDate && ` | To: ${formatDate(endDate)}`}
+            <p className="text-md font-medium text-slate-700 mt-1">Applicants for: {job.title} at {job.companyName}</p>
+            <p className="text-xs text-slate-500 mt-2 font-medium uppercase tracking-widest">
+               Generated on: {formatDateString(new Date())} {startDate && ` | From: ${formatDate(startDate)}`} {endDate && ` | To: ${formatDate(endDate)}`}
             </p>
          </div>
 
@@ -527,17 +535,17 @@ export default function ApplicationsInbox() {
                      key={tab.id}
                      variant={activeFilter === tab.id ? 'default' : 'outline'}
                      className={cn(
-                        "h-10 px-4 rounded-xl font-bold text-xs gap-2 transition-all",
+                        "h-10 px-4 rounded-xl font-medium text-xs gap-2 transition-all",
                         activeFilter === tab.id
                            ? "bg-primary text-white shadow-lg shadow-primary/20"
-                           : "border-slate-100 hover:bg-slate-50 text-slate-600"
+                           : "border-slate-100 hover:bg-slate-50 text-slate-700"
                      )}
                      onClick={() => setActiveFilter(tab.id as any)}
                   >
                      {tab.label}
                      <Badge className={cn(
-                        "h-5 min-w-5 px-1 flex items-center justify-center rounded-md font-black text-[9px]",
-                        activeFilter === tab.id ? "bg-white text-primary" : "bg-slate-100 text-slate-600"
+                        "h-5 min-w-5 px-1 flex items-center justify-center rounded-2xl font-black text-[9px]",
+                        activeFilter === tab.id ? "bg-white text-primary" : "bg-slate-100 text-slate-700"
                      )}>
                         {tab.count}
                      </Badge>
@@ -547,7 +555,7 @@ export default function ApplicationsInbox() {
 
             {/* Date Range Period Selector */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-slate-50/50 p-3 rounded-2xl border border-slate-100">
-               <span className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 px-2">
+               <span className="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 px-2">
                   <Calendar className="h-4 w-4 text-primary" /> Period:
                </span>
                <div className="flex flex-wrap items-center gap-2">
@@ -555,20 +563,20 @@ export default function ApplicationsInbox() {
                      type="date"
                      value={startDate}
                      onChange={(e) => setStartDate(e.target.value)}
-                     className="h-10 px-3 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+                     className="h-10 px-3 rounded-xl border border-slate-200/60 bg-white text-xs font-medium text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                   />
-                  <span className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">to</span>
+                  <span className="text-xs font-black text-slate-500 uppercase tracking-widest px-1">to</span>
                   <input 
                      type="date"
                      value={endDate}
                      onChange={(e) => setEndDate(e.target.value)}
-                     className="h-10 px-3 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+                     className="h-10 px-3 rounded-xl border border-slate-200/60 bg-white text-xs font-medium text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
                   />
                   {(startDate || endDate) && (
                      <Button
                         variant="ghost"
                         size="sm"
-                        className="h-9 px-3 text-[10px] font-black uppercase text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                        className="h-9 px-3 text-[10px] font-black uppercase text-danger-500 hover:bg-danger-50 rounded-xl transition-all"
                         onClick={() => { setStartDate(''); setEndDate(''); }}
                      >
                         Clear Period
@@ -578,17 +586,17 @@ export default function ApplicationsInbox() {
             </div>
          </div>
 
-         <Card className="rounded-[3rem] border-none shadow-2xl shadow-slate-200/50 overflow-hidden bg-white print:shadow-none print:border-none">
+         <Card className="rounded-xl-[3rem] border-none shadow-2xl shadow-slate-200/50 overflow-hidden bg-white print:shadow-none print:border-none">
             <CardContent className="p-0">
                {filteredApplicants.length > 0 ? (
                   <Table>
                      <TableHeader className="bg-slate-50/50">
                         <TableRow className="border-slate-100">
-                           <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-8">Applicant</TableHead>
-                           <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-8">Email & Documents</TableHead>
-                           <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-8">Applied</TableHead>
-                           <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-8">Pipeline Status</TableHead>
-                           <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-400 py-6 px-8 text-right print:hidden">Review</TableHead>
+                           <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-6 px-8">Applicant</TableHead>
+                           <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-6 px-8">Email & Documents</TableHead>
+                           <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-6 px-8">Applied</TableHead>
+                           <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-6 px-8">Pipeline Status</TableHead>
+                           <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-6 px-8 text-right print:hidden">Review</TableHead>
                         </TableRow>
                      </TableHeader>
                      <TableBody>
@@ -617,7 +625,7 @@ export default function ApplicationsInbox() {
                                  </TableCell>
                                  <TableCell className="py-6 px-8">
                                     <div className="flex flex-col gap-1">
-                                       <span className="text-sm font-bold text-slate-600 flex items-center gap-2"><Mail className="h-3.5 w-3.5 text-primary" /> {app.applicantEmail}</span>
+                                       <span className="text-sm font-medium text-slate-700 flex items-center gap-2"><Mail className="h-3.5 w-3.5 text-primary" /> {app.applicantEmail}</span>
 
                                        {/* Direct Download Badges */}
                                        <div className="flex gap-2 mt-1 print:hidden">
@@ -626,7 +634,7 @@ export default function ApplicationsInbox() {
                                                 size="sm"
                                                 variant="ghost"
                                                 title="Download Resume"
-                                                className="h-6 px-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-primary bg-slate-50 hover:bg-slate-100 rounded-lg gap-1 shadow-sm"
+                                                className="h-6 px-2 text-[10px] font-medium uppercase tracking-widest text-slate-500 hover:text-primary bg-slate-50 hover:bg-slate-100 rounded-xl gap-1 shadow-sm"
                                                 onClick={(e) => {
                                                    e.stopPropagation();
                                                    handleDownload(app.resumeUrl, `${app.applicantName}_Resume.pdf`);
@@ -640,25 +648,25 @@ export default function ApplicationsInbox() {
                                                 size="sm"
                                                 variant="ghost"
                                                 title="Download Cover Letter"
-                                                className="h-6 px-2 text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-emerald-600 bg-slate-50 hover:bg-slate-100 rounded-lg gap-1 shadow-sm"
+                                                className="h-6 px-2 text-[10px] font-medium uppercase tracking-widest text-slate-500 hover:text-cyan-600 bg-slate-50 hover:bg-slate-100 rounded-xl gap-1 shadow-sm"
                                                 onClick={(e) => {
                                                    e.stopPropagation();
                                                    handleDownload(app.coverLetterUrl, `${app.applicantName}_CoverLetter.pdf`);
                                                 }}
                                              >
-                                                <FileText className="h-3 w-3 text-emerald-500" /> Cover Letter
+                                                <FileText className="h-3 w-3 text-cyan-600" /> Cover Letter
                                              </Button>
                                           )}
                                        </div>
                                     </div>
                                  </TableCell>
                                  <TableCell className="py-6 px-8">
-                                    <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
+                                    <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
                                        <Calendar className="h-4 w-4" /> {formatDate(app.createdAt)}
                                     </div>
                                  </TableCell>
                                  <TableCell className="py-6 px-8">
-                                    <Badge className={cn("rounded-lg font-black text-[9px] uppercase tracking-widest px-3 py-1 border-none", statusConfig[app.status]?.color)}>
+                                    <Badge className={cn("rounded-xl font-black text-[9px] uppercase tracking-widest px-3 py-1 border-none", statusConfig[app.status]?.color)}>
                                        {statusConfig[app.status]?.label || app.status}
                                     </Badge>
                                  </TableCell>
@@ -682,7 +690,7 @@ export default function ApplicationsInbox() {
                                           disabled={app.status === 'SHORTLISTED'}
                                           className={cn(
                                              "h-10 w-10 p-0 rounded-xl border-slate-100 transition-all",
-                                             app.status === 'SHORTLISTED' ? "opacity-30 cursor-not-allowed bg-slate-50 text-slate-400" : "hover:bg-emerald-50 hover:text-emerald-600"
+                                             app.status === 'SHORTLISTED' ? "opacity-30 cursor-not-allowed bg-slate-50 text-slate-500" : "hover:bg-cyan-50 hover:text-cyan-600"
                                           )}
                                           onClick={() => openModal(app, 'SHORTLISTED')}
                                        >
@@ -697,7 +705,7 @@ export default function ApplicationsInbox() {
                                           disabled={app.status === 'REJECTED'}
                                           className={cn(
                                              "h-10 w-10 p-0 rounded-xl border-slate-100 transition-all",
-                                             app.status === 'REJECTED' ? "opacity-30 cursor-not-allowed bg-slate-50 text-slate-400" : "hover:bg-red-50 hover:text-red-600"
+                                             app.status === 'REJECTED' ? "opacity-30 cursor-not-allowed bg-slate-50 text-slate-500" : "hover:bg-danger-50 hover:text-danger-500"
                                           )}
                                           onClick={() => openModal(app, 'REJECTED')}
                                        >
@@ -712,7 +720,7 @@ export default function ApplicationsInbox() {
                   </Table>
                ) : (
                   <div className="p-24 text-center space-y-6">
-                     <div className="h-20 w-20 bg-slate-50 rounded-[2rem] flex items-center justify-center text-slate-200 mx-auto border-2 border-dashed border-slate-100">
+                     <div className="h-20 w-20 bg-slate-50 rounded-xl-[2rem] flex items-center justify-center text-slate-200 mx-auto border-2 border-dashed border-slate-100">
                         <Users className="h-10 w-10" />
                      </div>
                      <div className="space-y-1">
@@ -724,174 +732,171 @@ export default function ApplicationsInbox() {
             </CardContent>
          </Card>
 
-         <Dialog open={Boolean(selectedApplicant)} onOpenChange={(v) => !v && setSelectedApplicant(null)}>
-            <DialogContent className="sm:max-w-4xl rounded-[3rem] p-0 overflow-hidden border-none shadow-2xl">
-               <DialogHeader className="sr-only">
-                  <DialogTitle>Application Review</DialogTitle>
-                  <DialogDescription>Detailed view of applicant information and documents.</DialogDescription>
-               </DialogHeader>
-               {selectedApplicant && (
-                  <>
-                     <div className="bg-slate-900 p-10 text-white relative">
-                        <div className="absolute top-0 right-0 w-48 h-48 bg-primary/20 rounded-full blur-[80px] -mr-24 -mt-24" />
-                        <div className="relative z-10 flex flex-row items-center justify-between">
-                           <div className="space-y-4">
-                              <div className="flex items-center gap-4">
-                                 <Avatar className="h-20 w-20 rounded-[1.5rem] border-4 border-white/10 shadow-2xl">
-                                    <AvatarImage src={selectedApplicant.avatarUrl} />
-                                    <AvatarFallback className="bg-primary text-white text-2xl font-black">{selectedApplicant.applicantName?.charAt(0)}</AvatarFallback>
-                                 </Avatar>
-                                 <div className="space-y-1">
-                                    <h3 className="text-3xl font-black text-white tracking-tight capitalize">{selectedApplicant.applicantName}</h3>
-                                    <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest flex items-center gap-2">
-                                       <Mail className="h-3 w-3" /> {selectedApplicant.applicantEmail}
-                                    </p>
-                                 </div>
-                              </div>
-                           </div>
-                           <Badge className={cn("rounded-xl font-black text-[10px] uppercase tracking-widest px-4 py-2 border-none self-start", statusConfig[selectedApplicant.status]?.color)}>
-                              {statusConfig[selectedApplicant.status]?.label}
-                           </Badge>
-                        </div>
-                     </div>
+          {/* Side Detail Sheet */}
+          <Sheet open={Boolean(selectedApplicant)} onOpenChange={(v) => !v && setSelectedApplicant(null)}>
+             <SheetContent className="sm:max-w-lg border-none p-0 overflow-hidden flex flex-col h-full bg-white">
+                <SheetHeader className="sr-only">
+                   <SheetTitle>Application Review</SheetTitle>
+                   <SheetDescription>Detailed view of applicant information and documents.</SheetDescription>
+                </SheetHeader>
+                {selectedApplicant && (
+                   <>
+                      <div className="bg-navy-900 p-8 text-white relative shrink-0">
+                         <div className="absolute top-0 right-0 w-32 h-32 bg-azure-500/10 rounded-full blur-2xl" />
+                         <div className="relative z-10 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                               <Avatar className="h-14 w-14 rounded-xl border border-white/10 shadow-lg">
+                                  <AvatarImage src={selectedApplicant.avatarUrl} />
+                                  <AvatarFallback className="bg-azure-500 text-white font-medium text-lg uppercase flex items-center justify-center">
+                                     {selectedApplicant.applicantName?.charAt(0)}
+                                  </AvatarFallback>
+                               </Avatar>
+                               <div className="space-y-0.5">
+                                  <h3 className="text-xl font-medium text-white tracking-tight capitalize">{selectedApplicant.applicantName}</h3>
+                                  <p className="text-slate-400 font-medium text-xs flex items-center gap-1">
+                                     <Mail className="h-3 w-3 text-azure-400" /> {selectedApplicant.applicantEmail}
+                                  </p>
+                               </div>
+                            </div>
+                            <Badge className={cn("rounded-lg font-medium text-[10px] uppercase tracking-wider px-2.5 py-1 border-none shrink-0", statusConfig[selectedApplicant.status]?.color)}>
+                               {statusConfig[selectedApplicant.status]?.label}
+                            </Badge>
+                         </div>
+                      </div>
 
-                     <div className="p-10 space-y-10 overflow-y-auto no-scrollbar max-h-[60vh]">
-                        <div className="grid grid-cols-1 gap-10">
-                           <div className="space-y-6">
-                              <div className="space-y-4">
-                                 <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Application Documents</h4>
-                                 <div className="space-y-3">
-                                    {selectedApplicant.resumeUrl && (
-                                       <div className="flex items-center justify-between p-5 rounded-[2rem] bg-slate-50 border border-slate-100 group hover:border-primary/20 transition-all">
-                                          <div className="flex items-center gap-4">
-                                             <div className="h-12 w-12 bg-primary rounded-2xl flex items-center justify-center text-white font-black text-xs uppercase">PDF</div>
-                                             <div className="space-y-0.5">
-                                                <p className="font-black text-slate-900 text-sm">Professional Resume</p>
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase">Uploaded on {formatDate(selectedApplicant.createdAt)}</p>
-                                             </div>
-                                          </div>
-                                          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl" onClick={() => handleDownload(selectedApplicant.resumeUrl, `${selectedApplicant.applicantName}_Resume.pdf`)}>
-                                             <Download className="h-4 w-4" />
-                                          </Button>
-                                       </div>
-                                    )}
-                                    {selectedApplicant.coverLetterUrl && (
-                                       <div className="flex items-center justify-between p-5 rounded-[2rem] bg-slate-50 border border-slate-100 group hover:border-emerald-200 transition-all">
-                                          <div className="flex items-center gap-4">
-                                             <div className="h-12 w-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white font-black text-xs uppercase">DOC</div>
-                                             <div className="space-y-0.5">
-                                                <p className="font-black text-slate-900 text-sm">Cover Letter</p>
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase">Supporting Document</p>
-                                             </div>
-                                          </div>
-                                          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl" onClick={() => handleDownload(selectedApplicant.coverLetterUrl, `${selectedApplicant.applicantName}_CoverLetter.pdf`)}>
-                                             <Download className="h-4 w-4" />
-                                          </Button>
-                                       </div>
-                                    )}
-                                 </div>
-                              </div>
+                      <div className="p-8 space-y-8 flex-1 overflow-y-auto no-scrollbar bg-slate-50/50">
+                         <div className="space-y-4">
+                            <h4 className="text-[10px] font-medium uppercase tracking-wider text-slate-400">Application Documents</h4>
+                            <div className="space-y-3">
+                               {selectedApplicant.resumeUrl && (
+                                  <div className="flex items-center justify-between p-4 rounded-xl bg-white border border-slate-100 group hover:border-azure-200 transition-all shadow-sm">
+                                     <div className="flex items-center gap-3">
+                                        <div className="h-10 w-10 bg-azure-500/10 rounded-lg flex items-center justify-center text-azure-500 font-medium text-xs">PDF</div>
+                                        <div className="space-y-0.5">
+                                           <p className="font-medium text-slate-800 text-sm">Professional Resume</p>
+                                           <p className="text-[10px] font-medium text-slate-400">Uploaded {formatDate(selectedApplicant.createdAt)}</p>
+                                        </div>
+                                     </div>
+                                     <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-slate-100" onClick={() => handleDownload(selectedApplicant.resumeUrl, `${selectedApplicant.applicantName}_Resume.pdf`)}>
+                                        <Download className="h-4 w-4 text-slate-500" />
+                                     </Button>
+                                  </div>
+                               )}
+                               {selectedApplicant.coverLetterUrl && (
+                                  <div className="flex items-center justify-between p-4 rounded-xl bg-white border border-slate-100 group hover:border-azure-200 transition-all shadow-sm">
+                                     <div className="flex items-center gap-3">
+                                        <div className="h-10 w-10 bg-cyan-500/10 rounded-lg flex items-center justify-center text-cyan-500 font-medium text-xs">DOC</div>
+                                        <div className="space-y-0.5">
+                                           <p className="font-medium text-slate-800 text-sm">Cover Letter</p>
+                                           <p className="text-[10px] font-medium text-slate-400">Supporting Document</p>
+                                        </div>
+                                     </div>
+                                     <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-slate-100" onClick={() => handleDownload(selectedApplicant.coverLetterUrl, `${selectedApplicant.applicantName}_CoverLetter.pdf`)}>
+                                        <Download className="h-4 w-4 text-slate-500" />
+                                     </Button>
+                                  </div>
+                               )}
+                            </div>
+                         </div>
 
-                              <Button variant="outline" className="w-full h-14 rounded-2xl font-black gap-2 border-slate-100" asChild>
-                                 <Link href={`/developers/${selectedApplicant.applicantProfileId}`} target="_blank">
-                                    <ExternalLink className="h-4 w-4 text-primary" /> View Talent Profile
-                                 </Link>
-                              </Button>
-                           </div>
-                        </div>
+                         {selectedApplicant.employerMessage && (
+                            <div className="p-5 rounded-xl bg-white border border-slate-100 space-y-2.5 shadow-sm">
+                               <h4 className="text-[10px] font-medium uppercase tracking-wider text-slate-400">Feedback Message Sent</h4>
+                               <p className="text-xs font-medium text-slate-600 bg-slate-50 p-3.5 rounded-lg border border-slate-100 italic">
+                                  "{selectedApplicant.employerMessage}"
+                               </p>
+                            </div>
+                         )}
 
-                        {/* Decided Applicant Message Trail */}
-                        {(selectedApplicant.status === 'SHORTLISTED' || selectedApplicant.status === 'REJECTED') && selectedApplicant.employerMessage && (
-                           <div className="p-8 rounded-[3rem] bg-slate-50 border border-slate-100 space-y-3">
-                              <h4 className="text-xs font-black uppercase tracking-widest text-slate-400">Feedback Message Sent</h4>
-                              <p className="text-sm font-medium text-slate-700 bg-white p-5 rounded-2xl border border-slate-100 italic">
-                                 "{selectedApplicant.employerMessage}"
-                              </p>
-                           </div>
-                        )}
+                         <Button variant="outline" className="w-full h-12 rounded-xl font-medium gap-2 border-slate-100 bg-white hover:bg-slate-50 text-slate-700 shadow-sm" asChild>
+                            <Link href={`/developers/${selectedApplicant.applicantProfileId}`} target="_blank">
+                               <ExternalLink className="h-4 w-4 text-azure-500" /> View Talent Profile
+                            </Link>
+                         </Button>
+                      </div>
 
-                        {/* Mandatory Decision Message Area */}
-                        {decisionType !== null && (
-                           <div className={cn(
-                              "animate-in slide-in-from-bottom-4 duration-500 space-y-4 p-8 rounded-[3rem] border-2",
-                              decisionType === 'SHORTLISTED' ? "bg-emerald-50 border-emerald-100" : "bg-red-50 border-red-100"
-                           )}>
-                              <div className="flex items-center gap-3">
-                                 <MessageSquare className={cn("h-5 w-5", decisionType === 'SHORTLISTED' ? "text-emerald-600" : "text-red-600")} />
-                                 <h4 className={cn("text-lg font-black", decisionType === 'SHORTLISTED' ? "text-emerald-900" : "text-red-900")}>
-                                    {decisionType === 'SHORTLISTED' ? "Acceptance Message & Next Steps" : "Rejection Reason & Feedback"}
-                                 </h4>
-                              </div>
-                              <p className={cn("text-sm font-medium", decisionType === 'SHORTLISTED' ? "text-emerald-700/70" : "text-red-700/70")}>
-                                 {decisionType === 'SHORTLISTED'
-                                    ? "Provide instructions or next steps for the applicant. This message is mandatory."
-                                    : "Provide constructive feedback on why the application was rejected. This message is mandatory."
-                                 }
-                              </p>
-                              <Textarea
-                                 placeholder={decisionType === 'SHORTLISTED'
-                                    ? "e.g. We were impressed by your profile! We'd love to schedule a technical chat. Please pick a slot here..."
-                                    : "e.g. Thank you for your time. Unfortunately, we went with a candidate whose experience more closely aligns..."
-                                 }
-                                 className={cn(
-                                    "min-h-[120px] rounded-[1.5rem] bg-white",
-                                    decisionType === 'SHORTLISTED' ? "border-emerald-200 focus-visible:ring-emerald-500/20" : "border-red-200 focus-visible:ring-red-500/20"
-                                 )}
-                                 value={employerMessage}
-                                 onChange={(e) => setEmployerMessage(e.target.value)}
-                              />
-                              <div className="flex justify-between items-center text-xs font-bold">
-                                 <span className={cn(isMessageValid ? "text-emerald-600" : "text-amber-600")}>
-                                    {isMessageValid ? "✓ Message length requirement met" : "✗ Minimum 20 characters required"}
-                                 </span>
-                                 <span className="text-slate-400">
-                                    {employerMessage.trim().length} characters
-                                 </span>
-                              </div>
-                           </div>
-                        )}
-                     </div>
+                      <SheetFooter className="bg-slate-50 p-6 flex flex-row items-center justify-end gap-3 border-t border-slate-100 shrink-0">
+                         {(selectedApplicant.status === 'PENDING' || selectedApplicant.status === 'VIEWED' || selectedApplicant.status === 'SHORTLISTED') && (
+                            <Button variant="ghost" className="rounded-xl font-medium h-11 px-6 text-danger-600 hover:bg-danger-50 flex-1 sm:flex-initial" onClick={() => setDecisionType('REJECTED')} disabled={actionLoading}>
+                               <X className="mr-2 h-4 w-4" /> Reject
+                            </Button>
+                         )}
+                         {(selectedApplicant.status === 'PENDING' || selectedApplicant.status === 'VIEWED' || selectedApplicant.status === 'REJECTED') && (
+                            <Button className="rounded-xl font-medium h-11 px-8 bg-azure-500 hover:bg-azure-600 text-white border-none flex-1 sm:flex-initial" onClick={() => setDecisionType('SHORTLISTED')}>
+                               <Check className="mr-2 h-4 w-4" /> Shortlist
+                            </Button>
+                         )}
+                         {(selectedApplicant.status === 'SHORTLISTED' || selectedApplicant.status === 'REJECTED') && (
+                            <Button variant="ghost" className="rounded-xl font-medium h-11 px-6 flex-1 sm:flex-initial" onClick={() => setSelectedApplicant(null)}>Close Review</Button>
+                         )}
+                      </SheetFooter>
+                   </>
+                )}
+             </SheetContent>
+          </Sheet>
 
-                     <DialogFooter className="bg-slate-50 p-10 flex flex-row justify-end gap-4 border-t border-slate-100">
-                        {decisionType === null ? (
-                           <>
-                              {/* Decided candidate accepting/rejecting transitions */}
-                              {(selectedApplicant.status === 'PENDING' || selectedApplicant.status === 'VIEWED' || selectedApplicant.status === 'SHORTLISTED') && (
-                                 <Button variant="ghost" className="rounded-2xl font-black h-14 px-10 text-red-500 hover:bg-red-50" onClick={() => setDecisionType('REJECTED')} disabled={actionLoading}>
-                                    <X className="mr-2 h-5 w-5" /> {selectedApplicant.status === 'SHORTLISTED' ? 'Change to Reject' : 'Reject'}
-                                 </Button>
-                              )}
-                              {(selectedApplicant.status === 'PENDING' || selectedApplicant.status === 'VIEWED' || selectedApplicant.status === 'REJECTED') && (
-                                 <Button className="rounded-2xl font-black h-14 px-12 bg-emerald-500 hover:bg-emerald-600 shadow-xl shadow-emerald-500/20" onClick={() => setDecisionType('SHORTLISTED')}>
-                                    <Check className="mr-2 h-5 w-5" /> {selectedApplicant.status === 'REJECTED' ? 'Change to Shortlist' : 'Shortlist Talent'}
-                                 </Button>
-                              )}
-                              {(selectedApplicant.status === 'SHORTLISTED' || selectedApplicant.status === 'REJECTED') && (
-                                 <Button variant="ghost" className="rounded-2xl font-black h-14 px-8" onClick={() => setSelectedApplicant(null)}>Close Review</Button>
-                              )}
-                           </>
-                        ) : (
-                           <>
-                              <Button variant="ghost" className="rounded-2xl font-black h-14 px-8" onClick={() => { setDecisionType(null); setEmployerMessage(''); }}>Cancel</Button>
-                              <Button
-                                 className={cn(
-                                    "rounded-2xl font-black h-14 px-12 shadow-xl",
-                                    decisionType === 'SHORTLISTED'
-                                       ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20"
-                                       : "bg-red-500 hover:bg-red-600 shadow-red-500/20"
-                                 )}
-                                 onClick={() => handleStatusChange(selectedApplicant.id, decisionType, employerMessage)}
-                                 disabled={actionLoading || !isMessageValid}
-                              >
-                                 {actionLoading ? <Loader2 className="animate-spin" /> : <BadgeCheck className="mr-2 h-5 w-5" />} Confirm & Notify
-                              </Button>
-                           </>
-                        )}
-                     </DialogFooter>
-                  </>
-               )}
-            </DialogContent>
-         </Dialog>
+          {/* Feedback Modal Dialog */}
+          <Dialog open={decisionType !== null} onOpenChange={(v) => { if (!v) { setDecisionType(null); setEmployerMessage(''); } }}>
+             <DialogContent className="sm:max-w-[500px] rounded-2xl p-6 bg-white border border-slate-100 shadow-2xl">
+                <DialogHeader>
+                   <DialogTitle className="text-xl font-medium flex items-center gap-2.5 text-navy-900">
+                      <div className={cn(
+                         "h-9 w-9 rounded-lg flex items-center justify-center",
+                         decisionType === 'SHORTLISTED' ? "bg-success-50 text-success-600" : "bg-danger-50 text-danger-600"
+                      )}>
+                         {decisionType === 'SHORTLISTED' ? <Check className="h-5 w-5" /> : <X className="h-5 w-5" />}
+                      </div>
+                      {decisionType === 'SHORTLISTED' ? "Shortlist Candidate" : "Reject Candidate"}
+                   </DialogTitle>
+                   <DialogDescription className="font-medium text-slate-500 text-xs">
+                      {decisionType === 'SHORTLISTED' 
+                         ? "Provide instructions or next steps for the applicant. This message is mandatory."
+                         : "Provide constructive feedback on why the application was rejected. This message is mandatory."}
+                   </DialogDescription>
+                </DialogHeader>
+
+                <div className="py-4 space-y-3">
+                   <div className="space-y-1.5">
+                      <div className="flex justify-between items-center text-[10px] font-medium uppercase tracking-wider text-slate-400">
+                         <span>Feedback Message</span>
+                         <span className={cn(isMessageValid ? "text-success-600 font-bold" : "text-danger-600")}>
+                            {employerMessage.trim().length} chars (min 20)
+                         </span>
+                      </div>
+                      <Textarea
+                         placeholder={decisionType === 'SHORTLISTED'
+                            ? "We were impressed by your profile! We'd love to schedule a technical chat..."
+                            : "Thank you for your time. Unfortunately, we went with a candidate whose experience more closely aligns..."
+                         }
+                         className={cn(
+                            "min-h-[120px] rounded-xl border border-slate-200 resize-none font-medium text-sm p-3 focus-visible:ring-1 focus-visible:ring-offset-0 bg-slate-50/50",
+                            decisionType === 'SHORTLISTED' ? "focus-visible:ring-success-500" : "focus-visible:ring-danger-500"
+                         )}
+                         value={employerMessage}
+                         onChange={(e) => setEmployerMessage(e.target.value)}
+                      />
+                   </div>
+                </div>
+
+                <DialogFooter className="sm:justify-end gap-2">
+                   <Button variant="ghost" className="rounded-xl font-medium h-10 px-4" onClick={() => { setDecisionType(null); setEmployerMessage(''); }}>
+                      Cancel
+                   </Button>
+                   <Button
+                      className={cn(
+                         "rounded-xl font-medium px-6 text-white border-none h-10",
+                         decisionType === 'SHORTLISTED'
+                            ? "bg-success-600 hover:bg-success-700"
+                            : "bg-danger-600 hover:bg-danger-700"
+                      )}
+                      onClick={() => handleStatusChange(selectedApplicant.id, decisionType!, employerMessage)}
+                      disabled={actionLoading || !isMessageValid}
+                   >
+                      {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <BadgeCheck className="mr-1.5 h-4 w-4" />} Confirm & Notify
+                   </Button>
+                </DialogFooter>
+             </DialogContent>
+          </Dialog>
       </div>
    );
 }

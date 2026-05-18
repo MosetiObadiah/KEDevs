@@ -316,7 +316,7 @@ export default function CreateJobPostPage() {
   if (!isLoggedIn) {
     return (
       <div className="container mx-auto px-4 py-20">
-        <Card className="max-w-2xl mx-auto rounded-[2rem] border-none shadow-2xl text-center p-12">
+        <Card className="max-w-2xl mx-auto rounded-xl-[2rem] border-none shadow-2xl text-center p-12">
           <div className="h-20 w-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto mb-8">
             <Lock className="h-10 w-10" />
           </div>
@@ -338,7 +338,7 @@ export default function CreateJobPostPage() {
     <div className="flex flex-col min-h-screen bg-muted/30">
       {/* Abandon Confirmation Dialog */}
       <Dialog open={showAbandonDialog} onOpenChange={setShowAbandonDialog}>
-         <DialogContent className="max-w-md rounded-[2rem] p-8 border-none shadow-2xl">
+         <DialogContent className="max-w-md rounded-xl-[2rem] p-8 border-none shadow-2xl">
             <DialogHeader className="space-y-4 text-center">
                <div className="h-16 w-16 bg-rose-100 text-rose-600 rounded-3xl flex items-center justify-center mx-auto">
                   <AlertTriangle className="h-8 w-8" />
@@ -352,7 +352,7 @@ export default function CreateJobPostPage() {
                <Button 
                  type="button"
                  variant="outline" 
-                 className="rounded-2xl h-12 font-bold border-slate-200"
+                 className="rounded-2xl h-12 font-medium border-slate-200"
                  onClick={() => setShowAbandonDialog(false)}
                >
                   Keep Editing
@@ -371,11 +371,11 @@ export default function CreateJobPostPage() {
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="flex flex-col justify-between items-start gap-2 mb-10">
-            <Badge variant="outline" className="rounded-lg font-black tracking-widest text-[10px] uppercase bg-primary/10 text-primary border-none px-3 py-1 mb-2">
+            <Badge variant="outline" className="rounded-xl font-black tracking-widest text-[10px] uppercase bg-primary/10 text-primary border-none px-3 py-1 mb-2">
               Recruitment Hub
             </Badge>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Post a Job</h1>
-            <p className="text-sm font-semibold text-slate-500">
+            <p className="text-sm font-medium text-slate-500">
                Create a new job post and connect with qualified developers in Kenya.
             </p>
           </div>
@@ -396,14 +396,14 @@ export default function CreateJobPostPage() {
                   className={cn(
                     "h-10 w-10 rounded-full border-4 flex items-center justify-center transition-all duration-300 font-black text-sm",
                     index < activeStep ? "bg-primary border-primary text-white" : 
-                    index === activeStep ? "bg-white border-primary text-primary" : "bg-white border-slate-200 text-slate-400"
+                    index === activeStep ? "bg-white border-primary text-primary" : "bg-white border-slate-200 text-slate-500"
                   )}
                 >
                   {index < activeStep ? <CheckCircle2 className="h-5 w-5" /> : index + 1}
                 </div>
                 <span className={cn(
                   "hidden md:block text-[10px] font-black uppercase tracking-widest",
-                  index === activeStep ? "text-primary" : "text-slate-400"
+                  index === activeStep ? "text-primary" : "text-slate-500"
                 )}>
                   {step.label}
                 </span>
@@ -412,7 +412,7 @@ export default function CreateJobPostPage() {
           </div>
 
           {/* Form Content */}
-          <Card className="rounded-[2.5rem] border-border/50 shadow-xl shadow-primary/5 overflow-hidden">
+          <Card className="rounded-xl-[2.5rem] border-border/50 shadow-xl shadow-primary/5 overflow-hidden">
             <CardHeader className="bg-slate-900 text-white p-8">
               <div className="flex items-center gap-4">
                  <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center">
@@ -424,7 +424,7 @@ export default function CreateJobPostPage() {
                  </div>
                  <div>
                     <CardTitle className="text-2xl font-black uppercase tracking-tight">{steps[activeStep].label}</CardTitle>
-                    <CardDescription className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+                    <CardDescription className="text-slate-500 font-medium uppercase text-[10px] tracking-widest">
                        Step {activeStep + 1} of {steps.length}
                     </CardDescription>
                  </div>
@@ -437,15 +437,15 @@ export default function CreateJobPostPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Card 
                       className={cn(
-                        "rounded-[2rem] border-2 transition-all cursor-pointer group hover:scale-[1.02]",
+                        "rounded-xl-[2rem] border-2 transition-all cursor-pointer group hover:scale-[1.02]",
                         formState.isPeerSourced ? "border-primary bg-primary/5" : "border-slate-100"
                       )}
                       onClick={() => dispatch({ type: 'UPDATE_FIELD', field: 'isPeerSourced', value: true })}
                     >
                       <CardContent className="p-8 text-center space-y-4">
                         <div className={cn(
-                          "h-16 w-16 rounded-[1.5rem] flex items-center justify-center mx-auto transition-all",
-                          formState.isPeerSourced ? "bg-primary text-white" : "bg-slate-100 text-slate-400"
+                          "h-16 w-16 rounded-xl-[1.5rem] flex items-center justify-center mx-auto transition-all",
+                          formState.isPeerSourced ? "bg-primary text-white" : "bg-slate-100 text-slate-500"
                         )}>
                           <Globe className="h-8 w-8" />
                         </div>
@@ -457,15 +457,15 @@ export default function CreateJobPostPage() {
                     </Card>
                     <Card 
                       className={cn(
-                        "rounded-[2rem] border-2 transition-all cursor-pointer group hover:scale-[1.02]",
+                        "rounded-xl-[2rem] border-2 transition-all cursor-pointer group hover:scale-[1.02]",
                         !formState.isPeerSourced ? "border-primary bg-primary/5" : "border-slate-100"
                       )}
                       onClick={() => dispatch({ type: 'UPDATE_FIELD', field: 'isPeerSourced', value: false })}
                     >
                       <CardContent className="p-8 text-center space-y-4">
                         <div className={cn(
-                          "h-16 w-16 rounded-[1.5rem] flex items-center justify-center mx-auto transition-all",
-                          !formState.isPeerSourced ? "bg-primary text-white" : "bg-slate-100 text-slate-400"
+                          "h-16 w-16 rounded-xl-[1.5rem] flex items-center justify-center mx-auto transition-all",
+                          !formState.isPeerSourced ? "bg-primary text-white" : "bg-slate-100 text-slate-500"
                         )}>
                           <Building2 className="h-8 w-8" />
                         </div>
@@ -482,7 +482,7 @@ export default function CreateJobPostPage() {
               {currentStepKey === 'details' && (
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <Label className="font-black text-xs uppercase tracking-widest text-slate-400">Job Title</Label>
+                    <Label className="font-black text-xs uppercase tracking-widest text-slate-500">Job Title</Label>
                     <Input 
                       className="h-14 rounded-2xl border-slate-200 text-lg font-black focus-visible:ring-primary/20" 
                       placeholder="e.g. Senior Frontend Engineer"
@@ -491,16 +491,16 @@ export default function CreateJobPostPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="font-black text-xs uppercase tracking-widest text-slate-400">Short Summary</Label>
+                    <Label className="font-black text-xs uppercase tracking-widest text-slate-500">Short Summary</Label>
                     <Input 
-                      className="h-14 rounded-2xl border-slate-200 font-semibold focus-visible:ring-primary/20" 
+                      className="h-14 rounded-2xl border-slate-200 font-medium focus-visible:ring-primary/20" 
                       placeholder="A punchy one-liner about the role"
                       value={formState.summary}
                       onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'summary', value: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="font-black text-xs uppercase tracking-widest text-slate-400">Full Job Description</Label>
+                    <Label className="font-black text-xs uppercase tracking-widest text-slate-500">Full Job Description</Label>
                     <Textarea 
                       className="min-h-[250px] rounded-2xl border-slate-200 font-medium text-base focus-visible:ring-primary/20" 
                       placeholder="Add responsibilities, technology stack, and what makes this role special..."
@@ -510,9 +510,9 @@ export default function CreateJobPostPage() {
                   </div>
                   {!isDeveloper && (
                     <div className="space-y-2">
-                      <Label className="font-black text-xs uppercase tracking-widest text-slate-400">Company Name</Label>
+                      <Label className="font-black text-xs uppercase tracking-widest text-slate-500">Company Name</Label>
                       <Input 
-                        className="h-14 rounded-2xl border-slate-200 font-bold focus-visible:ring-primary/20" 
+                        className="h-14 rounded-2xl border-slate-200 font-medium focus-visible:ring-primary/20" 
                         value={formState.companyName}
                         onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'companyName', value: e.target.value })}
                         disabled={isEmployer}
@@ -520,7 +520,7 @@ export default function CreateJobPostPage() {
                     </div>
                   )}
                   <div className="space-y-2">
-                    <Label className="font-black text-xs uppercase tracking-widest text-slate-400">Tags (Keywords)</Label>
+                    <Label className="font-black text-xs uppercase tracking-widest text-slate-500">Tags (Keywords)</Label>
                     <div className="space-y-4">
                        <div className="flex gap-2">
                           <Input 
@@ -553,9 +553,9 @@ export default function CreateJobPostPage() {
                        </div>
                        <div className="flex flex-wrap gap-2">
                           {formState.tags.map(tag => (
-                             <Badge key={tag} className="h-8 px-3 rounded-lg bg-slate-100 text-slate-900 font-bold flex items-center gap-1 group transition-all">
+                             <Badge key={tag} className="h-8 px-3 rounded-xl bg-slate-100 text-slate-900 font-medium flex items-center gap-1 group transition-all">
                                 {tag}
-                                <X className="h-3 w-3 cursor-pointer hover:text-red-500" onClick={() => dispatch({ type: 'UPDATE_FIELD', field: 'tags', value: formState.tags.filter(t => t !== tag) })} />
+                                <X className="h-3 w-3 cursor-pointer hover:text-danger-500" onClick={() => dispatch({ type: 'UPDATE_FIELD', field: 'tags', value: formState.tags.filter(t => t !== tag) })} />
                              </Badge>
                           ))}
                        </div>
@@ -568,37 +568,37 @@ export default function CreateJobPostPage() {
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                      <div className="space-y-2">
-                        <Label className="font-black text-xs uppercase tracking-widest text-slate-400">Experience Level</Label>
+                        <Label className="font-black text-xs uppercase tracking-widest text-slate-500">Experience Level</Label>
                         <Select value={formState.experienceLevel || ''} onValueChange={(v) => dispatch({ type: 'UPDATE_FIELD', field: 'experienceLevel', value: v })}>
                            <SelectTrigger className="h-14 rounded-2xl border-slate-200 font-black">
                               <SelectValue placeholder="Select level" />
                            </SelectTrigger>
                            <SelectContent className="rounded-xl">
-                              {experienceLevels.map(l => <SelectItem key={l} value={l} className="font-bold">{l.replace('_', ' ')}</SelectItem>)}
+                              {experienceLevels.map(l => <SelectItem key={l} value={l} className="font-medium">{l.replace('_', ' ')}</SelectItem>)}
                            </SelectContent>
                         </Select>
                      </div>
                      <div className="space-y-2">
-                        <Label className="font-black text-xs uppercase tracking-widest text-slate-400">Minimum Qualification</Label>
+                        <Label className="font-black text-xs uppercase tracking-widest text-slate-500">Minimum Qualification</Label>
                         <Select value={formState.minQualification || ''} onValueChange={(v) => dispatch({ type: 'UPDATE_FIELD', field: 'minQualification', value: v })}>
                            <SelectTrigger className="h-14 rounded-2xl border-slate-200 font-black">
                               <SelectValue placeholder="Select qualification" />
                            </SelectTrigger>
                            <SelectContent className="rounded-xl">
-                              <SelectItem value="BACHELORS" className="font-bold">Bachelor's Degree</SelectItem>
-                              <SelectItem value="DIPLOMA" className="font-bold">Diploma</SelectItem>
-                              <SelectItem value="MASTERS" className="font-bold">Master's Degree</SelectItem>
-                              <SelectItem value="SELF_TAUGHT" className="font-bold">Self-Taught / Bootcamp</SelectItem>
-                              <SelectItem value="EQUIVALENT_EXPERIENCE" className="font-bold">Equivalent Experience</SelectItem>
+                              <SelectItem value="BACHELORS" className="font-medium">Bachelor's Degree</SelectItem>
+                              <SelectItem value="DIPLOMA" className="font-medium">Diploma</SelectItem>
+                              <SelectItem value="MASTERS" className="font-medium">Master's Degree</SelectItem>
+                              <SelectItem value="SELF_TAUGHT" className="font-medium">Self-Taught / Bootcamp</SelectItem>
+                              <SelectItem value="EQUIVALENT_EXPERIENCE" className="font-medium">Equivalent Experience</SelectItem>
                            </SelectContent>
                         </Select>
                      </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="font-black text-xs uppercase tracking-widest text-slate-400">Min Experience Years</Label>
+                    <Label className="font-black text-xs uppercase tracking-widest text-slate-500">Min Experience Years</Label>
                     <Input 
                       type="number" 
-                      className="h-14 rounded-2xl border-slate-200 font-bold" 
+                      className="h-14 rounded-2xl border-slate-200 font-medium" 
                       value={formState.minExperienceYears || ''}
                       onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'minExperienceYears', value: e.target.value ? Number(e.target.value) : null })}
                     />
@@ -610,14 +610,14 @@ export default function CreateJobPostPage() {
                 <div className="space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-2">
-                      <Label className="font-black text-xs uppercase tracking-widest text-slate-400">Job Type</Label>
+                      <Label className="font-black text-xs uppercase tracking-widest text-slate-500">Job Type</Label>
                       <Select value={formState.jobType || ''} onValueChange={(v) => dispatch({ type: 'UPDATE_FIELD', field: 'jobType', value: v })}>
                         <SelectTrigger className="h-14 rounded-2xl border-slate-200 font-black">
                           <SelectValue placeholder="Select job type" />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl">
                           {jobTypes.map(t => (
-                            <SelectItem key={t} value={t} className="font-bold">
+                            <SelectItem key={t} value={t} className="font-medium">
                               {t.replace('_', ' ')}
                             </SelectItem>
                           ))}
@@ -625,7 +625,7 @@ export default function CreateJobPostPage() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                       <Label className="font-black text-xs uppercase tracking-widest text-slate-400">Work Type</Label>
+                       <Label className="font-black text-xs uppercase tracking-widest text-slate-500">Work Type</Label>
                        <div className="grid grid-cols-3 gap-4">
                           {workTypes.map(type => (
                              <Button 
@@ -646,33 +646,33 @@ export default function CreateJobPostPage() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                       <Label className="font-black text-xs uppercase tracking-widest text-slate-400">City</Label>
-                       <Input className="h-14 rounded-2xl border-slate-200 font-bold" value={formState.locationCity} onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'locationCity', value: e.target.value })} />
+                       <Label className="font-black text-xs uppercase tracking-widest text-slate-500">City</Label>
+                       <Input className="h-14 rounded-2xl border-slate-200 font-medium" value={formState.locationCity} onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'locationCity', value: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                       <Label className="font-black text-xs uppercase tracking-widest text-slate-400">Country</Label>
-                       <Input className="h-14 rounded-2xl border-slate-200 font-bold" value={formState.locationCountry} onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'locationCountry', value: e.target.value })} />
+                       <Label className="font-black text-xs uppercase tracking-widest text-slate-500">Country</Label>
+                       <Input className="h-14 rounded-2xl border-slate-200 font-medium" value={formState.locationCountry} onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'locationCountry', value: e.target.value })} />
                     </div>
                   </div>
                   <Separator className="bg-slate-100" />
                   <div className="space-y-4">
-                     <Label className="font-black text-xs uppercase tracking-widest text-slate-400">Salary Range & Deadline</Label>
+                     <Label className="font-black text-xs uppercase tracking-widest text-slate-500">Salary Range & Deadline</Label>
                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="relative">
-                           <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                           <Input type="number" className="pl-10 h-14 rounded-2xl border-slate-200 font-bold" placeholder="Min" value={formState.salaryRangeMin || ''} onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'salaryRangeMin', value: e.target.value ? Number(e.target.value) : null })} />
+                           <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                           <Input type="number" className="pl-10 h-14 rounded-2xl border-slate-200 font-medium" placeholder="Min" value={formState.salaryRangeMin || ''} onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'salaryRangeMin', value: e.target.value ? Number(e.target.value) : null })} />
                         </div>
                         <div className="relative">
-                           <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                           <Input type="number" className="pl-10 h-14 rounded-2xl border-slate-200 font-bold" placeholder="Max" value={formState.salaryRangeMax || ''} onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'salaryRangeMax', value: e.target.value ? Number(e.target.value) : null })} />
+                           <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                           <Input type="number" className="pl-10 h-14 rounded-2xl border-slate-200 font-medium" placeholder="Max" value={formState.salaryRangeMax || ''} onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'salaryRangeMax', value: e.target.value ? Number(e.target.value) : null })} />
                         </div>
                         <Input className="h-14 rounded-2xl border-slate-200 font-black uppercase tracking-widest" value={formState.salaryCurrency} onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'salaryCurrency', value: e.target.value })} />
                      </div>
                      <div className="space-y-2">
-                        <Label className="font-black text-xs uppercase tracking-widest text-slate-400">Application Deadline</Label>
+                        <Label className="font-black text-xs uppercase tracking-widest text-slate-500">Application Deadline</Label>
                         <Popover>
                            <PopoverTrigger asChild>
-                              <Button variant="outline" className={cn("w-full h-14 rounded-2xl border-slate-200 font-bold justify-start px-6", !formState.applicationDeadline && "text-slate-400")}>
+                              <Button variant="outline" className={cn("w-full h-14 rounded-2xl border-slate-200 font-medium justify-start px-6", !formState.applicationDeadline && "text-slate-500")}>
                                  <CalendarIcon className="mr-3 h-5 w-5 text-primary" />
                                  {formState.applicationDeadline ? format(new Date(formState.applicationDeadline), "PPP") : "Pick a date"}
                               </Button>
@@ -696,17 +696,17 @@ export default function CreateJobPostPage() {
                 <div className="space-y-8">
                   <div className="space-y-6">
                     <h3 className="text-2xl font-black text-slate-900">Final Review</h3>
-                    <div className="p-8 rounded-[2rem] bg-slate-50 border border-slate-100 space-y-6">
+                    <div className="p-8 rounded-xl-[2rem] bg-slate-50 border border-slate-100 space-y-6">
                        <div className="flex justify-between items-start">
                           <div>
                              <h4 className="text-2xl font-black text-slate-900">{formState.title || 'Job Title'}</h4>
                              <p className="text-primary font-black">{formState.companyName || 'Company'}</p>
                           </div>
-                          <Badge className="bg-primary/10 text-primary border-primary/20 rounded-lg uppercase font-black text-[10px] tracking-widest">
+                          <Badge className="bg-primary/10 text-primary border-primary/20 rounded-xl uppercase font-black text-[10px] tracking-widest">
                              {formState.jobType?.replace('_', ' ')}
                           </Badge>
                        </div>
-                       <div className="flex flex-wrap gap-4 text-sm text-slate-500 font-bold">
+                       <div className="flex flex-wrap gap-4 text-sm text-slate-500 font-medium">
                           <span className="flex items-center gap-1"><MapPin className="h-4 w-4" /> {formState.locationCity}, {formState.locationCountry}</span>
                           <span className="flex items-center gap-1"><Briefcase className="h-4 w-4" /> {formState.experienceLevel?.replace('_', ' ')}</span>
                           <span className="flex items-center gap-1"><DollarSign className="h-4 w-4" /> {formState.salaryRangeMin && formState.salaryRangeMax ? `${formState.salaryRangeMin} - ${formState.salaryRangeMax} ${formState.salaryCurrency}` : 'Confidential'}</span>
@@ -715,24 +715,24 @@ export default function CreateJobPostPage() {
                   </div>
 
                   <div className="space-y-4">
-                     <Label className="font-black text-xs uppercase tracking-widest text-slate-400">Post Settings</Label>
+                     <Label className="font-black text-xs uppercase tracking-widest text-slate-500">Post Settings</Label>
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                           <Label className="font-bold text-xs">Who can see this?</Label>
+                           <Label className="font-medium text-xs">Who can see this?</Label>
                            <Select value={formState.visibility || 'PUBLIC'} onValueChange={(v) => dispatch({ type: 'UPDATE_FIELD', field: 'visibility', value: v })}>
                               <SelectTrigger className="h-14 rounded-2xl border-slate-200 font-black">
                                  <SelectValue />
                               </SelectTrigger>
                               <SelectContent className="rounded-xl">
-                                 <SelectItem value="PUBLIC" className="font-bold italic text-emerald-600">🌎 Public (Everyone)</SelectItem>
-                                 <SelectItem value="PRIVATE" className="font-bold italic text-blue-600">🔒 Private (Link only)</SelectItem>
+                                 <SelectItem value="PUBLIC" className="font-medium italic text-cyan-600">🌎 Public (Everyone)</SelectItem>
+                                 <SelectItem value="PRIVATE" className="font-medium italic text-azure-600">🔒 Private (Link only)</SelectItem>
                               </SelectContent>
                            </Select>
                         </div>
                         {formState.isPeerSourced && (
                            <div className="space-y-2">
-                              <Label className="font-bold text-xs flex items-center gap-1">
-                                 External Source URL <span className="text-red-500">*</span>
+                              <Label className="font-medium text-xs flex items-center gap-1">
+                                 External Source URL <span className="text-danger-500">*</span>
                               </Label>
                               <div className="flex gap-2">
                                  <Input 
@@ -746,7 +746,7 @@ export default function CreateJobPostPage() {
                                    variant="secondary"
                                    className={cn(
                                      "h-14 px-5 rounded-2xl font-black border transition-all",
-                                     isUrlVerified === true ? "border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-100" : 
+                                     isUrlVerified === true ? "border-emerald-200 bg-cyan-50 text-cyan-600 hover:bg-cyan-50" : 
                                      isUrlVerified === false ? "border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100" : 
                                      "border-slate-200 bg-slate-50 hover:bg-slate-100"
                                    )}
@@ -756,7 +756,7 @@ export default function CreateJobPostPage() {
                                    {isVerifyingUrl ? (
                                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
                                    ) : isUrlVerified === true ? (
-                                     <CheckCircle2 className="h-4 w-4 mr-2 text-emerald-600" />
+                                     <CheckCircle2 className="h-4 w-4 mr-2 text-cyan-600" />
                                    ) : isUrlVerified === false ? (
                                      <X className="h-4 w-4 mr-2 text-rose-600" />
                                    ) : (
@@ -766,7 +766,7 @@ export default function CreateJobPostPage() {
                                  </Button>
                               </div>
                               {isUrlVerified === true && (
-                                <p className="text-[10px] font-black text-emerald-600 uppercase tracking-wider mt-1 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                <p className="text-[10px] font-black text-cyan-600 uppercase tracking-wider mt-1 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
                                    <CheckCircle2 className="h-3 w-3" /> Verified Safe by Google Safe Browsing
                                 </p>
                               )}
@@ -775,17 +775,17 @@ export default function CreateJobPostPage() {
                                    <X className="h-3 w-3" /> URL reported as unsafe or invalid!
                                 </p>
                               )}
-                              <p className="text-[10px] font-medium text-slate-400">Must be a direct, verified link to the original job post.</p>
+                              <p className="text-[10px] font-medium text-slate-500">Must be a direct, verified link to the original job post.</p>
                            </div>
                         )}
                      </div>
                   </div>
                   {formState.isPeerSourced && (
-                    <div className="p-6 rounded-[2rem] bg-blue-50 border border-blue-100 flex items-start gap-4">
-                       <Info className="h-6 w-6 text-blue-500 shrink-0 mt-1" />
+                    <div className="p-6 rounded-xl-[2rem] bg-azure-50 border border-azure-100 flex items-start gap-4">
+                       <Info className="h-6 w-6 text-azure-500 shrink-0 mt-1" />
                        <div>
-                          <p className="text-sm font-black text-blue-900 mb-3">Peer-Sourcing Policy</p>
-                          <div className="text-xs font-medium text-blue-700 leading-relaxed space-y-3">
+                          <p className="text-sm font-black text-azure-900 mb-3">Peer-Sourcing Policy</p>
+                          <div className="text-xs font-medium text-azure-700 leading-relaxed space-y-3">
                              <p>This job is being shared from an external source. By posting:</p>
                              <ul className="list-disc pl-4 space-y-2">
                                 <li>You confirm you have the right to share this opportunity.</li>
@@ -814,7 +814,7 @@ export default function CreateJobPostPage() {
               <Button
                 type="button"
                 variant="ghost"
-                className="text-slate-400 hover:text-rose-600 font-black h-14 px-8 rounded-2xl hover:bg-rose-50 transition-all"
+                className="text-slate-500 hover:text-rose-600 font-black h-14 px-8 rounded-2xl hover:bg-rose-50 transition-all"
                 onClick={() => setShowAbandonDialog(true)}
                 disabled={isSubmitting}
               >

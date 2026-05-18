@@ -33,8 +33,11 @@ import {
   AlertTriangle,
   ShieldAlert,
   ShieldX,
-  Megaphone
+  Megaphone,
+  Sun,
+  Moon
 } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
 import { authService } from '@/services/authService';
 import { toast } from 'sonner';
@@ -71,6 +74,39 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const ThemeToggle = () => {
+    if (!mounted) {
+      return (
+        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl border border-transparent">
+          <span className="sr-only">Toggle theme</span>
+        </Button>
+      );
+    }
+    
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border border-transparent"
+        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      >
+        {theme === 'dark' ? (
+          <Sun className="h-4 w-4 text-warning-400 fill-warning-400/20" />
+        ) : (
+          <Moon className="h-4 w-4 text-azure-600 fill-azure-600/10" />
+        )}
+        <span className="sr-only">Toggle theme</span>
+      </Button>
+    );
+  };
+
   // Appeal states
   const [isAppealModalOpen, setIsAppealModalOpen] = useState(false);
   const [appealMessage, setAppealMessage] = useState('');
@@ -94,8 +130,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       '/contact',
       '/verify-email',
       '/reset-password',
-      '/spotlight',
-      '/pricing'
+      '/spotlight'
     ];
     
     if (exactPublics.includes(path)) return true;
@@ -196,37 +231,37 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="text-center mb-6">
             {isBanned ? (
               <>
-                <span className="rounded-lg font-black tracking-widest text-[10px] uppercase bg-red-50 text-red-600 border border-red-100 px-3 py-1.5 mb-4 inline-block">
+                <span className="rounded-xl font-black tracking-widest text-[10px] uppercase bg-danger-50 text-danger-500 border border-danger-100 px-3 py-1.5 mb-4 inline-block">
                   PERMANENTLY BANNED
                 </span>
                 <h1 className="text-4xl font-black tracking-tight text-slate-900">Access Revoked</h1>
-                <p className="text-slate-500 font-bold mt-2">Account Permanently Banned</p>
+                <p className="text-slate-500 font-medium mt-2">Account Permanently Banned</p>
               </>
             ) : (
               <>
-                <span className="rounded-lg font-black tracking-widest text-[10px] uppercase bg-amber-50 text-amber-600 border border-amber-100 px-3 py-1.5 mb-4 inline-block">
+                <span className="rounded-xl font-black tracking-widest text-[10px] uppercase bg-azure-50 text-azure-500 border border-azure-100 px-3 py-1.5 mb-4 inline-block">
                   ACCESS SUSPENDED
                 </span>
                 <h1 className="text-4xl font-black tracking-tight text-slate-900">Access Restricted</h1>
-                <p className="text-slate-500 font-bold mt-2">Account Temporarily Suspended</p>
+                <p className="text-slate-500 font-medium mt-2">Account Temporarily Suspended</p>
               </>
             )}
           </div>
 
-          <Card className="rounded-[2.5rem] border-none shadow-2xl shadow-primary/5 overflow-hidden bg-white">
+          <Card className="rounded-xl-[2.5rem] border-none shadow-2xl shadow-primary/5 overflow-hidden bg-white">
             <CardContent className="p-8 md:p-10 space-y-6">
               <div className={cn(
                 "h-16 w-16 rounded-2xl flex items-center justify-center shadow-sm mx-auto",
-                isBanned ? "bg-red-50 border border-red-100" : "bg-amber-50 border border-amber-100"
+                isBanned ? "bg-danger-50 border border-danger-100" : "bg-azure-50 border border-azure-100"
               )}>
                 {isBanned ? (
-                  <ShieldX className="h-8 w-8 text-red-500" />
+                  <ShieldX className="h-8 w-8 text-danger-500" />
                 ) : (
-                  <AlertTriangle className="h-8 w-8 text-amber-500 animate-pulse" />
+                  <AlertTriangle className="h-8 w-8 text-azure-500 animate-pulse" />
                 )}
               </div>
 
-              <p className="text-slate-500 font-semibold text-center text-sm leading-relaxed">
+              <p className="text-slate-500 font-medium text-center text-sm leading-relaxed">
                 {isBanned ? (
                   "This account has been permanently restricted due to severe community guideline violations or administrative action. Banned accounts are completely deactivated, final, and cannot be appealed."
                 ) : (
@@ -237,30 +272,30 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               {!isBanned && (
                 <>
                   {appealSubmitted ? (
-                    <div className="w-full bg-emerald-50 border border-emerald-100 rounded-2xl p-6 text-center space-y-3 animate-in fade-in duration-300">
-                      <div className="h-10 w-10 bg-emerald-100/50 rounded-full flex items-center justify-center mx-auto">
-                        <ShieldCheck className="h-5 w-5 text-emerald-600" />
+                    <div className="w-full bg-cyan-50 border border-emerald-100 rounded-2xl p-6 text-center space-y-3 animate-in fade-in duration-300">
+                      <div className="h-10 w-10 bg-cyan-50/50 rounded-full flex items-center justify-center mx-auto">
+                        <ShieldCheck className="h-5 w-5 text-cyan-600" />
                       </div>
                       <h3 className="font-black text-slate-950 text-sm">Contestation Received</h3>
-                      <p className="text-xs text-slate-500 font-semibold">
+                      <p className="text-xs text-slate-500 font-medium">
                         Your appeal has been securely dispatched to our moderation team. You will be notified via email once a decision has been reached.
                       </p>
                     </div>
                   ) : (
                     <form onSubmit={handleAppealSubmit} className="space-y-4 mt-4">
                       <div className="space-y-2">
-                        <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400 px-1">Contest Suspension</Label>
+                        <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500 px-1">Contest Suspension</Label>
                         <textarea
                           id="banned-appeal"
                           rows={4}
                           placeholder="Provide context or explain why your account should be reinstated..."
-                          className="w-full rounded-2xl border border-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary p-4 text-sm text-slate-900 placeholder-slate-400 transition-all resize-none bg-slate-50/30"
+                          className="w-full rounded-2xl border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary p-4 text-sm text-slate-900 placeholder-slate-400 transition-all resize-none bg-slate-50/30"
                           value={appealMessage}
                           onChange={(e) => setAppealMessage(e.target.value)}
                           required
                           maxLength={1000}
                         />
-                        <div className="flex justify-between text-[10px] font-black uppercase tracking-wider text-slate-400 px-1">
+                        <div className="flex justify-between text-[10px] font-black uppercase tracking-wider text-slate-500 px-1">
                           <span>Max 1000 characters</span>
                           <span>{appealMessage.length}/1000</span>
                         </div>
@@ -269,7 +304,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       <Button 
                         type="submit" 
                         disabled={isSubmittingAppeal || !appealMessage.trim()}
-                        className="w-full h-14 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 transition-all active:scale-[0.98] bg-amber-500 hover:bg-amber-600 text-white"
+                        className="w-full h-14 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 transition-all active:scale-[0.98] bg-azure-500 hover:bg-azure-500 text-white"
                       >
                         {isSubmittingAppeal ? 'Submitting Appeal...' : 'Submit Appeal'}
                       </Button>
@@ -287,7 +322,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <div className="flex justify-center pt-2">
                 <button 
                   onClick={handleLogout}
-                  className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors"
+                  className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-500 hover:text-slate-700 transition-colors"
                 >
                   <LogOut className="h-4 w-4" /> Sign out
                 </button>
@@ -319,6 +354,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <Suspense fallback={<div className="hidden lg:flex w-[240px] mx-4 h-9" />}>
                 <GlobalSearchBar />
               </Suspense>
+              <ThemeToggle />
               <Button variant="secondary" size="sm" asChild>
                 <Link href="/login">Login</Link>
               </Button>
@@ -382,7 +418,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               key={link.href}
               href={link.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors",
                 isActive 
                   ? "bg-accent text-accent-foreground font-medium" 
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
@@ -398,14 +434,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="p-4 mt-auto border-t border-border">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-3 w-full p-2 rounded-lg hover:bg-accent transition-colors text-left">
+            <button className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-accent transition-colors text-left">
               <Avatar className="h-9 w-9 border border-border">
                 <AvatarFallback className="bg-primary text-primary-foreground">
                   {user?.fullName?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 overflow-hidden">
-                <p className="text-sm font-semibold truncate">{user?.fullName}</p>
+                <p className="text-sm font-medium truncate">{user?.fullName}</p>
                 <p className="text-xs text-muted-foreground truncate">{user?.role}</p>
               </div>
             </button>
@@ -456,7 +492,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6 sticky top-0 z-10">
           <div className="flex items-center gap-4">
             <button 
-              className="md:hidden p-2 -ml-2 rounded-md hover:bg-accent" 
+              className="md:hidden p-2 -ml-2 rounded-2xl hover:bg-accent" 
               onClick={() => setIsSidebarOpen(true)}
             >
               <Menu className="h-5 w-5" />
@@ -487,6 +523,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </Suspense>
 
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <Button variant="ghost" size="icon" className="relative" asChild>
               <Link href="/notifications">
                 <Bell className="h-5 w-5" />
