@@ -36,6 +36,7 @@ import { useAuth } from '@/context/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
+import { apiClient } from '@/lib/api-client';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -78,6 +79,33 @@ export default function NotificationsPage() {
   const { user } = useAuth();
   const { decrementUnreadCount, refreshUnreadCount, clearUnreadCount, latestNotification } = useNotification();
   const router = useRouter();
+
+  const [acceptingIds, setAcceptingIds] = useState<Record<string, boolean>>({});
+  const [acceptedRequests, setAcceptedRequests] = useState<Record<string, boolean>>({});
+
+  const handleAcceptRequest = async (requestId: string, isDeveloper: boolean) => {
+    setAcceptingIds(prev => ({ ...prev, [requestId]: true }));
+    try {
+      const url = isDeveloper
+        ? `/api/v1/employers/contact/requests/${requestId}?status=ACCEPTED`
+        : `/api/v1/employers/inquiries/${requestId}?status=ACCEPTED`;
+      
+      await apiClient.patch<any>(url, {});
+      
+      toast.success('Connection request accepted!');
+      setAcceptedRequests(prev => ({ ...prev, [requestId]: true }));
+      
+      // Trigger real-time chat focus
+      setTimeout(() => {
+        router.push(`/chat?requestId=${requestId}`);
+      }, 500);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || 'Failed to accept request');
+    } finally {
+      setAcceptingIds(prev => ({ ...prev, [requestId]: false }));
+    }
+  };
 
   useEffect(() => {
     fetchNotifications();
@@ -381,6 +409,7 @@ export default function NotificationsPage() {
                 {filteredNotifications.map((n) => {
                   const config = categoryConfig[n.category] || categoryConfig.default;
                   const Icon = config.icon;
+                  const targetId = n.metadata?.requestId || n.metadata?.inquiryId;
 
                   return (
                     <Card
@@ -411,13 +440,35 @@ export default function NotificationsPage() {
                             </span>
                           </div>
 
-                          {n.category !== 'CONTACT' && (
+                          {(n.category !== 'CONTACT' || n.title === 'Contact Request Update') && (
                             <p className={cn(
                               "text-sm font-medium leading-relaxed max-w-2xl",
                               n.isRead ? "text-muted-foreground/70" : "text-muted-foreground"
                             )}>
                               {n.message}
                             </p>
+                          )}
+
+                          {n.category === 'CONTACT' && n.title === 'Contact Request Update' && n.message.toLowerCase().includes('accepted') && (
+                            <div className="mt-4 flex flex-wrap gap-2">
+                              <Button 
+                                size="sm" 
+                                className="h-8 rounded-xl font-medium text-[10px] uppercase gap-1.5 bg-gradient-to-tr from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white shadow-md shadow-sky-500/10 border-none px-4" 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  let meta = n.metadata;
+                                  if (typeof meta === 'string') {
+                                    try { meta = JSON.parse(meta); } catch (err) {}
+                                  }
+                                  const reqId = meta?.requestId;
+                                  if (reqId) {
+                                    router.push(`/chat?requestId=${reqId}&autoAccept=true`);
+                                  }
+                                }}
+                              >
+                                <MessageSquare className="h-3.5 w-3.5" /> Start Chat
+                              </Button>
+                            </div>
                           )}
 
                           {n.category === 'ENDORSEMENT' && n.metadata?.authorDeveloperId && (
@@ -452,6 +503,38 @@ export default function NotificationsPage() {
                                     </Link>
                                   </Button>
                                 ) : null}
+
+                                {targetId && (
+                                  acceptedRequests[targetId] ? (
+                                    <Button
+                                      size="sm"
+                                      className="h-8 rounded-xl font-medium text-[10px] uppercase gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white shadow-md shadow-emerald-500/10 border-none px-4"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        router.push(`/chat?requestId=${targetId}`);
+                                      }}
+                                    >
+                                      <MessageSquare className="h-3.5 w-3.5" /> Connected - Open Chat
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      size="sm"
+                                      className="h-8 rounded-xl font-medium text-[10px] uppercase gap-1.5 bg-gradient-to-tr from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white shadow-md shadow-sky-500/10 border-none px-4"
+                                      disabled={acceptingIds[targetId]}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleAcceptRequest(targetId, user?.role === 'DEVELOPER');
+                                      }}
+                                    >
+                                      {acceptingIds[targetId] ? (
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                      ) : (
+                                        <MessageSquare className="h-3.5 w-3.5" />
+                                      )}
+                                      Accept & Start Chat
+                                    </Button>
+                                  )
+                                )}
                                 {!n.metadata.isSenderBlocked ? (
                                   <Button size="sm" variant="ghost" className="h-8 rounded-xl font-medium text-[10px] uppercase gap-1.5 text-danger-500 hover:text-danger-700 hover:bg-danger-50" onClick={(e) => {
                                     e.stopPropagation();

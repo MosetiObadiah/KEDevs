@@ -66,6 +66,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import Footer from './Footer';
+import ChatSidebar from '@/components/chat/ChatSidebar';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { isLoggedIn, user, logout, refreshUserStatus } = useAuth();
@@ -73,6 +74,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [totalUnreadChats, setTotalUnreadChats] = useState(0);
 
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -389,6 +392,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         { label: 'Jobs', href: '/jobs', icon: Briefcase },
         { label: 'Developers', href: '/developers', icon: Users },
         { label: 'Companies', href: '/companies', icon: Building2 },
+        { label: 'Chat', href: '/chat', icon: MessageSquare },
         { label: 'My Posts', href: '/jobs/my-posts', icon: ClipboardList },
         { label: 'My Applications', href: '/jobs/my-applications', icon: FileText },
         { label: 'Spotlight', href: '/spotlight', icon: Star },
@@ -399,6 +403,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         { label: 'Browse Developers', href: '/developers', icon: Users },
         { label: 'Jobs', href: '/jobs', icon: Briefcase },
         { label: 'Companies', href: '/companies', icon: Building2 },
+        { label: 'Chat', href: '/chat', icon: MessageSquare },
         { label: 'My Job Posts', href: '/jobs/my-posts', icon: ClipboardList },
         { label: 'Spotlight', href: '/spotlight', icon: Star },
         { label: 'Payments', href: '/payments', icon: CreditCard },
@@ -487,6 +492,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </SheetContent>
       </Sheet>
 
+      {/* Real-time Secure Chat Sidebar */}
+      <ChatSidebar open={isChatOpen} onOpenChange={setIsChatOpen} onUnreadChange={setTotalUnreadChats} />
+
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6 sticky top-0 z-10">
@@ -503,6 +511,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   if (pathname === '/developers') return <h1 className="text-xl font-black tracking-tight">Talent <span className="text-primary">Directory</span></h1>;
                   if (pathname === '/companies') return <h1 className="text-xl font-black tracking-tight">Ecosystem <span className="text-primary">Directory</span></h1>;
                   if (pathname === '/notifications') return <h1 className="text-xl font-black tracking-tight text-primary">Notifications</h1>;
+                  if (pathname === '/chat') return <h1 className="text-xl font-black tracking-tight text-primary">Chat Hub</h1>;
                   if (pathname === '/profile/me') return <h1 className="text-xl font-black tracking-tight text-primary">My Profile</h1>;
                   if (pathname.startsWith('/settings')) return <h1 className="text-xl font-black tracking-tight text-primary">Settings</h1>;
                   if (pathname === '/spotlight') return <h1 className="text-xl font-black tracking-tight">Talent <span className="text-primary">Spotlight</span></h1>;
@@ -524,6 +533,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
           <div className="flex items-center gap-3">
             <ThemeToggle />
+            
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative text-muted-foreground hover:text-foreground transition-colors"
+              asChild
+            >
+              <Link href="/chat">
+                <MessageSquare className="h-5 w-5" />
+                {totalUnreadChats > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center text-[10px] bg-sky-500 animate-pulse text-white">
+                    {totalUnreadChats > 9 ? '9+' : totalUnreadChats}
+                  </Badge>
+                )}
+              </Link>
+            </Button>
+
             <Button variant="ghost" size="icon" className="relative" asChild>
               <Link href="/notifications">
                 <Bell className="h-5 w-5" />

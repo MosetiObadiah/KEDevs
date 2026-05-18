@@ -13,6 +13,7 @@ interface NotificationContextType {
   refreshUnreadCount: () => void;
   clearUnreadCount: () => void;
   latestNotification: any | null;
+  stompClient: Client | null;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -107,7 +108,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       incrementUnreadCount: () => setUnreadCount(prev => prev + 1),
       refreshUnreadCount,
       clearUnreadCount: () => setUnreadCount(0),
-      latestNotification
+      latestNotification,
+      stompClient
     }}>
       {children}
     </NotificationContext.Provider>
