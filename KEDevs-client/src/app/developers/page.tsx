@@ -23,8 +23,17 @@ import {
   Flag,
   ChevronDown,
   Plus,
-  X
+  X,
+  SlidersHorizontal
 } from 'lucide-react';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { PageContainer as PageLayoutContainer } from '@/components/layout/PageContainer';
 import { LAYOUT as LAYOUT_CONST, SPACING as SPACING_CONST, TYPOGRAPHY as TYPOGRAPHY_CONST } from '@/lib/constants';
 import { useAuth } from '@/context/AuthContext';
@@ -262,26 +271,316 @@ function DevelopersPageContent() {
     skill.toLowerCase().includes(skillSearch.toLowerCase())
   );
 
+  const renderFilters = () => (
+    <>
+      <div className="space-y-2">
+        <label className="text-xs font-medium text-muted-foreground uppercase">Availability</label>
+        <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
+          {AVAILABILITY_STATUSES.map(avail => (
+            <div key={avail.value} className="flex items-center space-x-2">
+              <Checkbox
+                id={`avail-${avail.value}`}
+                checked={selectedAvails.includes(avail.value)}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setSelectedAvails([...selectedAvails, avail.value]);
+                  } else {
+                    setSelectedAvails(selectedAvails.filter(a => a !== avail.value));
+                  }
+                }}
+              />
+              <Label htmlFor={`avail-${avail.value}`} className="text-xs font-medium cursor-pointer">{avail.label}</Label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-xs font-medium text-muted-foreground uppercase">Experience Level</label>
+        <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
+          {EXPERIENCE_RANGES.map(exp => (
+            <div key={exp.value} className="flex items-center space-x-2">
+              <Checkbox
+                id={`exp-${exp.value}`}
+                checked={selectedExperiences.includes(exp.value)}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setSelectedExperiences([...selectedExperiences, exp.value]);
+                  } else {
+                    setSelectedExperiences(selectedExperiences.filter(e => e !== exp.value));
+                  }
+                }}
+              />
+              <Label htmlFor={`exp-${exp.value}`} className="text-xs font-medium cursor-pointer">{exp.label}</Label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-xs font-medium text-muted-foreground uppercase">Work Preference</label>
+        <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
+          {WORK_TYPES.map(type => (
+            <div key={type.value} className="flex items-center space-x-2">
+              <Checkbox
+                id={`wt-${type.value}`}
+                checked={selectedWorkTypes.includes(type.value)}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setSelectedWorkTypes([...selectedWorkTypes, type.value]);
+                  } else {
+                    setSelectedWorkTypes(selectedWorkTypes.filter(t => t !== type.value));
+                  }
+                }}
+              />
+              <Label htmlFor={`wt-${type.value}`} className="text-xs font-medium cursor-pointer">{type.label}</Label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-xs font-medium text-muted-foreground uppercase">Location</label>
+        <Select value={location} onValueChange={setLocation}>
+          <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-xl">
+            <SelectValue placeholder="Any Location" />
+          </SelectTrigger>
+          <SelectContent className="max-h-60 overflow-y-auto">
+            <SelectItem value="All">Any Location</SelectItem>
+            {uniqueLocations.map(loc => (
+              <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2 relative">
+        <label className="text-xs font-medium text-muted-foreground uppercase">Skills</label>
+
+        {/* Dropdown Trigger */}
+        <div className="relative">
+          <button
+            type="button"
+            className="w-full flex items-center justify-between border border-border/50 bg-background text-xs h-10 px-3 rounded-xl hover:bg-slate-50 transition-all font-medium text-slate-700"
+            onClick={() => setIsSkillsDropdownOpen(!isSkillsDropdownOpen)}
+          >
+            <span className="truncate">
+              {selectedSkills.length === 0
+                ? "Select skills..."
+                : `${selectedSkills.length} skill${selectedSkills.length > 1 ? 's' : ''} selected`}
+            </span>
+            <ChevronDown className="h-4 w-4 text-slate-500 shrink-0 ml-2" />
+          </button>
+
+          {/* Dropdown Menu Overlay */}
+          {isSkillsDropdownOpen && (
+            <>
+              {/* Invisible backdrop to close the dropdown */}
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setIsSkillsDropdownOpen(false)}
+              />
+              <div className="absolute left-0 right-0 mt-1.5 p-3 bg-background border border-border/70 rounded-xl shadow-xl z-20 space-y-3 max-h-[300px] flex flex-col">
+                {/* Search Input */}
+                <div className="relative shrink-0">
+                  <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                  <Input
+                    placeholder="Search or enter custom skill..."
+                    className="pl-8 text-xs h-8.5 rounded-xl border-border/50 focus-visible:ring-primary/20"
+                    value={skillSearch}
+                    onChange={(e) => setSkillSearch(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && skillSearch.trim()) {
+                        e.preventDefault();
+                        const customSkill = skillSearch.trim();
+                        if (!selectedSkills.includes(customSkill)) {
+                          setSelectedSkills([...selectedSkills, customSkill]);
+                        }
+                        setSkillSearch('');
+                      }
+                    }}
+                  />
+                </div>
+
+                {/* Skills List */}
+                <div className="overflow-y-auto flex-1 space-y-1.5 scrollbar-thin pr-1">
+                  {/* Option to add custom skill if search term doesn't match exactly */}
+                  {skillSearch.trim() && !availableSkills.some(s => s.toLowerCase() === skillSearch.trim().toLowerCase()) && (
+                    <button
+                      type="button"
+                      className="w-full flex items-center gap-2 p-2 rounded-xl bg-primary/5 text-primary hover:bg-primary/10 text-xs font-medium text-left transition-colors border border-primary/10"
+                      onClick={() => {
+                        const customSkill = skillSearch.trim();
+                        if (!selectedSkills.includes(customSkill)) {
+                          setSelectedSkills([...selectedSkills, customSkill]);
+                        }
+                        setSkillSearch('');
+                      }}
+                    >
+                      <Plus className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">Add custom skill: "{skillSearch.trim()}"</span>
+                    </button>
+                  )}
+
+                  {filteredSkillsList.length > 0 ? (
+                    filteredSkillsList.map(skill => {
+                      const isChecked = selectedSkills.includes(skill);
+                      return (
+                        <div
+                          key={skill}
+                          className="flex items-center space-x-2 p-1.5 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors"
+                          onClick={() => {
+                            if (isChecked) {
+                              setSelectedSkills(selectedSkills.filter(s => s !== skill));
+                            } else {
+                              setSelectedSkills([...selectedSkills, skill]);
+                            }
+                          }}
+                        >
+                          <Checkbox
+                            id={`skill-filter-${skill}`}
+                            checked={isChecked}
+                            onCheckedChange={() => { }} // handled by div click
+                          />
+                          <label htmlFor={`skill-filter-${skill}`} className="text-xs font-medium text-slate-700 cursor-pointer truncate flex-1 select-none">
+                            {skill}
+                          </label>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    !skillSearch.trim() && (
+                      <p className="text-[10px] text-center text-muted-foreground py-2 font-medium">No skills found.</p>
+                    )
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Render Selected Skills badges below trigger */}
+        {selectedSkills.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {selectedSkills.map(skill => (
+              <Badge
+                key={skill}
+                variant="secondary"
+                className="bg-primary/5 text-primary hover:bg-primary/10 border-primary/10 text-[10px] font-medium px-2 py-0.5 rounded-2xl flex items-center gap-1.5"
+              >
+                {skill}
+                <button
+                  type="button"
+                  onClick={() => setSelectedSkills(selectedSkills.filter(s => s !== skill))}
+                  className="text-primary/70 hover:text-primary transition-colors shrink-0"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-xs font-medium text-muted-foreground uppercase">Languages</label>
+        <div className="flex flex-wrap gap-1 mb-2 max-h-24 overflow-y-auto p-1 bg-muted/5 rounded-xl border border-border/20">
+          {Array.from(new Set(devs.flatMap(d => d.languages || []))).sort().map(lang => (
+            <Badge
+              key={lang}
+              variant={selectedLanguages.includes(lang) ? "default" : "outline"}
+              className={cn(
+                "text-[9px] cursor-pointer transition-all",
+                selectedLanguages.includes(lang) ? "bg-primary text-primary-foreground" : "hover:bg-primary/5"
+              )}
+              onClick={() => {
+                if (selectedLanguages.includes(lang)) {
+                  setSelectedLanguages(selectedLanguages.filter(l => l !== lang));
+                } else {
+                  setSelectedLanguages([...selectedLanguages, lang]);
+                }
+              }}
+            >
+              {lang}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-card shadow-inner">
+        <div className="space-y-0.5">
+          <Label htmlFor="verified" className="text-sm font-medium cursor-pointer">Verified Only</Label>
+          <p className="text-[10px] text-muted-foreground">Show only verified profiles</p>
+        </div>
+        <Checkbox
+          id="verified"
+          checked={isVerifiedOnly}
+          onCheckedChange={(checked) => setIsVerifiedOnly(checked as boolean)}
+        />
+      </div>
+
+      {(searchTerm || selectedAvails.length > 0 || selectedWorkTypes.length > 0 || selectedExperiences.length > 0 || location !== 'All' || selectedSkills.length > 0 || isVerifiedOnly) && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full text-xs font-medium text-muted-foreground mt-2"
+          onClick={() => {
+            router.push(pathname);
+            setSelectedAvails([]);
+            setSelectedWorkTypes([]);
+            setSelectedExperiences([]);
+            setSelectedSkills([]);
+            setLocation('All');
+            setIsVerifiedOnly(false);
+          }}
+        >
+          <FilterX className="mr-2 h-3.5 w-3.5" /> Reset Filters
+        </Button>
+      )}
+    </>
+  );
+
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
       <PageLayoutContainer className="max-w-full px-8 xl:px-16">
-        <div className="flex justify-end items-center gap-3 mb-8 print:hidden">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-6" disabled={isExporting}>
-                <Download className="mr-2 h-4 w-4 text-primary" />
-                {isExporting ? 'Exporting...' : 'Export'}
+        <div className="flex justify-between items-center mb-8 print:hidden gap-3">
+          {/* Mobile Filter Button */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="lg:hidden font-medium border-primary/20 hover:bg-primary/5 h-12 px-5 shrink-0">
+                <SlidersHorizontal className="mr-2 h-4 w-4 text-primary" />
+                Filters
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium">
-                <FileSpreadsheet className="mr-2 h-4 w-4" /> Download as CSV
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium">
-                <FileText className="mr-2 h-4 w-4" /> Download as PDF
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[300px] sm:w-[350px] p-0 overflow-y-auto">
+              <SheetHeader className="p-6 pb-2 text-left">
+                <SheetTitle>Filter Developers</SheetTitle>
+                <SheetDescription className="sr-only">Choose options to narrow down developer listings.</SheetDescription>
+              </SheetHeader>
+              <div className="p-6 pt-0 space-y-6">
+                {renderFilters()}
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          <div className="flex items-center gap-3 ml-auto shrink-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-6" disabled={isExporting}>
+                  <Download className="mr-2 h-4 w-4 text-primary" />
+                  {isExporting ? 'Exporting...' : 'Export'}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium">
+                  <FileSpreadsheet className="mr-2 h-4 w-4" /> Download as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium">
+                  <FileText className="mr-2 h-4 w-4" /> Download as PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         <div className="hidden print:block mb-8 border-b pb-4">
@@ -290,278 +589,14 @@ function DevelopersPageContent() {
         </div>
 
         <div className={cn("grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-5 items-start", SPACING_CONST.cards)}>
-          {/* Filters Sidebar */}
-          <aside className="lg:col-span-1 space-y-6 print:hidden sticky top-24 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent pr-1">
+          {/* Filters Sidebar (Desktop) */}
+          <aside className="hidden lg:block lg:col-span-1 space-y-6 print:hidden sticky top-24 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent pr-1">
             <Card className="border-border/50 shadow-sm">
               <CardHeader className="pb-4">
                 <h3 className="text-sm font-medium uppercase tracking-wider text-foreground">Filter Developers</h3>
               </CardHeader>
               <CardContent className="space-y-6">
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground uppercase">Availability</label>
-                  <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
-                    {AVAILABILITY_STATUSES.map(avail => (
-                      <div key={avail.value} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`avail-${avail.value}`}
-                          checked={selectedAvails.includes(avail.value)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedAvails([...selectedAvails, avail.value]);
-                            } else {
-                              setSelectedAvails(selectedAvails.filter(a => a !== avail.value));
-                            }
-                          }}
-                        />
-                        <Label htmlFor={`avail-${avail.value}`} className="text-xs font-medium cursor-pointer">{avail.label}</Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground uppercase">Experience Level</label>
-                  <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
-                    {EXPERIENCE_RANGES.map(exp => (
-                      <div key={exp.value} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`exp-${exp.value}`}
-                          checked={selectedExperiences.includes(exp.value)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedExperiences([...selectedExperiences, exp.value]);
-                            } else {
-                              setSelectedExperiences(selectedExperiences.filter(e => e !== exp.value));
-                            }
-                          }}
-                        />
-                        <Label htmlFor={`exp-${exp.value}`} className="text-xs font-medium cursor-pointer">{exp.label}</Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground uppercase">Work Preference</label>
-                  <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
-                    {WORK_TYPES.map(type => (
-                      <div key={type.value} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`wt-${type.value}`}
-                          checked={selectedWorkTypes.includes(type.value)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedWorkTypes([...selectedWorkTypes, type.value]);
-                            } else {
-                              setSelectedWorkTypes(selectedWorkTypes.filter(t => t !== type.value));
-                            }
-                          }}
-                        />
-                        <Label htmlFor={`wt-${type.value}`} className="text-xs font-medium cursor-pointer">{type.label}</Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground uppercase">Location</label>
-                  <Select value={location} onValueChange={setLocation}>
-                    <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-xl">
-                      <SelectValue placeholder="Any Location" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-60 overflow-y-auto">
-                      <SelectItem value="All">Any Location</SelectItem>
-                      {uniqueLocations.map(loc => (
-                        <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2 relative">
-                  <label className="text-xs font-medium text-muted-foreground uppercase">Skills</label>
-
-                  {/* Dropdown Trigger */}
-                  <div className="relative">
-                    <button
-                      type="button"
-                      className="w-full flex items-center justify-between border border-border/50 bg-background text-xs h-10 px-3 rounded-xl hover:bg-slate-50 transition-all font-medium text-slate-700"
-                      onClick={() => setIsSkillsDropdownOpen(!isSkillsDropdownOpen)}
-                    >
-                      <span className="truncate">
-                        {selectedSkills.length === 0
-                          ? "Select skills..."
-                          : `${selectedSkills.length} skill${selectedSkills.length > 1 ? 's' : ''} selected`}
-                      </span>
-                      <ChevronDown className="h-4 w-4 text-slate-500 shrink-0 ml-2" />
-                    </button>
-
-                    {/* Dropdown Menu Overlay */}
-                    {isSkillsDropdownOpen && (
-                      <>
-                        {/* Invisible backdrop to close the dropdown */}
-                        <div
-                          className="fixed inset-0 z-10"
-                          onClick={() => setIsSkillsDropdownOpen(false)}
-                        />
-                        <div className="absolute left-0 right-0 mt-1.5 p-3 bg-background border border-border/70 rounded-xl shadow-xl z-20 space-y-3 max-h-[300px] flex flex-col">
-                          {/* Search Input */}
-                          <div className="relative shrink-0">
-                            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-                            <Input
-                              placeholder="Search or enter custom skill..."
-                              className="pl-8 text-xs h-8.5 rounded-xl border-border/50 focus-visible:ring-primary/20"
-                              value={skillSearch}
-                              onChange={(e) => setSkillSearch(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' && skillSearch.trim()) {
-                                  e.preventDefault();
-                                  const customSkill = skillSearch.trim();
-                                  if (!selectedSkills.includes(customSkill)) {
-                                    setSelectedSkills([...selectedSkills, customSkill]);
-                                  }
-                                  setSkillSearch('');
-                                }
-                              }}
-                            />
-                          </div>
-
-                          {/* Skills List */}
-                          <div className="overflow-y-auto flex-1 space-y-1.5 scrollbar-thin pr-1">
-                            {/* Option to add custom skill if search term doesn't match exactly */}
-                            {skillSearch.trim() && !availableSkills.some(s => s.toLowerCase() === skillSearch.trim().toLowerCase()) && (
-                              <button
-                                type="button"
-                                className="w-full flex items-center gap-2 p-2 rounded-xl bg-primary/5 text-primary hover:bg-primary/10 text-xs font-medium text-left transition-colors border border-primary/10"
-                                onClick={() => {
-                                  const customSkill = skillSearch.trim();
-                                  if (!selectedSkills.includes(customSkill)) {
-                                    setSelectedSkills([...selectedSkills, customSkill]);
-                                  }
-                                  setSkillSearch('');
-                                }}
-                              >
-                                <Plus className="h-3.5 w-3.5 shrink-0" />
-                                <span className="truncate">Add custom skill: "{skillSearch.trim()}"</span>
-                              </button>
-                            )}
-
-                            {filteredSkillsList.length > 0 ? (
-                              filteredSkillsList.map(skill => {
-                                const isChecked = selectedSkills.includes(skill);
-                                return (
-                                  <div
-                                    key={skill}
-                                    className="flex items-center space-x-2 p-1.5 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors"
-                                    onClick={() => {
-                                      if (isChecked) {
-                                        setSelectedSkills(selectedSkills.filter(s => s !== skill));
-                                      } else {
-                                        setSelectedSkills([...selectedSkills, skill]);
-                                      }
-                                    }}
-                                  >
-                                    <Checkbox
-                                      id={`skill-filter-${skill}`}
-                                      checked={isChecked}
-                                      onCheckedChange={() => { }} // handled by div click
-                                    />
-                                    <label htmlFor={`skill-filter-${skill}`} className="text-xs font-medium text-slate-700 cursor-pointer truncate flex-1 select-none">
-                                      {skill}
-                                    </label>
-                                  </div>
-                                );
-                              })
-                            ) : (
-                              !skillSearch.trim() && (
-                                <p className="text-[10px] text-center text-muted-foreground py-2 font-medium">No skills found.</p>
-                              )
-                            )}
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Render Selected Skills badges below trigger */}
-                  {selectedSkills.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {selectedSkills.map(skill => (
-                        <Badge
-                          key={skill}
-                          variant="secondary"
-                          className="bg-primary/5 text-primary hover:bg-primary/10 border-primary/10 text-[10px] font-medium px-2 py-0.5 rounded-2xl flex items-center gap-1.5"
-                        >
-                          {skill}
-                          <button
-                            type="button"
-                            onClick={() => setSelectedSkills(selectedSkills.filter(s => s !== skill))}
-                            className="text-primary/70 hover:text-primary transition-colors shrink-0"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground uppercase">Languages</label>
-                  <div className="flex flex-wrap gap-1 mb-2 max-h-24 overflow-y-auto p-1 bg-muted/5 rounded-xl border border-border/20">
-                    {Array.from(new Set(devs.flatMap(d => d.languages || []))).sort().map(lang => (
-                      <Badge
-                        key={lang}
-                        variant={selectedLanguages.includes(lang) ? "default" : "outline"}
-                        className={cn(
-                          "text-[9px] cursor-pointer transition-all",
-                          selectedLanguages.includes(lang) ? "bg-primary text-primary-foreground" : "hover:bg-primary/5"
-                        )}
-                        onClick={() => {
-                          if (selectedLanguages.includes(lang)) {
-                            setSelectedLanguages(selectedLanguages.filter(l => l !== lang));
-                          } else {
-                            setSelectedLanguages([...selectedLanguages, lang]);
-                          }
-                        }}
-                      >
-                        {lang}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-card shadow-inner">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="verified" className="text-sm font-medium cursor-pointer">Verified Only</Label>
-                    <p className="text-[10px] text-muted-foreground">Show only verified profiles</p>
-                  </div>
-                  <Checkbox
-                    id="verified"
-                    checked={isVerifiedOnly}
-                    onCheckedChange={(checked) => setIsVerifiedOnly(checked as boolean)}
-                  />
-                </div>
-
-                {(searchTerm || selectedAvails.length > 0 || selectedWorkTypes.length > 0 || selectedExperiences.length > 0 || location !== 'All' || selectedSkills.length > 0 || isVerifiedOnly) && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full text-xs font-medium text-muted-foreground mt-2"
-                    onClick={() => {
-                      router.push(pathname);
-                      setSelectedAvails([]);
-                      setSelectedWorkTypes([]);
-                      setSelectedExperiences([]);
-                      setSelectedSkills([]);
-                      setLocation('All');
-                      setIsVerifiedOnly(false);
-                    }}
-                  >
-                    <FilterX className="mr-2 h-3.5 w-3.5" /> Reset Filters
-                  </Button>
-                )}
+                {renderFilters()}
               </CardContent>
             </Card>
           </aside>

@@ -25,8 +25,17 @@ import {
   DollarSign,
   PinOff,
   ChevronDown,
-  X
+  X,
+  SlidersHorizontal
 } from 'lucide-react';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -395,34 +404,387 @@ function JobsPageContent() {
     return type.charAt(0) + type.slice(1).toLowerCase();
   };
 
+  const renderFilters = () => (
+    <>
+      <div className="space-y-2">
+        <label className="text-xs font-medium text-muted-foreground uppercase">Work Arrangements</label>
+        <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
+          {WORK_TYPES.map(type => (
+            <div key={type.value} className="flex items-center space-x-2">
+              <Checkbox
+                id={`wt-${type.value}`}
+                checked={selectedWorkTypes.includes(type.value)}
+                onCheckedChange={(checked) => {
+                  if (checked) setSelectedWorkTypes([...selectedWorkTypes, type.value]);
+                  else setSelectedWorkTypes(selectedWorkTypes.filter(t => t !== type.value));
+                }}
+              />
+              <Label htmlFor={`wt-${type.value}`} className="text-xs font-medium cursor-pointer">{type.label}</Label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-xs font-medium text-muted-foreground uppercase">Job Types</label>
+        <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
+          {JOB_TYPES.map(type => (
+            <div key={type.value} className="flex items-center space-x-2">
+              <Checkbox
+                id={`jt-${type.value}`}
+                checked={selectedJobTypes.includes(type.value)}
+                onCheckedChange={(checked) => {
+                  if (checked) setSelectedJobTypes([...selectedJobTypes, type.value]);
+                  else setSelectedJobTypes(selectedJobTypes.filter(t => t !== type.value));
+                }}
+              />
+              <Label htmlFor={`jt-${type.value}`} className="text-xs font-medium cursor-pointer">{type.label}</Label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-xs font-medium text-muted-foreground uppercase">Experience Levels</label>
+        <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
+          {EXPERIENCE_LEVELS.map(level => (
+            <div key={level.value} className="flex items-center space-x-2">
+              <Checkbox
+                id={`el-${level.value}`}
+                checked={selectedExpLevels.includes(level.value)}
+                onCheckedChange={(checked) => {
+                  if (checked) setSelectedExpLevels([...selectedExpLevels, level.value]);
+                  else setSelectedExpLevels(selectedExpLevels.filter(t => t !== level.value));
+                }}
+              />
+              <Label htmlFor={`el-${level.value}`} className="text-xs font-medium cursor-pointer">{level.label}</Label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-xs font-medium text-muted-foreground uppercase">Location</label>
+        <Select value={city} onValueChange={setCity}>
+          <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-xl">
+            <SelectValue placeholder="Any Location" />
+          </SelectTrigger>
+          <SelectContent className="max-h-60 overflow-y-auto">
+            <SelectItem value="All">Any Location</SelectItem>
+            {uniqueCities.map(loc => (
+              <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2 relative">
+        <label className="text-xs font-medium text-muted-foreground uppercase">Skills</label>
+
+        {/* Dropdown Trigger */}
+        <div className="relative">
+          <button
+            type="button"
+            className="w-full flex items-center justify-between border border-border/50 bg-background text-xs h-9 px-3 rounded-xl hover:bg-slate-50 transition-all font-medium text-slate-700"
+            onClick={() => setIsSkillsDropdownOpen(!isSkillsDropdownOpen)}
+          >
+            <span className="truncate text-left flex-1">
+              {selectedSkills.length === 0
+                ? "Select skills..."
+                : `${selectedSkills.length} skill${selectedSkills.length > 1 ? 's' : ''} selected`}
+            </span>
+            <ChevronDown className="h-4 w-4 text-slate-500 shrink-0 ml-2" />
+          </button>
+
+          {/* Dropdown Menu Overlay */}
+          {isSkillsDropdownOpen && (
+            <>
+              {/* Invisible backdrop to close the dropdown */}
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setIsSkillsDropdownOpen(false)}
+              />
+              <div className="absolute left-0 right-0 mt-1.5 p-3 bg-background border border-border/70 rounded-xl shadow-xl z-20 space-y-3 max-h-[300px] flex flex-col">
+                {/* Search Input */}
+                <div className="relative shrink-0">
+                  <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                  <Input
+                    placeholder="Search or enter custom skill..."
+                    className="pl-8 text-xs h-8 rounded-xl border-border/50 focus-visible:ring-primary/20"
+                    value={skillSearch}
+                    onChange={(e) => setSkillSearch(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && skillSearch.trim()) {
+                        e.preventDefault();
+                        const customSkill = skillSearch.trim();
+                        if (!selectedSkills.includes(customSkill)) {
+                          setSelectedSkills([...selectedSkills, customSkill]);
+                        }
+                        setSkillSearch('');
+                      }
+                    }}
+                  />
+                </div>
+
+                {/* Skills List */}
+                <div className="overflow-y-auto flex-1 space-y-1.5 scrollbar-thin pr-1">
+                  {/* Option to add custom skill if search term doesn't match exactly */}
+                  {skillSearch.trim() && !availableSkills.some(s => s.toLowerCase() === skillSearch.trim().toLowerCase()) && (
+                    <button
+                      type="button"
+                      className="w-full flex items-center gap-2 p-2 rounded-xl bg-primary/5 text-primary hover:bg-primary/10 text-xs font-medium text-left transition-colors border border-primary/10"
+                      onClick={() => {
+                        const customSkill = skillSearch.trim();
+                        if (!selectedSkills.includes(customSkill)) {
+                          setSelectedSkills([...selectedSkills, customSkill]);
+                        }
+                        setSkillSearch('');
+                      }}
+                    >
+                      <Plus className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">Add custom skill: &quot;{skillSearch.trim()}&quot;</span>
+                    </button>
+                  )}
+
+                  {filteredSkillsList.length > 0 ? (
+                    filteredSkillsList.map(skill => {
+                      const isChecked = selectedSkills.includes(skill);
+                      return (
+                        <div
+                          key={skill}
+                          className="flex items-center space-x-2 p-1.5 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors"
+                          onClick={() => {
+                            if (isChecked) {
+                              setSelectedSkills(selectedSkills.filter(s => s !== skill));
+                            } else {
+                              setSelectedSkills([...selectedSkills, skill]);
+                            }
+                          }}
+                        >
+                          <Checkbox
+                            id={`skill-${skill}`}
+                            checked={isChecked}
+                            onCheckedChange={() => {}} // handled by parent click
+                          />
+                          <Label htmlFor={`skill-${skill}`} className="text-xs font-medium cursor-pointer flex-1 py-0.5 truncate">{skill}</Label>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    !skillSearch.trim() && (
+                      <p className="text-[10px] text-muted-foreground text-center py-4">No skills available. Type to add custom.</p>
+                    )
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Render Selected Skills badges below trigger */}
+        {selectedSkills.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {selectedSkills.map(skill => (
+              <Badge
+                key={skill}
+                variant="secondary"
+                className="bg-primary/5 text-primary hover:bg-primary/10 border-primary/10 text-[10px] font-medium px-2 py-0.5 rounded-2xl flex items-center gap-1.5"
+              >
+                {skill}
+                <button
+                  type="button"
+                  onClick={() => setSelectedSkills(selectedSkills.filter(s => s !== skill))}
+                  className="text-primary/70 hover:text-primary transition-colors shrink-0"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-xs font-medium text-muted-foreground uppercase">Qualification & Exp</label>
+        <div className="space-y-2">
+          <Select value={minQualification || 'All'} onValueChange={(val) => setMinQualification(val === 'All' ? '' : val)}>
+            <SelectTrigger className="text-xs h-9 rounded-xl">
+              <SelectValue placeholder="Any Qualification" />
+            </SelectTrigger>
+            <SelectContent className="max-h-60 overflow-y-auto">
+              <SelectItem value="All">Any Qualification</SelectItem>
+              {metadata.qualifications.map(q => (
+                <SelectItem key={q} value={q}>{q}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={minExperienceYears || 'All'} onValueChange={(val) => setMinExperienceYears(val === 'All' ? '' : val)}>
+            <SelectTrigger className="text-xs h-9 rounded-xl">
+              <SelectValue placeholder="Any Experience" />
+            </SelectTrigger>
+            <SelectContent className="max-h-60 overflow-y-auto">
+              <SelectItem value="All">Any Experience</SelectItem>
+              {metadata.experienceYears.map(exp => (
+                <SelectItem key={exp.toString()} value={exp.toString()}>{exp} Years</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-xs font-medium text-muted-foreground uppercase">Application Deadline</label>
+        <div className="flex flex-col gap-3 bg-muted/10 p-3 rounded-xl">
+          <div className="space-y-1">
+            <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">From Date</Label>
+            <Input
+              type="date"
+              className="text-xs border-border/50 h-9 rounded-xl focus-visible:ring-primary/20"
+              value={deadlineFrom}
+              onChange={(e) => setDeadlineFrom(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">To Date</Label>
+            <Input
+              type="date"
+              className="text-xs border-border/50 h-9 rounded-xl focus-visible:ring-primary/20"
+              value={deadlineTo}
+              onChange={(e) => setDeadlineTo(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-xs font-medium text-muted-foreground uppercase">Advanced</label>
+        <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="peer-sourced"
+              checked={isPeerSourced === true}
+              onCheckedChange={(checked) => setIsPeerSourced(checked ? true : null)}
+            />
+            <Label htmlFor="peer-sourced" className="text-xs font-medium cursor-pointer">Peer Sourced Only</Label>
+          </div>
+          <div className="pt-2">
+            <Label className="text-[10px] text-muted-foreground">Min Upvotes</Label>
+            <Input
+              type="number"
+              placeholder="e.g. 5"
+              className="text-xs border-border/50 h-8 mt-1"
+              value={minUpvotes}
+              onChange={(e) => setMinUpvotes(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-xs font-medium text-muted-foreground uppercase">Job Status</label>
+        <Select value={status} onValueChange={setStatus}>
+          <SelectTrigger className="text-xs h-9 rounded-xl w-full">
+            <SelectValue placeholder="Filter by Status" />
+          </SelectTrigger>
+          <SelectContent className="max-h-60 overflow-y-auto">
+            <SelectItem value="OPEN">Open Only</SelectItem>
+            <SelectItem value="CLOSED">Closed Only</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2 border-t pt-4">
+        <label className="text-xs font-medium text-muted-foreground uppercase">Order Results By</label>
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-xl">
+            <SelectValue placeholder="Newest First" />
+          </SelectTrigger>
+          <SelectContent className="max-h-60 overflow-y-auto">
+            <SelectItem value="newest">Newest First</SelectItem>
+            <SelectItem value="upvotes">Most Upvoted</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {(searchTerm || selectedWorkTypes.length > 0 || selectedJobTypes.length > 0 || selectedExpLevels.length > 0 || city !== 'All' || minSalary || maxSalary || minQualification || minExperienceYears || deadlineFrom || deadlineTo || isPeerSourced !== null || minUpvotes || status !== 'OPEN' || selectedSkills.length > 0) && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full text-xs font-medium text-muted-foreground mt-2"
+          onClick={() => {
+            router.push(pathname);
+            setSelectedWorkTypes([]);
+            setSelectedJobTypes([]);
+            setSelectedExpLevels([]);
+            setCity('All');
+            setMinSalary('');
+            setMaxSalary('');
+            setMinQualification('');
+            setMinExperienceYears('');
+            setDeadlineFrom('');
+            setDeadlineTo('');
+            setIsPeerSourced(null);
+            setMinUpvotes('');
+            setStatus('OPEN');
+            setSelectedSkills([]);
+          }}
+        >
+          <FilterX className="mr-2 h-3.5 w-3.5" /> Reset Filters
+        </Button>
+      )}
+    </>
+  );
+
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
       <PageContainer className="max-w-full px-8 xl:px-16">
-        <div className="flex justify-end items-center gap-3 mb-8 print:hidden">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-6" disabled={isExporting}>
-                <Download className="mr-2 h-4 w-4 text-primary" />
-                {isExporting ? 'Exporting...' : 'Export'}
+        <div className="flex justify-between items-center mb-8 print:hidden gap-3">
+          {/* Mobile Filter Button */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="lg:hidden font-medium border-primary/20 hover:bg-primary/5 h-12 px-5 shrink-0">
+                <SlidersHorizontal className="mr-2 h-4 w-4 text-primary" />
+                Filters
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium">
-                <FileSpreadsheet className="mr-2 h-4 w-4" /> Download as CSV
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium">
-                <FileText className="mr-2 h-4 w-4" /> Download as PDF
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[300px] sm:w-[350px] p-0 overflow-y-auto">
+              <SheetHeader className="p-6 pb-2 text-left">
+                <SheetTitle>Filter Jobs</SheetTitle>
+                <SheetDescription className="sr-only">Choose options to narrow down job postings.</SheetDescription>
+              </SheetHeader>
+              <div className="p-6 pt-0 space-y-6">
+                {renderFilters()}
+              </div>
+            </SheetContent>
+          </Sheet>
 
-          {isLoggedIn && (
-            <Button className="h-12 px-6 font-medium shadow-lg shadow-primary/20" asChild>
-              <Link href="/jobs/post">
-                <Plus className="mr-2 h-5 w-5" /> Post a Job
-              </Link>
-            </Button>
-          )}
+          <div className="flex items-center gap-3 ml-auto shrink-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-6" disabled={isExporting}>
+                  <Download className="mr-2 h-4 w-4 text-primary" />
+                  {isExporting ? 'Exporting...' : 'Export'}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium">
+                  <FileSpreadsheet className="mr-2 h-4 w-4" /> Download as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium">
+                  <FileText className="mr-2 h-4 w-4" /> Download as PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {isLoggedIn && (
+              <Button className="h-12 px-6 font-medium shadow-lg shadow-primary/20" asChild>
+                <Link href="/jobs/post">
+                  <Plus className="mr-2 h-5 w-5" /> Post a Job
+                </Link>
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="hidden print:block mb-8 border-b pb-4">
@@ -431,341 +793,14 @@ function JobsPageContent() {
         </div>
 
         <div className={cn("grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-5 items-start", SPACING.cards)}>
-          {/* Filters Sidebar */}
-          <aside className="lg:col-span-1 space-y-6 print:hidden sticky top-24 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent pr-1">
+          {/* Filters Sidebar (Desktop) */}
+          <aside className="hidden lg:block lg:col-span-1 space-y-6 print:hidden sticky top-24 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent pr-1">
             <Card className="border-border/50 shadow-sm">
               <CardHeader className="pb-4">
                 <h3 className="text-sm font-medium uppercase tracking-wider text-foreground">Filter Jobs</h3>
               </CardHeader>
               <CardContent className="space-y-6">
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground uppercase">Work Arrangements</label>
-                  <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
-                    {WORK_TYPES.map(type => (
-                      <div key={type.value} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`wt-${type.value}`}
-                          checked={selectedWorkTypes.includes(type.value)}
-                          onCheckedChange={(checked) => {
-                            if (checked) setSelectedWorkTypes([...selectedWorkTypes, type.value]);
-                            else setSelectedWorkTypes(selectedWorkTypes.filter(t => t !== type.value));
-                          }}
-                        />
-                        <Label htmlFor={`wt-${type.value}`} className="text-xs font-medium cursor-pointer">{type.label}</Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground uppercase">Job Types</label>
-                  <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
-                    {JOB_TYPES.map(type => (
-                      <div key={type.value} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`jt-${type.value}`}
-                          checked={selectedJobTypes.includes(type.value)}
-                          onCheckedChange={(checked) => {
-                            if (checked) setSelectedJobTypes([...selectedJobTypes, type.value]);
-                            else setSelectedJobTypes(selectedJobTypes.filter(t => t !== type.value));
-                          }}
-                        />
-                        <Label htmlFor={`jt-${type.value}`} className="text-xs font-medium cursor-pointer">{type.label}</Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground uppercase">Experience Levels</label>
-                  <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
-                    {EXPERIENCE_LEVELS.map(level => (
-                      <div key={level.value} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`el-${level.value}`}
-                          checked={selectedExpLevels.includes(level.value)}
-                          onCheckedChange={(checked) => {
-                            if (checked) setSelectedExpLevels([...selectedExpLevels, level.value]);
-                            else setSelectedExpLevels(selectedExpLevels.filter(t => t !== level.value));
-                          }}
-                        />
-                        <Label htmlFor={`el-${level.value}`} className="text-xs font-medium cursor-pointer">{level.label}</Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground uppercase">Location</label>
-                  <Select value={city} onValueChange={setCity}>
-                    <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-xl">
-                      <SelectValue placeholder="Any Location" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-60 overflow-y-auto">
-                      <SelectItem value="All">Any Location</SelectItem>
-                      {uniqueCities.map(loc => (
-                        <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2 relative">
-                  <label className="text-xs font-medium text-muted-foreground uppercase">Skills</label>
-
-                  {/* Dropdown Trigger */}
-                  <div className="relative">
-                    <button
-                      type="button"
-                      className="w-full flex items-center justify-between border border-border/50 bg-background text-xs h-9 px-3 rounded-xl hover:bg-slate-50 transition-all font-medium text-slate-700"
-                      onClick={() => setIsSkillsDropdownOpen(!isSkillsDropdownOpen)}
-                    >
-                      <span className="truncate text-left flex-1">
-                        {selectedSkills.length === 0
-                          ? "Select skills..."
-                          : `${selectedSkills.length} skill${selectedSkills.length > 1 ? 's' : ''} selected`}
-                      </span>
-                      <ChevronDown className="h-4 w-4 text-slate-500 shrink-0 ml-2" />
-                    </button>
-
-                    {/* Dropdown Menu Overlay */}
-                    {isSkillsDropdownOpen && (
-                      <>
-                        {/* Invisible backdrop to close the dropdown */}
-                        <div
-                          className="fixed inset-0 z-10"
-                          onClick={() => setIsSkillsDropdownOpen(false)}
-                        />
-                        <div className="absolute left-0 right-0 mt-1.5 p-3 bg-background border border-border/70 rounded-xl shadow-xl z-20 space-y-3 max-h-[300px] flex flex-col">
-                          {/* Search Input */}
-                          <div className="relative shrink-0">
-                            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-                            <Input
-                              placeholder="Search or enter custom skill..."
-                              className="pl-8 text-xs h-8 rounded-xl border-border/50 focus-visible:ring-primary/20"
-                              value={skillSearch}
-                              onChange={(e) => setSkillSearch(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' && skillSearch.trim()) {
-                                  e.preventDefault();
-                                  const customSkill = skillSearch.trim();
-                                  if (!selectedSkills.includes(customSkill)) {
-                                    setSelectedSkills([...selectedSkills, customSkill]);
-                                  }
-                                  setSkillSearch('');
-                                }
-                              }}
-                            />
-                          </div>
-
-                          {/* Skills List */}
-                          <div className="overflow-y-auto flex-1 space-y-1.5 scrollbar-thin pr-1">
-                            {/* Option to add custom skill if search term doesn't match exactly */}
-                            {skillSearch.trim() && !availableSkills.some(s => s.toLowerCase() === skillSearch.trim().toLowerCase()) && (
-                              <button
-                                type="button"
-                                className="w-full flex items-center gap-2 p-2 rounded-xl bg-primary/5 text-primary hover:bg-primary/10 text-xs font-medium text-left transition-colors border border-primary/10"
-                                onClick={() => {
-                                  const customSkill = skillSearch.trim();
-                                  if (!selectedSkills.includes(customSkill)) {
-                                    setSelectedSkills([...selectedSkills, customSkill]);
-                                  }
-                                  setSkillSearch('');
-                                }}
-                              >
-                                <Plus className="h-3.5 w-3.5 shrink-0" />
-                                <span className="truncate">Add custom skill: &quot;{skillSearch.trim()}&quot;</span>
-                              </button>
-                            )}
-
-                            {filteredSkillsList.length > 0 ? (
-                              filteredSkillsList.map(skill => {
-                                const isChecked = selectedSkills.includes(skill);
-                                return (
-                                  <div
-                                    key={skill}
-                                    className="flex items-center space-x-2 p-1.5 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors"
-                                    onClick={() => {
-                                      if (isChecked) {
-                                        setSelectedSkills(selectedSkills.filter(s => s !== skill));
-                                      } else {
-                                        setSelectedSkills([...selectedSkills, skill]);
-                                      }
-                                    }}
-                                  >
-                                    <Checkbox
-                                      id={`skill-${skill}`}
-                                      checked={isChecked}
-                                      onCheckedChange={() => {}} // handled by parent click
-                                    />
-                                    <Label htmlFor={`skill-${skill}`} className="text-xs font-medium cursor-pointer flex-1 py-0.5 truncate">{skill}</Label>
-                                  </div>
-                                );
-                              })
-                            ) : (
-                              !skillSearch.trim() && (
-                                <p className="text-[10px] text-muted-foreground text-center py-4">No skills available. Type to add custom.</p>
-                              )
-                            )}
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Render Selected Skills badges below trigger */}
-                  {selectedSkills.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {selectedSkills.map(skill => (
-                        <Badge
-                          key={skill}
-                          variant="secondary"
-                          className="bg-primary/5 text-primary hover:bg-primary/10 border-primary/10 text-[10px] font-medium px-2 py-0.5 rounded-2xl flex items-center gap-1.5"
-                        >
-                          {skill}
-                          <button
-                            type="button"
-                            onClick={() => setSelectedSkills(selectedSkills.filter(s => s !== skill))}
-                            className="text-primary/70 hover:text-primary transition-colors shrink-0"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground uppercase">Qualification & Exp</label>
-                  <div className="space-y-2">
-                    <Select value={minQualification || 'All'} onValueChange={(val) => setMinQualification(val === 'All' ? '' : val)}>
-                      <SelectTrigger className="text-xs h-9 rounded-xl">
-                        <SelectValue placeholder="Any Qualification" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60 overflow-y-auto">
-                        <SelectItem value="All">Any Qualification</SelectItem>
-                        {metadata.qualifications.map(q => (
-                          <SelectItem key={q} value={q}>{q}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <Select value={minExperienceYears || 'All'} onValueChange={(val) => setMinExperienceYears(val === 'All' ? '' : val)}>
-                      <SelectTrigger className="text-xs h-9 rounded-xl">
-                        <SelectValue placeholder="Any Experience" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60 overflow-y-auto">
-                        <SelectItem value="All">Any Experience</SelectItem>
-                        {metadata.experienceYears.map(exp => (
-                          <SelectItem key={exp.toString()} value={exp.toString()}>{exp} Years</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground uppercase">Application Deadline</label>
-                  <div className="flex flex-col gap-3 bg-muted/10 p-3 rounded-xl">
-                    <div className="space-y-1">
-                      <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">From Date</Label>
-                      <Input
-                        type="date"
-                        className="text-xs border-border/50 h-9 rounded-xl focus-visible:ring-primary/20"
-                        value={deadlineFrom}
-                        onChange={(e) => setDeadlineFrom(e.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">To Date</Label>
-                      <Input
-                        type="date"
-                        className="text-xs border-border/50 h-9 rounded-xl focus-visible:ring-primary/20"
-                        value={deadlineTo}
-                        onChange={(e) => setDeadlineTo(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground uppercase">Advanced</label>
-                  <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="peer-sourced"
-                        checked={isPeerSourced === true}
-                        onCheckedChange={(checked) => setIsPeerSourced(checked ? true : null)}
-                      />
-                      <Label htmlFor="peer-sourced" className="text-xs font-medium cursor-pointer">Peer Sourced Only</Label>
-                    </div>
-                    <div className="pt-2">
-                      <Label className="text-[10px] text-muted-foreground">Min Upvotes</Label>
-                      <Input
-                        type="number"
-                        placeholder="e.g. 5"
-                        className="text-xs border-border/50 h-8 mt-1"
-                        value={minUpvotes}
-                        onChange={(e) => setMinUpvotes(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground uppercase">Job Status</label>
-                  <Select value={status} onValueChange={setStatus}>
-                    <SelectTrigger className="text-xs h-9 rounded-xl w-full">
-                      <SelectValue placeholder="Filter by Status" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-60 overflow-y-auto">
-                      <SelectItem value="OPEN">Open Only</SelectItem>
-                      <SelectItem value="CLOSED">Closed Only</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2 border-t pt-4">
-                  <label className="text-xs font-medium text-muted-foreground uppercase">Order Results By</label>
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-xl">
-                      <SelectValue placeholder="Newest First" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-60 overflow-y-auto">
-                      <SelectItem value="newest">Newest First</SelectItem>
-                      <SelectItem value="upvotes">Most Upvoted</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {(searchTerm || selectedWorkTypes.length > 0 || selectedJobTypes.length > 0 || selectedExpLevels.length > 0 || city !== 'All' || minSalary || maxSalary || minQualification || minExperienceYears || deadlineFrom || deadlineTo || isPeerSourced !== null || minUpvotes || status !== 'OPEN' || selectedSkills.length > 0) && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full text-xs font-medium text-muted-foreground mt-2"
-                    onClick={() => {
-                      router.push(pathname);
-                      setSelectedWorkTypes([]);
-                      setSelectedJobTypes([]);
-                      setSelectedExpLevels([]);
-                      setCity('All');
-                      setMinSalary('');
-                      setMaxSalary('');
-                      setMinQualification('');
-                      setMinExperienceYears('');
-                      setDeadlineFrom('');
-                      setDeadlineTo('');
-                      setIsPeerSourced(null);
-                      setMinUpvotes('');
-                      setStatus('OPEN');
-                      setSelectedSkills([]);
-                    }}
-                  >
-                    <FilterX className="mr-2 h-3.5 w-3.5" /> Reset Filters
-                  </Button>
-                )}
+                {renderFilters()}
               </CardContent>
             </Card>
           </aside>

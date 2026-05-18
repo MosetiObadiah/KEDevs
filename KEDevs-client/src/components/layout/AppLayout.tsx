@@ -497,40 +497,40 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6 sticky top-0 z-10">
-          <div className="flex items-center gap-4">
+        <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 md:px-6 sticky top-0 z-10">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <button 
-              className="md:hidden p-2 -ml-2 rounded-2xl hover:bg-accent" 
+              className="md:hidden p-2 -ml-2 rounded-2xl hover:bg-accent shrink-0" 
               onClick={() => setIsSidebarOpen(true)}
             >
               <Menu className="h-5 w-5" />
             </button>
-            <div className="flex items-center">
+            <div className="flex items-center min-w-0">
                {(() => {
-                  if (pathname === '/jobs') return <h1 className="text-xl font-black tracking-tight">Job <span className="text-primary">Board</span></h1>;
-                  if (pathname === '/developers') return <h1 className="text-xl font-black tracking-tight">Talent <span className="text-primary">Directory</span></h1>;
-                  if (pathname === '/companies') return <h1 className="text-xl font-black tracking-tight">Ecosystem <span className="text-primary">Directory</span></h1>;
-                  if (pathname === '/notifications') return <h1 className="text-xl font-black tracking-tight text-primary">Notifications</h1>;
-                  if (pathname === '/chat') return <h1 className="text-xl font-black tracking-tight text-primary">Chat Hub</h1>;
-                  if (pathname === '/profile/me') return <h1 className="text-xl font-black tracking-tight text-primary">My Profile</h1>;
-                  if (pathname.startsWith('/settings')) return <h1 className="text-xl font-black tracking-tight text-primary">Settings</h1>;
-                  if (pathname === '/spotlight') return <h1 className="text-xl font-black tracking-tight">Talent <span className="text-primary">Spotlight</span></h1>;
-                  if (pathname === '/payments') return <h1 className="text-xl font-black tracking-tight text-primary">Financial Ledger</h1>;
-                  if (pathname === '/jobs/my-applications') return <h1 className="text-xl font-black tracking-tight text-primary">My Applications</h1>;
-                  if (pathname === '/jobs/my-posts') return <h1 className="text-xl font-black tracking-tight text-primary">Job Management</h1>;
-                  if (pathname.startsWith('/developers/')) return <h1 className="text-xl font-black tracking-tight text-primary">Talent Profile</h1>;
-                  if (pathname.startsWith('/jobs/')) return <h1 className="text-xl font-black tracking-tight text-primary">Job Details</h1>;
-                  if (pathname === '/verify') return <h1 className="text-xl font-black tracking-tight text-primary">Verification Center</h1>;
-                  if (pathname === '/pricing') return <h1 className="text-xl font-black tracking-tight text-primary">Pricing</h1>;
+                  if (pathname === '/jobs') return <h1 className="text-sm sm:text-xl font-black tracking-tight truncate max-w-[140px] sm:max-w-none">Job <span className="text-primary">Board</span></h1>;
+                  if (pathname === '/developers') return <h1 className="text-sm sm:text-xl font-black tracking-tight truncate max-w-[140px] sm:max-w-none">Talent <span className="text-primary">Directory</span></h1>;
+                  if (pathname === '/companies') return <h1 className="text-sm sm:text-xl font-black tracking-tight truncate max-w-[140px] sm:max-w-none">Ecosystem <span className="text-primary">Directory</span></h1>;
+                  if (pathname === '/notifications') return <h1 className="text-sm sm:text-xl font-black tracking-tight text-primary truncate max-w-[140px] sm:max-w-none">Notifications</h1>;
+                  if (pathname === '/chat') return <h1 className="text-sm sm:text-xl font-black tracking-tight text-primary truncate max-w-[140px] sm:max-w-none">Chat Hub</h1>;
+                  if (pathname === '/profile/me') return <h1 className="text-sm sm:text-xl font-black tracking-tight text-primary truncate max-w-[140px] sm:max-w-none">My Profile</h1>;
+                  if (pathname.startsWith('/settings')) return <h1 className="text-sm sm:text-xl font-black tracking-tight text-primary truncate max-w-[140px] sm:max-w-none">Settings</h1>;
+                  if (pathname === '/spotlight') return <h1 className="text-sm sm:text-xl font-black tracking-tight truncate max-w-[140px] sm:max-w-none">Talent <span className="text-primary">Spotlight</span></h1>;
+                  if (pathname === '/payments') return <h1 className="text-sm sm:text-xl font-black tracking-tight text-primary truncate max-w-[140px] sm:max-w-none">Financial Ledger</h1>;
+                  if (pathname === '/jobs/my-applications') return <h1 className="text-sm sm:text-xl font-black tracking-tight text-primary truncate max-w-[140px] sm:max-w-none">My Applications</h1>;
+                  if (pathname === '/jobs/my-posts') return <h1 className="text-sm sm:text-xl font-black tracking-tight text-primary truncate max-w-[140px] sm:max-w-none">Job Management</h1>;
+                  if (pathname.startsWith('/developers/')) return <h1 className="text-sm sm:text-xl font-black tracking-tight text-primary truncate max-w-[140px] sm:max-w-none">Talent Profile</h1>;
+                  if (pathname.startsWith('/jobs/')) return <h1 className="text-sm sm:text-xl font-black tracking-tight text-primary truncate max-w-[140px] sm:max-w-none">Job Details</h1>;
+                  if (pathname === '/verify') return <h1 className="text-sm sm:text-xl font-black tracking-tight text-primary truncate max-w-[140px] sm:max-w-none">Verification Center</h1>;
+                  if (pathname === '/pricing') return <h1 className="text-sm sm:text-xl font-black tracking-tight text-primary truncate max-w-[140px] sm:max-w-none">Pricing</h1>;
                   return null;
                })()}
             </div>
           </div>
-
+ 
           <Suspense fallback={<div className="hidden lg:flex w-[240px] mx-4 h-9" />}>
             <GlobalSearchBar />
           </Suspense>
-
+ 
           <div className="flex items-center gap-3">
             <ThemeToggle />
             
@@ -549,7 +549,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 )}
               </Link>
             </Button>
-
+ 
             <Button variant="ghost" size="icon" className="relative" asChild>
               <Link href="/notifications">
                 <Bell className="h-5 w-5" />
@@ -562,8 +562,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </Button>
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto p-6 scroll-smooth">
-
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 scroll-smooth">
+ 
           {children}
         </main>
       </div>

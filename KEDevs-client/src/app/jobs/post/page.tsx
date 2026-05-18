@@ -381,7 +381,7 @@ export default function CreateJobPostPage() {
           </div>
 
           {/* Stepper */}
-          <div className="flex justify-between items-center mb-12 relative px-4">
+          <div className="flex justify-between items-center mb-12 relative px-4 max-w-xl mx-auto">
             <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-200 -translate-y-1/2 -z-10 rounded-full" />
             <div 
               className="absolute top-1/2 left-0 h-1 bg-primary -translate-y-1/2 -z-10 transition-all duration-500 rounded-full" 
@@ -390,16 +390,16 @@ export default function CreateJobPostPage() {
             {steps.map((step, index) => (
               <div 
                 key={step.key} 
-                className="flex flex-col items-center gap-3"
+                className="flex flex-col items-center gap-2"
               >
                 <div 
                   className={cn(
-                    "h-10 w-10 rounded-full border-4 flex items-center justify-center transition-all duration-300 font-black text-sm",
+                    "h-8 w-8 sm:h-10 sm:w-10 rounded-full border-2 sm:border-4 flex items-center justify-center transition-all duration-300 font-black text-xs sm:text-sm",
                     index < activeStep ? "bg-primary border-primary text-white" : 
                     index === activeStep ? "bg-white border-primary text-primary" : "bg-white border-slate-200 text-slate-500"
                   )}
                 >
-                  {index < activeStep ? <CheckCircle2 className="h-5 w-5" /> : index + 1}
+                  {index < activeStep ? <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5" /> : index + 1}
                 </div>
                 <span className={cn(
                   "hidden md:block text-[10px] font-black uppercase tracking-widest",
