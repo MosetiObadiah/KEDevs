@@ -13,8 +13,17 @@ import {
   Bookmark,
   Download,
   FileSpreadsheet,
-  FileText
+  FileText,
+  SlidersHorizontal
 } from 'lucide-react';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -151,15 +160,145 @@ function CompaniesPageContent() {
     }
   };
 
+  const renderFilters = () => (
+    <>
+      <div className="flex items-center justify-between bg-primary/5 p-3 rounded-xl border border-primary/10">
+        <div className="space-y-0.5">
+          <Label htmlFor="open-jobs" className="text-xs font-medium text-primary uppercase">Hiring Now</Label>
+          <p className="text-[10px] text-muted-foreground font-medium">Show only companies with open roles</p>
+        </div>
+        <Checkbox 
+          id="open-jobs"
+          checked={hasOpenJobs}
+          onCheckedChange={(checked) => setHasOpenJobs(!!checked)}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-xs font-medium text-muted-foreground uppercase">Industry</label>
+        <div className="space-y-2 bg-muted/10 p-3 rounded-xl max-h-[220px] overflow-y-auto">
+          {INDUSTRIES.map(ind => (
+            <div key={ind} className="flex items-center space-x-2">
+              <Checkbox 
+                id={`ind-${ind}`}
+                checked={selectedIndustries.includes(ind)}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setSelectedIndustries([...selectedIndustries, ind]);
+                  } else {
+                    setSelectedIndustries(selectedIndustries.filter(i => i !== ind));
+                  }
+                }}
+              />
+              <Label htmlFor={`ind-${ind}`} className="text-xs font-medium cursor-pointer truncate">{ind}</Label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-xs font-medium text-muted-foreground uppercase">Company Size</label>
+        <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
+          {COMPANY_SIZES.map(size => (
+            <div key={size.value} className="flex items-center space-x-2">
+              <Checkbox 
+                id={`sz-${size.value}`}
+                checked={selectedSizes.includes(size.value)}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setSelectedSizes([...selectedSizes, size.value]);
+                  } else {
+                    setSelectedSizes(selectedSizes.filter(s => s !== size.value));
+                  }
+                }}
+              />
+              <Label htmlFor={`sz-${size.value}`} className="text-xs font-medium cursor-pointer">{size.label}</Label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-muted-foreground uppercase">Country</label>
+          <Select value={country} onValueChange={(val) => { setCountry(val); setCity('All'); }}>
+            <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-xl">
+              <SelectValue placeholder="Any Country" />
+            </SelectTrigger>
+            <SelectContent className="max-h-60 overflow-y-auto">
+              <SelectItem value="All">Any Country</SelectItem>
+              {COUNTRIES.map(c => (
+                 <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {country === 'Kenya' && (
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground uppercase">City</label>
+            <Select value={city} onValueChange={setCity}>
+              <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-xl">
+                <SelectValue placeholder="Any City" />
+              </SelectTrigger>
+              <SelectContent className="max-h-60 overflow-y-auto">
+                <SelectItem value="All">Any City</SelectItem>
+                {KENYA_CITIES.map(loc => (
+                   <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      </div>
+
+      {(selectedIndustries.length > 0 || selectedSizes.length > 0 || country !== 'All' || city !== 'All' || hasOpenJobs) && (
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="w-full text-xs font-medium text-muted-foreground mt-2"
+          onClick={() => {
+            setSelectedIndustries([]);
+            setSelectedSizes([]);
+            setCountry('All');
+            setCity('All');
+            setHasOpenJobs(false);
+          }}
+        >
+          <FilterX className="mr-2 h-3.5 w-3.5" /> Reset Filters
+        </Button>
+      )}
+    </>
+  );
+
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
       <div className="container mx-auto px-6 pt-8 pb-12">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center mb-8 print:hidden gap-3">
           <div>
             <h1 className="text-3xl font-black tracking-tight text-foreground">Explore Ecosystem</h1>
             <p className="text-muted-foreground font-medium">Discover top tech companies and startups in Kenya.</p>
           </div>
-          <div className="flex items-center gap-3 print:hidden">
+          <div className="flex items-center gap-3 ml-auto shrink-0">
+            {/* Mobile/Desktop Filter Button */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-5 shrink-0">
+                  <SlidersHorizontal className="mr-2 h-4 w-4 text-primary" />
+                  Filters
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[300px] sm:w-[350px] p-0 overflow-y-auto">
+                <SheetHeader className="p-6 pb-2 text-left">
+                  <SheetTitle>Filter Companies</SheetTitle>
+                  <SheetDescription className="sr-only">Choose options to narrow down company listings.</SheetDescription>
+                </SheetHeader>
+                <div className="p-6 pt-0 space-y-6">
+                  {renderFilters()}
+                </div>
+              </SheetContent>
+            </Sheet>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                  <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-6" disabled={isExporting}>
@@ -179,126 +318,9 @@ function CompaniesPageContent() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Filters Sidebar */}
-          <aside className="lg:col-span-1 space-y-8 print:hidden">
-            <Card className="border-border/50 shadow-sm sticky top-24">
-              <CardHeader className="pb-4">
-                <h3 className="text-sm font-medium uppercase tracking-wider text-foreground">Filters</h3>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between bg-primary/5 p-3 rounded-xl border border-primary/10">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="open-jobs" className="text-xs font-medium text-primary uppercase">Hiring Now</Label>
-                    <p className="text-[10px] text-muted-foreground font-medium">Show only companies with open roles</p>
-                  </div>
-                  <Checkbox 
-                    id="open-jobs"
-                    checked={hasOpenJobs}
-                    onCheckedChange={(checked) => setHasOpenJobs(!!checked)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground uppercase">Industry</label>
-                  <div className="space-y-2 bg-muted/10 p-3 rounded-xl max-h-[220px] overflow-y-auto">
-                    {INDUSTRIES.map(ind => (
-                      <div key={ind} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`ind-${ind}`}
-                          checked={selectedIndustries.includes(ind)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedIndustries([...selectedIndustries, ind]);
-                            } else {
-                              setSelectedIndustries(selectedIndustries.filter(i => i !== ind));
-                            }
-                          }}
-                        />
-                        <Label htmlFor={`ind-${ind}`} className="text-xs font-medium cursor-pointer truncate">{ind}</Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground uppercase">Company Size</label>
-                  <div className="space-y-2 bg-muted/10 p-3 rounded-xl">
-                    {COMPANY_SIZES.map(size => (
-                      <div key={size.value} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`sz-${size.value}`}
-                          checked={selectedSizes.includes(size.value)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedSizes([...selectedSizes, size.value]);
-                            } else {
-                              setSelectedSizes(selectedSizes.filter(s => s !== size.value));
-                            }
-                          }}
-                        />
-                        <Label htmlFor={`sz-${size.value}`} className="text-xs font-medium cursor-pointer">{size.label}</Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground uppercase">Country</label>
-                    <Select value={country} onValueChange={(val) => { setCountry(val); setCity('All'); }}>
-                      <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-xl">
-                        <SelectValue placeholder="Any Country" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60 overflow-y-auto">
-                        <SelectItem value="All">Any Country</SelectItem>
-                        {COUNTRIES.map(c => (
-                           <SelectItem key={c} value={c}>{c}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {country === 'Kenya' && (
-                    <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground uppercase">City</label>
-                      <Select value={city} onValueChange={setCity}>
-                        <SelectTrigger className="border-border/50 focus:ring-primary/20 text-xs h-9 rounded-xl">
-                          <SelectValue placeholder="Any City" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-60 overflow-y-auto">
-                          <SelectItem value="All">Any City</SelectItem>
-                          {KENYA_CITIES.map(loc => (
-                             <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-                </div>
-
-                {(selectedIndustries.length > 0 || selectedSizes.length > 0 || country !== 'All' || city !== 'All' || hasOpenJobs) && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="w-full text-xs font-medium text-muted-foreground mt-2"
-                    onClick={() => {
-                      setSelectedIndustries([]);
-                      setSelectedSizes([]);
-                      setCountry('All');
-                      setCity('All');
-                      setHasOpenJobs(false);
-                    }}
-                  >
-                    <FilterX className="mr-2 h-3.5 w-3.5" /> Reset Filters
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          </aside>
-
+        <div className="max-w-4xl mx-auto w-full">
           {/* Results Area */}
-          <main className="lg:col-span-3 print:col-span-full">
+          <main className="w-full">
             {error && (
               <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-xl mb-6 text-sm font-medium">
                 {error}

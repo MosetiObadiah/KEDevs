@@ -743,7 +743,7 @@ function JobsPageContent() {
           {/* Mobile Filter Button */}
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" className="lg:hidden font-medium border-primary/20 hover:bg-primary/5 h-12 px-5 shrink-0">
+              <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-5 shrink-0">
                 <SlidersHorizontal className="mr-2 h-4 w-4 text-primary" />
                 Filters
               </Button>
@@ -792,21 +792,9 @@ function JobsPageContent() {
           <p className="text-sm text-slate-500">Generated on {formatDateString(new Date())}</p>
         </div>
 
-        <div className={cn("grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-5 items-start", SPACING.cards)}>
-          {/* Filters Sidebar (Desktop) */}
-          <aside className="hidden lg:block lg:col-span-1 space-y-6 print:hidden sticky top-24 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent pr-1">
-            <Card className="border-border/50 shadow-sm">
-              <CardHeader className="pb-4">
-                <h3 className="text-sm font-medium uppercase tracking-wider text-foreground">Filter Jobs</h3>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {renderFilters()}
-              </CardContent>
-            </Card>
-          </aside>
-
+        <div className="max-w-4xl mx-auto w-full">
           {/* Job List area */}
-          <main className="lg:col-span-3 xl:col-span-4 print:col-span-full space-y-6">
+          <main className="w-full space-y-6">
             {error && (
               <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-xl mb-6 text-sm font-medium">
                 {error}
