@@ -1,69 +1,62 @@
--- KEDevs Complete Seed Data
--- Pipe directly into your Docker PostgreSQL:
--- docker exec -i -e PGPASSWORD="123a456k" kedevs_postgres psql -U moseti -d kedevs_db < seed.sql
-
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
--- Truncate all tables (order respects foreign keys)
-TRUNCATE TABLE
-    verification_request_certificates,
-    verification_requests,
-    comment_flags,
-    comment_votes,
-    forum_comments,
-    job_flags,
-    job_votes,
-    job_tags,
-    job_applications,
-    pinned_job_slots,
-    spotlight_slots,
-    contact_requests,
-    company_inquiries,
-    endorsements,
-    developer_projects,
-    developer_achievements,
-    developer_oss_contributions,
-    developer_certifications,
-    developer_education,
-    developer_languages,
-    developer_skills,
-    developer_profiles,
-    employer_profiles,
-    admin_actions,
-    blocked_users,
-    refresh_tokens,
-    verification_codes,
-    payments,
-    notifications,
-    notification_preferences,
-    platform_settings,
-    contact_messages,
-    user_flags,
-    users
-CASCADE;
-
--- Platform Settings (use UPDATE if keys already exist)
-INSERT INTO platform_settings (id, setting_key, setting_value, description)
+docker exec -i -e PGPASSWORD="123a456k" kedevs_postgres psql -U moseti -d kedevs_db <<'SQL'
+INSERT INTO users (id, email, password, full_name, role, email_verified, account_status, approved_by_admin, created_at, updated_at)
 VALUES
-    (gen_random_uuid(), 'VERIFIED_BADGE_DEVELOPER', '250', 'Developer verified badge fee (KES)'),
-    (gen_random_uuid(), 'VERIFIED_BADGE_EMPLOYER', '500', 'Employer verified badge fee (KES)'),
-    (gen_random_uuid(), 'SPOTLIGHT_DAY_FEE', '50', 'Spotlight per day (KES)'),
-    (gen_random_uuid(), 'SPOTLIGHT_WEEK_FEE', '250', 'Spotlight per week (KES)'),
-    (gen_random_uuid(), 'PINNED_JOB_DAY_FEE', '50', 'Pin job 1 day (KES)'),
-    (gen_random_uuid(), 'PINNED_JOB_3DAYS_FEE', '100', 'Pin job 3 days (KES)'),
-    (gen_random_uuid(), 'PINNED_JOB_7DAYS_FEE', '200', 'Pin job 7 days (KES)'),
-    (gen_random_uuid(), 'CONTACT_REQUEST_DAILY_LIMIT', '5', 'Max daily contact requests per employer'),
-    (gen_random_uuid(), 'COMMENT_EDIT_WINDOW', '15', 'Minutes allowed to edit a comment'),
-    (gen_random_uuid(), 'COMMENT_DELETE_WINDOW', '60', 'Minutes allowed to delete a comment')
-ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value;
+  (gen_random_uuid(), 'admin@kedevs.com', crypt('12345678', gen_salt('bf')), 'Admin', 'ADMIN', true, 'ACTIVE', true, now(), now()),
+  (gen_random_uuid(), 'root@kedevs.com', crypt('12345678', gen_salt('bf')), 'Root', 'ADMIN', true, 'ACTIVE', true, now(), now())
+ON CONFLICT (email) DO NOTHING;
+COMMIT;
+SQL
 
--- Admin users
-INSERT INTO users (id, email, password, full_name, role, email_verified, account_status, approved_by_admin)
-VALUES
-    ('a0000000-0000-0000-0000-000000000001', 'admin1@kedevs.co.ke', crypt('12345678', gen_salt('bf')), 'Admin User', 'ADMIN', true, 'ACTIVE', true),
-    ('a0000000-0000-0000-0000-000000000002', 'admin2@kedevs.co.ke', crypt('12345678', gen_salt('bf')), 'Super Admin', 'ADMIN', true, 'ACTIVE', true);
 
--- 30 Developers
+docker exec -i -e PGPASSWORD="123a456k" kedevs_postgres psql -U moseti -d kedevs_db <<'SQL'
+DO $$
+DECLARE
+    v_user_id UUID;
+    v_person TEXT;
+    v_company TEXT;
+    v_industry TEXT;
+    v_first_names TEXT[] := ARRAY['James','Grace','Peter','Martha','David','Esther','Samuel','Ruth','Joseph','Mercy','Thomas','Agnes','Paul','Naomi','Andrew','Faith','John','Sarah','Daniel','Rebecca'];
+    v_last_names TEXT[]  := ARRAY['Kiprop','Wangui','Nyambura','Makau','Wanjala','Mukami','Kariuki','Wairimu','Owino','Anyango','Mwangi','Cherotich','Kipsang','Wangu','Oloo','Muthoni','Ochieng','Wambui','Njeri','Omondi'];
+    v_companies TEXT[]   := ARRAY[
+        'Savanna Tech Solutions','Twiga Innovations','JengaDev Studio','Simba Systems','Zawadi Labs',
+        'Fahari Digital','Baraka Enterprises','Tumaini IT Group','MajiMoto Software','AfriCloud Kenya',
+        'Maadili Data','Ushindi Apps','Njia Networks','Ukulima Analytics','Duma Robotics',
+        'PendaPay','Chakula Fresh','Sasa Media','Boma Architects','Anga Space'
+    ];
+    v_industries TEXT[]  := ARRAY['Financial Services','Healthcare','Agriculture','Education','E-commerce','Logistics','Energy','Media','PropTech','LegalTech'];
+    i INT;
+BEGIN
+    FOR i IN 1..20 LOOP
+        v_person  := v_first_names[floor(random()*array_length(v_first_names,1)+1)] || ' ' || v_last_names[floor(random()*array_length(v_last_names,1)+1)];
+        v_company := v_companies[i];
+        v_industry := v_industries[floor(random()*array_length(v_industries,1)+1)];
+
+        -- Create user account (password: 12345678)
+        INSERT INTO users (id, email, password, full_name, role, email_verified, account_status, approved_by_admin, created_at, updated_at)
+        VALUES (gen_random_uuid(), 'emp' || i || '@kedevs.co.ke', crypt('12345678', gen_salt('bf')), v_person, 'EMPLOYER', true, 'ACTIVE', true, now(), now())
+        RETURNING id INTO v_user_id;
+
+        -- Create employer profile
+        INSERT INTO employer_profiles (
+            id, user_id, contact_person_name, company_name, company_website,
+            industry, company_size, location_hq, company_bio, is_approved, is_verified,
+            created_at, updated_at
+        ) VALUES (
+            gen_random_uuid(), v_user_id, v_person, v_company,
+            'https://www.' || replace(lower(v_company), ' ', '') || '.co.ke',
+            v_industry, 'TEN_TO_FIFTY', 'Nairobi, Kenya',
+            'Leading provider of innovative solutions in the ' || v_industry || ' sector.',
+            true, random() < 0.3,
+            now(), now()
+        );
+    END LOOP;
+END $$;
+COMMIT;
+SQL
+
+
+
+docker exec -i -e PGPASSWORD="123a456k" kedevs_postgres psql -U moseti -d kedevs_db <<'SQL'
 DO $$
 DECLARE
     i INT;
@@ -93,15 +86,16 @@ BEGIN
         v_bio := v_bio_tmpl[floor(random()*array_length(v_bio_tmpl,1)+1)];
         v_role := v_job_titles[floor(random()*array_length(v_job_titles,1)+1)];
 
-        INSERT INTO users (id, email, password, full_name, role, email_verified, account_status, approved_by_admin)
-        VALUES (gen_random_uuid(), 'dev' || i || '@kedevs.dev', crypt('12345678', gen_salt('bf')), v_full, 'DEVELOPER', true, 'ACTIVE', true)
+        INSERT INTO users (id, email, password, full_name, role, email_verified, account_status, approved_by_admin, created_at, updated_at)
+        VALUES (gen_random_uuid(), 'dev' || i || '@kedevs.dev', crypt('12345678', gen_salt('bf')), v_full, 'DEVELOPER', true, 'ACTIVE', true, now(), now())
         RETURNING id INTO v_user_id;
 
         INSERT INTO developer_profiles (
             id, user_id, first_name, last_name, bio, current_last_role,
             years_of_experience, availability_status, preferred_work_type,
             location_city, location_country, profile_visibility, is_verified,
-            can_employers_reach_out, github_url, linkedin_url, portfolio_url
+            can_employers_reach_out, github_url, linkedin_url, portfolio_url,
+            created_at, updated_at
         ) VALUES (
             gen_random_uuid(), v_user_id, v_first, v_last, v_bio, v_role,
             (ARRAY['ZERO_TO_ONE','ONE_TO_THREE','THREE_TO_FIVE','FIVE_TO_TEN'])[floor(random()*4+1)],
@@ -110,49 +104,47 @@ BEGIN
             'Nairobi', 'Kenya', 'PUBLIC', random() < 0.3, true,
             'https://github.com/' || lower(v_first) || lower(v_last),
             'https://linkedin.com/in/' || lower(v_first) || lower(v_last),
-            'https://' || lower(v_first) || lower(v_last) || '.dev'
+            'https://' || lower(v_first) || lower(v_last) || '.dev',
+            now(), now()
         )
         RETURNING id INTO v_profile_id;
 
-        -- 3-6 random skills
         FOR s IN 1..(3 + floor(random()*4)) LOOP
             v_skill := v_skills[floor(random()*array_length(v_skills,1)+1)];
-            INSERT INTO developer_skills (id, developer_id, skill)
-            VALUES (gen_random_uuid(), v_profile_id, v_skill)
+            INSERT INTO developer_skills (id, developer_id, skill, created_at, updated_at)
+            VALUES (gen_random_uuid(), v_profile_id, v_skill, now(), now())
             ON CONFLICT DO NOTHING;
         END LOOP;
 
-        -- 1-2 languages
         FOR l IN 1..(1 + floor(random()*2)) LOOP
             v_lang := v_languages[floor(random()*array_length(v_languages,1)+1)];
-            INSERT INTO developer_languages (id, developer_id, language)
-            VALUES (gen_random_uuid(), v_profile_id, v_lang)
+            INSERT INTO developer_languages (id, developer_id, language, created_at, updated_at)
+            VALUES (gen_random_uuid(), v_profile_id, v_lang, now(), now())
             ON CONFLICT DO NOTHING;
         END LOOP;
 
-        -- 1 education entry
-        INSERT INTO developer_education (id, developer_id, institution, qualification, year_completed, field_of_study, start_year)
+        INSERT INTO developer_education (id, developer_id, institution, qualification, year_completed, field_of_study, start_year, created_at, updated_at)
         VALUES (
             gen_random_uuid(), v_profile_id,
             v_edu_institutions[floor(random()*array_length(v_edu_institutions,1)+1)],
             v_qualifications[floor(random()*array_length(v_qualifications,1)+1)],
-            2018 + floor(random()*7), 'Computer Science', 2014 + floor(random()*4)
+            2018 + floor(random()*7), 'Computer Science', 2014 + floor(random()*4),
+            now(), now()
         );
 
-        -- 0-1 certification
         IF random() < 0.6 THEN
-            INSERT INTO developer_certifications (id, developer_id, name, issued_by, issued_date)
+            INSERT INTO developer_certifications (id, developer_id, name, issued_by, issued_date, created_at, updated_at)
             VALUES (
                 gen_random_uuid(), v_profile_id,
                 v_certs[floor(random()*array_length(v_certs,1)+1)],
                 'Certification Body',
-                (CURRENT_DATE - (random()*365*3)::int)
+                (CURRENT_DATE - (random()*365*3)::int),
+                now(), now()
             );
         END IF;
 
-        -- 1-2 projects
         FOR p IN 1..(1 + floor(random()*2)) LOOP
-            INSERT INTO developer_projects (id, developer_id, title, description, tech_stack, project_url, repo_url, is_featured)
+            INSERT INTO developer_projects (id, developer_id, title, description, tech_stack, project_url, repo_url, is_featured, created_at, updated_at)
             VALUES (
                 gen_random_uuid(), v_profile_id,
                 'Project ' || i || '-' || p,
@@ -160,347 +152,219 @@ BEGIN
                 array_to_string((ARRAY(SELECT unnest(v_skills) ORDER BY random() LIMIT 3)), ','),
                 'https://example.com/project' || i || p,
                 'https://github.com/' || lower(v_first) || lower(v_last) || '/project' || p,
-                random() < 0.3
-            );
-        END LOOP;
+                random() < 
 
-        -- 0-1 OSS contribution
-        IF random() < 0.5 THEN
-            INSERT INTO developer_oss_contributions (id, developer_id, project_name, contribution_url, description, role)
-            VALUES (
-                gen_random_uuid(), v_profile_id,
-                'Open Source Project ' || i,
-                'https://github.com/opensource/repo' || i,
-                'Contributed to documentation and bug fixes.',
-                'Contributor'
-            );
-        END IF;
 
-        -- 0-1 achievement
-        IF random() < 0.4 THEN
-            INSERT INTO developer_achievements (id, developer_id, title, description, year)
-            VALUES (
-                gen_random_uuid(), v_profile_id,
-                'Award for Excellence in ' || v_role,
-                'Recognized for outstanding contributions in tech.',
-                2022 + floor(random()*4)
-            );
-        END IF;
-    END LOOP;
-END $$;
 
--- 15 Employers
+
+
+docker exec -i -e PGPASSWORD="123a456k" kedevs_postgres psql -U moseti -d kedevs_db <<'SQL'
+-- =============================================================================
+-- KEDevs Jobs Seeder (Peer-Sourced, Personal Developer, and Employer Jobs)
+-- =============================================================================
+
+-- ---------- 5 peer-sourced jobs (5 different developers, real external URLs) ----------
 DO $$
 DECLARE
+    dev_ids UUID[];
+    peer_urls TEXT[] := ARRAY[
+        'https://www.brightermonday.co.ke/listings/software-developer-8m09xr',
+        'https://www.brightermonday.co.ke/listings/backend-developer-ev04x4',
+        'https://www.linkedin.com/jobs/view/1840919235/',
+        'https://www.linkedin.com/jobs/view/java-software-engineer-at-obss-4327940544',
+        'https://www.ardentuniverse.com/jobs/junior-java-backend-engineer-zeraki/'
+    ];
+    peer_titles TEXT[] := ARRAY[
+        'Software Developer – Java J2EE (Total Solutions Ltd)',
+        'Backend Developer – Insurance Tech (BrighterMonday)',
+        'Entry Level Software Engineer – The Jitu (Nyeri, Remote)',
+        'Java Software Engineer – OBSS (Nairobi)',
+        'Junior Java Backend Engineer – Zeraki (Nairobi)'
+    ];
+    peer_descs TEXT[] := ARRAY[
+        'Total Solutions Ltd is hiring a Software Developer responsible for developing web applications using Java (J2EE), PostgreSQL, and AngularJS. 3 years experience required. Based in Nairobi.',
+        'Backend Developer role in Nairobi focused on architecting scalable REST APIs, claims workflow automation, and database optimisation. 5 years experience required in the insurance/healthcare sector.',
+        'The Jitu is a software company based in Nyeri, Kenya, hiring entry-level Software Engineers. Ideal for recent graduates in Computer Science. Skills: JavaScript, React, Node.js, AWS, SQL Server.',
+        'OBSS is Turkey''s largest technology consultancy hiring a Java Software Engineer in Nairobi. Requires 3+ years Java, Spring Framework, REST APIs, and CI/CD experience. Work on large-scale projects.',
+        'Zeraki, a Kenyan edtech company, is hiring a Junior Java EE & Spring Boot Engineer. Requires 2-5 years experience with Java, Spring Boot, PostgreSQL, and microservices. Based in Nairobi.'
+    ];
+    v_job_id UUID;
     i INT;
-    v_user_id UUID;
-    v_company TEXT;
-    v_industry TEXT;
-    v_person TEXT;
-    v_first_names TEXT[] := ARRAY['James','Grace','Peter','Martha','David','Esther','Samuel','Ruth','Joseph','Mercy','Thomas','Agnes','Paul','Naomi','Andrew'];
-    v_last_names TEXT[] := ARRAY['Kiprop','Wangui','Nyambura','Makau','Wanjala','Mukami','Kariuki','Wairimu','Owino','Anyango','Mwangi','Cherotich','Kipsang','Wangu','Oloo'];
-    v_companies TEXT[] := ARRAY['Savanna Tech Solutions','Twiga Innovations','JengaDev Studio','Simba Systems','Zawadi Labs','Fahari Digital','Baraka Enterprises','Tumaini IT Group','MajiMoto Software','AfriCloud Kenya','Maadili Data','Ushindi Apps','Njia Networks','Ukulima Analytics','Duma Robotics'];
-    v_industries TEXT[] := ARRAY['Financial Services','Healthcare','Agriculture','Education','E-commerce','Logistics','Energy','Media'];
 BEGIN
-    FOR i IN 1..15 LOOP
-        v_person := v_first_names[floor(random()*array_length(v_first_names,1)+1)] || ' ' || v_last_names[floor(random()*array_length(v_last_names,1)+1)];
-        v_company := v_companies[i];
-        v_industry := v_industries[floor(random()*array_length(v_industries,1)+1)];
+    SELECT array_agg(dp.user_id) INTO dev_ids
+    FROM developer_profiles dp
+    WHERE dp.availability_status = 'OPEN_TO_OFFERS'
+    ORDER BY random()
+    LIMIT 5;
 
-        INSERT INTO users (id, email, password, full_name, role, email_verified, account_status, approved_by_admin)
-        VALUES (gen_random_uuid(), 'emp' || i || '@kedevs.co.ke', crypt('12345678', gen_salt('bf')), v_person, 'EMPLOYER', true, 'ACTIVE', true)
-        RETURNING id INTO v_user_id;
-
-        INSERT INTO employer_profiles (
-            id, user_id, contact_person_name, company_name, company_website,
-            industry, company_size, location_hq, company_bio, is_approved, is_verified
+    FOR i IN 1..5 LOOP
+        INSERT INTO job_posts (
+            id, posted_by_id, title, description, company_name,
+            location_city, location_country, job_type, work_type, experience_level,
+            salary_range_min, salary_range_max, salary_currency,
+            application_deadline, source_url, is_peer_sourced, visibility, status,
+            created_at, updated_at
         ) VALUES (
-            gen_random_uuid(), v_user_id, v_person, v_company,
-            'https://www.' || replace(lower(v_company), ' ', '') || '.co.ke',
-            v_industry, 'TEN_TO_FIFTY', 'Nairobi, Kenya',
-            'Leading provider of innovative solutions in the ' || v_industry || ' sector.',
-            true, random() < 0.3
-        );
+            gen_random_uuid(), dev_ids[i],
+            peer_titles[i], peer_descs[i], 'Various Companies',
+            'Nairobi', 'Kenya',
+            (ARRAY['FULL_TIME','PART_TIME','CONTRACT','INTERNSHIP'])[1 + floor(random()*4)],
+            (ARRAY['REMOTE','ONSITE','HYBRID'])[1 + floor(random()*3)],
+            (ARRAY['ENTRY','MID','SENIOR'])[1 + floor(random()*3)],
+            null, null, 'KES',
+            CURRENT_DATE + (random()*45)::int,
+            peer_urls[i], true, 'EXTERNAL', 'OPEN',
+            now(), now()
+        )
+        RETURNING id INTO v_job_id;
+
+        INSERT INTO job_tags (id, job_id, tag, created_at, updated_at)
+        SELECT gen_random_uuid(), v_job_id, t, now(), now()
+        FROM unnest(ARRAY(SELECT unnest(ARRAY['Java','Spring Boot','REST API','SQL','Git','Agile','JavaScript','Docker','Cloud']) ORDER BY random() LIMIT (3+floor(random()*4)))) AS t;
     END LOOP;
 END $$;
 
--- Jobs (official + peer-sourced)
+-- ---------- 10 personal jobs (10 different developers, their own gigs/startups) ----------
 DO $$
 DECLARE
-    emp_user RECORD;
-    dev_user RECORD;
+    dev_ids UUID[];
+    personal_titles TEXT[] := ARRAY[
+        'Freelance Full‑Stack Developer Available for Hire',
+        'Custom Mobile App Development – Android & iOS',
+        'Website Builder & UI/UX Designer for Small Businesses',
+        'Python Automation & Data Scraping Specialist',
+        'Cloud Migration & DevOps Consultant',
+        'Affordable E‑commerce Website – Shopify & WordPress',
+        'React/Next.js Frontend Developer for Hire',
+        'Database Design & Optimisation Services',
+        'AI Chatbot & LLM Integration for Kenyan Businesses',
+        'Cybersecurity Audit & Penetration Testing'
+    ];
+    personal_descs TEXT[] := ARRAY[
+        'I build complete web applications using React, Node.js, and PostgreSQL. From landing pages to complex dashboards. Available for contract and freelance work. Based in Nairobi.',
+        'I develop native and cross‑platform mobile apps using Kotlin, Swift, and Flutter. 3+ years of experience delivering polished mobile experiences for startups and SMEs.',
+        'I design and build responsive websites with modern UI/UX. Specialising in Tailwind CSS, Figma, and Next.js. Perfect for small businesses needing an online presence.',
+        'I automate repetitive tasks, scrape data from websites, and build data pipelines using Python, BeautifulSoup, Selenium, and Pandas. Quick turnaround.',
+        'I help businesses migrate to AWS/Azure, containerise applications with Docker and Kubernetes, and set up CI/CD pipelines. 5 years of DevOps experience.',
+        'I set up fully functional online stores using Shopify, WooCommerce, and WordPress. Includes payment gateway integration (M‑Pesa, Stripe) and SEO optimisation.',
+        'I build fast, accessible, and SEO‑friendly frontends with React, Next.js, and TypeScript. Portfolio includes dashboards, marketing sites, and SaaS products.',
+        'I design normalised database schemas, write complex SQL queries, and optimise slow‑running databases. Experienced with PostgreSQL, MySQL, and MongoDB.',
+        'I integrate GPT‑4, Claude, and other LLMs into your business applications. Build chatbots, knowledge bases, and AI‑powered customer support systems.',
+        'I perform security audits on web applications, APIs, and networks. Identify vulnerabilities and provide actionable remediation reports. OSCP certified.'
+    ];
+    v_job_id UUID;
+    i INT;
+BEGIN
+    SELECT array_agg(dp.user_id) INTO dev_ids
+    FROM developer_profiles dp
+    WHERE dp.user_id NOT IN (
+        SELECT posted_by_id FROM job_posts WHERE is_peer_sourced = true
+    )
+    ORDER BY random()
+    LIMIT 10;
+
+    FOR i IN 1..10 LOOP
+        INSERT INTO job_posts (
+            id, posted_by_id, title, description, company_name,
+            location_city, location_country, job_type, work_type, experience_level,
+            salary_range_min, salary_range_max, salary_currency,
+            application_deadline, source_url, is_peer_sourced, visibility, status,
+            created_at, updated_at
+        ) VALUES (
+            gen_random_uuid(), dev_ids[i],
+            personal_titles[i], personal_descs[i], 'Self‑Employed / Freelance',
+            'Nairobi', 'Kenya',
+            (ARRAY['FREELANCE','CONTRACT','PART_TIME'])[1 + floor(random()*3)],
+            'REMOTE',
+            (ARRAY['MID','SENIOR'])[1 + floor(random()*2)],
+            (30000 + floor(random()*150000))::numeric,
+            (80000 + floor(random()*250000))::numeric, 'KES',
+            CURRENT_DATE + (random()*60)::int,
+            null, false, 'EXTERNAL', 'OPEN',
+            now(), now()
+        )
+        RETURNING id INTO v_job_id;
+
+        INSERT INTO job_tags (id, job_id, tag, created_at, updated_at)
+        SELECT gen_random_uuid(), v_job_id, t, now(), now()
+        FROM unnest(ARRAY(SELECT unnest(ARRAY['React','Node.js','TypeScript','Python','Kotlin','Flutter','Docker','AWS','PostgreSQL','Figma','Next.js','Shopify','Cybersecurity','AI/ML','GraphQL','Tailwind CSS']) ORDER BY random() LIMIT (3+floor(random()*5)))) AS t;
+    END LOOP;
+END $$;
+
+-- ---------- Employer jobs (15 employers, 3‑5 jobs each) ----------
+DO $$
+DECLARE
+    emp RECORD;
+    job_count INT;
+    i INT;
     v_job_id UUID;
     v_title TEXT;
-    v_tags TEXT[] := ARRAY['JavaScript','TypeScript','Python','Java','Kotlin','React','Node.js','Spring Boot','Docker','AWS','PostgreSQL','MongoDB','GraphQL','CI/CD','Agile','Scrum','Machine Learning','Data Science','Mobile','Web'];
-    v_title_tmpl TEXT[] := ARRAY['Senior %s Developer','Junior %s Engineer','Lead %s Architect','%s Specialist','Full-Stack %s Developer','%s DevOps Engineer','%s Data Analyst','%s UI/UX Designer'];
-    v_techs TEXT[] := ARRAY['Java','Python','React','Node.js','Kotlin','Swift','Angular','Vue.js','Spring Boot','Django','Flask','.NET','Go','Rust'];
-    v_statuses TEXT[] := ARRAY['OPEN','OPEN','OPEN','OPEN','CLOSED'];
+    v_desc TEXT;
+    v_tags TEXT[] := ARRAY['JavaScript','TypeScript','Python','Java','Kotlin','Swift','React','Angular','Vue.js','Node.js','Spring Boot','Django','Flask','PostgreSQL','MongoDB','Docker','Kubernetes','AWS','Azure','Git','CI/CD','Agile','Scrum','REST APIs','GraphQL','Machine Learning','DevOps','Linux','Microservices','Redis'];
+    v_title_tmpl TEXT[] := ARRAY[
+        'Senior %s Developer', 'Junior %s Engineer', 'Lead %s Architect',
+        '%s Specialist', 'Full‑Stack %s Developer', '%s DevOps Engineer',
+        '%s Data Analyst', '%s UI/UX Designer', '%s Mobile Developer',
+        '%s Cloud Engineer', 'Principal %s Engineer', '%s Team Lead'
+    ];
+    v_techs TEXT[] := ARRAY['Java','Python','React','Node.js','Kotlin','Swift','Angular','Vue.js','Spring Boot','Django','Flask','.NET','Go','Rust','PHP','Ruby'];
+    v_locations TEXT[] := ARRAY['Nairobi','Nairobi','Nairobi','Mombasa','Kisumu','Nakuru','Eldoret','Nairobi','Nairobi','Nyeri'];
+    v_countries TEXT[] := ARRAY['Kenya','Kenya','Kenya','Kenya','Kenya','Kenya','Kenya','Kenya','Kenya','Kenya'];
+    v_statuses TEXT[] := ARRAY['OPEN','OPEN','OPEN','OPEN','OPEN','CLOSED'];
+    v_desc_tmpl TEXT[] := ARRAY[
+        'Join our growing engineering team to build and scale innovative products that serve thousands of customers across Africa. You will work with modern technologies in a collaborative environment.',
+        'We are looking for a talented engineer to help us deliver high‑quality software solutions. This role offers the opportunity to work on challenging problems with a supportive team.',
+        'Come build the future with us. We need a skilled professional to drive technical excellence and mentor junior team members while delivering critical features.',
+        'Our company is expanding and we need someone who can hit the ground running. You''ll own key components of our platform and help shape our technical direction.',
+        'We believe in writing clean, maintainable code and investing in our people. Join a team where your contributions make a real difference to our customers.'
+    ];
 BEGIN
-    -- Employer jobs
-    FOR emp_user IN SELECT u.id as uid, ep.company_name
-                     FROM users u JOIN employer_profiles ep ON ep.user_id = u.id
-                     WHERE u.role = 'EMPLOYER'
-                     ORDER BY random() LIMIT 10
+    FOR emp IN SELECT u.id as uid, ep.company_name, ep.location_hq
+                FROM users u
+                JOIN employer_profiles ep ON ep.user_id = u.id
+                WHERE u.role = 'EMPLOYER'
+                ORDER BY random()
+                LIMIT 15
     LOOP
-        FOR i IN 1..2 LOOP
-            v_title := replace(v_title_tmpl[floor(random()*array_length(v_title_tmpl,1)+1)], '%s', v_techs[floor(random()*array_length(v_techs,1)+1)]);
+        job_count := 3 + floor(random() * 3)::int; -- 3 to 5 jobs
+
+        FOR i IN 1..job_count LOOP
+            v_title := replace(v_title_tmpl[1 + floor(random()*array_length(v_title_tmpl,1))], '%s', v_techs[1 + floor(random()*array_length(v_techs,1))]);
+            v_desc := v_desc_tmpl[1 + floor(random()*array_length(v_desc_tmpl,1))];
+
             INSERT INTO job_posts (
-                id, posted_by_id, title, description, company_name, location_city, location_country,
-                job_type, work_type, experience_level, salary_range_min, salary_range_max,
-                salary_currency, application_deadline, is_peer_sourced, visibility, status
+                id, posted_by_id, title, description, company_name,
+                location_city, location_country, job_type, work_type, experience_level,
+                salary_range_min, salary_range_max, salary_currency,
+                application_deadline, source_url, is_peer_sourced, visibility, status,
+                created_at, updated_at
             ) VALUES (
-                gen_random_uuid(), emp_user.uid,
-                v_title,
-                'We are looking for a talented ' || v_title || ' to join our team.',
-                emp_user.company_name,
-                'Nairobi', 'Kenya',
-                (ARRAY['FULL_TIME','PART_TIME','CONTRACT','FREELANCE','INTERNSHIP'])[floor(random()*5+1)],
-                (ARRAY['REMOTE','ONSITE','HYBRID'])[floor(random()*3+1)],
-                (ARRAY['ENTRY','MID','SENIOR','LEAD'])[floor(random()*4+1)],
-                (50000 + floor(random()*150000))::numeric,
-                (100000 + floor(random()*200000))::numeric,
-                'KES',
+                gen_random_uuid(), emp.uid,
+                v_title, v_desc, emp.company_name,
+                v_locations[1 + floor(random()*array_length(v_locations,1))],
+                'Kenya',
+                (ARRAY['FULL_TIME','PART_TIME','CONTRACT','FREELANCE','INTERNSHIP'])[1 + floor(random()*5)],
+                (ARRAY['REMOTE','ONSITE','HYBRID'])[1 + floor(random()*3)],
+                (ARRAY['ENTRY','MID','SENIOR','LEAD'])[1 + floor(random()*4)],
+                (50000 + floor(random()*200000))::numeric,
+                (120000 + floor(random()*300000))::numeric, 'KES',
                 CURRENT_DATE + (random()*60)::int,
-                false, 'EXTERNAL', v_statuses[floor(random()*array_length(v_statuses,1)+1)]
+                null, false, 'EXTERNAL', v_statuses[1 + floor(random()*array_length(v_statuses,1))],
+                now(), now()
             )
             RETURNING id INTO v_job_id;
 
-            INSERT INTO job_tags (id, job_id, tag)
-            SELECT gen_random_uuid(), v_job_id, unnest(ARRAY(SELECT unnest(v_tags) ORDER BY random() LIMIT (3 + floor(random()*3))));
-        END LOOP;
-    END LOOP;
-
-    -- Peer-sourced jobs from developers
-    FOR dev_user IN SELECT u.id as uid
-                     FROM users u JOIN developer_profiles dp ON dp.user_id = u.id
-                     WHERE u.role = 'DEVELOPER'
-                     ORDER BY random() LIMIT 8
-    LOOP
-        FOR i IN 1..(1 + floor(random()*2)) LOOP
-            v_title := replace(v_title_tmpl[floor(random()*array_length(v_title_tmpl,1)+1)], '%s', v_techs[floor(random()*array_length(v_techs,1)+1)]);
-            INSERT INTO job_posts (
-                id, posted_by_id, title, description, company_name, location_city, location_country,
-                job_type, work_type, experience_level, salary_range_min, salary_range_max,
-                salary_currency, application_deadline, is_peer_sourced, visibility, status
-            ) VALUES (
-                gen_random_uuid(), dev_user.uid,
-                v_title,
-                'Found this role through my network. Apply at the source link.',
-                'Various Companies',
-                'Nairobi', 'Kenya',
-                (ARRAY['FULL_TIME','PART_TIME','CONTRACT','FREELANCE','INTERNSHIP'])[floor(random()*5+1)],
-                (ARRAY['REMOTE','ONSITE','HYBRID'])[floor(random()*3+1)],
-                (ARRAY['ENTRY','MID','SENIOR','LEAD'])[floor(random()*4+1)],
-                null, null, 'KES', CURRENT_DATE + (random()*30)::int,
-                true, 'EXTERNAL', 'OPEN'
-            )
-            RETURNING id INTO v_job_id;
-
-            INSERT INTO job_tags (id, job_id, tag)
-            SELECT gen_random_uuid(), v_job_id, unnest(ARRAY(SELECT unnest(v_tags) ORDER BY random() LIMIT (3 + floor(random()*3))));
+            INSERT INTO job_tags (id, job_id, tag, created_at, updated_at)
+            SELECT gen_random_uuid(), v_job_id, t, now(), now()
+            FROM unnest(ARRAY(SELECT unnest(v_tags) ORDER BY random() LIMIT (3+floor(random()*5)))) AS t;
         END LOOP;
     END LOOP;
 END $$;
 
--- Applications
-DO $$
-DECLARE
-    dev RECORD;
-    job RECORD;
-BEGIN
-    FOR dev IN SELECT dp.user_id as uid
-               FROM developer_profiles dp
-               WHERE dp.availability_status = 'OPEN_TO_OFFERS'
-               LIMIT 20
-    LOOP
-        FOR job IN SELECT id FROM job_posts WHERE status = 'OPEN' ORDER BY random() LIMIT 3 LOOP
-            INSERT INTO job_applications (id, job_id, applicant_id, cover_letter, status)
-            VALUES (
-                gen_random_uuid(), job.id, dev.uid,
-                'I am very interested in this position.',
-                (ARRAY['PENDING','REVIEWED','ACCEPTED','REJECTED'])[floor(random()*4+1)]
-            )
-            ON CONFLICT (job_id, applicant_id) DO NOTHING;
-        END LOOP;
-    END LOOP;
-END $$;
-
--- Job votes
-DO $$
-DECLARE
-    u RECORD;
-    j RECORD;
-BEGIN
-    FOR u IN SELECT id FROM users WHERE role = 'DEVELOPER' LIMIT 20 LOOP
-        FOR j IN SELECT id FROM job_posts ORDER BY random() LIMIT 5 LOOP
-            INSERT INTO job_votes (id, job_id, user_id, vote_type)
-            VALUES (gen_random_uuid(), j.id, u.id, (ARRAY['UPVOTE','DOWNVOTE'])[floor(random()*2+1)])
-            ON CONFLICT (job_id, user_id) DO NOTHING;
-        END LOOP;
-    END LOOP;
-END $$;
-
--- Job flags
-INSERT INTO job_flags (id, job_id, flagged_by_id, reason, status)
-SELECT gen_random_uuid(), j.id, u.id, 'This job looks suspicious.', 'PENDING'
-FROM job_posts j CROSS JOIN users u
-WHERE u.role = 'DEVELOPER' AND random() < 0.1
-LIMIT 5;
-
--- Forum comments
-DO $$
-DECLARE
-    u RECORD;
-    j RECORD;
-    v_comment_id UUID;
-    v_content TEXT[] := ARRAY['Great opportunity!','Has anyone applied?','What is the tech stack?','I love this role!','Any tips for the interview?','Is remote work an option?','Sounds exciting!','When is the deadline?','Thanks for sharing!'];
-BEGIN
-    FOR j IN SELECT id FROM job_posts ORDER BY random() LIMIT 15 LOOP
-        FOR u IN SELECT id FROM users WHERE role = 'DEVELOPER' ORDER BY random() LIMIT 3 LOOP
-            INSERT INTO forum_comments (id, job_id, author_id, content, parent_comment_id)
-            VALUES (gen_random_uuid(), j.id, u.id, v_content[floor(random()*array_length(v_content,1)+1)], null)
-            RETURNING id INTO v_comment_id;
-
-            IF random() < 0.4 THEN
-                INSERT INTO forum_comments (id, job_id, author_id, content, parent_comment_id)
-                VALUES (gen_random_uuid(), j.id, (SELECT id FROM users WHERE role = 'DEVELOPER' ORDER BY random() LIMIT 1), 'Thanks for the info!', v_comment_id);
-            END IF;
-        END LOOP;
-    END LOOP;
-END $$;
-
--- Comment votes & flags
-DO $$
-DECLARE
-    c RECORD;
-    u RECORD;
-BEGIN
-    FOR c IN SELECT id FROM forum_comments LIMIT 30 LOOP
-        FOR u IN SELECT id FROM users WHERE role = 'DEVELOPER' ORDER BY random() LIMIT 2 LOOP
-            INSERT INTO comment_votes (id, comment_id, user_id, vote_type)
-            VALUES (gen_random_uuid(), c.id, u.id, (ARRAY['UPVOTE','DOWNVOTE'])[floor(random()*2+1)])
-            ON CONFLICT (comment_id, user_id) DO NOTHING;
-        END LOOP;
-    END LOOP;
-END $$;
-
-INSERT INTO comment_flags (id, comment_id, flagged_by_id, reason, status)
-SELECT gen_random_uuid(), c.id, u.id, 'Inappropriate comment', 'PENDING'
-FROM forum_comments c CROSS JOIN users u
-WHERE u.role = 'DEVELOPER' AND random() < 0.05
-LIMIT 5;
-
--- Contact requests
-DO $$
-DECLARE
-    emp RECORD;
-    dev RECORD;
-BEGIN
-    FOR emp IN SELECT ep.id as epid, ep.user_id as uid FROM employer_profiles ep LIMIT 5 LOOP
-        FOR dev IN SELECT dp.id as dpid, dp.user_id as uid FROM developer_profiles dp WHERE dp.can_employers_reach_out = true ORDER BY random() LIMIT 2 LOOP
-            INSERT INTO contact_requests (id, employer_id, developer_id, message, status)
-            VALUES (gen_random_uuid(), emp.epid, dev.dpid, 'We think your skills match a role we have open.', (ARRAY['PENDING','ACCEPTED','REJECTED'])[floor(random()*3+1)]);
-        END LOOP;
-    END LOOP;
-END $$;
-
--- Endorsements (fixed)
-INSERT INTO endorsements (id, recipient_id, author_id, content)
-SELECT gen_random_uuid(), dp1.id, u2.id, 'Excellent developer, highly recommended!'
-FROM developer_profiles dp1
-CROSS JOIN users u2
-WHERE u2.role = 'DEVELOPER'
-  AND dp1.user_id <> u2.id
-ORDER BY random()
-LIMIT 50;
-
--- Payments
-DO $$
-DECLARE
-    dev RECORD;
-    emp RECORD;
-    v_type TEXT;
-BEGIN
-    FOR dev IN SELECT u.id as uid FROM users u WHERE u.role = 'DEVELOPER' ORDER BY random() LIMIT 15 LOOP
-        v_type := (ARRAY['VERIFIED_BADGE','SPOTLIGHT_DAY','SPOTLIGHT_WEEK'])[floor(random()*3+1)];
-        INSERT INTO payments (id, user_id, type, amount, currency, status, mpesa_receipt_no, phone_number, paid_at)
-        VALUES (gen_random_uuid(), dev.uid, v_type,
-                CASE v_type WHEN 'VERIFIED_BADGE' THEN 250 WHEN 'SPOTLIGHT_DAY' THEN 50 ELSE 250 END,
-                'KES', 'COMPLETED', 'RECPT' || floor(random()*1000000)::text, '254712345678', NOW() - random()*interval '30 days');
-    END LOOP;
-    FOR emp IN SELECT u.id as uid FROM users u WHERE u.role = 'EMPLOYER' ORDER BY random() LIMIT 5 LOOP
-        INSERT INTO payments (id, user_id, type, amount, currency, status, mpesa_receipt_no, phone_number, paid_at)
-        VALUES (gen_random_uuid(), emp.uid, 'VERIFIED_BADGE', 500, 'KES', 'COMPLETED', 'RECPT' || floor(random()*1000000)::text, '254723456789', NOW() - random()*interval '30 days');
-    END LOOP;
-END $$;
-
--- Spotlight slots
-INSERT INTO spotlight_slots (id, developer_id, type, start_date, end_date, payment_id, is_active)
-SELECT gen_random_uuid(), dp.id,
-       CASE WHEN p.type = 'SPOTLIGHT_DAY' THEN 'DAY' ELSE 'WEEK' END,
-       NOW() - interval '1 day', NOW() + interval '6 days',
-       p.id, true
-FROM payments p
-JOIN users u ON u.id = p.user_id
-JOIN developer_profiles dp ON dp.user_id = u.id
-WHERE p.type IN ('SPOTLIGHT_DAY','SPOTLIGHT_WEEK') AND p.status = 'COMPLETED'
-LIMIT 5;
-
--- Notifications
-DO $$
-DECLARE
-    dev RECORD;
-    notif_types TEXT[] := ARRAY['JOB_APPLICATION','COMMENT_REPLY','ENDORSEMENT','SPOTLIGHT_EXPIRED','VERIFIED_BADGE','CONTACT_REQUEST'];
-    msgs TEXT[] := ARRAY['You have a new job application.','Someone replied to your comment.','You received a new endorsement!','Your spotlight has expired.','Your verified badge was approved.','An employer sent you a contact request.'];
-BEGIN
-    FOR dev IN SELECT u.id as uid FROM users u WHERE u.role = 'DEVELOPER' LIMIT 30 LOOP
-        FOR i IN 1..(2 + floor(random()*4)) LOOP
-            INSERT INTO notifications (id, user_id, category, title, message, is_read)
-            VALUES (gen_random_uuid(), dev.uid,
-                    notif_types[floor(random()*array_length(notif_types,1)+1)],
-                    'Notification', msgs[floor(random()*array_length(msgs,1)+1)], random() < 0.5);
-        END LOOP;
-    END LOOP;
-END $$;
-
--- Verification requests
-INSERT INTO verification_requests (id, user_id, role, status)
-SELECT gen_random_uuid(), u.id, u.role, (ARRAY['PENDING','APPROVED','REJECTED'])[floor(random()*3+1)]
-FROM users u
-WHERE random() < 0.2;
-
--- Admin actions
-INSERT INTO admin_actions (id, admin_id, action_type, target_type, target_id, notes)
-SELECT gen_random_uuid(),
-       'a0000000-0000-0000-0000-000000000001',
-       (ARRAY['REVIEW_FLAG','BAN_USER','APPROVE_EMPLOYER','GRANT_BADGE'])[floor(random()*4+1)],
-       (ARRAY['JobPost','User','EmployerProfile'])[floor(random()*3+1)],
-       gen_random_uuid(),
-       'Demo action'
-FROM generate_series(1,10);
-
--- Blocked users (fixed)
-INSERT INTO blocked_users (id, blocker_id, blocked_id)
-SELECT gen_random_uuid(), u1.id, u2.id
-FROM users u1
-CROSS JOIN users u2
-WHERE u1.id <> u2.id
-ORDER BY random()
-LIMIT 5;
-
--- Contact messages
-INSERT INTO contact_messages (id, name, email, subject, message)
-VALUES (gen_random_uuid(), 'John Doe', 'john@example.com', 'Partnership Inquiry', 'I would like to partner with KEDevs.');
-
-INSERT INTO company_inquiries (id, sender_user_id, employer_profile_id, message, status)
-SELECT gen_random_uuid(), u.id, ep.id, 'Interested in your open roles.', 'PENDING'
-FROM users u CROSS JOIN employer_profiles ep
-WHERE u.role = 'DEVELOPER' AND random() < 0.1
-LIMIT 5;
-
--- Sync upvote counts
+-- Sync upvote counts (if any votes were added via previous seed)
 UPDATE job_posts j SET upvote_count = (
     SELECT count(*) FROM job_votes WHERE job_id = j.id AND vote_type = 'UPVOTE'
 );
 
 COMMIT;
+SQL

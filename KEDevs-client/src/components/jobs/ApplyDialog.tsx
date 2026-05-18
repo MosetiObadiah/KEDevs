@@ -214,8 +214,8 @@ export default function ApplyDialog({ open, onClose, job, onSuccess }: ApplyDial
                   <div className="space-y-2">
                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Core Skills</p>
                     <div className="flex flex-wrap gap-1.5">
-                      {profile.skills?.map((s: string) => (
-                        <Badge key={s} variant="outline" className="rounded-xl bg-white border-slate-200 text-slate-900 font-medium px-2 py-0.5">
+                      {profile.skills?.map((s: string, idx: number) => (
+                        <Badge key={`${s}-${idx}`} variant="outline" className="rounded-xl bg-white border-slate-200 text-slate-900 font-medium px-2 py-0.5">
                           {s}
                         </Badge>
                       ))}

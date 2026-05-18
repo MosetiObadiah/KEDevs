@@ -124,8 +124,8 @@ export function ProfileTabs({
             )}
           </div>
           <div className="flex flex-wrap gap-2">
-            {profile.skills?.map((skill: string) => (
-              <Badge key={skill} variant="secondary" className="rounded-full px-4 py-1.5 text-sm font-medium bg-muted/50 border border-border/50 text-foreground group relative">
+            {profile.skills?.map((skill: string, idx: number) => (
+              <Badge key={`${skill}-${idx}`} variant="secondary" className="rounded-full px-4 py-1.5 text-sm font-medium bg-muted/50 border border-border/50 text-foreground group relative">
                 {skill}
                 {isOwner && (
                   <button 

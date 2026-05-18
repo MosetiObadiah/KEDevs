@@ -662,8 +662,8 @@ function DevelopersPageContent() {
 
                     {/* Skills */}
                     <div className="flex flex-wrap gap-1 justify-center my-2 shrink-0">
-                      {dev.skills.slice(0, 3).map(skill => (
-                        <span key={skill} className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full text-xs truncate max-w-[80px]">
+                      {dev.skills.slice(0, 3).map((skill, idx) => (
+                        <span key={`${skill}-${idx}`} className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full text-xs truncate max-w-[80px]">
                           {skill}
                         </span>
                       ))}

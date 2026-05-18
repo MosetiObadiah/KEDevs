@@ -90,8 +90,8 @@ export const Hero = ({ randomJob, randomDev, stats }: HeroProps) => {
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-1.5 mb-6 h-[22px] overflow-hidden">
-                    {randomDev.skills?.slice(0, 3).map(skill => (
-                      <Badge key={skill} variant="secondary" className="text-[9px] py-0.5 px-2 font-medium uppercase tracking-wider">
+                    {randomDev.skills?.slice(0, 3).map((skill, idx) => (
+                      <Badge key={`${skill}-${idx}`} variant="secondary" className="text-[9px] py-0.5 px-2 font-medium uppercase tracking-wider">
                         {skill}
                       </Badge>
                     ))}

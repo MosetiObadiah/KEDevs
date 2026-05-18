@@ -53,13 +53,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     }
 
     const token = localStorage.getItem('token');
-    // Always point SockJS to the absolute backend URL in development to bypass Next.js static rewrite issues
-    const socketUrl = process.env.NEXT_PUBLIC_API_URL 
-      ? `${process.env.NEXT_PUBLIC_API_URL}/ws` 
-      : 'http://localhost:8080/ws';
 
     const client = new Client({
-      webSocketFactory: () => new SockJS(socketUrl),
+      webSocketFactory: () => new SockJS('/ws'),
       connectHeaders: {
         Authorization: `Bearer ${token}`
       },

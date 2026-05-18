@@ -10,6 +10,8 @@
 .springBeans
 .sts4-cache
 
+/KEDevs_sample_assets
+KEDevs_sample_assets/
 
 # Created by https://www.gitignore.io/api/git,java,maven,eclipse,windows
 
@@ -245,4 +247,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
