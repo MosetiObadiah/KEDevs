@@ -148,6 +148,16 @@ function JobsPageContent() {
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [skillSearch, setSkillSearch] = useState('');
   const [isSkillsDropdownOpen, setIsSkillsDropdownOpen] = useState(false);
+  const [showDesktopFilters, setShowDesktopFilters] = useState(true);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+
+  const handleToggleFilters = () => {
+    if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+      setShowDesktopFilters(!showDesktopFilters);
+    } else {
+      setIsMobileFiltersOpen(!isMobileFiltersOpen);
+    }
+  };
 
   const uniqueCities = Array.from(new Set([...KENYA_CITIES, ...jobs.map(j => j.locationCity).filter(Boolean)])).sort();
   const availableSkills = Array.from(new Set(jobs.flatMap(j => j.tags || []))).sort();
@@ -741,23 +751,37 @@ function JobsPageContent() {
       <PageContainer className="max-w-full px-8 xl:px-16">
         <div className="flex justify-between items-center mb-8 print:hidden gap-3">
           {/* Mobile Filter Button */}
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-5 shrink-0">
-                <SlidersHorizontal className="mr-2 h-4 w-4 text-primary" />
-                Filters
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-[300px] sm:w-[350px] p-0 overflow-y-auto">
-              <SheetHeader className="p-6 pb-2 text-left">
-                <SheetTitle>Filter Jobs</SheetTitle>
-                <SheetDescription className="sr-only">Choose options to narrow down job postings.</SheetDescription>
-              </SheetHeader>
-              <div className="p-6 pt-0 space-y-6">
-                {renderFilters()}
-              </div>
-            </SheetContent>
-          </Sheet>
+          <div className="lg:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-5 shrink-0">
+                  <SlidersHorizontal className="mr-2 h-4 w-4 text-primary" />
+                  Filters
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[300px] sm:w-[350px] p-0 overflow-y-auto">
+                <SheetHeader className="p-6 pb-2 text-left">
+                  <SheetTitle>Filter Jobs</SheetTitle>
+                  <SheetDescription className="sr-only">Choose options to narrow down job postings.</SheetDescription>
+                </SheetHeader>
+                <div className="p-6 pt-0 space-y-6">
+                  {renderFilters()}
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+
+          {/* Desktop Toggle Button */}
+          <div className="hidden lg:block">
+            <Button 
+              variant="outline" 
+              className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-5 shrink-0"
+              onClick={() => setShowDesktopFilters(!showDesktopFilters)}
+            >
+              <SlidersHorizontal className="mr-2 h-4 w-4 text-primary" />
+              Filters
+            </Button>
+          </div>
 
           <div className="flex items-center gap-3 ml-auto shrink-0">
             <DropdownMenu>
@@ -792,9 +816,23 @@ function JobsPageContent() {
           <p className="text-sm text-slate-500">Generated on {formatDateString(new Date())}</p>
         </div>
 
-        <div className="max-w-4xl mx-auto w-full">
+        <div className="flex gap-8 items-start w-full">
+          {/* Filters Sidebar (Desktop) */}
+          {showDesktopFilters && (
+            <aside className="hidden lg:block w-72 shrink-0 space-y-6 print:hidden sticky top-24 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent pr-1">
+              <Card className="border-border/50 shadow-sm">
+                <CardHeader className="pb-4">
+                  <h3 className="text-sm font-medium uppercase tracking-wider text-foreground">Filter Jobs</h3>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {renderFilters()}
+                </CardContent>
+              </Card>
+            </aside>
+          )}
+
           {/* Job List area */}
-          <main className="w-full space-y-6">
+          <main className="flex-1 w-full space-y-6">
             {error && (
               <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-xl mb-6 text-sm font-medium">
                 {error}

@@ -78,6 +78,16 @@ function CompaniesPageContent() {
   const [country, setCountry] = useState('All');
   const [city, setCity] = useState('All');
   const [hasOpenJobs, setHasOpenJobs] = useState(false);
+  const [showDesktopFilters, setShowDesktopFilters] = useState(true);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+
+  const handleToggleFilters = () => {
+    if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+      setShowDesktopFilters(!showDesktopFilters);
+    } else {
+      setIsMobileFiltersOpen(!isMobileFiltersOpen);
+    }
+  };
 
   const fetchCompanies = async () => {
     setIsLoading(true);
@@ -280,24 +290,38 @@ function CompaniesPageContent() {
             <p className="text-muted-foreground font-medium">Discover top tech companies and startups in Kenya.</p>
           </div>
           <div className="flex items-center gap-3 ml-auto shrink-0">
-            {/* Mobile/Desktop Filter Button */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-5 shrink-0">
-                  <SlidersHorizontal className="mr-2 h-4 w-4 text-primary" />
-                  Filters
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] sm:w-[350px] p-0 overflow-y-auto">
-                <SheetHeader className="p-6 pb-2 text-left">
-                  <SheetTitle>Filter Companies</SheetTitle>
-                  <SheetDescription className="sr-only">Choose options to narrow down company listings.</SheetDescription>
-                </SheetHeader>
-                <div className="p-6 pt-0 space-y-6">
-                  {renderFilters()}
-                </div>
-              </SheetContent>
-            </Sheet>
+            {/* Mobile Filter Button */}
+            <div className="lg:hidden">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-5 shrink-0">
+                    <SlidersHorizontal className="mr-2 h-4 w-4 text-primary" />
+                    Filters
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-[300px] sm:w-[350px] p-0 overflow-y-auto">
+                  <SheetHeader className="p-6 pb-2 text-left">
+                    <SheetTitle>Filter Companies</SheetTitle>
+                    <SheetDescription className="sr-only">Choose options to narrow down company listings.</SheetDescription>
+                  </SheetHeader>
+                  <div className="p-6 pt-0 space-y-6">
+                    {renderFilters()}
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
+
+            {/* Desktop Toggle Button */}
+            <div className="hidden lg:block">
+              <Button 
+                variant="outline" 
+                className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-5 shrink-0"
+                onClick={() => setShowDesktopFilters(!showDesktopFilters)}
+              >
+                <SlidersHorizontal className="mr-2 h-4 w-4 text-primary" />
+                Filters
+              </Button>
+            </div>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -318,16 +342,30 @@ function CompaniesPageContent() {
           </div>
         </div>
 
-        <div className="max-w-4xl mx-auto w-full">
+        <div className="flex gap-8 items-start w-full">
+          {/* Filters Sidebar (Desktop) */}
+          {showDesktopFilters && (
+            <aside className="hidden lg:block w-72 shrink-0 space-y-6 print:hidden sticky top-24 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent pr-1">
+              <Card className="border-border/50 shadow-sm">
+                <CardHeader className="pb-4">
+                  <h3 className="text-sm font-medium uppercase tracking-wider text-foreground">Filter Companies</h3>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {renderFilters()}
+                </CardContent>
+              </Card>
+            </aside>
+          )}
+
           {/* Results Area */}
-          <main className="w-full">
+          <main className="flex-1 w-full">
             {error && (
               <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-xl mb-6 text-sm font-medium">
                 {error}
               </div>
             )}
             
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6">
               {isLoading ? (
                 [1, 2, 3, 4, 5, 6].map(i => (
                   <Card key={i} className="p-8 flex flex-col items-center border-border/50 shadow-sm animate-pulse">
