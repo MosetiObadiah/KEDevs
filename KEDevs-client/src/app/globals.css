@@ -127,6 +127,7 @@
   --color-success-100: oklch(91.0% 0.068 154);
   --color-success-200: oklch(82.0% 0.118 153);
   --color-success-400: oklch(61.0% 0.180 151);
+  --color-success-500: oklch(53.0% 0.168 150.5);
   --color-success-600: oklch(46.0% 0.155 150);
   --color-success-700: oklch(37.0% 0.125 149);
   --color-success-800: oklch(28.0% 0.090 148);
@@ -138,6 +139,7 @@
   --color-warning-100: oklch(93.0% 0.072 86);
   --color-warning-200: oklch(86.0% 0.130 84);
   --color-warning-400: oklch(72.0% 0.185 82);
+  --color-warning-500: oklch(63.0% 0.174 81);
   --color-warning-600: oklch(54.0% 0.162 80);
   --color-warning-700: oklch(43.0% 0.130 79);
   --color-warning-800: oklch(33.0% 0.095 78);
@@ -149,6 +151,7 @@
   --color-danger-100: oklch(92.5% 0.055 18);
   --color-danger-200: oklch(84.0% 0.105 18);
   --color-danger-400: oklch(64.0% 0.215 22);
+  --color-danger-500: oklch(55.0% 0.205 23);
   --color-danger-600: oklch(47.0% 0.195 24);
   --color-danger-700: oklch(38.0% 0.160 25);
   --color-danger-800: oklch(28.5% 0.115 26);
