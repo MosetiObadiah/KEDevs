@@ -113,6 +113,8 @@ export default function JobDetailPage() {
   }, [isLoggedIn, user]);
 
   const isPoster = user?.id === job?.postedById;
+  const isExpired = job?.applicationDeadline && new Date(job.applicationDeadline) < new Date();
+  const isActive = job?.status === 'OPEN' && !isExpired;
 
   const handleEditJob = () => {
     setEditForm({
@@ -397,7 +399,17 @@ export default function JobDetailPage() {
               <CardContent className="p-6 space-y-4">
                 <h3 className="text-base font-medium">Ready to Apply?</h3>
                 
-                {job.isPeerSourced ? (
+                {!isActive && !isPoster ? (
+                  <div className="space-y-2">
+                    <div className="bg-destructive/10 border border-destructive/30 text-destructive rounded-xl p-4 text-center">
+                      <AlertTriangle className="h-5 w-5 mx-auto mb-2 text-destructive shrink-0 animate-pulse" />
+                      <p className="text-xs font-black uppercase tracking-widest">Application Period Closed</p>
+                      <p className="text-xs font-medium leading-relaxed mt-1 text-destructive/80">
+                        {isExpired ? "The application deadline for this position has passed." : "This job post is no longer accepting applications."}
+                      </p>
+                    </div>
+                  </div>
+                ) : job.isPeerSourced ? (
                   <Button size="lg" className="w-full font-medium" asChild>
                     <Link href={job.sourceUrl || '#'} target="_blank">
                       Apply on External Site
