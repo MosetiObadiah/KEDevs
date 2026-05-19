@@ -905,11 +905,6 @@ function JobsPageContent() {
                             <Badge className="bg-slate-50 text-slate-600 border border-slate-100 text-[9px] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded-full hover:bg-slate-50">
                               {pJob.jobType?.replace('_', ' ')}
                             </Badge>
-                            {isNew && (
-                              <Badge className="bg-emerald-50 text-emerald-600 border border-emerald-100 text-[9px] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded-full hover:bg-emerald-50">
-                                New
-                              </Badge>
-                            )}
                             {isUrgent && (
                               <Badge className="bg-amber-50 text-amber-700 border border-amber-100 text-[9px] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded-full hover:bg-amber-50">
                                 Expires soon
@@ -924,9 +919,8 @@ function JobsPageContent() {
                               {pJob.locationCity}
                             </span>
                             {pJob.minSalary && (
-                              <span className="flex items-center gap-1 text-slate-700 font-semibold">
-                                <DollarSign className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                {pJob.salaryCurrency || 'KES'} {Math.round(pJob.minSalary / 1000)}k
+                              <span className="text-slate-700 font-semibold">
+                                Salary: {pJob.salaryCurrency || 'KES'} {Math.round(pJob.minSalary / 1000)}k
                               </span>
                             )}
                           </div>
@@ -1006,6 +1000,10 @@ function JobsPageContent() {
                 filteredJobs.map((job) => {
                   const userSkills = user?.skills || [];
                   const isSkillsMatch = isLoggedIn && user?.role === 'DEVELOPER' && job.tags && job.tags.some(tag => userSkills.map(s => s.toLowerCase()).includes(tag.toLowerCase()));
+                  const daysLeft = job.applicationDeadline 
+                    ? Math.ceil((new Date(job.applicationDeadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+                    : null;
+                  const isUrgent = daysLeft !== null && daysLeft > 0 && daysLeft <= 3;
 
                   return (
                     <Card key={job.id} className="group border-border/50 hover:shadow-xl hover:shadow-primary/5 transition-all overflow-hidden bg-background">
@@ -1046,9 +1044,8 @@ function JobsPageContent() {
                                 <Briefcase className="h-4 w-4" /> {formatExperienceLevel(job.experienceLevel)}
                               </span>
                               {(job.salaryRangeMin || job.salaryRangeMax) && (
-                                <span className="flex items-center gap-1.5 text-azure-500 font-bold">
-                                  <DollarSign className="h-4 w-4 shrink-0" />
-                                  {job.salaryRangeMin && `KES ${job.salaryRangeMin.toLocaleString()}`}
+                                <span className="text-azure-500 font-bold">
+                                  Salary: {job.salaryRangeMin && `KES ${job.salaryRangeMin.toLocaleString()}`}
                                   {job.salaryRangeMin && job.salaryRangeMax && ' – '}
                                   {job.salaryRangeMax && `KES ${job.salaryRangeMax.toLocaleString()}`}
                                 </span>
@@ -1056,11 +1053,16 @@ function JobsPageContent() {
                               {job.applicationDeadline && (
                                 <span className={cn(
                                   "flex items-center gap-1.5 font-medium",
-                                  new Date(job.applicationDeadline) < sevenDaysFromNow ? "text-danger-600" : "text-muted-foreground"
+                                  isUrgent || new Date(job.applicationDeadline) < now ? "text-danger-600 font-bold" : "text-muted-foreground"
                                 )}>
-                                  <Calendar className="h-4 w-4" />
-                                  {new Date(job.applicationDeadline) < now ? 'Expired: ' : 'Deadline: '}
-                                  {format(new Date(job.applicationDeadline), 'dd MMM yyyy')}
+                                  <Clock className="h-4 w-4" />
+                                  {new Date(job.applicationDeadline) < now ? (
+                                    'Expired'
+                                  ) : daysLeft !== null ? (
+                                    daysLeft === 0 ? "Expires today" : `${daysLeft} day${daysLeft !== 1 ? 's' : ''} left`
+                                  ) : (
+                                    "No deadline"
+                                  )}
                                 </span>
                               )}
                             </div>
