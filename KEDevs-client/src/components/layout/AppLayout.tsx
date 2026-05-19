@@ -584,7 +584,7 @@ function GlobalSearchBar() {
 
   const isInbox = /^\/jobs\/[^\/]+\/applications$/.test(pathname || '');
 
-  if (pathname !== '/jobs' && pathname !== '/developers' && pathname !== '/companies' && !isInbox) {
+  if (pathname !== '/jobs' && pathname !== '/developers' && pathname !== '/companies' && pathname !== '/jobs/my-posts' && !isInbox) {
     return null;
   }
 
@@ -609,6 +609,7 @@ function GlobalSearchBar() {
           pathname === '/jobs' ? "Search jobs..." : 
           pathname === '/developers' ? "Search talent..." : 
           isInbox ? "Search applicants..." :
+          pathname === '/jobs/my-posts' ? "Search my posts..." :
           "Search companies..."
         } 
         className="pl-9 h-9 rounded-xl bg-muted/30 border border-border/60 text-xs font-medium focus-visible:ring-primary/20 transition-all shadow-none"

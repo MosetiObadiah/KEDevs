@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import {
   Menu,
   X,
@@ -21,8 +21,7 @@ import {
   Sparkles,
   LayoutDashboard,
   Zap,
-  Globe,
-  Search
+  Globe
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from 'next-themes';
@@ -45,29 +44,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 const Navbar = () => {
   const { isLoggedIn, user, logout } = useAuth();
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const currentSearch = searchParams?.get('search') || '';
-
   const { theme, setTheme } = useTheme();
   const { unreadCount, refreshUnreadCount } = useNotification();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [navbarSearch, setNavbarSearch] = useState(currentSearch);
-
-  useEffect(() => {
-    setNavbarSearch(currentSearch);
-  }, [currentSearch]);
-
-  const handleSearchChange = (val: string) => {
-    setNavbarSearch(val);
-    const params = new URLSearchParams(window.location.search);
-    if (val) {
-      params.set('search', val);
-    } else {
-      params.delete('search');
-    }
-    router.replace(`${pathname}?${params.toString()}`);
-  };
 
   const isEmp = user?.role === 'EMPLOYER';
   const isAdmin = user?.role === 'ADMIN';
@@ -111,20 +90,6 @@ const Navbar = () => {
 
           {/* Action Area */}
           <div className="flex items-center gap-3">
-            {/* My Job Posts Search Input in Top Global Bar */}
-            {pathname?.replace(/\/$/, '') === '/jobs/my-posts' && (
-              <div className="relative hidden md:block w-64 mr-2">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-                <input 
-                  type="text"
-                  placeholder="Search my posts..." 
-                  value={navbarSearch}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  className="w-full pl-9 pr-3 h-10 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400"
-                />
-              </div>
-            )}
-
             {/* Theme Toggle (Simplified) */}
             <Button
               variant="ghost"
@@ -227,18 +192,6 @@ const Navbar = () => {
         {/* Mobile Navigation Feed */}
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-slate-50 py-6 space-y-2 animate-in slide-in-from-top-2 duration-300">
-            {pathname?.replace(/\/$/, '') === '/jobs/my-posts' && (
-              <div className="relative px-4 pb-4">
-                <Search className="absolute left-7 top-3 h-3.5 w-3.5 text-slate-400" />
-                <input 
-                  type="text"
-                  placeholder="Search my posts..." 
-                  value={navbarSearch}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  className="w-full pl-9 pr-3 h-10 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400"
-                />
-              </div>
-            )}
             {navItems.map((item) => (
               <Link
                 key={item.label}
