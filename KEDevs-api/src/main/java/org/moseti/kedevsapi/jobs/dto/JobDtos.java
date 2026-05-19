@@ -195,7 +195,11 @@ public class JobDtos {
             String locationCountry,
             WorkType workType,
             JobType jobType,
-            LocalDateTime pinnedUntil
+            LocalDateTime pinnedUntil,
+            java.time.LocalDate applicationDeadline,
+            java.math.BigDecimal minSalary,
+            String salaryCurrency,
+            LocalDateTime createdAt
     ) {}
 
     public record JobFilterMetadataResponse(

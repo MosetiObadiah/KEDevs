@@ -944,7 +944,11 @@ public class JobService {
                         job.getLocationCountry(),
                         job.getWorkType(),
                         job.getJobType(),
-                        job.getPinnedUntil()))
+                        job.getPinnedUntil(),
+                        job.getApplicationDeadline(),
+                        job.getSalaryRangeMin(),
+                        job.getSalaryCurrency(),
+                        job.getCreatedAt()))
                 .toList();
     }
 
