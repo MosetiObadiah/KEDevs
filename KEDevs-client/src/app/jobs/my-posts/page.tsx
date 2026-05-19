@@ -518,19 +518,12 @@ export default function MyJobPosts() {
                               </Button>
                             )}
 
-                            <div className="flex items-center gap-2">
-                              <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-slate-100" asChild>
-                                <Link href={`/jobs/post?edit=${post.id}`}>
-                                  <Edit3 className="h-4 w-4" />
-                                </Link>
-                              </Button>
-                              
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-slate-100">
-                                    <MoreVertical className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-slate-100">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="rounded-xl p-2 border-slate-100 shadow-xl min-w-[180px]">
                                   <DropdownMenuItem className="rounded-xl font-medium gap-3" asChild>
                                     <Link href={`/jobs/${post.id}`}>
@@ -548,7 +541,6 @@ export default function MyJobPosts() {
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
-                            </div>
                           </>
                         )}
                       </div>
