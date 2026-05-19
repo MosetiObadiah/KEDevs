@@ -578,9 +578,28 @@ function GlobalSearchBar() {
   const searchParams = useSearchParams();
   const [localVal, setLocalVal] = useState('');
 
+  // Sync with URL when search params change externally
   useEffect(() => {
     setLocalVal(searchParams.get('search') || '');
   }, [searchParams]);
+
+  // Debounce the router push URL updates
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const currentParam = searchParams.get('search') || '';
+      if (localVal.trim() === currentParam) return;
+      
+      const params = new URLSearchParams(Array.from(searchParams.entries()));
+      if (localVal.trim()) {
+        params.set('search', localVal.trim());
+      } else {
+        params.delete('search');
+      }
+      router.push(`${pathname}?${params.toString()}`);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [localVal, pathname, router, searchParams]);
 
   const isInbox = /^\/jobs\/[^\/]+\/applications$/.test(pathname || '');
 
@@ -589,16 +608,7 @@ function GlobalSearchBar() {
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setLocalVal(val);
-    
-    const params = new URLSearchParams(Array.from(searchParams.entries()));
-    if (val.trim()) {
-      params.set('search', val);
-    } else {
-      params.delete('search');
-    }
-    router.push(`${pathname}?${params.toString()}`);
+    setLocalVal(e.target.value);
   };
 
   return (
