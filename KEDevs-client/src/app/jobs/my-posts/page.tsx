@@ -21,8 +21,12 @@ import {
   Pin,
   TrendingUp,
   Search,
-  FilterX
+  FilterX,
+  Download,
+  FileSpreadsheet,
+  FileText
 } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 import { jobService } from '@/services/jobService';
 import { useAuth } from '@/context/AuthContext';
 import { cn, formatDateString } from '@/lib/utils';
@@ -63,6 +67,7 @@ export default function MyJobPosts() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [typeFilter, setTypeFilter] = useState('ALL');
+  const [dateFilter, setDateFilter] = useState('ALL');
 
   const filteredPosts = posts.filter(post => {
     // Search Term Filter
@@ -87,8 +92,159 @@ export default function MyJobPosts() {
       if (post.jobType !== typeFilter) return false;
     }
 
+    // Date Filter
+    if (dateFilter !== 'ALL') {
+      const postDate = new Date(post.createdAt);
+      const now = new Date();
+      const diffTime = Math.abs(now.getTime() - postDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (dateFilter === 'TODAY' && diffDays > 1) return false;
+      if (dateFilter === 'WEEK' && diffDays > 7) return false;
+      if (dateFilter === 'MONTH' && diffDays > 30) return false;
+    }
+
     return true;
   });
+
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async (format: 'csv' | 'pdf') => {
+    setIsExporting(true);
+    try {
+      if (format === 'pdf') {
+        const doc = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4'
+        });
+
+        // Header Strip
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.setTextColor(16, 185, 129); // emerald-500 KEDevs Brand
+        doc.text('KEDevs', 15, 18);
+
+        doc.setFontSize(13);
+        doc.setTextColor(15, 23, 42); // slate-900
+        doc.text('MY JOB POSTINGS REPORT', 105, 18, { align: 'center' });
+
+        doc.setFontSize(8);
+        doc.setTextColor(100, 116, 139); // slate-505
+        const exportDate = formatDateString(new Date());
+        doc.text(`EXPORTED: ${exportDate}`, 195, 18, { align: 'right' });
+
+        // Divider line
+        doc.setDrawColor(15, 23, 42);
+        doc.setLineWidth(0.5);
+        doc.line(15, 24, 195, 24);
+
+        // Active Filters Metadata block
+        doc.setFillColor(248, 250, 252); // slate-50
+        doc.setDrawColor(226, 232, 240); // slate-200
+        doc.setLineWidth(0.3);
+        doc.roundedRect(15, 28, 180, 18, 3, 3, 'FD');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        doc.setTextColor(71, 85, 105);
+        doc.text("FILTERS CONTEXT", 20, 33);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(15, 23, 42);
+        doc.text(`Search: ${searchTerm || 'None'}  |  Status: ${statusFilter}  |  Type: ${typeFilter}  |  Date range: ${dateFilter}`, 20, 39);
+
+        // Table Header
+        let y = 56;
+        doc.setFillColor(241, 245, 249);
+        doc.rect(15, y, 180, 8, 'F');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8);
+        doc.setTextColor(71, 85, 105);
+        doc.text('JOB TITLE', 18, y + 5.5);
+        doc.text('COMPANY / POSTER', 70, y + 5.5);
+        doc.text('JOB TYPE / WORK TYPE', 120, y + 5.5);
+        doc.text('STATUS', 170, y + 5.5);
+
+        doc.setDrawColor(226, 232, 240);
+        doc.setLineWidth(0.3);
+        doc.line(15, y + 8, 195, y + 8);
+        
+        y += 14;
+
+        filteredPosts.forEach((post) => {
+          if (y > 270) {
+            doc.addPage();
+            y = 25;
+          }
+
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(9);
+          doc.setTextColor(15, 23, 42);
+          const title = post.title || '';
+          doc.text(title.length > 25 ? title.substring(0, 23) + '..' : title, 18, y);
+
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(71, 85, 105);
+          const company = post.isPeerSourced || post.postedByRole !== 'EMPLOYER' ? (post.postedByName || 'Community') : post.companyName;
+          doc.text(company.length > 25 ? company.substring(0, 23) + '..' : company, 70, y);
+
+          const typeText = `${formatJobType(post.jobType)} (${post.workType})`;
+          doc.text(typeText, 120, y);
+
+          const isExpired = post.applicationDeadline && new Date(post.applicationDeadline) < new Date();
+          const statusText = post.status === 'REMOVED' ? 'REMOVED' : isExpired ? 'EXPIRED' : post.status === 'OPEN' ? 'ACTIVE' : 'CLOSED';
+          doc.text(statusText, 170, y);
+
+          doc.setDrawColor(241, 245, 249);
+          doc.setLineWidth(0.2);
+          doc.line(15, y + 4, 195, y + 4);
+
+          y += 10;
+        });
+
+        doc.save(`my_job_posts_report_${new Date().toISOString().split('T')[0]}.pdf`);
+        toast.success('PDF Report generated successfully');
+        return;
+      }
+
+      // CSV Export
+      const headers = ['JobTitle', 'CompanyOrPoster', 'JobType', 'WorkType', 'Location', 'Status', 'Applicants', 'PostedAt'];
+      const rows = filteredPosts.map(post => {
+        const isExpired = post.applicationDeadline && new Date(post.applicationDeadline) < new Date();
+        const statusText = post.status === 'REMOVED' ? 'REMOVED' : isExpired ? 'EXPIRED' : post.status === 'OPEN' ? 'ACTIVE' : 'CLOSED';
+        return [
+          `"${post.title || ''}"`,
+          `"${post.isPeerSourced || post.postedByRole !== 'EMPLOYER' ? (post.postedByName || 'Community Member') : post.companyName}"`,
+          `"${formatJobType(post.jobType)}"`,
+          `"${post.workType || ''}"`,
+          `"${post.locationCity || ''}, ${post.locationCountry || ''}"`,
+          `"${statusText}"`,
+          `"${post.applicationCount || 0}"`,
+          `"${formatDateString(post.createdAt)}"`
+        ].join(',');
+      });
+
+      const csvContent = [headers.join(','), ...rows].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `my_job_posts_export_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      toast.success('CSV Exported successfully');
+    } catch (err) {
+      console.error('Export failed', err);
+      toast.error('Export failed. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const fetchMyPosts = async () => {
     setLoading(true);
@@ -159,25 +315,10 @@ export default function MyJobPosts() {
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
       <div className="container mx-auto px-6 pt-8 pb-12">
-        {/* Actions Header - No Title as per request */}
-        <div className="flex justify-end mb-8">
-          <Button className="h-12 px-6 font-medium shadow-lg shadow-primary/20" asChild>
-            <Link href="/jobs/post">
-              <Plus className="mr-2 h-5 w-5" /> Post New Job
-            </Link>
-          </Button>
-        </div>
-
-        {error && (
-          <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-xl mb-8 text-sm font-medium">
-            {error}
-          </div>
-        )}
-
-        {/* Filter Toolbar Row */}
-        <div className="max-w-4xl mx-auto mb-6 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row gap-4 items-center">
-          {/* Search Input */}
-          <div className="relative w-full md:flex-1">
+        {/* Actions Header Toolbar */}
+        <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 mb-8 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+          {/* Left: Search Input */}
+          <div className="relative flex-1 max-w-lg w-full">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input 
               placeholder="Search by job title or company..." 
@@ -187,51 +328,100 @@ export default function MyJobPosts() {
             />
           </div>
 
-          {/* Filters Selects */}
-          <div className="flex flex-wrap w-full md:w-auto items-center gap-3">
-            {/* Status Select */}
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-40 h-11 border-slate-200/80 rounded-xl text-sm bg-slate-50">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl border-slate-200">
-                <SelectItem value="ALL">All Statuses</SelectItem>
-                <SelectItem value="ACTIVE">Active</SelectItem>
-                <SelectItem value="CLOSED">Closed</SelectItem>
-                <SelectItem value="EXPIRED">Expired</SelectItem>
-                <SelectItem value="REMOVED">Removed</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Right: Export & Actions */}
+          <div className="flex items-center gap-3 shrink-0">
+            {/* Export Dropdown Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="font-semibold border-slate-200 hover:bg-slate-50 h-11 px-4 rounded-xl text-xs" disabled={isExporting}>
+                  <Download className="mr-2 h-4 w-4 text-primary" />
+                  {isExporting ? 'Exporting...' : 'Export'}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="rounded-xl border-slate-200 bg-white shadow-xl min-w-[160px] p-1">
+                <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium text-xs rounded-lg gap-2">
+                  <FileSpreadsheet className="h-4 w-4 text-cyan-600" /> Download as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium text-xs rounded-lg gap-2">
+                  <FileText className="h-4 w-4 text-primary" /> Download as PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-            {/* Job Type Select */}
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-full sm:w-40 h-11 border-slate-200/80 rounded-xl text-sm bg-slate-50">
-                <SelectValue placeholder="Job Type" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl border-slate-200">
-                <SelectItem value="ALL">All Types</SelectItem>
-                <SelectItem value="FULL_TIME">Full-time</SelectItem>
-                <SelectItem value="PART_TIME">Part-time</SelectItem>
-                <SelectItem value="CONTRACT">Contract</SelectItem>
-                <SelectItem value="INTERNSHIP">Internship</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Reset Filters */}
-            {(searchTerm || statusFilter !== 'ALL' || typeFilter !== 'ALL') && (
-              <Button 
-                variant="ghost" 
-                onClick={() => {
-                  setSearchTerm('');
-                  setStatusFilter('ALL');
-                  setTypeFilter('ALL');
-                }}
-                className="h-11 px-3 text-xs font-semibold text-muted-foreground hover:bg-slate-100 rounded-xl"
-              >
-                <FilterX className="mr-1.5 h-4 w-4" /> Reset
-              </Button>
-            )}
+            <Button className="h-11 px-6 font-semibold text-xs rounded-xl shadow-none" asChild>
+              <Link href="/jobs/post">
+                <Plus className="mr-1.5 h-4 w-4" /> Post New Job
+              </Link>
+            </Button>
           </div>
+        </div>
+
+        {error && (
+          <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-xl mb-8 text-sm font-medium">
+            {error}
+          </div>
+        )}
+
+        {/* Filter Selection Row */}
+        <div className="max-w-4xl mx-auto mb-6 bg-slate-50/50 p-3 rounded-2xl border border-slate-100/80 flex flex-wrap items-center gap-3">
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Filters:</span>
+          
+          {/* Status Select */}
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-40 h-10 border-slate-200/80 rounded-xl text-xs bg-white">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border-slate-200">
+              <SelectItem value="ALL">All Statuses</SelectItem>
+              <SelectItem value="ACTIVE">Active</SelectItem>
+              <SelectItem value="CLOSED">Closed</SelectItem>
+              <SelectItem value="EXPIRED">Expired</SelectItem>
+              <SelectItem value="REMOVED">Removed</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Job Type Select */}
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="w-full sm:w-40 h-10 border-slate-200/80 rounded-xl text-xs bg-white">
+              <SelectValue placeholder="Job Type" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border-slate-200">
+              <SelectItem value="ALL">All Types</SelectItem>
+              <SelectItem value="FULL_TIME">Full-time</SelectItem>
+              <SelectItem value="PART_TIME">Part-time</SelectItem>
+              <SelectItem value="CONTRACT">Contract</SelectItem>
+              <SelectItem value="INTERNSHIP">Internship</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Date Filter Select */}
+          <Select value={dateFilter} onValueChange={setDateFilter}>
+            <SelectTrigger className="w-full sm:w-40 h-10 border-slate-200/80 rounded-xl text-xs bg-white">
+              <SelectValue placeholder="Date Posted" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border-slate-200">
+              <SelectItem value="ALL">All Time</SelectItem>
+              <SelectItem value="TODAY">Past 24 Hours</SelectItem>
+              <SelectItem value="WEEK">Past 7 Days</SelectItem>
+              <SelectItem value="MONTH">Past 30 Days</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Reset Filters */}
+          {(searchTerm || statusFilter !== 'ALL' || typeFilter !== 'ALL' || dateFilter !== 'ALL') && (
+            <Button 
+              variant="ghost" 
+              onClick={() => {
+                setSearchTerm('');
+                setStatusFilter('ALL');
+                setTypeFilter('ALL');
+                setDateFilter('ALL');
+              }}
+              className="h-10 px-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-slate-100 rounded-xl ml-auto"
+            >
+              <FilterX className="mr-1.5 h-3.5 w-3.5" /> Reset Filters
+            </Button>
+          )}
         </div>
 
         <div className="max-w-4xl mx-auto space-y-4">
@@ -380,6 +570,7 @@ export default function MyJobPosts() {
                     setSearchTerm('');
                     setStatusFilter('ALL');
                     setTypeFilter('ALL');
+                    setDateFilter('ALL');
                   }}
                 >
                   Clear Filters
