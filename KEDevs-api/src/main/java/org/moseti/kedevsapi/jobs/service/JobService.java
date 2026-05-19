@@ -104,6 +104,9 @@ public class JobService {
             throw new org.moseti.kedevsapi.shared.exception.UnauthorizedException(
                     "User context is missing or unauthenticated");
         }
+        if (request.salaryRangeMin() != null && request.salaryRangeMax() != null && request.salaryRangeMax().compareTo(request.salaryRangeMin()) < 0) {
+            throw new BadRequestException("Maximum salary cannot be smaller than minimum salary");
+        }
         if (request.isPeerSourced() && (request.sourceUrl() == null || request.sourceUrl().isBlank())) {
             throw new BadRequestException("sourceUrl is required for peer-sourced jobs");
         }
@@ -282,6 +285,12 @@ public class JobService {
 
         if (job.getStatus() == JobStatus.CLOSED || job.getStatus() == JobStatus.REMOVED) {
             throw new BadRequestException("Cannot edit a closed or removed job posting");
+        }
+
+        java.math.BigDecimal finalMin = request.salaryRangeMin() != null ? request.salaryRangeMin() : job.getSalaryRangeMin();
+        java.math.BigDecimal finalMax = request.salaryRangeMax() != null ? request.salaryRangeMax() : job.getSalaryRangeMax();
+        if (finalMin != null && finalMax != null && finalMax.compareTo(finalMin) < 0) {
+            throw new BadRequestException("Maximum salary cannot be smaller than minimum salary");
         }
 
         if (request.title() != null)

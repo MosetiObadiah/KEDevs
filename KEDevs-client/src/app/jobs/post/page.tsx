@@ -257,6 +257,9 @@ export default function CreateJobPostPage() {
     } else if (key === 'location') {
       if (!formState.jobType) errors.jobType = 'Job type is required';
       if (!formState.workType) errors.workType = 'Work type is required';
+      if (formState.salaryRangeMin !== null && formState.salaryRangeMax !== null && formState.salaryRangeMax < formState.salaryRangeMin) {
+        errors.salaryRangeMax = 'Maximum salary cannot be smaller than minimum salary';
+      }
     } else if (key === 'visibility') {
       if (formState.isPeerSourced && !formState.sourceUrl.trim()) {
         errors.sourceUrl = 'External source URL is required for peer listings';
@@ -271,7 +274,11 @@ export default function CreateJobPostPage() {
   const handleNext = () => {
     const errors = validateStep(activeStep);
     if (Object.keys(errors).length > 0) {
-      toast.error('Please complete all required fields in this step');
+      if (errors.salaryRangeMax) {
+        toast.error(errors.salaryRangeMax);
+      } else {
+        toast.error('Please complete all required fields in this step');
+      }
       return;
     }
     setCompleted((prev) => new Set(prev).add(activeStep));
@@ -287,7 +294,11 @@ export default function CreateJobPostPage() {
   const handleSubmit = async () => {
     const errors = validateStep(activeStep);
     if (Object.keys(errors).length > 0) {
-      toast.error('Please complete all required fields');
+      if (errors.salaryRangeMax) {
+        toast.error(errors.salaryRangeMax);
+      } else {
+        toast.error('Please complete all required fields');
+      }
       return;
     }
 
