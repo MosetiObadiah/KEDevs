@@ -31,6 +31,7 @@ import { jobService } from '@/services/jobService';
 import { useAuth } from '@/context/AuthContext';
 import { cn, formatDateString } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -55,6 +56,10 @@ import PinJobDialog from '@/components/jobs/PinJobDialog';
 
 export default function MyJobPosts() {
   const { user, isLoggedIn } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlSearchTerm = searchParams?.get('search') || '';
+
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -64,10 +69,14 @@ export default function MyJobPosts() {
   const [selectedJob, setSelectedJob] = useState<{id: string, title: string} | null>(null);
 
   // Filtering state
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(urlSearchTerm);
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [dateFilter, setDateFilter] = useState('ALL');
+
+  useEffect(() => {
+    setSearchTerm(urlSearchTerm);
+  }, [urlSearchTerm]);
 
   const filteredPosts = posts.filter(post => {
     // Search Term Filter
@@ -315,21 +324,75 @@ export default function MyJobPosts() {
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
       <div className="container mx-auto px-6 pt-8 pb-12">
-        {/* Actions Header Toolbar */}
-        <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 mb-8 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-          {/* Left: Search Input */}
-          <div className="relative flex-1 max-w-lg w-full">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input 
-              placeholder="Search by job title or company..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-11 bg-slate-50 border-slate-200/80 rounded-xl text-sm focus-visible:ring-primary/20 focus-visible:ring-offset-0 focus-visible:border-slate-300"
-            />
+        {/* Actions & Filters Header Toolbar */}
+        <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4 mb-8 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+          {/* Left: Filters Selects */}
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Filters:</span>
+            
+            {/* Status Select */}
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-40 h-10 border-slate-200/80 rounded-xl text-xs bg-slate-50/50">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border-slate-200">
+                <SelectItem value="ALL">All Statuses</SelectItem>
+                <SelectItem value="ACTIVE">Active</SelectItem>
+                <SelectItem value="CLOSED">Closed</SelectItem>
+                <SelectItem value="EXPIRED">Expired</SelectItem>
+                <SelectItem value="REMOVED">Removed</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Job Type Select */}
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-full sm:w-40 h-10 border-slate-200/80 rounded-xl text-xs bg-slate-50/50">
+                <SelectValue placeholder="Job Type" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border-slate-200">
+                <SelectItem value="ALL">All Types</SelectItem>
+                <SelectItem value="FULL_TIME">Full-time</SelectItem>
+                <SelectItem value="PART_TIME">Part-time</SelectItem>
+                <SelectItem value="CONTRACT">Contract</SelectItem>
+                <SelectItem value="INTERNSHIP">Internship</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Date Filter Select */}
+            <Select value={dateFilter} onValueChange={setDateFilter}>
+              <SelectTrigger className="w-full sm:w-40 h-10 border-slate-200/80 rounded-xl text-xs bg-slate-50/50">
+                <SelectValue placeholder="Date Posted" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border-slate-200">
+                <SelectItem value="ALL">All Time</SelectItem>
+                <SelectItem value="TODAY">Past 24 Hours</SelectItem>
+                <SelectItem value="WEEK">Past 7 Days</SelectItem>
+                <SelectItem value="MONTH">Past 30 Days</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Reset Filters */}
+            {(searchTerm || statusFilter !== 'ALL' || typeFilter !== 'ALL' || dateFilter !== 'ALL') && (
+              <Button 
+                variant="ghost" 
+                onClick={() => {
+                  setSearchTerm('');
+                  const params = new URLSearchParams(window.location.search);
+                  params.delete('search');
+                  router.replace(`${window.location.pathname}?${params.toString()}`);
+                  setStatusFilter('ALL');
+                  setTypeFilter('ALL');
+                  setDateFilter('ALL');
+                }}
+                className="h-10 px-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-slate-100 rounded-xl ml-auto"
+              >
+                <FilterX className="mr-1.5 h-3.5 w-3.5" /> Reset Filters
+              </Button>
+            )}
           </div>
 
           {/* Right: Export & Actions */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-3 shrink-0 self-end lg:self-auto">
             {/* Export Dropdown Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -361,68 +424,6 @@ export default function MyJobPosts() {
             {error}
           </div>
         )}
-
-        {/* Filter Selection Row */}
-        <div className="max-w-4xl mx-auto mb-6 bg-slate-50/50 p-3 rounded-2xl border border-slate-100/80 flex flex-wrap items-center gap-3">
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Filters:</span>
-          
-          {/* Status Select */}
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-40 h-10 border-slate-200/80 rounded-xl text-xs bg-white">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl border-slate-200">
-              <SelectItem value="ALL">All Statuses</SelectItem>
-              <SelectItem value="ACTIVE">Active</SelectItem>
-              <SelectItem value="CLOSED">Closed</SelectItem>
-              <SelectItem value="EXPIRED">Expired</SelectItem>
-              <SelectItem value="REMOVED">Removed</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {/* Job Type Select */}
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-full sm:w-40 h-10 border-slate-200/80 rounded-xl text-xs bg-white">
-              <SelectValue placeholder="Job Type" />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl border-slate-200">
-              <SelectItem value="ALL">All Types</SelectItem>
-              <SelectItem value="FULL_TIME">Full-time</SelectItem>
-              <SelectItem value="PART_TIME">Part-time</SelectItem>
-              <SelectItem value="CONTRACT">Contract</SelectItem>
-              <SelectItem value="INTERNSHIP">Internship</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {/* Date Filter Select */}
-          <Select value={dateFilter} onValueChange={setDateFilter}>
-            <SelectTrigger className="w-full sm:w-40 h-10 border-slate-200/80 rounded-xl text-xs bg-white">
-              <SelectValue placeholder="Date Posted" />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl border-slate-200">
-              <SelectItem value="ALL">All Time</SelectItem>
-              <SelectItem value="TODAY">Past 24 Hours</SelectItem>
-              <SelectItem value="WEEK">Past 7 Days</SelectItem>
-              <SelectItem value="MONTH">Past 30 Days</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {/* Reset Filters */}
-          {(searchTerm || statusFilter !== 'ALL' || typeFilter !== 'ALL' || dateFilter !== 'ALL') && (
-            <Button 
-              variant="ghost" 
-              onClick={() => {
-                setSearchTerm('');
-                setStatusFilter('ALL');
-                setTypeFilter('ALL');
-                setDateFilter('ALL');
-              }}
-              className="h-10 px-3 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:bg-slate-100 rounded-xl ml-auto"
-            >
-              <FilterX className="mr-1.5 h-3.5 w-3.5" /> Reset Filters
-            </Button>
-          )}
-        </div>
 
         <div className="max-w-4xl mx-auto space-y-4">
           {posts.length > 0 ? (
