@@ -384,9 +384,9 @@ export default function JobDetailPage() {
 
             {/* 4. Forum Discussion */}
             <div className="space-y-6 pt-4">
-              <h2 className="text-lg font-medium">Forum Discussion</h2>
               <Forum 
                 jobId={id as string} 
+                jobTitle={job.title}
                 initialComments={comments} 
                 onRefresh={async () => {
                   try {

@@ -42,6 +42,7 @@ public class ForumService {
     private final SimpMessagingTemplate messagingTemplate;
     private final org.moseti.kedevsapi.shared.service.SettingService settingService;
     private final org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
+    private final org.moseti.kedevsapi.jobs.repository.JobApplicationRepository jobApplicationRepository;
 
     private void pushForumEvent(UUID jobId, String type, Object data) {
         messagingTemplate.convertAndSend("/topic/forum/" + jobId, new WebSocketEvent<>(type, data));
@@ -282,6 +283,23 @@ public class ForumService {
                 .orElse("Unknown User");
     }
 
+    private String resolveAuthorRole(UUID authorId, UUID jobId) {
+        if (authorId == null) {
+            return "DEVELOPER";
+        }
+        return userRepository.findById(authorId)
+                .map(u -> {
+                    if (u.getRole() == org.moseti.kedevsapi.shared.enums.Role.DEVELOPER) {
+                        if (jobApplicationRepository != null && jobApplicationRepository.existsByJobIdAndApplicantId(jobId, authorId)) {
+                            return "APPLICANT";
+                        }
+                        return "DEVELOPER";
+                    }
+                    return u.getRole().name();
+                })
+                .orElse("DEVELOPER");
+    }
+
     private CommentResponse toCommentResponse(ForumComment comment, UUID currentUserId, boolean includeRepliesCount) {
         VoteType currentUserVote = null;
         if (currentUserId != null) {
@@ -307,6 +325,7 @@ public class ForumService {
                 comment.getJobId(),
                 comment.getAuthorId(),
                 resolveAuthorName(comment.getAuthorId()),
+                resolveAuthorRole(comment.getAuthorId(), comment.getJobId()),
                 comment.getParentCommentId(),
                 comment.getContent(),
                 comment.getUpvoteCount(),

@@ -56,6 +56,7 @@ public class ForumDtos {
             UUID jobId,
             UUID authorId,
             String authorName,
+            String authorRole,
             UUID parentCommentId,
             String content,
             int upvoteCount,

@@ -13,7 +13,8 @@ import {
   X,
   Reply,
   ShieldAlert,
-  Loader2
+  Loader2,
+  Share2
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
@@ -47,13 +48,12 @@ interface CommentProps {
   jobId: string;
   onUpdate: () => void;
   isReply?: boolean;
+  onReply?: (id: string, authorName: string) => void;
 }
 
-export default function CommentItem({ comment, jobId, onUpdate, isReply = false }: CommentProps) {
+export default function CommentItem({ comment, jobId, onUpdate, isReply = false, onReply }: CommentProps) {
   const { user, isLoggedIn } = useAuth();
-  const [isReplying, setIsReplying] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [replyContent, setReplyContent] = useState('');
   const [editContent, setEditContent] = useState(comment.content);
   const [submitting, setSubmitting] = useState(false);
   const [isFlagOpen, setIsFlagOpen] = useState(false);
@@ -75,22 +75,6 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false 
       onUpdate();
     } catch (err: any) {
       toast.error(err.message || 'Failed to vote');
-    }
-  };
-
-  const handlePostReply = async () => {
-    if (!replyContent.trim()) return;
-    setSubmitting(true);
-    try {
-      await forumService.replyToComment(jobId, comment.id, replyContent.trim());
-      setReplyContent('');
-      setIsReplying(false);
-      onUpdate();
-      toast.success('Reply posted');
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to post reply');
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -165,69 +149,75 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false 
     }
   };
 
+  const renderRoleBadge = (role?: string) => {
+    if (!role) return null;
+    switch (role.toUpperCase()) {
+      case 'APPLICANT':
+        return (
+          <Badge className="bg-emerald-50 hover:bg-emerald-50 text-emerald-700 border-emerald-100 text-[10px] font-semibold px-2 py-0.5 rounded-full select-none shrink-0">
+            Applicant
+          </Badge>
+        );
+      case 'EMPLOYER':
+        return (
+          <Badge className="bg-amber-50 hover:bg-amber-50 text-amber-700 border-amber-100 text-[10px] font-semibold px-2 py-0.5 rounded-full select-none shrink-0">
+            Employer
+          </Badge>
+        );
+      case 'DEVELOPER':
+        return (
+          <Badge className="bg-blue-50 hover:bg-blue-50 text-blue-700 border-blue-100 text-[10px] font-semibold px-2 py-0.5 rounded-full select-none shrink-0">
+            Developer
+          </Badge>
+        );
+      case 'ADMIN':
+        return (
+          <Badge className="bg-purple-50 hover:bg-purple-50 text-purple-700 border-purple-100 text-[10px] font-semibold px-2 py-0.5 rounded-full select-none shrink-0">
+            Admin
+          </Badge>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const replyTargetId = isReply ? comment.parentCommentId : comment.id;
+
   return (
     <div className={cn(
       "group relative transition-all duration-300",
-      isReply ? "ml-8 md:ml-12 border-l-2 border-slate-100 pl-4 md:pl-6 mt-4" : "mt-6"
+      isReply ? "ml-10 mt-4" : "mt-6"
     )}>
       <div className="flex gap-4">
-        {/* Voting Pillar */}
-        {!isReply && (
-          <div className="flex flex-col items-center gap-1 shrink-0 bg-slate-50/80 rounded-full py-2 px-1 h-fit border border-slate-100/50">
-            <button
-              onClick={() => handleVote('UPVOTE')}
-              className={cn(
-                "p-1.5 rounded-full transition-colors",
-                comment.currentUserVote === 'UPVOTE' ? "text-primary bg-primary/10" : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-              )}
-              disabled={isAuthor || !isLoggedIn}
-            >
-              <ArrowBigUp className={cn("h-5 w-5", comment.currentUserVote === 'UPVOTE' && "fill-current")} />
-            </button>
-            <span className="text-xs font-black text-slate-700 min-w-[20px] text-center">
-              {comment.upvoteCount}
-            </span>
-            <button
-              onClick={() => handleVote('DOWNVOTE')}
-              className={cn(
-                "p-1.5 rounded-full transition-colors",
-                comment.currentUserVote === 'DOWNVOTE' ? "text-danger-500 bg-danger-50" : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-              )}
-              disabled={isAuthor || !isLoggedIn}
-            >
-              <ArrowBigDown className={cn("h-5 w-5", comment.currentUserVote === 'DOWNVOTE' && "fill-current")} />
-            </button>
-          </div>
-        )}
-
         {/* Content Area - Card Wrapped */}
         <div className={cn(
-          "flex-1 p-5 rounded-xl-[2rem] border transition-all",
-          isAuthor ? "bg-primary/[0.02] border-primary/10 shadow-sm shadow-primary/5" : "bg-slate-50/30 border-slate-100",
-          "group-hover:border-primary/20 group-hover:bg-white transition-all duration-500"
+          "flex-1 p-5 rounded-2xl border transition-all",
+          isAuthor ? "bg-primary/[0.01] border-slate-200/80 shadow-sm" : "bg-white border-slate-250/80 shadow-sm",
+          "group-hover:border-slate-350 transition-all duration-300"
         )}>
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Avatar className="h-6 w-6 rounded-xl border border-slate-200">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <Avatar className="h-7 w-7 rounded-full border border-slate-200 shrink-0">
                 <AvatarFallback className="text-[10px] font-black bg-slate-900 text-white uppercase">
                   {comment.authorName?.charAt(0) || '?'}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-sm font-black text-slate-900">{comment.authorName}</span>
+              <span className="text-sm font-bold text-slate-800 shrink-0">{comment.authorName}</span>
               {isAuthor && (
-                <Badge variant="outline" className="text-[8px] uppercase font-black px-2 h-4 border-primary/20 text-primary bg-primary/5">YOU</Badge>
+                <Badge variant="outline" className="text-[9px] uppercase font-black px-1.5 h-4.5 border-primary/20 text-primary bg-primary/5 select-none shrink-0">YOU</Badge>
               )}
-              <span className="text-[10px] font-medium text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-                <span className="h-1 w-1 bg-slate-200 rounded-full" />
+              {renderRoleBadge(comment.authorRole)}
+              <span className="text-[11px] font-medium text-slate-400 flex items-center gap-1.5 select-none shrink-0">
+                <span className="h-1 w-1 bg-slate-300 rounded-full" />
                 {formatDistanceToNow(new Date(comment.createdAt))} ago
               </span>
               {comment.isFlagged && (
-                <Badge variant="destructive" className="h-4 px-1 rounded-xl text-[8px] flex gap-0.5 items-center">
+                <Badge variant="destructive" className="h-4 px-1 rounded-xl text-[8px] flex gap-0.5 items-center select-none shrink-0">
                   <ShieldAlert className="h-2.5 w-2.5" /> Flagged
                 </Badge>
               )}
               {comment.isHidden && (
-                <Badge variant="secondary" className="h-4 px-1 rounded-xl text-[8px] flex gap-0.5 items-center bg-slate-200 text-slate-700">
+                <Badge variant="secondary" className="h-4 px-1 rounded-xl text-[8px] flex gap-0.5 items-center bg-slate-200 text-slate-700 select-none shrink-0">
                   <X className="h-2.5 w-2.5" /> Hidden by Admin
                 </Badge>
               )}
@@ -276,7 +266,7 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false 
           {isEditing ? (
             <div className="space-y-3 pt-2 animate-in fade-in duration-200">
               <Textarea
-                className="min-h-[100px] rounded-xl-[1.5rem] border-slate-200 focus-visible:ring-primary/20 font-medium"
+                className="min-h-[100px] rounded-xl border-slate-200 focus-visible:ring-primary/20 font-medium text-sm"
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 autoFocus
@@ -293,8 +283,8 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false 
             </div>
           ) : (
             <p className={cn(
-              "text-sm leading-relaxed font-medium whitespace-pre-wrap",
-              (comment.authorId === null || (comment.isHidden && !isAdmin)) ? "text-slate-500 italic" : "text-slate-700"
+              "text-sm leading-relaxed font-medium whitespace-pre-wrap py-1 text-slate-800",
+              (comment.authorId === null || (comment.isHidden && !isAdmin)) ? "text-slate-500 italic" : ""
             )}>
               {(comment.isHidden && !isAdmin) ? '[This comment has been hidden by an administrator]' : comment.content}
             </p>
@@ -302,49 +292,72 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false 
 
           {/* Action Row */}
           {!isEditing && (
-            <div className="flex gap-4 pt-3 mt-1 border-t border-slate-50/50">
-              {!isReply && isLoggedIn && comment.authorId !== null && (
+            <div className="flex flex-wrap gap-3 items-center pt-3 mt-3 border-t border-slate-100">
+              {/* Vote buttons container */}
+              <div className="flex items-center gap-1 bg-slate-50/50 border border-slate-100 rounded-xl p-0.5">
                 <button
-                  onClick={() => setIsReplying(!isReplying)}
-                  className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-primary transition-colors"
+                  onClick={() => handleVote('UPVOTE')}
+                  className={cn(
+                    "p-1.5 px-3 rounded-lg transition-colors flex items-center gap-1",
+                    comment.currentUserVote === 'UPVOTE'
+                      ? "text-primary bg-primary/10 font-bold"
+                      : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                  )}
+                  disabled={isAuthor || !isLoggedIn}
+                  title="Upvote"
                 >
-                  <Reply className="h-3.5 w-3.5" />
+                  <ArrowBigUp className={cn("h-4 w-4", comment.currentUserVote === 'UPVOTE' && "fill-current")} />
+                  <span className="text-xs font-bold">{comment.upvoteCount}</span>
+                </button>
+                <div className="w-[1px] h-4 bg-slate-200 self-center" />
+                <button
+                  onClick={() => handleVote('DOWNVOTE')}
+                  className={cn(
+                    "p-1.5 px-2 rounded-lg transition-colors",
+                    comment.currentUserVote === 'DOWNVOTE'
+                      ? "text-danger-500 bg-danger-50"
+                      : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                  )}
+                  disabled={isAuthor || !isLoggedIn}
+                  title="Downvote"
+                >
+                  <ArrowBigDown className={cn("h-4 w-4", comment.currentUserVote === 'DOWNVOTE' && "fill-current")} />
+                </button>
+              </div>
+
+              {/* Reply Button */}
+              {isLoggedIn && comment.authorId !== null && onReply && (
+                <button
+                  onClick={() => onReply(replyTargetId, comment.authorName)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 hover:text-primary transition-colors"
+                >
+                  <MessageSquare className="h-3.5 w-3.5" />
                   Reply
                 </button>
               )}
-              {isReply && isLoggedIn && comment.authorId !== null && (
-                <div className="flex items-center gap-2">
-                  <button onClick={() => handleVote('UPVOTE')} className={cn("text-[10px] font-black uppercase tracking-widest flex items-center gap-1 transition-colors", comment.currentUserVote === 'UPVOTE' ? "text-primary" : "text-slate-500 hover:text-slate-700")}>
-                    <ArrowBigUp className="h-3 w-3" /> {comment.upvoteCount}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
 
-          {isReplying && (
-            <div className="space-y-3 pt-4 animate-in fade-in slide-in-from-top-2 duration-300">
-              <div className="flex gap-3">
-                <div className="w-1 border-l-2 border-primary rounded-full ml-2" />
-                <div className="flex-1 space-y-3">
-                  <Textarea
-                    className="min-h-[80px] rounded-xl-[1.5rem] border-slate-200 focus-visible:ring-primary/20 font-medium"
-                    placeholder="Share your thoughts..."
-                    value={replyContent}
-                    onChange={(e) => setReplyContent(e.target.value)}
-                    autoFocus
-                  />
-                  <div className="flex gap-2 justify-end">
-                    <Button variant="ghost" size="sm" onClick={() => setIsReplying(false)} className="rounded-xl font-medium">
-                      Cancel
-                    </Button>
-                    <Button size="sm" onClick={handlePostReply} disabled={submitting} className="rounded-xl font-black gap-2">
-                      {submitting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Reply className="h-3 w-3" />}
-                      Post Reply
-                    </Button>
-                  </div>
-                </div>
-              </div>
+              {/* Share Button */}
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/jobs/${jobId}#comment-${comment.id}`);
+                  toast.success("Link copied to clipboard!");
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+              >
+                <Share2 className="h-3.5 w-3.5" />
+                Share
+              </button>
+
+              {/* Report Button */}
+              {!isAuthor && !isAdmin && isLoggedIn && (
+                <button
+                  onClick={() => setIsFlagOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition-colors ml-auto"
+                >
+                  <Flag className="h-3.5 w-3.5" />
+                  Report
+                </button>
+              )}
             </div>
           )}
 
@@ -358,6 +371,7 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false 
                   jobId={jobId}
                   onUpdate={onUpdate}
                   isReply={true}
+                  onReply={onReply}
                 />
               ))}
             </div>
@@ -366,7 +380,7 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false 
       </div>
 
       <Dialog open={isFlagOpen} onOpenChange={setIsFlagOpen}>
-        <DialogContent className="sm:max-w-[500px] rounded-xl-[2rem] p-8">
+        <DialogContent className="sm:max-w-[500px] rounded-2xl p-8 bg-white">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center text-destructive">
@@ -389,7 +403,7 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false 
               </Label>
               <Textarea
                 placeholder="e.g. Inappropriate language, spam..."
-                className="min-h-[120px] rounded-2xl border-border/50 resize-none font-medium text-base p-4 focus-visible:ring-destructive/20"
+                className="min-h-[120px] rounded-xl border-slate-200 resize-none font-medium text-sm p-4 focus-visible:ring-destructive/20"
                 value={flagContent}
                 onChange={(e) => setFlagContent(e.target.value.slice(0, 500))}
               />
