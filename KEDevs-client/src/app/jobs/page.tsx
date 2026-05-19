@@ -127,6 +127,8 @@ function JobsPageContent() {
   const [jobs, setJobs] = useState<JobSummary[]>([]);
   const [pinnedJobs, setPinnedJobs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isFiltering, setIsFiltering] = useState(false);
   const [isPinnedLoading, setIsPinnedLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -206,7 +208,11 @@ function JobsPageContent() {
     };
 
     const fetchJobs = async () => {
-      setIsLoading(true);
+      if (isInitialLoad) {
+        setIsLoading(true);
+      } else {
+        setIsFiltering(true);
+      }
       setError(null);
       try {
         const response = await jobService.getJobs({
@@ -241,6 +247,8 @@ function JobsPageContent() {
         console.error(err);
       } finally {
         setIsLoading(false);
+        setIsInitialLoad(false);
+        setIsFiltering(false);
       }
     };
 
@@ -251,7 +259,7 @@ function JobsPageContent() {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchTerm, city, selectedJobTypes, selectedWorkTypes, selectedExpLevels, minSalary, maxSalary, minQualification, minExperienceYears, deadlineFrom, deadlineTo, isPeerSourced, minUpvotes, status, sortBy]);
+  }, [searchTerm, city, selectedJobTypes, selectedWorkTypes, selectedExpLevels, minSalary, maxSalary, minQualification, minExperienceYears, deadlineFrom, deadlineTo, isPeerSourced, minUpvotes, status, sortBy, isInitialLoad]);
 
   const [isExporting, setIsExporting] = useState(false);
 
@@ -1026,7 +1034,7 @@ function JobsPageContent() {
               </div>
             )}
 
-            <div className="space-y-4">
+            <div className={cn("space-y-4 transition-opacity duration-200", isFiltering && "opacity-60 pointer-events-none")}>
               {isLoading ? (
                 [1, 2, 3, 4, 5].map(i => (
                   <Card key={i} className="p-6 border-border/50">

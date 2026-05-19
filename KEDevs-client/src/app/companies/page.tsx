@@ -71,6 +71,8 @@ function CompaniesPageContent() {
   const { isLoggedIn, user } = useAuth();
   const [companies, setCompanies] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isFiltering, setIsFiltering] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
@@ -92,7 +94,11 @@ function CompaniesPageContent() {
   };
 
   const fetchCompanies = async () => {
-    setIsLoading(true);
+    if (isInitialLoad) {
+      setIsLoading(true);
+    } else {
+      setIsFiltering(true);
+    }
     setError(null);
     try {
       const filters: any = {};
@@ -112,6 +118,8 @@ function CompaniesPageContent() {
       console.error(err);
     } finally {
       setIsLoading(false);
+      setIsInitialLoad(false);
+      setIsFiltering(false);
     }
   };
 
@@ -376,7 +384,7 @@ function CompaniesPageContent() {
               </div>
             )}
             
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6">
+            <div className={cn("grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6 transition-opacity duration-200", isFiltering && "opacity-60 pointer-events-none")}>
               {isLoading ? (
                 [1, 2, 3, 4, 5, 6].map(i => (
                   <Card key={i} className="p-8 flex flex-col items-center border-border/50 shadow-sm animate-pulse">
