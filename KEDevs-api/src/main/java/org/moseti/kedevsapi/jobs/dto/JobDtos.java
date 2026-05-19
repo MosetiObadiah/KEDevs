@@ -199,7 +199,9 @@ public class JobDtos {
             java.time.LocalDate applicationDeadline,
             java.math.BigDecimal minSalary,
             String salaryCurrency,
-            LocalDateTime createdAt
+            LocalDateTime createdAt,
+            int upvoteCount,
+            boolean isFlagged
     ) {}
 
     public record JobFilterMetadataResponse(

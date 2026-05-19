@@ -948,7 +948,9 @@ public class JobService {
                         job.getApplicationDeadline(),
                         job.getSalaryRangeMin(),
                         job.getSalaryCurrency(),
-                        job.getCreatedAt()))
+                        job.getCreatedAt(),
+                        job.getUpvoteCount(),
+                        job.isFlagged()))
                 .toList();
     }
 

@@ -359,6 +359,7 @@ function JobsPageContent() {
 
     const voteChange = calculateVoteChange();
     setJobs(prevJobs => prevJobs.map(j => j.id === id ? { ...j, upvoteCount: j.upvoteCount + voteChange } : j));
+    setPinnedJobs(prevPinned => prevPinned.map(j => j.id === id ? { ...j, upvoteCount: (j.upvoteCount || 0) + voteChange } : j));
 
     try {
       const response = await jobService.voteJob(id, vote === 'UP' ? 'UPVOTE' : 'DOWNVOTE');
@@ -923,6 +924,79 @@ function JobsPageContent() {
                                 Salary: {pJob.salaryCurrency || 'KES'} {Math.round(pJob.minSalary / 1000)}k
                               </span>
                             )}
+                          </div>
+
+                          {/* Voting Row */}
+                          <div className="flex items-center justify-between pt-3 mt-2 border-t border-dashed border-slate-100">
+                            <div className="flex items-center gap-1.5">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="secondary"
+                                      size="icon"
+                                      className={cn(
+                                        "h-8 w-8 rounded-full border border-slate-100 shadow-sm transition-all",
+                                        upvotedJobs.has(pJob.id) ? "bg-azure-500 text-white hover:bg-azure-600" : "hover:bg-azure-50 hover:text-azure-500 bg-white"
+                                      )}
+                                      onClick={(e) => handleVote(pJob.id, 'UP', e)}
+                                      disabled={!isLoggedIn}
+                                    >
+                                      <ThumbsUp className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent><p>{isLoggedIn ? "Upvote" : "Login to upvote"}</p></TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="secondary"
+                                      size="icon"
+                                      className={cn(
+                                        "h-8 w-8 rounded-full border border-slate-100 shadow-sm transition-all",
+                                        downvotedJobs.has(pJob.id) ? "bg-danger-600 text-white hover:bg-danger-700" : "hover:bg-danger-50 hover:text-danger-600 bg-white"
+                                      )}
+                                      onClick={(e) => handleVote(pJob.id, 'DOWN', e)}
+                                      disabled={!isLoggedIn}
+                                    >
+                                      <ThumbsDown className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent><p>{isLoggedIn ? "Downvote" : "Login to downvote"}</p></TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className={cn(
+                                        "h-8 w-8 rounded-full",
+                                        pJob.isFlagged
+                                          ? "text-danger-600 bg-danger-50"
+                                          : "text-slate-400 hover:text-danger-600 hover:bg-danger-50"
+                                      )}
+                                      disabled={!isLoggedIn}
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        if (!isLoggedIn) {
+                                          toast.error("Please login to report jobs");
+                                          return;
+                                        }
+                                        setSelectedJobId(pJob.id);
+                                        setIsFlagOpen(true);
+                                      }}
+                                    >
+                                      <Flag className={cn("h-3.5 w-3.5", pJob.isFlagged && "fill-current")} />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent><p>Report Job</p></TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                            <span className="text-xs font-semibold text-azure-600">
+                              {pJob.upvoteCount >= 0 ? `${pJob.upvoteCount} upvotes` : `${Math.abs(pJob.upvoteCount)} downvotes`}
+                            </span>
                           </div>
                         </div>
 
