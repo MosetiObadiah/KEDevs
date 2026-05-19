@@ -123,7 +123,7 @@ export default function PinJobDialog({ open, onClose, jobId, jobTitle, onSuccess
   }, [checkoutRequestId, open, onSuccess, onClose]);
 
   const handleInitiate = async () => {
-    if (!phoneNumber || !phoneNumber.match(/^0[17]\d{8}$/)) {
+    if (!phoneNumber || !phoneNumber.match(/^07\d{8}$/)) {
       setError('Invalid M-Pesa number (Format: 07xxxxxxxx)');
       return;
     }
@@ -271,10 +271,16 @@ export default function PinJobDialog({ open, onClose, jobId, jobTitle, onSuccess
                     <div className="relative group">
                       <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                       <Input 
-                        placeholder="0712 345 678" 
+                        placeholder="07xxxxxxxx" 
                         value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === '' || (/^[0-9]+$/.test(val) && val.length <= 10)) {
+                            setPhoneNumber(val);
+                          }
+                        }}
                         className="h-14 pl-12 rounded-2xl border-border/50 font-black text-lg focus-visible:ring-primary/20 bg-background/50 backdrop-blur-sm"
+                        maxLength={10}
                       />
                     </div>
                   </div>
