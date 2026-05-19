@@ -26,7 +26,8 @@ import {
   PinOff,
   ChevronDown,
   X,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Star
 } from 'lucide-react';
 import {
   Sheet,
@@ -165,8 +166,8 @@ function JobsPageContent() {
     skill.toLowerCase().includes(skillSearch.toLowerCase())
   );
 
-  const filteredJobs = jobs.filter(job => 
-    selectedSkills.length === 0 || 
+  const filteredJobs = jobs.filter(job =>
+    selectedSkills.length === 0 ||
     (job.tags && job.tags.some(t => selectedSkills.includes(t)))
   );
 
@@ -574,7 +575,7 @@ function JobsPageContent() {
                           <Checkbox
                             id={`skill-${skill}`}
                             checked={isChecked}
-                            onCheckedChange={() => {}} // handled by parent click
+                            onCheckedChange={() => { }} // handled by parent click
                           />
                           <Label htmlFor={`skill-${skill}`} className="text-xs font-medium cursor-pointer flex-1 py-0.5 truncate">{skill}</Label>
                         </div>
@@ -776,8 +777,8 @@ function JobsPageContent() {
 
             {/* Desktop Toggle Button */}
             <div className="hidden lg:block">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="font-semibold border-slate-200 hover:bg-slate-50 h-10 px-4 rounded-xl text-xs"
                 onClick={() => setShowDesktopFilters(!showDesktopFilters)}
               >
@@ -852,42 +853,108 @@ function JobsPageContent() {
 
             {/* Pinned Jobs Row */}
             {!searchTerm && pinnedJobs.length > 0 && (
-              <div className="space-y-4 mb-8">
+              <div className="bg-[#111111] border border-neutral-800/40 p-6 rounded-2xl mb-8 space-y-4">
                 <div className="flex items-center gap-2 px-1">
-                  <div className="bg-primary/10 p-2 rounded-xl">
-                  </div>
-                  <h2 className="text-lg font-black uppercase tracking-tight text-foreground">Featured Listings</h2>
+                  <Star className="h-4.5 w-4.5 fill-amber-500 text-amber-500 animate-pulse shrink-0" />
+                  <h2 className="text-xs font-black uppercase tracking-widest text-amber-500">Featured</h2>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {pinnedJobs.map((pJob) => (
-                    <Card key={pJob.id} className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/[0.03] to-transparent hover:shadow-xl hover:shadow-primary/10 transition-all group">
-                      <CardHeader className="pb-2">
-                        <Link href={`/jobs/${pJob.id}`}>
-                          <h3 className="font-black text-lg group-hover:text-primary transition-colors line-clamp-1">{pJob.title}</h3>
-                        </Link>
-                        <p className="text-xs font-medium text-muted-foreground line-clamp-1">{pJob.companyName}</p>
-                      </CardHeader>
-                      <CardContent className="pb-3 text-xs space-y-2">
-                        <div className="flex items-center gap-2 text-muted-foreground font-medium">
-                          <MapPin className="h-3.5 w-3.5" /> {pJob.locationCity}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {pinnedJobs.map((pJob) => {
+                    const daysLeft = pJob.applicationDeadline 
+                      ? Math.ceil((new Date(pJob.applicationDeadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+                      : null;
+                    const isUrgent = daysLeft !== null && daysLeft > 0 && daysLeft <= 3;
+                    const isNew = pJob.createdAt 
+                      ? Math.ceil((new Date().getTime() - new Date(pJob.createdAt).getTime()) / (1000 * 60 * 60 * 24)) <= 3
+                      : false;
+
+                    const initials = pJob.companyName 
+                      ? pJob.companyName.split(' ').map((w: string) => w.charAt(0)).join('').substring(0, 2).toUpperCase()
+                      : 'CO';
+
+                    return (
+                      <Card 
+                        key={pJob.id} 
+                        className={cn(
+                          "relative overflow-hidden bg-[#181818] border transition-all duration-300 group flex flex-col justify-between p-5 rounded-xl min-h-[220px]",
+                          isUrgent ? "border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.05)]" : "border-neutral-800"
+                        )}
+                      >
+                        <div className="space-y-3">
+                          {/* Company Name & Logo initials */}
+                          <div className="flex items-center gap-2.5">
+                            <div className="h-8 w-8 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center text-[10px] font-black text-neutral-300 tracking-tight uppercase shrink-0">
+                              {initials}
+                            </div>
+                            <span className="text-[11px] font-semibold text-neutral-400 truncate max-w-[150px]">
+                              {pJob.companyName || 'Tech Ecosystem'}
+                            </span>
+                          </div>
+
+                          {/* Job Title */}
+                          <Link href={`/jobs/${pJob.id}`}>
+                            <h3 className="font-extrabold text-base text-neutral-100 group-hover:text-primary transition-colors line-clamp-2 leading-tight">
+                              {pJob.title}
+                            </h3>
+                          </Link>
+
+                          {/* Badges */}
+                          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                            <Badge className="bg-blue-950/40 text-blue-400 border border-blue-500/20 text-[9px] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded-full hover:bg-blue-950/40">
+                              {pJob.workType}
+                            </Badge>
+                            <Badge className="bg-neutral-900 text-neutral-300 border border-neutral-800 text-[9px] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded-full hover:bg-neutral-900">
+                              {pJob.jobType?.replace('_', ' ')}
+                            </Badge>
+                            {isNew && (
+                              <Badge className="bg-emerald-950/40 text-emerald-400 border border-emerald-500/20 text-[9px] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded-full hover:bg-emerald-950/40">
+                                New
+                              </Badge>
+                            )}
+                            {isUrgent && (
+                              <Badge className="bg-amber-950/40 text-amber-400 border border-amber-500/20 text-[9px] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded-full hover:bg-amber-950/40">
+                                Expires soon
+                              </Badge>
+                            )}
+                          </div>
+
+                          {/* Location & Salary */}
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-neutral-400 font-medium pt-1">
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+                              {pJob.locationCity}
+                            </span>
+                            {pJob.minSalary && (
+                              <span className="flex items-center gap-1 text-neutral-300 font-semibold">
+                                <DollarSign className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+                                {pJob.salaryCurrency || 'KES'} {Math.round(pJob.minSalary / 1000)}k
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className="text-[9px] uppercase tracking-wider font-black py-0.5">{pJob.workType}</Badge>
-                          <Badge variant="outline" className="text-[9px] uppercase tracking-wider font-black py-0.5 border-primary/20 text-primary">{pJob.jobType}</Badge>
+
+                        {/* Card Footer Divider and Action */}
+                        <div className="mt-4 pt-3 border-t border-neutral-800/60 flex justify-between items-center">
+                          <span className={cn(
+                            "text-[10px] font-semibold flex items-center gap-1.5",
+                            isUrgent ? "text-amber-500 font-bold" : "text-neutral-500"
+                          )}>
+                            <Clock className="h-3.5 w-3.5" />
+                            {daysLeft !== null ? (daysLeft === 0 ? "Expires today" : `${daysLeft} day${daysLeft !== 1 ? 's' : ''} left`) : "Flexible"}
+                          </span>
+                          <Link href={`/jobs/${pJob.id}`}>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="h-8 border border-neutral-800 hover:border-neutral-700 bg-transparent hover:bg-neutral-900 text-neutral-300 hover:text-white text-[10px] font-black uppercase tracking-wider px-3.5 rounded-lg flex items-center gap-1 transition-all"
+                            >
+                              View <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                            </Button>
+                          </Link>
                         </div>
-                      </CardContent>
-                      <CardFooter className="pt-0 flex justify-between items-center border-t border-primary/10 mt-2 bg-primary/[0.02]">
-                        <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-1 mt-2">
-                          <Clock className="h-3 w-3" /> Expires soon
-                        </span>
-                        <Link href={`/jobs/${pJob.id}`} className="mt-2">
-                          <Button size="sm" variant="ghost" className="h-7 text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10">
-                            View <ArrowRight className="ml-1 h-3 w-3" />
-                          </Button>
-                        </Link>
-                      </CardFooter>
-                    </Card>
-                  ))}
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -940,7 +1007,7 @@ function JobsPageContent() {
                 filteredJobs.map((job) => {
                   const userSkills = user?.skills || [];
                   const isSkillsMatch = isLoggedIn && user?.role === 'DEVELOPER' && job.tags && job.tags.some(tag => userSkills.map(s => s.toLowerCase()).includes(tag.toLowerCase()));
-                  
+
                   return (
                     <Card key={job.id} className="group border-border/50 hover:shadow-xl hover:shadow-primary/5 transition-all overflow-hidden bg-background">
                       <CardContent className="p-6">
@@ -953,7 +1020,7 @@ function JobsPageContent() {
                                   {job.title}
                                 </h3>
                               </Link>
-                              
+
                               {/* Skills Match Badge */}
                               {isSkillsMatch && (
                                 <Badge className="bg-success-50 text-success-600 border-none font-black text-[10px] uppercase tracking-widest shrink-0">
