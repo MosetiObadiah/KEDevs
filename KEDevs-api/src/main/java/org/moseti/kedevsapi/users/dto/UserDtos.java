@@ -223,7 +223,8 @@ public class UserDtos {
             java.util.List<org.moseti.kedevsapi.shared.enums.CompanySize> sizes,
             String city,
             String country,
-            Boolean hasOpenJobs
+            Boolean hasOpenJobs,
+            String search
     ) {}
 
     public record EmployerProfileResponse(

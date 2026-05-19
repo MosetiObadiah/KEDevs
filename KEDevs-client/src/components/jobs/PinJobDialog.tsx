@@ -155,174 +155,181 @@ export default function PinJobDialog({ open, onClose, jobId, jobTitle, onSuccess
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-xl rounded-xl-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
-        <div className="bg-slate-900 p-8 text-white">
-          <DialogHeader>
-            <DialogTitle className="text-3xl font-black uppercase tracking-tight">Feature Your Job</DialogTitle>
-            <DialogDescription className="text-slate-500 font-medium uppercase text-[10px] tracking-widest mt-1">
-              Boost visibility • {jobTitle}
-            </DialogDescription>
+      <DialogContent className="sm:max-w-[500px] rounded-xl-[2.5rem] p-0 overflow-y-auto max-h-[90vh] border-none shadow-2xl">
+        <div className="bg-gradient-to-br from-primary/5 via-background to-background p-8">
+          <DialogHeader className="mb-8">
+            <div className="mb-2">
+              <DialogTitle className="text-2xl font-black tracking-tight">
+                {step === 'SELECT' ? 'Feature Your Job' : step === 'PAYING' ? 'Completing Payment' : 'Success!'}
+              </DialogTitle>
+              <DialogDescription className="font-medium text-muted-foreground mt-2">
+                {jobTitle}
+              </DialogDescription>
+            </div>
           </DialogHeader>
-        </div>
 
-        <div className="p-8 max-h-[70vh] overflow-y-auto no-scrollbar space-y-8">
-          {step === 'SELECT' && (
-            <div className="space-y-8">
-              {/* Slot Availability */}
-              {slotsLoading ? (
-                <div className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-muted/30 border border-border/30">
-                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Checking slot availability...</span>
-                </div>
-              ) : slots && (
-                <div className="space-y-3">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Featured Slots</Label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[0, 1, 2].map((i) => {
-                      const slot = slots.activeSlots?.[i];
-                      return (
-                        <div
-                          key={i}
-                          className={cn(
-                            "rounded-xl p-3 border text-center transition-all",
-                            slot
-                              ? "border-azure-200 bg-azure-50/50"
-                              : "border-emerald-200 bg-cyan-50/50"
-                          )}
-                        >
-                          <div className={cn(
-                            "text-[9px] font-black uppercase tracking-widest mb-1",
-                            slot ? "text-azure-500" : "text-cyan-600"
-                          )}>
-                            Slot {i + 1}
-                          </div>
-                          {slot ? (
-                            <p className="text-[10px] font-medium text-azure-700 leading-tight line-clamp-1" title={slot.jobTitle}>
-                              {slot.jobTitle}
-                            </p>
-                          ) : (
-                            <p className="text-[10px] font-medium text-cyan-800">Available</p>
-                          )}
-                        </div>
-                      );
-                    })}
+          <div className="min-h-[300px] flex flex-col">
+            {step === 'SELECT' && (
+              <div className="space-y-8 flex-1">
+                {/* Slot Availability */}
+                {slotsLoading ? (
+                  <div className="flex items-center justify-center gap-3 p-5 rounded-2xl bg-muted/30 border border-border/30">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Checking slot availability...</span>
                   </div>
-                  {slots.freeSlots === 0 && (
-                    <div className="flex gap-3 p-4 rounded-2xl bg-danger-50 border border-danger-100 text-danger-900 text-xs font-semibold animate-in fade-in">
-                      <AlertCircle className="h-4 w-4 shrink-0 text-danger-500" />
-                      <p>All 3 featured slots are currently occupied. Try again when one expires.</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {(!slots || slots.freeSlots > 0) && (
-                <>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between px-1">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Select Duration</Label>
-                      <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[10px] font-black uppercase">Most Popular</Badge>
-                    </div>
-                    <RadioGroup 
-                      value={durationType} 
-                      onValueChange={(v: any) => setDurationType(v)}
-                      className="grid grid-cols-1 gap-3"
-                    >
-                      {[
-                        { id: 'DAY', label: '1 Day Boost', price: getPrice('PINNED_JOB_DAY_FEE', '50'), desc: 'Perfect for quick hires' },
-                        { id: '3DAYS', label: '3 Days Featured', price: getPrice('PINNED_JOB_3DAYS_FEE', '125'), desc: 'Get maximum reach' },
-                        { id: '7DAYS', label: '7 Days Premium', price: getPrice('PINNED_JOB_7DAYS_FEE', '250'), desc: 'Long-term visibility' },
-                      ].map((opt) => (
-                        <Label
-                          key={opt.id}
-                          htmlFor={opt.id}
-                          className={cn(
-                            "flex items-center justify-between p-5 rounded-2xl border cursor-pointer transition-all duration-300 relative group overflow-hidden",
-                            durationType === opt.id 
-                              ? "border-primary bg-primary/[0.03] shadow-lg shadow-primary/5 ring-1 ring-primary/20" 
-                              : "border-border/40 hover:border-primary/30 hover:bg-muted/30"
-                          )}
-                        >
-                          <div className="flex items-center gap-4 relative z-10">
-                            <RadioGroupItem value={opt.id} id={opt.id} className="border-primary/30 text-primary" />
-                            <div className="flex flex-col">
-                              <span className="font-black text-foreground">{opt.label}</span>
-                              <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mt-0.5">{opt.desc}</span>
+                ) : slots && (
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-1">Featured Slots</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[0, 1, 2].map((i) => {
+                        const slot = slots.activeSlots?.[i];
+                        return (
+                          <div
+                            key={i}
+                            className={cn(
+                              "rounded-xl p-3 border-2 text-center transition-all",
+                              slot
+                                ? "border-azure-200 bg-azure-50/50"
+                                : "border-emerald-200 bg-cyan-50/50"
+                            )}
+                          >
+                            <div className={cn(
+                              "text-[9px] font-black uppercase tracking-widest mb-1",
+                              slot ? "text-azure-500" : "text-cyan-600"
+                            )}>
+                              Slot {i + 1}
                             </div>
+                            {slot ? (
+                              <p className="text-[10px] font-medium text-azure-700 leading-tight line-clamp-1" title={slot.jobTitle}>
+                                {slot.jobTitle}
+                              </p>
+                            ) : (
+                              <p className="text-[10px] font-medium text-cyan-800">Available</p>
+                            )}
                           </div>
-                          <div className="text-right relative z-10">
-                            <span className="text-[10px] font-black text-slate-400 uppercase block mb-0.5">Price</span>
-                            <span className="font-black text-primary text-xl tracking-tight">KES {opt.price}</span>
-                          </div>
-                          {durationType === opt.id && (
-                            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-50" />
-                          )}
-                        </Label>
-                      ))}
-                    </RadioGroup>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="space-y-3">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">M-Pesa Number</Label>
-                      <div className="relative group">
-                        <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-primary transition-colors" />
-                        <Input 
-                          placeholder="07xxxxxxxx" 
-                          value={phoneNumber}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            if (val === '' || (/^[0-9]+$/.test(val) && val.length <= 10)) {
-                              setPhoneNumber(val);
-                            }
-                          }}
-                          className="h-14 pl-12 rounded-2xl border-slate-200 font-black text-lg focus-visible:ring-primary/20 bg-background/50 backdrop-blur-sm"
-                          maxLength={10}
-                        />
-                      </div>
+                        );
+                      })}
                     </div>
-                    
-                    {error && (
-                      <div className="flex gap-3 p-4 rounded-2xl bg-danger-50 border border-danger-100 text-danger-900 text-xs font-semibold animate-in fade-in slide-in-from-top-2">
-                        <AlertCircle className="h-4 w-4 shrink-0 text-danger-500" />
-                        <p>{error}</p>
+                    {slots.freeSlots === 0 && (
+                      <div className="flex gap-3 p-4 rounded-2xl bg-destructive/5 border border-destructive/10 text-destructive text-xs font-medium animate-in fade-in">
+                        <AlertCircle className="h-4 w-4 shrink-0" />
+                        <p>All 3 featured slots are currently occupied. Try again when one expires.</p>
                       </div>
                     )}
+                  </div>
+                )}
 
-                    <div className="flex items-center gap-3 p-4 rounded-2xl bg-azure-50 border border-azure-100 text-[10px] font-black text-azure-700 uppercase tracking-widest">
-                      <Info className="h-4 w-4 shrink-0" />
-                      <span>You will receive an M-Pesa STK push for KES {currentPrice}</span>
+                {(!slots || slots.freeSlots > 0) && (
+                <>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between px-1">
+                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Select Duration</Label>
+                    <Badge variant="secondary" className="bg-primary/5 text-primary border-none text-[10px] font-black uppercase">Most Popular</Badge>
+                  </div>
+                  <RadioGroup 
+                    value={durationType} 
+                    onValueChange={(v: any) => setDurationType(v)}
+                    className="grid grid-cols-1 gap-3"
+                  >
+                    {[
+                      { id: 'DAY', label: '1 Day Boost', price: getPrice('PINNED_JOB_DAY_FEE', '50'), desc: 'Perfect for quick hires' },
+                      { id: '3DAYS', label: '3 Days Featured', price: getPrice('PINNED_JOB_3DAYS_FEE', '125'), desc: 'Get maximum reach' },
+                      { id: '7DAYS', label: '7 Days Premium', price: getPrice('PINNED_JOB_7DAYS_FEE', '250'), desc: 'Long-term visibility' },
+                    ].map((opt) => (
+                      <Label
+                        key={opt.id}
+                        htmlFor={opt.id}
+                        className={cn(
+                          "flex items-center justify-between p-5 rounded-xl-[1.5rem] border-2 cursor-pointer transition-all duration-300 relative group overflow-hidden",
+                          durationType === opt.id 
+                            ? "border-primary bg-primary/[0.03] shadow-lg shadow-primary/5 ring-1 ring-primary/20" 
+                            : "border-border/40 hover:border-primary/30 hover:bg-muted/30"
+                        )}
+                      >
+                        <div className="flex items-center gap-4 relative z-10">
+                          <RadioGroupItem value={opt.id} id={opt.id} className="border-primary/30 text-primary" />
+                          <div className="flex flex-col">
+                            <span className="font-black text-foreground">{opt.label}</span>
+                            <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{opt.desc}</span>
+                          </div>
+                        </div>
+                        <div className="text-right relative z-10">
+                          <span className="text-[10px] font-black text-muted-foreground uppercase block mb-0.5">Price</span>
+                          <span className="font-black text-primary text-xl tracking-tight">KES {opt.price}</span>
+                        </div>
+                        {durationType === opt.id && (
+                          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-50" />
+                        )}
+                      </Label>
+                    ))}
+                  </RadioGroup>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-1">M-Pesa Number</Label>
+                    <div className="relative group">
+                      <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                      <Input 
+                        placeholder="07xxxxxxxx" 
+                        value={phoneNumber}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === '' || (/^[0-9]+$/.test(val) && val.length <= 10)) {
+                            setPhoneNumber(val);
+                          }
+                        }}
+                        className="h-14 pl-12 rounded-2xl border-border/50 font-black text-lg focus-visible:ring-primary/20 bg-background/50 backdrop-blur-sm"
+                        maxLength={10}
+                      />
                     </div>
                   </div>
-                </>
-              )}
-            </div>
-          )}
-        </div>
+                  
+                  {error && (
+                    <div className="flex gap-3 p-4 rounded-2xl bg-destructive/5 border border-destructive/10 text-destructive text-xs font-medium animate-in fade-in slide-in-from-top-2">
+                      <AlertCircle className="h-4 w-4 shrink-0" />
+                      <p>{error}</p>
+                    </div>
+                  )}
 
-        <DialogFooter className="bg-slate-50 p-8 flex flex-row justify-between items-center gap-4">
-          <Button variant="ghost" size="lg" className="rounded-2xl font-black h-14 px-8" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button 
-            size="lg" 
-            className="rounded-2xl font-black h-14 px-10 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]" 
-            onClick={handleInitiate}
-            disabled={isInitiating || loadingSettings || (slots && slots.freeSlots === 0)}
-          >
-            {isInitiating ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                {checkoutRequestId ? "Confirming on mobile..." : "Initiating STK Push..."}
-              </>
-            ) : (
-              <>
-                <CreditCard className="h-5 w-5 mr-2" />
-                Feature Listing
-              </>
+                  <div className="flex items-center gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/10 text-[10px] font-medium text-primary uppercase tracking-wider">
+                    <Info className="h-4 w-4 shrink-0" />
+                    <span>You will receive an M-Pesa STK push for KES {currentPrice}</span>
+                  </div>
+                </div>
+                </>
+                )}
+              </div>
             )}
-          </Button>
-        </DialogFooter>
+
+            {/* Removed PAYING and SUCCESS screens */}
+          </div>
+
+          <DialogFooter className="mt-8 pt-6 border-t border-border/50">
+            <div className="flex w-full gap-3">
+              <Button variant="ghost" onClick={onClose} className="flex-1 h-12 rounded-xl font-medium hover:bg-muted/50 transition-colors">
+                Cancel
+              </Button>
+              <Button 
+                className="flex-[2] h-12 rounded-xl font-black text-base shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]" 
+                onClick={handleInitiate}
+                disabled={isInitiating || loadingSettings || (slots && slots.freeSlots === 0)}
+              >
+                {isInitiating ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    {checkoutRequestId ? "Waiting for PIN..." : "Initiating..."}
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="h-5 w-5 mr-2" />
+                    Feature Listing
+                  </>
+                )}
+              </Button>
+            </div>
+          </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

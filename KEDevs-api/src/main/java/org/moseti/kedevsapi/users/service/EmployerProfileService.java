@@ -324,6 +324,15 @@ public class EmployerProfileService {
                     predicates.add(cb.like(cb.lower(root.get("locationHQ")), "%" + filter.country().toLowerCase() + "%"));
                 }
                 
+                if (filter.search() != null && !filter.search().isBlank()) {
+                    String likePattern = "%" + filter.search().toLowerCase() + "%";
+                    predicates.add(cb.or(
+                        cb.like(cb.lower(root.get("companyName")), likePattern),
+                        cb.like(cb.lower(root.get("companyBio")), likePattern),
+                        cb.like(cb.lower(root.get("industry")), likePattern)
+                    ));
+                }
+
                 if (filter.hasOpenJobs() != null && filter.hasOpenJobs()) {
                     // This requires a subquery or join to job_posts
                     jakarta.persistence.criteria.Subquery<Long> subquery = query.subquery(Long.class);

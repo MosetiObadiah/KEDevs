@@ -852,192 +852,42 @@ function JobsPageContent() {
 
             {/* Pinned Jobs Row */}
             {!searchTerm && pinnedJobs.length > 0 && (
-              <div className="space-y-4 mb-8 bg-primary/[0.01] p-6 rounded-3xl border border-primary/10">
-                <div className="flex items-center gap-2 px-1 mb-2">
-                  <div className="bg-primary/10 p-2 rounded-xl text-primary">
-                    <Pin className="h-5 w-5 fill-current" />
+              <div className="space-y-4 mb-8">
+                <div className="flex items-center gap-2 px-1">
+                  <div className="bg-primary/10 p-2 rounded-xl">
                   </div>
-                  <h2 className="text-xl font-black uppercase tracking-tight text-foreground">Featured Listings</h2>
+                  <h2 className="text-lg font-black uppercase tracking-tight text-foreground">Featured Listings</h2>
                 </div>
-                
-                <div className="space-y-4">
-                  {pinnedJobs.map((pJob) => {
-                    const userSkills = user?.skills || [];
-                    const isSkillsMatch = isLoggedIn && user?.role === 'DEVELOPER' && pJob.tags && pJob.tags.some((tag: string) => userSkills.map(s => s.toLowerCase()).includes(tag.toLowerCase()));
-                    
-                    return (
-                      <Card key={pJob.id} className="group border-2 border-primary/20 hover:shadow-2xl hover:shadow-primary/10 transition-all overflow-hidden bg-gradient-to-br from-primary/[0.04] via-background to-background">
-                        <CardContent className="p-6">
-                          <div className="flex flex-col md:flex-row gap-6">
-                            {/* Job Content */}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                <Link href={`/jobs/${pJob.id}`} className="min-w-0">
-                                  <h3 className="text-2xl font-black group-hover:text-primary transition-colors truncate">
-                                    {pJob.title}
-                                  </h3>
-                                </Link>
-                                
-                                <Badge className="bg-primary text-primary-foreground font-black text-[10px] tracking-widest uppercase py-1 px-3 shadow-sm flex items-center gap-1.5 rounded-full shrink-0">
-                                  <Pin className="h-3 w-3 fill-current animate-pulse" /> Featured
-                                </Badge>
-
-                                {/* Skills Match Badge */}
-                                {isSkillsMatch && (
-                                  <Badge className="bg-success-50 text-success-600 border-none font-black text-[10px] uppercase tracking-widest shrink-0">
-                                    Skills Match
-                                  </Badge>
-                                )}
-
-                                {(() => {
-                                  const isExpired = pJob.applicationDeadline && new Date(pJob.applicationDeadline) < new Date();
-                                  if (isExpired) return <Badge variant="destructive" className="text-[10px] uppercase py-0.5 shrink-0 font-black tracking-widest">Expired</Badge>;
-                                  if (pJob.status === 'OPEN') return <Badge className="bg-cyan-600 hover:bg-cyan-600 text-[10px] uppercase py-0.5 shrink-0 font-black tracking-widest">Active</Badge>;
-                                  return <Badge variant="secondary" className="text-[10px] uppercase py-0.5 shrink-0 font-black tracking-widest">Closed</Badge>;
-                                })()}
-                              </div>
-
-                              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground font-medium mb-6">
-                                <span className="flex items-center gap-1.5 font-semibold text-foreground/90">
-                                  <Building2 className="h-4 w-4" /> {pJob.isPeerSourced || pJob.postedByRole !== 'EMPLOYER' ? (pJob.postedByName || 'Community Member') : pJob.companyName}
-                                </span>
-                                <span className="flex items-center gap-1.5">
-                                  <MapPin className="h-4 w-4" /> {pJob.locationCity}, {pJob.locationCountry}
-                                </span>
-                                <span className="flex items-center gap-1.5">
-                                  <Briefcase className="h-4 w-4" /> {formatExperienceLevel(pJob.experienceLevel)}
-                                </span>
-                                {(pJob.salaryRangeMin || pJob.salaryRangeMax) && (
-                                  <span className="flex items-center gap-1.5 text-azure-500 font-bold">
-                                    <DollarSign className="h-4 w-4 shrink-0" />
-                                    {pJob.salaryRangeMin && `KES ${pJob.salaryRangeMin.toLocaleString()}`}
-                                    {pJob.salaryRangeMin && pJob.salaryRangeMax && ' – '}
-                                    {pJob.salaryRangeMax && `KES ${pJob.salaryRangeMax.toLocaleString()}`}
-                                  </span>
-                                )}
-                                {pJob.applicationDeadline && (
-                                  <span className={cn(
-                                    "flex items-center gap-1.5 font-medium",
-                                    new Date(pJob.applicationDeadline) < sevenDaysFromNow ? "text-danger-600" : "text-muted-foreground"
-                                  )}>
-                                    <Calendar className="h-4 w-4" />
-                                    {new Date(pJob.applicationDeadline) < now ? 'Expired: ' : 'Deadline: '}
-                                    {format(new Date(pJob.applicationDeadline), 'dd MMM yyyy')}
-                                  </span>
-                                )}
-                              </div>
-
-                              <div className="flex flex-wrap gap-2">
-                                <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-muted-foreground/20 text-muted-foreground">
-                                  {formatJobType(pJob.jobType)}
-                                </Badge>
-                                <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest bg-primary/10 text-primary border-none">
-                                  {formatWorkType(pJob.workType)}
-                                </Badge>
-                                {pJob.tags && pJob.tags.slice(0, 3).map((tag: string) => (
-                                  <Badge key={tag} className="text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-700 hover:bg-slate-100 border-none">
-                                    {tag}
-                                  </Badge>
-                                ))}
-                                {pJob.tags && pJob.tags.length > 3 && (
-                                  <Badge className="text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-700 hover:bg-slate-100 border-none">
-                                    +{pJob.tags.length - 3} more
-                                  </Badge>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Voting & CTA */}
-                            <div className="flex md:flex-col items-center md:items-end justify-between md:justify-between md:w-40 shrink-0 gap-4 print:hidden">
-                              <div className="flex items-center gap-1.5">
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        variant="secondary"
-                                        size="icon"
-                                        className={cn(
-                                          "h-9 w-9 rounded-full border border-slate-100 shadow-sm",
-                                          upvotedJobs.has(pJob.id) ? "bg-azure-500 text-white hover:bg-azure-600" : "hover:bg-azure-50 hover:text-azure-500 bg-white"
-                                        )}
-                                        onClick={(e) => handleVote(pJob.id, 'UP', e)}
-                                        disabled={!isLoggedIn}
-                                      >
-                                        <ThumbsUp className="h-4 w-4" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent><p>{isLoggedIn ? "Upvote" : "Login to upvote"}</p></TooltipContent>
-                                  </Tooltip>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        variant="secondary"
-                                        size="icon"
-                                        className={cn(
-                                          "h-9 w-9 rounded-full border border-slate-100 shadow-sm",
-                                          downvotedJobs.has(pJob.id) ? "bg-danger-600 text-white hover:bg-danger-700" : "hover:bg-danger-50 hover:text-danger-600 bg-white"
-                                        )}
-                                        onClick={(e) => handleVote(pJob.id, 'DOWN', e)}
-                                        disabled={!isLoggedIn}
-                                      >
-                                        <ThumbsDown className="h-4 w-4" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent><p>{isLoggedIn ? "Downvote" : "Login to downvote"}</p></TooltipContent>
-                                  </Tooltip>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className={cn(
-                                          "h-9 w-9 rounded-full",
-                                          pJob.isFlagged
-                                            ? "text-danger-600 bg-danger-50"
-                                            : "text-slate-400 hover:text-danger-600 hover:bg-danger-50"
-                                        )}
-                                        disabled={!isLoggedIn}
-                                        onClick={(e) => {
-                                          e.preventDefault();
-                                          if (!isLoggedIn) {
-                                            toast.error("Please login to report jobs");
-                                            return;
-                                          }
-                                          setSelectedJobId(pJob.id);
-                                          setIsFlagOpen(true);
-                                        }}
-                                      >
-                                        <Flag className={cn("h-4 w-4", pJob.isFlagged && "fill-current")} />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent><p>Report Job</p></TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              </div>
-
-                              <div className="text-right flex-1 md:flex-none">
-                                <div className="hidden md:block mb-3">
-                                  <span className="text-sm font-medium text-azure-500">
-                                    {pJob.upvoteCount >= 0 ? `${pJob.upvoteCount} upvotes` : `${Math.abs(pJob.upvoteCount)} downvotes`}
-                                  </span>
-                                </div>
-                                <Button
-                                  variant={user?.role === 'DEVELOPER' ? 'default' : 'outline'}
-                                  className="w-full font-medium group/btn h-10 rounded-xl bg-azure-500 hover:bg-azure-600 text-white border-none transition-colors"
-                                  asChild
-                                >
-                                  <Link href={isLoggedIn ? `/jobs/${pJob.id}` : '/register'}>
-                                    {isLoggedIn ? (user?.role === 'DEVELOPER' ? 'Apply Now' : 'Details') : 'Register'}
-                                    <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
-                                  </Link>
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
+                <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {pinnedJobs.map((pJob) => (
+                    <Card key={pJob.id} className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/[0.03] to-transparent hover:shadow-xl hover:shadow-primary/10 transition-all group">
+                      <CardHeader className="pb-2">
+                        <Link href={`/jobs/${pJob.id}`}>
+                          <h3 className="font-black text-lg group-hover:text-primary transition-colors line-clamp-1">{pJob.title}</h3>
+                        </Link>
+                        <p className="text-xs font-medium text-muted-foreground line-clamp-1">{pJob.companyName}</p>
+                      </CardHeader>
+                      <CardContent className="pb-3 text-xs space-y-2">
+                        <div className="flex items-center gap-2 text-muted-foreground font-medium">
+                          <MapPin className="h-3.5 w-3.5" /> {pJob.locationCity}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary" className="text-[9px] uppercase tracking-wider font-black py-0.5">{pJob.workType}</Badge>
+                          <Badge variant="outline" className="text-[9px] uppercase tracking-wider font-black py-0.5 border-primary/20 text-primary">{pJob.jobType}</Badge>
+                        </div>
+                      </CardContent>
+                      <CardFooter className="pt-0 flex justify-between items-center border-t border-primary/10 mt-2 bg-primary/[0.02]">
+                        <span className="text-[10px] font-medium text-muted-foreground flex items-center gap-1 mt-2">
+                          <Clock className="h-3 w-3" /> Expires soon
+                        </span>
+                        <Link href={`/jobs/${pJob.id}`} className="mt-2">
+                          <Button size="sm" variant="ghost" className="h-7 text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/10">
+                            View <ArrowRight className="ml-1 h-3 w-3" />
+                          </Button>
+                        </Link>
+                      </CardFooter>
+                    </Card>
+                  ))}
                 </div>
               </div>
             )}

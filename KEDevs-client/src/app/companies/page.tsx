@@ -80,6 +80,8 @@ function CompaniesPageContent() {
   const [hasOpenJobs, setHasOpenJobs] = useState(false);
   const [showDesktopFilters, setShowDesktopFilters] = useState(true);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  
+  const search = searchParams.get('search') || '';
 
   const handleToggleFilters = () => {
     if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
@@ -99,6 +101,7 @@ function CompaniesPageContent() {
       if (country !== 'All') filters.country = country;
       if (city !== 'All') filters.city = city;
       if (hasOpenJobs) filters.hasOpenJobs = true;
+      if (search) filters.search = search;
 
       const response = await companyService.getPublicCompanies(0, 100, filters);
       if (response.success) {
@@ -114,7 +117,7 @@ function CompaniesPageContent() {
 
   useEffect(() => {
     fetchCompanies();
-  }, [selectedIndustries, selectedSizes, country, city, hasOpenJobs]);
+  }, [selectedIndustries, selectedSizes, country, city, hasOpenJobs, search]);
 
   const [isExporting, setIsExporting] = useState(false);
 
@@ -127,6 +130,7 @@ function CompaniesPageContent() {
         if (country !== 'All') filters.country = country;
         if (city !== 'All') filters.city = city;
         if (hasOpenJobs) filters.hasOpenJobs = true;
+        if (search) filters.search = search;
 
         if (format === 'pdf') {
             const blob = await companyService.exportCompanies(filters);
