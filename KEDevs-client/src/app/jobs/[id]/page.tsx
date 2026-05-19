@@ -16,7 +16,8 @@ import {
   ExternalLink,
   Loader2,
   AlertTriangle,
-  Pin
+  Pin,
+  Coins
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { jobService } from '@/services/jobService';
@@ -213,6 +214,28 @@ export default function JobDetailPage() {
             .replace('Equivalent Experience', 'Equivalent Work Experience');
   };
 
+  const formatJobType = (type?: string) => {
+    if (!type) return '';
+    return type.replace('_', ' ').toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
+  };
+
+  const formatExperienceLevel = (level?: string) => {
+    if (!level) return '';
+    switch (level) {
+      case 'ENTRY': return 'Entry-level';
+      case 'MID': return 'Mid-level';
+      case 'SENIOR': return 'Senior-level';
+      case 'LEAD': return 'Lead-level';
+      default: return level;
+    }
+  };
+
+  const formatWorkType = (type?: string) => {
+    if (!type) return '';
+    if (type === 'ONSITE') return 'On-site';
+    return type.charAt(0) + type.slice(1).toLowerCase();
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8 animate-pulse">
@@ -271,17 +294,29 @@ export default function JobDetailPage() {
 
               <div className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-muted-foreground pt-2">
                 <span className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4" />
+                  <MapPin className="w-4 h-4 text-slate-400" />
                   {job.locationCity}, {job.locationCountry}
                 </span>
                 <span className="flex items-center gap-2">
-                  <Briefcase className="w-4 h-4" />
-                  {job.jobType?.replace(/_/g, ' ')} • {job.workType}
+                  <Briefcase className="w-4 h-4 text-slate-400" />
+                  Job Type: {formatJobType(job.jobType)}
                 </span>
                 <span className="flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4" />
-                  {job.experienceLevel?.replace(/_/g, ' ')}
+                  <MapPin className="w-4 h-4 text-slate-400" />
+                  Work Arrangement: {formatWorkType(job.workType)}
                 </span>
+                <span className="flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-slate-400" />
+                  Job Level: {formatExperienceLevel(job.experienceLevel)}
+                </span>
+                {(job.salaryRangeMin || job.salaryRangeMax) && (
+                  <span className="flex items-center gap-2 font-semibold text-azure-500">
+                    <Coins className="w-4 h-4 shrink-0 text-azure-500" />
+                    Salary: {job.salaryRangeMin && `KES ${job.salaryRangeMin.toLocaleString()}`}
+                    {job.salaryRangeMin && job.salaryRangeMax && ' – '}
+                    {job.salaryRangeMax && `KES ${job.salaryRangeMax.toLocaleString()}`}
+                  </span>
+                )}
                 {job.isPinned && (
                   <Badge className="bg-primary text-primary-foreground font-black text-[10px] tracking-widest uppercase py-1 px-3 shadow-sm flex items-center gap-1.5 rounded-full">
                     <Pin className="h-3 w-3 fill-current" /> Pinned
