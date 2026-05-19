@@ -853,10 +853,10 @@ function JobsPageContent() {
 
             {/* Pinned Jobs Row */}
             {!searchTerm && pinnedJobs.length > 0 && (
-              <div className="bg-[#111111] border border-neutral-800/40 p-6 rounded-2xl mb-8 space-y-4">
+              <div className="bg-slate-50/50 border border-slate-100 p-6 rounded-2xl mb-8 space-y-4">
                 <div className="flex items-center gap-2 px-1">
-                  <Star className="h-4.5 w-4.5 fill-amber-500 text-amber-500 animate-pulse shrink-0" />
-                  <h2 className="text-xs font-black uppercase tracking-widest text-amber-500">Featured</h2>
+                  <Star className="h-4.5 w-4.5 fill-amber-500 text-amber-500 shrink-0" />
+                  <h2 className="text-xs font-black uppercase tracking-widest text-amber-600">Featured</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {pinnedJobs.map((pJob) => {
@@ -876,57 +876,57 @@ function JobsPageContent() {
                       <Card 
                         key={pJob.id} 
                         className={cn(
-                          "relative overflow-hidden bg-[#181818] border transition-all duration-300 group flex flex-col justify-between p-5 rounded-xl min-h-[220px]",
-                          isUrgent ? "border-amber-500/40 shadow-[0_0_15px_rgba(245,158,11,0.05)]" : "border-neutral-800"
+                          "relative overflow-hidden bg-white border transition-all duration-300 group flex flex-col justify-between p-5 rounded-xl min-h-[220px] shadow-sm",
+                          isUrgent ? "border-amber-400/60 bg-amber-50/10 shadow-[0_0_15px_rgba(245,158,11,0.03)]" : "border-slate-100 hover:border-slate-200"
                         )}
                       >
                         <div className="space-y-3">
                           {/* Company Name & Logo initials */}
                           <div className="flex items-center gap-2.5">
-                            <div className="h-8 w-8 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center text-[10px] font-black text-neutral-300 tracking-tight uppercase shrink-0">
+                            <div className="h-8 w-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-[10px] font-black text-slate-600 tracking-tight uppercase shrink-0">
                               {initials}
                             </div>
-                            <span className="text-[11px] font-semibold text-neutral-400 truncate max-w-[150px]">
+                            <span className="text-[11px] font-semibold text-slate-500 truncate max-w-[150px]">
                               {pJob.companyName || 'Tech Ecosystem'}
                             </span>
                           </div>
 
                           {/* Job Title */}
                           <Link href={`/jobs/${pJob.id}`}>
-                            <h3 className="font-extrabold text-base text-neutral-100 group-hover:text-primary transition-colors line-clamp-2 leading-tight">
+                            <h3 className="font-extrabold text-base text-slate-900 group-hover:text-primary transition-colors line-clamp-2 leading-tight">
                               {pJob.title}
                             </h3>
                           </Link>
 
                           {/* Badges */}
                           <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                            <Badge className="bg-blue-950/40 text-blue-400 border border-blue-500/20 text-[9px] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded-full hover:bg-blue-950/40">
+                            <Badge className="bg-blue-50 text-blue-600 border border-blue-100 text-[9px] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded-full hover:bg-blue-50">
                               {pJob.workType}
                             </Badge>
-                            <Badge className="bg-neutral-900 text-neutral-300 border border-neutral-800 text-[9px] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded-full hover:bg-neutral-900">
+                            <Badge className="bg-slate-50 text-slate-600 border border-slate-100 text-[9px] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded-full hover:bg-slate-50">
                               {pJob.jobType?.replace('_', ' ')}
                             </Badge>
                             {isNew && (
-                              <Badge className="bg-emerald-950/40 text-emerald-400 border border-emerald-500/20 text-[9px] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded-full hover:bg-emerald-950/40">
+                              <Badge className="bg-emerald-50 text-emerald-600 border border-emerald-100 text-[9px] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded-full hover:bg-emerald-50">
                                 New
                               </Badge>
                             )}
                             {isUrgent && (
-                              <Badge className="bg-amber-950/40 text-amber-400 border border-amber-500/20 text-[9px] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded-full hover:bg-amber-950/40">
+                              <Badge className="bg-amber-50 text-amber-700 border border-amber-100 text-[9px] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded-full hover:bg-amber-50">
                                 Expires soon
                               </Badge>
                             )}
                           </div>
 
                           {/* Location & Salary */}
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-neutral-400 font-medium pt-1">
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500 font-medium pt-1">
                             <span className="flex items-center gap-1">
-                              <MapPin className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+                              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                               {pJob.locationCity}
                             </span>
                             {pJob.minSalary && (
-                              <span className="flex items-center gap-1 text-neutral-300 font-semibold">
-                                <DollarSign className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+                              <span className="flex items-center gap-1 text-slate-700 font-semibold">
+                                <DollarSign className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                                 {pJob.salaryCurrency || 'KES'} {Math.round(pJob.minSalary / 1000)}k
                               </span>
                             )}
@@ -934,10 +934,10 @@ function JobsPageContent() {
                         </div>
 
                         {/* Card Footer Divider and Action */}
-                        <div className="mt-4 pt-3 border-t border-neutral-800/60 flex justify-between items-center">
+                        <div className="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center">
                           <span className={cn(
                             "text-[10px] font-semibold flex items-center gap-1.5",
-                            isUrgent ? "text-amber-500 font-bold" : "text-neutral-500"
+                            isUrgent ? "text-amber-600 font-bold" : "text-slate-400"
                           )}>
                             <Clock className="h-3.5 w-3.5" />
                             {daysLeft !== null ? (daysLeft === 0 ? "Expires today" : `${daysLeft} day${daysLeft !== 1 ? 's' : ''} left`) : "Flexible"}
@@ -946,7 +946,7 @@ function JobsPageContent() {
                             <Button 
                               size="sm" 
                               variant="outline" 
-                              className="h-8 border border-neutral-800 hover:border-neutral-700 bg-transparent hover:bg-neutral-900 text-neutral-300 hover:text-white text-[10px] font-black uppercase tracking-wider px-3.5 rounded-lg flex items-center gap-1 transition-all"
+                              className="h-8 border border-slate-200 hover:border-slate-300 bg-transparent hover:bg-slate-50 text-slate-600 hover:text-slate-800 text-[10px] font-black uppercase tracking-wider px-3.5 rounded-lg flex items-center gap-1 transition-all"
                             >
                               View <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                             </Button>
