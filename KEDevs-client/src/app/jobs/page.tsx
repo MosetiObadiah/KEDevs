@@ -855,8 +855,7 @@ function JobsPageContent() {
             {!searchTerm && pinnedJobs.length > 0 && (
               <div className="bg-slate-50/50 border border-slate-100 p-6 rounded-2xl mb-8 space-y-4">
                 <div className="flex items-center gap-2 px-1">
-                  <Star className="h-4.5 w-4.5 fill-amber-500 text-amber-500 shrink-0" />
-                  <h2 className="text-xs font-black uppercase tracking-widest text-amber-600">Featured</h2>
+                  <h2 className="text-xs font-black uppercase tracking-widest text-slate-900">Featured</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {pinnedJobs.map((pJob) => {
@@ -940,7 +939,7 @@ function JobsPageContent() {
                             isUrgent ? "text-amber-600 font-bold" : "text-slate-400"
                           )}>
                             <Clock className="h-3.5 w-3.5" />
-                            {daysLeft !== null ? (daysLeft === 0 ? "Expires today" : `${daysLeft} day${daysLeft !== 1 ? 's' : ''} left`) : "Flexible"}
+                            {daysLeft !== null ? (daysLeft === 0 ? "Expires today" : `${daysLeft} day${daysLeft !== 1 ? 's' : ''} left`) : "No deadline"}
                           </span>
                           <Link href={`/jobs/${pJob.id}`}>
                             <Button 
