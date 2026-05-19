@@ -70,7 +70,7 @@ export default function MyJobPosts() {
 
   // Filtering state
   const [searchTerm, setSearchTerm] = useState(urlSearchTerm);
-  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [statusFilter, setStatusFilter] = useState('ACTIVE');
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [dateFilter, setDateFilter] = useState('ALL');
 
@@ -372,7 +372,7 @@ export default function MyJobPosts() {
             </Select>
 
             {/* Reset Filters */}
-            {(searchTerm || statusFilter !== 'ALL' || typeFilter !== 'ALL' || dateFilter !== 'ALL') && (
+            {(searchTerm || statusFilter !== 'ACTIVE' || typeFilter !== 'ALL' || dateFilter !== 'ALL') && (
               <Button 
                 variant="ghost" 
                 onClick={() => {
@@ -380,7 +380,7 @@ export default function MyJobPosts() {
                   const params = new URLSearchParams(window.location.search);
                   params.delete('search');
                   router.replace(`${window.location.pathname}?${params.toString()}`);
-                  setStatusFilter('ALL');
+                  setStatusFilter('ACTIVE');
                   setTypeFilter('ALL');
                   setDateFilter('ALL');
                 }}
@@ -504,18 +504,27 @@ export default function MyJobPosts() {
                               </div>
                             )}
 
-                            {!post.isPeerSourced && !post.isPinned && post.status === 'OPEN' && (
-                              <Button 
-                                variant="outline" 
-                                className="w-full font-medium h-11 border-primary/20 text-primary hover:bg-primary/5 hover:text-primary"
-                                onClick={() => {
-                                  setSelectedJob({ id: post.id, title: post.title });
-                                  setIsPinDialogOpen(true);
-                                }}
-                              >
-                                <TrendingUp className="mr-2 h-4 w-4" />
-                                Pin Listing
-                              </Button>
+                            {!post.isPeerSourced && post.status === 'OPEN' && (
+                              post.isPinned ? (
+                                <Button 
+                                  variant="outline" 
+                                  className="w-full font-medium h-11 border-slate-200 text-slate-400 bg-slate-50/50 cursor-not-allowed"
+                                  disabled
+                                >
+                                  Job pinned
+                                </Button>
+                              ) : (
+                                <Button 
+                                  variant="outline" 
+                                  className="w-full font-medium h-11 border-primary/20 text-primary hover:bg-primary/5 hover:text-primary"
+                                  onClick={() => {
+                                    setSelectedJob({ id: post.id, title: post.title });
+                                    setIsPinDialogOpen(true);
+                                  }}
+                                >
+                                  Pin Listing
+                                </Button>
+                              )
                             )}
 
                             <DropdownMenu>
