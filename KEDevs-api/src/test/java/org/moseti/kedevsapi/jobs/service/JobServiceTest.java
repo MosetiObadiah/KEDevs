@@ -51,6 +51,8 @@ class JobServiceTest {
     @Mock private org.moseti.kedevsapi.shared.service.FileUploadService fileUploadService;
     @Mock private org.moseti.kedevsapi.users.service.PdfExportService pdfExportService;
     @Mock private org.moseti.kedevsapi.payments.repository.PlatformSettingRepository platformSettingRepository;
+    @Mock private org.springframework.cache.CacheManager cacheManager;
+
 
     @InjectMocks private JobService jobService;
 
@@ -167,8 +169,9 @@ class JobServiceTest {
     void getPublicJobs_onlyReturnsPublicOpen() {
         Pageable pageable = PageRequest.of(0, 10);
         when(jobPostRepository.findByVisibilityAndStatusOrderByUpvoteCountDescCreatedAtDesc(
-                JobVisibility.PUBLIC, JobStatus.OPEN, pageable))
+                JobVisibility.PUBLIC, JobStatus.OPEN, org.springframework.data.domain.Pageable.unpaged()))
                 .thenReturn(new PageImpl<>(List.of(jobPost)));
+
 
         Page<JobSummaryResponse> response = jobService.getPublicJobs(null, pageable, null);
         assertThat(response.getContent()).hasSize(1);

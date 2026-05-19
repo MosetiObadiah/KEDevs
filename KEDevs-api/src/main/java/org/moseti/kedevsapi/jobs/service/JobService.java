@@ -16,8 +16,14 @@ import org.moseti.kedevsapi.users.repository.UserRepository;
 import org.moseti.kedevsapi.users.service.EmployerProfileService;
 import org.moseti.kedevsapi.shared.service.FileUploadService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -48,6 +54,8 @@ public class JobService {
     private final org.moseti.kedevsapi.auth.service.EmailService emailService;
     private final org.moseti.kedevsapi.users.service.PdfExportService pdfExportService;
     private final org.moseti.kedevsapi.payments.repository.PlatformSettingRepository platformSettingRepository;
+    private final CacheManager cacheManager;
+
 
     @Value("${app.api-base-url:http://localhost:8080}")
     private String apiBaseUrl;
@@ -99,6 +107,7 @@ public class JobService {
     }
 
     @Transactional
+    @CacheEvict(value = "publicJobs", allEntries = true)
     public JobPostResponse createJobPost(UUID userId, CreateJobPostRequest request) {
         if (userId == null) {
             throw new org.moseti.kedevsapi.shared.exception.UnauthorizedException(
@@ -174,16 +183,78 @@ public class JobService {
         return toJobPostResponse(job, currentUserId);
     }
 
+    private JobSummaryResponse withUserContext(JobSummaryResponse base, UUID currentUserId) {
+        if (currentUserId == null) {
+            return base;
+        }
+        VoteType currentUserVote = jobVoteRepository.findByJobIdAndUserId(base.id(), currentUserId)
+                .map(org.moseti.kedevsapi.jobs.entity.JobVote::getVoteType)
+                .orElse(null);
+        boolean isCurrentUserFlagged = jobFlagRepository.existsByJobIdAndFlaggedById(base.id(), currentUserId);
+        
+        return new JobSummaryResponse(
+                base.id(), base.title(), base.companyName(), base.locationCity(), base.locationCountry(),
+                base.jobType(), base.workType(), base.experienceLevel(), base.salaryRangeMin(), base.salaryRangeMax(),
+                base.visibility(), base.status(), base.upvoteCount(), base.isFlagged(), base.isPeerSourced(),
+                base.sourceUrl(), base.tags(), base.applicationDeadline(), base.createdAt(), base.postedByRole(),
+                base.isPinned(), base.pinnedUntil(), currentUserVote, isCurrentUserFlagged
+        );
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<JobSummaryResponse> getPublicJobsList() {
+        Cache cache = cacheManager.getCache("publicJobs");
+        if (cache != null) {
+            try {
+                Cache.ValueWrapper wrapper = cache.get("all");
+                if (wrapper != null) {
+                    return (List<JobSummaryResponse>) wrapper.get();
+                }
+            } catch (Exception e) {
+                log.error("Failed to deserialize publicJobs cache. Evicting and falling back to database.", e);
+                try {
+                    cache.evict("all");
+                } catch (Exception ex) {
+                    log.error("Failed to evict publicJobs key from cache", ex);
+                }
+            }
+        }
+
+
+        List<JobSummaryResponse> list = jobPostRepository.findByVisibilityAndStatusOrderByUpvoteCountDescCreatedAtDesc(
+                JobVisibility.PUBLIC, JobStatus.OPEN, Pageable.unpaged())
+                .getContent()
+                .stream()
+                .map(this::toJobSummaryResponse)
+                .toList();
+
+        if (cache != null) {
+            cache.put("all", list);
+        }
+        return list;
+    }
+
     public Page<JobSummaryResponse> getPublicJobs(UUID postedById, Pageable pageable, UUID currentUserId) {
         if (postedById != null) {
             return jobPostRepository.findByVisibilityAndStatusAndPostedByIdOrderByUpvoteCountDescCreatedAtDesc(
                     JobVisibility.PUBLIC, JobStatus.OPEN, postedById, pageable)
                     .map(job -> toJobSummaryResponse(job, currentUserId));
         }
-        return jobPostRepository.findByVisibilityAndStatusOrderByUpvoteCountDescCreatedAtDesc(
-                JobVisibility.PUBLIC, JobStatus.OPEN, pageable)
-                .map(job -> toJobSummaryResponse(job, currentUserId));
+
+        List<JobSummaryResponse> allJobs = getPublicJobsList();
+
+        List<JobSummaryResponse> enriched = allJobs.stream()
+                .map(job -> withUserContext(job, currentUserId))
+                .toList();
+
+        int start = (int) pageable.getOffset();
+        if (start >= enriched.size()) {
+            return new PageImpl<>(List.of(), pageable, enriched.size());
+        }
+        int end = Math.min(start + pageable.getPageSize(), enriched.size());
+        return new PageImpl<>(enriched.subList(start, end), pageable, enriched.size());
     }
+
 
     public Page<JobSummaryResponse> getJobFeed(JobSearchRequest request, Pageable pageable, UUID currentUserId) {
         Specification<JobPost> spec = (root, query, cb) -> {
@@ -275,6 +346,7 @@ public class JobService {
     }
 
     @Transactional
+    @CacheEvict(value = "publicJobs", allEntries = true)
     public JobPostResponse updateJobPost(UUID userId, UUID jobId, UpdateJobPostRequest request) {
         JobPost job = jobPostRepository.findById(jobId)
                 .orElseThrow(() -> new JobNotFoundException("Job not found"));
@@ -371,6 +443,7 @@ public class JobService {
     }
 
     @Transactional
+    @CacheEvict(value = "publicJobs", allEntries = true)
     public void deleteJobPost(UUID userId, UUID jobId) {
         JobPost job = jobPostRepository.findById(jobId)
                 .orElseThrow(() -> new JobNotFoundException("Job not found"));
@@ -384,6 +457,7 @@ public class JobService {
     }
 
     @Transactional
+    @CacheEvict(value = "publicJobs", allEntries = true)
     public JobPostResponse updateJobStatus(UUID userId, UUID jobId, JobStatus status) {
         JobPost job = jobPostRepository.findById(jobId)
                 .orElseThrow(() -> new JobNotFoundException("Job not found"));

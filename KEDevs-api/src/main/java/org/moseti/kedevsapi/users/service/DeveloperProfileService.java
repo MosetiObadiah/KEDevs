@@ -28,6 +28,12 @@ import org.moseti.kedevsapi.payments.repository.UserFlagRepository;
 
 import java.util.List;
 import java.util.UUID;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.data.domain.PageImpl;
+
 
 @Slf4j
 @Service
@@ -47,12 +53,15 @@ public class DeveloperProfileService {
     private final FileUploadService fileUploadService;
     private final NotificationService notificationService;
     private final UserFlagRepository userFlagRepository;
+    private final CacheManager cacheManager;
+
 
     // ----------------------------------------------------------------
     // Profile CRUD
     // ----------------------------------------------------------------
 
     @Transactional
+    @CacheEvict(value = "publicDevelopers", allEntries = true)
     public UserDtos.DeveloperProfileResponse createProfile(UUID userId, UserDtos.CreateDeveloperProfileRequest request) {
         if (profileRepository.existsByUserId(userId)) {
             throw new ProfileAlreadyExistsException("Developer profile already exists for this user");
@@ -110,6 +119,7 @@ public class DeveloperProfileService {
     }
 
     @Transactional
+    @CacheEvict(value = "publicDevelopers", allEntries = true)
     public UserDtos.DeveloperProfileResponse updateProfile(UUID userId, UserDtos.UpdateDeveloperProfileRequest request) {
         DeveloperProfile profile = getProfileEntityByUserId(userId);
         applyUpdateFields(profile, request);
@@ -119,6 +129,7 @@ public class DeveloperProfileService {
     }
 
     @Transactional
+    @CacheEvict(value = "publicDevelopers", allEntries = true)
     public void toggleAvailability(UUID userId, AvailabilityStatus status) {
         DeveloperProfile profile = getProfileEntityByUserId(userId);
         profile.setAvailabilityStatus(status);
@@ -127,6 +138,7 @@ public class DeveloperProfileService {
     }
 
     @Transactional
+    @CacheEvict(value = "publicDevelopers", allEntries = true)
     public void updateVisibility(UUID userId, ProfileVisibility visibility) {
         DeveloperProfile profile = getProfileEntityByUserId(userId);
         profile.setProfileVisibility(visibility);
@@ -557,11 +569,50 @@ public class DeveloperProfileService {
     // Public / Filtered Listings
     // ----------------------------------------------------------------
 
+    @SuppressWarnings("unchecked")
+    public List<UserDtos.DeveloperSummaryResponse> getPublicDevelopersList() {
+        Cache cache = cacheManager.getCache("publicDevelopers");
+        if (cache != null) {
+            try {
+                Cache.ValueWrapper wrapper = cache.get("all");
+                if (wrapper != null) {
+                    return (List<UserDtos.DeveloperSummaryResponse>) wrapper.get();
+                }
+            } catch (Exception e) {
+                log.error("Failed to deserialize publicDevelopers cache. Evicting and falling back to database.", e);
+                try {
+                    cache.evict("all");
+                } catch (Exception ex) {
+                    log.error("Failed to evict publicDevelopers key from cache", ex);
+                }
+            }
+        }
+
+
+        List<UserDtos.DeveloperSummaryResponse> list = profileRepository.findByProfileVisibility(ProfileVisibility.PUBLIC, Pageable.unpaged())
+                .getContent()
+                .stream()
+                .map(this::toSummaryResponse)
+                .toList();
+
+        if (cache != null) {
+            cache.put("all", list);
+        }
+        return list;
+    }
+
     @Transactional(readOnly = true)
     public Page<UserDtos.DeveloperSummaryResponse> getPublicDevelopers(Pageable pageable) {
-        return profileRepository.findByProfileVisibility(ProfileVisibility.PUBLIC, pageable)
-                .map(this::toSummaryResponse);
+        List<UserDtos.DeveloperSummaryResponse> allDevs = getPublicDevelopersList();
+        
+        int start = (int) pageable.getOffset();
+        if (start >= allDevs.size()) {
+            return new PageImpl<>(List.of(), pageable, allDevs.size());
+        }
+        int end = Math.min(start + pageable.getPageSize(), allDevs.size());
+        return new PageImpl<>(allDevs.subList(start, end), pageable, allDevs.size());
     }
+
 
     @Transactional(readOnly = true)
     public Page<UserDtos.DeveloperSummaryResponse> filterDevelopers(UserDtos.DeveloperFilterRequest filter, Pageable pageable) {

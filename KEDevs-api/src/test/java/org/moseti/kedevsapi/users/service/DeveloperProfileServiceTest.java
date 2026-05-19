@@ -45,6 +45,8 @@ class DeveloperProfileServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private org.moseti.kedevsapi.shared.service.FileUploadService fileUploadService;
     @Mock private org.moseti.kedevsapi.notifications.service.NotificationService notificationService;
+    @Mock private org.springframework.cache.CacheManager cacheManager;
+
 
     @InjectMocks
     private DeveloperProfileService developerProfileService;
@@ -288,7 +290,8 @@ class DeveloperProfileServiceTest {
 
         assertEquals(1, result.getTotalElements());
         // The PUBLIC profile is in results — verify repository was called with PUBLIC only
-        verify(profileRepository).findByProfileVisibility(ProfileVisibility.PUBLIC, pageable);
+        verify(profileRepository).findByProfileVisibility(ProfileVisibility.PUBLIC, Pageable.unpaged());
+
     }
 
     @Test
