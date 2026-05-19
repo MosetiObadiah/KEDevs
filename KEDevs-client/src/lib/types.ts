@@ -32,6 +32,7 @@ export interface JobSummary {
   postedByRole?: 'EMPLOYER' | 'DEVELOPER' | 'ADMIN';
   isFlagged?: boolean;
   isPinned?: boolean;
+  flagStatus?: 'NONE' | 'PENDING' | 'REVIEWED_KEPT' | 'REVIEWED_REMOVED';
 }
 
 export interface DeveloperSummary {

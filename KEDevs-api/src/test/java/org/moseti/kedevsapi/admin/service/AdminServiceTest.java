@@ -168,6 +168,30 @@ class AdminServiceTest {
     }
 
     @Test
+    void reviewJobFlag_legitimate_setsFlagStatusReviewedKept() {
+        UUID flagId = UUID.randomUUID();
+        UUID jobId = UUID.randomUUID();
+        JobFlag flag = new JobFlag();
+        flag.setId(flagId);
+        flag.setJobId(jobId);
+        
+        JobPost job = new JobPost();
+        job.setId(jobId);
+        job.setTitle("Legit Job");
+        job.setPostedById(UUID.randomUUID());
+
+        when(jobFlagRepository.findById(flagId)).thenReturn(Optional.of(flag));
+        when(jobPostRepository.findById(jobId)).thenReturn(Optional.of(job));
+        when(jobFlagRepository.countByJobIdAndStatus(jobId, FlagStatus.PENDING)).thenReturn(1);
+
+        adminService.reviewJobFlag(adminId, flagId, new ReviewJobFlagRequest("LEGITIMATE", "Everything looks clean"));
+
+        assertEquals(FlagStatus.REVIEWED_KEPT, flag.getStatus());
+        assertFalse(job.isFlagged());
+        verify(adminActionRepository).save(any(AdminAction.class));
+    }
+
+    @Test
     void reviewCommentFlag_removed_hidesComment() {
         UUID flagId = UUID.randomUUID();
         UUID commentId = UUID.randomUUID();

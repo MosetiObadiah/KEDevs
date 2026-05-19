@@ -410,7 +410,7 @@ public class AdminService {
 
         String outcome = request.outcome().toUpperCase();
         if ("LEGITIMATE".equals(outcome)) {
-            flag.setStatus(FlagStatus.REVIEWED_LEGITIMATE);
+            flag.setStatus(FlagStatus.REVIEWED_KEPT);
             if (jobFlagRepository.countByJobIdAndStatus(job.getId(), FlagStatus.PENDING) <= 1) {
                 job.setFlagged(false);
             }
@@ -421,7 +421,7 @@ public class AdminService {
                     "Job Post Removed",
                     "Your job post '" + job.getTitle() + "' has been removed after review.", null);
         } else if ("WARN".equals(outcome)) {
-            flag.setStatus(FlagStatus.REVIEWED_LEGITIMATE);
+            flag.setStatus(FlagStatus.REVIEWED_KEPT);
             notificationService.notify(job.getPostedById(), NotificationCategory.FLAG,
                     "Job Post Warning",
                     "Your job post '" + job.getTitle() + "' has been flagged. Please ensure it follows guidelines.", null);

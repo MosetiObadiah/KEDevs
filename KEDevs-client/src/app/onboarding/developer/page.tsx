@@ -228,7 +228,7 @@ export default function DeveloperOnboarding() {
             </p>
           </div>
           <Button className="rounded-2xl font-black h-14 w-full shadow-xl shadow-primary/20" asChild>
-            <Link href="/developers">Go to Talent Directory</Link>
+            <Link href="/developers">Go to Developers Page</Link>
           </Button>
         </div>
       </div>

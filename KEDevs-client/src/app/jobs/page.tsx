@@ -183,6 +183,100 @@ function JobsPageContent() {
   const [flagContent, setFlagContent] = useState('');
   const [isSubmittingFlag, setIsSubmittingFlag] = useState(false);
 
+  const [dismissedTooltips, setDismissedTooltips] = useState<string[]>([]);
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('dismissed_verified_tooltips');
+      if (saved) {
+        try {
+          setDismissedTooltips(JSON.parse(saved));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+  }, []);
+
+  const dismissTooltip = (jobId: string) => {
+    const next = [...dismissedTooltips, jobId];
+    setDismissedTooltips(next);
+    localStorage.setItem('dismissed_verified_tooltips', JSON.stringify(next));
+  };
+
+  const renderFlagButton = (targetJob: any, isPinnedCard = false) => {
+    const isPending = flaggedJobs.has(targetJob.id);
+    const isKept = targetJob.flagStatus === 'REVIEWED_KEPT';
+    const isDismissed = dismissedTooltips.includes(targetJob.id);
+    const iconSize = isPinnedCard ? "h-3.5 w-3.5" : "h-4 w-4";
+    const btnSize = isPinnedCard ? "h-8 w-8" : "h-9 w-9";
+
+    let tooltipText = "Report Job";
+    if (isPending) {
+      tooltipText = "Your report is under review";
+    } else if (isKept) {
+      tooltipText = isDismissed 
+        ? "This job has been reviewed and verified."
+        : "This job was reviewed and verified. Click to dismiss this notice.";
+    }
+
+    const handleFlagClick = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!isLoggedIn) {
+        toast.error("Please login to report jobs");
+        return;
+      }
+      if (isPending) {
+        toast.info("Your report is currently under review by our moderation team.");
+        return;
+      }
+      if (isKept) {
+        if (!isDismissed) {
+          dismissTooltip(targetJob.id);
+        }
+        toast.info("This job has been reviewed and verified by moderators.");
+        return;
+      }
+      setSelectedJobId(targetJob.id);
+      setIsFlagOpen(true);
+    };
+
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                btnSize,
+                "rounded-full relative",
+                isPending
+                  ? "text-danger-600 bg-danger-50"
+                  : isKept && !isDismissed
+                  ? "text-azure-600 bg-azure-50/50 hover:bg-azure-50"
+                  : "text-slate-400 hover:text-danger-600 hover:bg-danger-50"
+              )}
+              disabled={!isLoggedIn}
+              onClick={handleFlagClick}
+            >
+              <Flag className={cn(iconSize, isPending && "fill-current")} />
+              {isKept && !isDismissed && (
+                <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-azure-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-azure-500"></span>
+                </span>
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{tooltipText}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
+
   useEffect(() => {
     const fetchPinnedJobs = async () => {
       try {
@@ -1033,34 +1127,7 @@ function JobsPageContent() {
                                   </TooltipTrigger>
                                   <TooltipContent><p>{isLoggedIn ? "Downvote" : "Login to downvote"}</p></TooltipContent>
                                 </Tooltip>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className={cn(
-                                        "h-8 w-8 rounded-full",
-                                        flaggedJobs.has(pJob.id)
-                                          ? "text-danger-600 bg-danger-50"
-                                          : "text-slate-400 hover:text-danger-600 hover:bg-danger-50"
-                                      )}
-                                      disabled={!isLoggedIn}
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        if (!isLoggedIn) {
-                                          toast.error("Please login to report jobs");
-                                          return;
-                                        }
-                                        setSelectedJobId(pJob.id);
-                                        setIsFlagOpen(true);
-                                      }}
-                                    >
-                                      <Flag className={cn("h-3.5 w-3.5", flaggedJobs.has(pJob.id) && "fill-current")} />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent><p>Report Job</p></TooltipContent>
-                                </Tooltip>
+                                {renderFlagButton(pJob, true)}
                               </TooltipProvider>
                             </div>
                             <span className="text-xs font-semibold text-azure-600">
@@ -1268,33 +1335,7 @@ function JobsPageContent() {
                                   </TooltipTrigger>
                                   <TooltipContent><p>{isLoggedIn ? "Downvote" : "Login to downvote"}</p></TooltipContent>
                                 </Tooltip>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className={cn(
-                                        "h-9 w-9 rounded-full",
-                                        flaggedJobs.has(job.id)
-                                          ? "text-danger-600 bg-danger-50"
-                                          : "text-slate-400 hover:text-danger-600 hover:bg-danger-50"
-                                      )}
-                                      disabled={!isLoggedIn}
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        if (!isLoggedIn) {
-                                          toast.error("Please login to report jobs");
-                                          return;
-                                        }
-                                        setSelectedJobId(job.id);
-                                        setIsFlagOpen(true);
-                                      }}
-                                    >
-                                      <Flag className={cn("h-4 w-4", flaggedJobs.has(job.id) && "fill-current")} />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent><p>Report Job</p></TooltipContent>
-                                </Tooltip>
+                                {renderFlagButton(job, false)}
                               </TooltipProvider>
                             </div>
 

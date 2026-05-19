@@ -3,14 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  MapPin, 
-  Globe, 
-  Mail, 
-  Phone, 
-  Star, 
-  Send, 
-  BadgeCheck, 
+import {
+  MapPin,
+  Globe,
+  Mail,
+  Phone,
+  Star,
+  Send,
+  BadgeCheck,
   ExternalLink,
   ChevronLeft,
   Loader2,
@@ -65,7 +65,7 @@ export default function DeveloperProfilePage() {
   const [message, setMessage] = useState('');
   const [isRequesting, setIsRequesting] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
-  
+
   // Endorsement modal state
   const [isEndorseOpen, setIsEndorseOpen] = useState(false);
   const [endorsementContent, setEndorsementContent] = useState('');
@@ -87,7 +87,7 @@ export default function DeveloperProfilePage() {
         const response = await developerService.getDeveloperProfile(profileId as string);
         if (response.success) {
           const data = response.data;
-          
+
           // If the logged in user is viewing their own profile, redirect to private profile page
           if (isLoggedIn && user && data.userId === user.id) {
             router.replace('/profile/me');
@@ -143,8 +143,8 @@ export default function DeveloperProfilePage() {
       const response = await developerService.endorseDeveloper(dev.id, { content: endorsementContent.trim() });
       if (response.success) {
         toast.success('Developer endorsed successfully!');
-        setDev({ 
-          ...dev, 
+        setDev({
+          ...dev,
           endorsementCount: (dev.endorsementCount || 0) + 1,
           // Optionally push the new endorsement into the dev.endorsements list locally
           endorsements: response.data ? [...(dev.endorsements || []), response.data] : dev.endorsements
@@ -185,18 +185,18 @@ export default function DeveloperProfilePage() {
       <div className="min-h-screen bg-muted/30">
         <div className="container mx-auto px-6 pt-8 pb-12 space-y-12 animate-pulse">
           <div className="space-y-4">
-             <Skeleton className="h-6 w-32" />
-             <Skeleton className="h-12 w-64" />
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-12 w-64" />
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-             <div className="lg:col-span-8 space-y-6">
-                <Skeleton className="h-[300px] w-full rounded-xl-[2rem]" />
-                <Skeleton className="h-[400px] w-full rounded-xl-[2rem]" />
-             </div>
-             <div className="lg:col-span-4 space-y-6">
-                <Skeleton className="h-[200px] w-full rounded-xl-[2rem]" />
-                <Skeleton className="h-[300px] w-full rounded-xl-[2rem]" />
-             </div>
+            <div className="lg:col-span-8 space-y-6">
+              <Skeleton className="h-[300px] w-full rounded-xl-[2rem]" />
+              <Skeleton className="h-[400px] w-full rounded-xl-[2rem]" />
+            </div>
+            <div className="lg:col-span-4 space-y-6">
+              <Skeleton className="h-[200px] w-full rounded-xl-[2rem]" />
+              <Skeleton className="h-[300px] w-full rounded-xl-[2rem]" />
+            </div>
           </div>
         </div>
       </div>
@@ -207,14 +207,14 @@ export default function DeveloperProfilePage() {
     return (
       <div className="min-h-screen bg-muted/30 flex items-center justify-center p-6">
         <Card className="max-w-md w-full p-12 text-center rounded-xl-[2.5rem] border-border/50 shadow-xl">
-           <div className="h-20 w-20 bg-destructive/10 text-destructive rounded-3xl flex items-center justify-center mx-auto mb-6">
-              <User className="h-10 w-10" />
-           </div>
-           <h2 className="text-2xl font-black mb-2">{error || 'Developer not found'}</h2>
-           <p className="text-muted-foreground mb-8">The profile you are looking for might have been moved or set to private.</p>
-           <Button className="w-full rounded-2xl h-14 font-black" asChild>
-              <Link href="/developers">Back to Talent Directory</Link>
-           </Button>
+          <div className="h-20 w-20 bg-destructive/10 text-destructive rounded-3xl flex items-center justify-center mx-auto mb-6">
+            <User className="h-10 w-10" />
+          </div>
+          <h2 className="text-2xl font-black mb-2">{error || 'Developer not found'}</h2>
+          <p className="text-muted-foreground mb-8">The profile you are looking for might have been moved or set to private.</p>
+          <Button className="w-full rounded-2xl h-14 font-black" asChild>
+            <Link href="/developers">Back to Developers page</Link>
+          </Button>
         </Card>
       </div>
     );
@@ -225,12 +225,12 @@ export default function DeveloperProfilePage() {
       <div className="container mx-auto px-6 pt-8">
         {/* Breadcrumb & Navigation */}
         <div className="mb-8">
-          <Link 
-             href="/developers" 
-             className="inline-flex items-center text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors group"
+          <Link
+            href="/developers"
+            className="inline-flex items-center text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors group"
           >
-             <ArrowLeft className="mr-2 h-3.5 w-3.5 transition-transform group-hover:-translate-x-1" />
-             Back to Talent Directory
+            <ArrowLeft className="mr-2 h-3.5 w-3.5 transition-transform group-hover:-translate-x-1" />
+            Back to Developers page
           </Link>
         </div>
 
@@ -238,9 +238,9 @@ export default function DeveloperProfilePage() {
           {/* Left Column (65%) */}
           <div className="lg:col-span-2 space-y-10">
             <ProfileHeader profile={dev} isOwner={false} />
-            
-            <ProfileTabs 
-              profile={dev} 
+
+            <ProfileTabs
+              profile={dev}
               isOwner={false}
               onEndorse={() => {
                 if (!isLoggedIn) {
@@ -255,7 +255,7 @@ export default function DeveloperProfilePage() {
 
           {/* Right Column (35%) */}
           <div className="lg:col-span-1">
-            <PublicProfileSidebar 
+            <PublicProfileSidebar
               profile={dev}
               isLoggedIn={isLoggedIn}
               onContact={() => {
@@ -303,7 +303,7 @@ export default function DeveloperProfilePage() {
               Write a brief recommendation for {fullName}. Endorsements highlight skills and build community credibility.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="py-6 space-y-4">
             <div className="space-y-2">
               <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground flex justify-between">
@@ -312,8 +312,8 @@ export default function DeveloperProfilePage() {
                   {endorsementContent.length}/200
                 </span>
               </Label>
-              <Textarea 
-                placeholder="e.g. Exceptionally skilled developer and amazing team player..." 
+              <Textarea
+                placeholder="e.g. Exceptionally skilled developer and amazing team player..."
                 className="min-h-[120px] rounded-2xl border-border/50 resize-none font-medium text-base p-4 focus-visible:ring-rose-500/20"
                 value={endorsementContent}
                 onChange={(e) => setEndorsementContent(e.target.value.slice(0, 200))}
@@ -325,8 +325,8 @@ export default function DeveloperProfilePage() {
             <Button variant="ghost" className="rounded-xl font-medium" onClick={() => setIsEndorseOpen(false)}>
               Cancel
             </Button>
-            <Button 
-              className="rounded-xl font-black px-8 bg-slate-900 text-white hover:bg-slate-800" 
+            <Button
+              className="rounded-xl font-black px-8 bg-slate-900 text-white hover:bg-slate-800"
               onClick={handleEndorseDeveloper}
               disabled={isSubmittingEndorsement || !endorsementContent.trim()}
             >
@@ -352,7 +352,7 @@ export default function DeveloperProfilePage() {
               Please describe why you are reporting this profile. Our moderation team will review this report.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="py-6 space-y-4">
             <div className="space-y-2">
               <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground flex justify-between">
@@ -361,8 +361,8 @@ export default function DeveloperProfilePage() {
                   {flagContent.length}/500
                 </span>
               </Label>
-              <Textarea 
-                placeholder="e.g. Inappropriate content, spam, or fake profile..." 
+              <Textarea
+                placeholder="e.g. Inappropriate content, spam, or fake profile..."
                 className="min-h-[120px] rounded-2xl border-border/50 resize-none font-medium text-base p-4 focus-visible:ring-destructive/20"
                 value={flagContent}
                 onChange={(e) => setFlagContent(e.target.value.slice(0, 500))}
@@ -374,8 +374,8 @@ export default function DeveloperProfilePage() {
             <Button variant="ghost" className="rounded-xl font-medium" onClick={() => setIsFlagOpen(false)}>
               Cancel
             </Button>
-            <Button 
-              className="rounded-xl font-black px-8 bg-destructive text-destructive-foreground hover:bg-destructive/90" 
+            <Button
+              className="rounded-xl font-black px-8 bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={handleFlagDeveloper}
               disabled={isSubmittingFlag || !flagContent.trim()}
             >
@@ -401,7 +401,7 @@ export default function DeveloperProfilePage() {
               Send a direct message to {fullName}. Introduce yourself and share the details of your opportunity.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="py-6 space-y-4">
             <div className="space-y-2">
               <Label className="font-black text-[10px] uppercase tracking-widest text-muted-foreground flex justify-between">
@@ -410,8 +410,8 @@ export default function DeveloperProfilePage() {
                   {message.length}/1000
                 </span>
               </Label>
-              <Textarea 
-                placeholder="Write your message here..." 
+              <Textarea
+                placeholder="Write your message here..."
                 className="min-h-[150px] rounded-2xl border-border/50 resize-none font-medium text-base p-4 focus-visible:ring-primary/20"
                 value={message}
                 onChange={(e) => setMessage(e.target.value.slice(0, 1000))}
@@ -423,8 +423,8 @@ export default function DeveloperProfilePage() {
             <Button variant="ghost" className="rounded-xl font-medium" onClick={() => setIsContactOpen(false)}>
               Cancel
             </Button>
-            <Button 
-              className="rounded-xl font-black px-8 bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20" 
+            <Button
+              className="rounded-xl font-black px-8 bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20"
               onClick={handleContactDeveloper}
               disabled={isRequesting || !message.trim()}
             >

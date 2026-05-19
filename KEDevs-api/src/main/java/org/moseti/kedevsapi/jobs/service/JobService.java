@@ -190,14 +190,15 @@ public class JobService {
         VoteType currentUserVote = jobVoteRepository.findByJobIdAndUserId(base.id(), currentUserId)
                 .map(org.moseti.kedevsapi.jobs.entity.JobVote::getVoteType)
                 .orElse(null);
-        boolean isCurrentUserFlagged = jobFlagRepository.existsByJobIdAndFlaggedById(base.id(), currentUserId);
+        String flagStatus = resolveFlagStatus(base.id(), currentUserId);
+        boolean isCurrentUserFlagged = "PENDING".equals(flagStatus);
         
         return new JobSummaryResponse(
                 base.id(), base.title(), base.companyName(), base.locationCity(), base.locationCountry(),
                 base.jobType(), base.workType(), base.experienceLevel(), base.salaryRangeMin(), base.salaryRangeMax(),
                 base.visibility(), base.status(), base.upvoteCount(), base.isFlagged(), base.isPeerSourced(),
                 base.sourceUrl(), base.tags(), base.applicationDeadline(), base.createdAt(), base.postedByRole(),
-                base.isPinned(), base.pinnedUntil(), currentUserVote, isCurrentUserFlagged
+                base.isPinned(), base.pinnedUntil(), currentUserVote, isCurrentUserFlagged, flagStatus
         );
     }
 
@@ -877,13 +878,15 @@ public class JobService {
         VoteType currentUserVote = null;
         Integer applicationCount = null;
         boolean isCurrentUserFlagged = false;
+        String flagStatus = "NONE";
 
         if (currentUserId != null) {
             hasApplied = jobApplicationRepository.existsByJobIdAndApplicantId(job.getId(), currentUserId);
             currentUserVote = jobVoteRepository.findByJobIdAndUserId(job.getId(), currentUserId)
                     .map(JobVote::getVoteType)
                     .orElse(null);
-            isCurrentUserFlagged = jobFlagRepository.existsByJobIdAndFlaggedById(job.getId(), currentUserId);
+            flagStatus = resolveFlagStatus(job.getId(), currentUserId);
+            isCurrentUserFlagged = "PENDING".equals(flagStatus);
 
             if (job.getPostedById().equals(currentUserId)) {
                 applicationCount = (int) jobApplicationRepository.findByJobId(job.getId(), Pageable.unpaged())
@@ -935,7 +938,8 @@ public class JobService {
                 job.getPinnedUntil(),
                 postedByProfileId,
                 postedByCompanyName,
-                isCurrentUserFlagged);
+                isCurrentUserFlagged,
+                flagStatus);
     }
 
     private JobSummaryResponse toJobSummaryResponse(JobPost job) {
@@ -952,11 +956,13 @@ public class JobService {
 
         VoteType currentUserVote = null;
         boolean isCurrentUserFlagged = false;
+        String flagStatus = "NONE";
         if (currentUserId != null) {
             currentUserVote = jobVoteRepository.findByJobIdAndUserId(job.getId(), currentUserId)
                     .map(org.moseti.kedevsapi.jobs.entity.JobVote::getVoteType)
                     .orElse(null);
-            isCurrentUserFlagged = jobFlagRepository.existsByJobIdAndFlaggedById(job.getId(), currentUserId);
+            flagStatus = resolveFlagStatus(job.getId(), currentUserId);
+            isCurrentUserFlagged = "PENDING".equals(flagStatus);
         }
 
         return new JobSummaryResponse(
@@ -983,7 +989,8 @@ public class JobService {
                 job.isPinned(),
                 job.getPinnedUntil(),
                 currentUserVote,
-                isCurrentUserFlagged);
+                isCurrentUserFlagged,
+                flagStatus);
     }
 
     private JobApplicationResponse toJobApplicationResponse(JobApplication application) {
@@ -1040,11 +1047,13 @@ public class JobService {
                 .map(job -> {
                     VoteType currentUserVote = null;
                     boolean isCurrentUserFlagged = false;
+                    String flagStatus = "NONE";
                     if (currentUserId != null) {
                         currentUserVote = jobVoteRepository.findByJobIdAndUserId(job.getId(), currentUserId)
                                 .map(org.moseti.kedevsapi.jobs.entity.JobVote::getVoteType)
                                 .orElse(null);
-                        isCurrentUserFlagged = jobFlagRepository.existsByJobIdAndFlaggedById(job.getId(), currentUserId);
+                        flagStatus = resolveFlagStatus(job.getId(), currentUserId);
+                        isCurrentUserFlagged = "PENDING".equals(flagStatus);
                     }
                     return new PinnedJobSummaryResponse(
                             job.getId(),
@@ -1062,7 +1071,8 @@ public class JobService {
                             job.getUpvoteCount(),
                             job.isFlagged(),
                             currentUserVote,
-                            isCurrentUserFlagged);
+                            isCurrentUserFlagged,
+                            flagStatus);
                 })
                 .toList();
     }
@@ -1109,5 +1119,25 @@ public class JobService {
                 dayPrice,
                 threeDaysPrice,
                 sevenDaysPrice);
+    }
+
+    private String resolveFlagStatus(UUID jobId, UUID userId) {
+        if (userId == null) {
+            return "NONE";
+        }
+        return jobFlagRepository.findByJobIdAndFlaggedById(jobId, userId)
+                .map(flag -> {
+                    if (flag.getStatus() == FlagStatus.PENDING) {
+                        return "PENDING";
+                    } else if (flag.getStatus() == FlagStatus.REVIEWED_KEPT 
+                            || flag.getStatus() == FlagStatus.REVIEWED_LEGITIMATE 
+                            || flag.getStatus() == FlagStatus.REVIEWED_WARNED) {
+                        return "REVIEWED_KEPT";
+                    } else if (flag.getStatus() == FlagStatus.REVIEWED_REMOVED) {
+                        return "REVIEWED_REMOVED";
+                    }
+                    return "NONE";
+                })
+                .orElse("NONE");
     }
 }
