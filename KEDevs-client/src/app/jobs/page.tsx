@@ -176,6 +176,7 @@ function JobsPageContent() {
   const [sortBy, setSortBy] = useState('newest');
   const [upvotedJobs, setUpvotedJobs] = useState<Set<string>>(new Set());
   const [downvotedJobs, setDownvotedJobs] = useState<Set<string>>(new Set());
+  const [flaggedJobs, setFlaggedJobs] = useState<Set<string>>(new Set());
 
   const [isFlagOpen, setIsFlagOpen] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
@@ -188,6 +189,33 @@ function JobsPageContent() {
         const response = await jobService.getPinnedJobs();
         if (response.success) {
           setPinnedJobs(response.data);
+          setUpvotedJobs(prev => {
+            const next = new Set(prev);
+            response.data.forEach((job: any) => {
+              if (job.currentUserVote === 'UPVOTE' || job.currentUserVote === 'UP') {
+                next.add(job.id);
+              }
+            });
+            return next;
+          });
+          setDownvotedJobs(prev => {
+            const next = new Set(prev);
+            response.data.forEach((job: any) => {
+              if (job.currentUserVote === 'DOWNVOTE' || job.currentUserVote === 'DOWN') {
+                next.add(job.id);
+              }
+            });
+            return next;
+          });
+          setFlaggedJobs(prev => {
+            const next = new Set(prev);
+            response.data.forEach((job: any) => {
+              if (job.isCurrentUserFlagged) {
+                next.add(job.id);
+              }
+            });
+            return next;
+          });
         }
       } catch (err) {
         console.error('Failed to fetch pinned jobs', err);
@@ -241,6 +269,34 @@ function JobsPageContent() {
             content = [...content].sort((a, b) => (b.upvoteCount || 0) - (a.upvoteCount || 0));
           }
           setJobs(content);
+
+          setUpvotedJobs(prev => {
+            const next = new Set(prev);
+            content.forEach((job: any) => {
+              if (job.currentUserVote === 'UPVOTE' || job.currentUserVote === 'UP') {
+                next.add(job.id);
+              }
+            });
+            return next;
+          });
+          setDownvotedJobs(prev => {
+            const next = new Set(prev);
+            content.forEach((job: any) => {
+              if (job.currentUserVote === 'DOWNVOTE' || job.currentUserVote === 'DOWN') {
+                next.add(job.id);
+              }
+            });
+            return next;
+          });
+          setFlaggedJobs(prev => {
+            const next = new Set(prev);
+            content.forEach((job: any) => {
+              if (job.isCurrentUserFlagged) {
+                next.add(job.id);
+              }
+            });
+            return next;
+          });
         }
       } catch (err: any) {
         setError('Failed to fetch jobs. Please try again later.');
@@ -394,6 +450,11 @@ function JobsPageContent() {
       const response = await jobService.flagJob(selectedJobId, flagContent.trim());
       if (response.success) {
         toast.success('Job reported to moderation team.');
+        setFlaggedJobs(prev => {
+          const next = new Set(prev);
+          next.add(selectedJobId);
+          return next;
+        });
         setIsFlagOpen(false);
         setFlagContent('');
         setSelectedJobId(null);
@@ -979,7 +1040,7 @@ function JobsPageContent() {
                                       size="icon"
                                       className={cn(
                                         "h-8 w-8 rounded-full",
-                                        pJob.isFlagged
+                                        flaggedJobs.has(pJob.id)
                                           ? "text-danger-600 bg-danger-50"
                                           : "text-slate-400 hover:text-danger-600 hover:bg-danger-50"
                                       )}
@@ -995,7 +1056,7 @@ function JobsPageContent() {
                                         setIsFlagOpen(true);
                                       }}
                                     >
-                                      <Flag className={cn("h-3.5 w-3.5", pJob.isFlagged && "fill-current")} />
+                                      <Flag className={cn("h-3.5 w-3.5", flaggedJobs.has(pJob.id) && "fill-current")} />
                                     </Button>
                                   </TooltipTrigger>
                                   <TooltipContent><p>Report Job</p></TooltipContent>
@@ -1214,7 +1275,7 @@ function JobsPageContent() {
                                       size="icon"
                                       className={cn(
                                         "h-9 w-9 rounded-full",
-                                        job.isFlagged
+                                        flaggedJobs.has(job.id)
                                           ? "text-danger-600 bg-danger-50"
                                           : "text-slate-400 hover:text-danger-600 hover:bg-danger-50"
                                       )}
@@ -1229,7 +1290,7 @@ function JobsPageContent() {
                                         setIsFlagOpen(true);
                                       }}
                                     >
-                                      <Flag className={cn("h-4 w-4", job.isFlagged && "fill-current")} />
+                                      <Flag className={cn("h-4 w-4", flaggedJobs.has(job.id) && "fill-current")} />
                                     </Button>
                                   </TooltipTrigger>
                                   <TooltipContent><p>Report Job</p></TooltipContent>

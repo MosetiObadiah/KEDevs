@@ -94,7 +94,7 @@ public class JobController {
     public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Page<JobSummaryResponse>>> getPublicJobs(
             @RequestParam(required = false) UUID postedById,
             @PageableDefault(size = 10) Pageable pageable) {
-        Page<JobSummaryResponse> response = jobService.getPublicJobs(postedById, pageable);
+        Page<JobSummaryResponse> response = jobService.getPublicJobs(postedById, pageable, getCurrentUserId());
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Public jobs fetched", response));
     }
 
@@ -104,7 +104,7 @@ public class JobController {
     })
     @GetMapping("/pinned")
     public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<java.util.List<PinnedJobSummaryResponse>>> getPinnedJobs() {
-        java.util.List<PinnedJobSummaryResponse> response = jobService.getPinnedJobs();
+        java.util.List<PinnedJobSummaryResponse> response = jobService.getPinnedJobs(getCurrentUserId());
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Pinned jobs fetched", response));
     }
 

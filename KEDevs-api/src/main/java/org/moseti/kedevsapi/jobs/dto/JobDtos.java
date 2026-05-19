@@ -130,7 +130,8 @@ public class JobDtos {
             boolean isPinned,
             LocalDateTime pinnedUntil,
             UUID postedByProfileId,
-            String postedByCompanyName
+            String postedByCompanyName,
+            boolean isCurrentUserFlagged
     ) {}
 
     public record JobSummaryResponse(
@@ -155,7 +156,9 @@ public class JobDtos {
             LocalDateTime createdAt,
             Role postedByRole,
             boolean isPinned,
-            LocalDateTime pinnedUntil
+            LocalDateTime pinnedUntil,
+            VoteType currentUserVote,
+            boolean isCurrentUserFlagged
     ) {}
 
     public record JobApplicationResponse(
@@ -201,7 +204,9 @@ public class JobDtos {
             String salaryCurrency,
             LocalDateTime createdAt,
             int upvoteCount,
-            boolean isFlagged
+            boolean isFlagged,
+            VoteType currentUserVote,
+            boolean isCurrentUserFlagged
     ) {}
 
     public record JobFilterMetadataResponse(

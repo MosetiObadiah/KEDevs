@@ -170,7 +170,7 @@ class JobServiceTest {
                 JobVisibility.PUBLIC, JobStatus.OPEN, pageable))
                 .thenReturn(new PageImpl<>(List.of(jobPost)));
 
-        Page<JobSummaryResponse> response = jobService.getPublicJobs(null, pageable);
+        Page<JobSummaryResponse> response = jobService.getPublicJobs(null, pageable, null);
         assertThat(response.getContent()).hasSize(1);
     }
 
@@ -182,7 +182,7 @@ class JobServiceTest {
                 JobVisibility.PUBLIC, JobStatus.OPEN, postedBy, pageable))
                 .thenReturn(new PageImpl<>(List.of(jobPost)));
 
-        Page<JobSummaryResponse> response = jobService.getPublicJobs(postedBy, pageable);
+        Page<JobSummaryResponse> response = jobService.getPublicJobs(postedBy, pageable, null);
         assertThat(response.getContent()).hasSize(1);
     }
 

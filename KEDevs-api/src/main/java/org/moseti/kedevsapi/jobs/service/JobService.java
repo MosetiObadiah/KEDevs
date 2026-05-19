@@ -174,15 +174,15 @@ public class JobService {
         return toJobPostResponse(job, currentUserId);
     }
 
-    public Page<JobSummaryResponse> getPublicJobs(UUID postedById, Pageable pageable) {
+    public Page<JobSummaryResponse> getPublicJobs(UUID postedById, Pageable pageable, UUID currentUserId) {
         if (postedById != null) {
             return jobPostRepository.findByVisibilityAndStatusAndPostedByIdOrderByUpvoteCountDescCreatedAtDesc(
                     JobVisibility.PUBLIC, JobStatus.OPEN, postedById, pageable)
-                    .map(this::toJobSummaryResponse);
+                    .map(job -> toJobSummaryResponse(job, currentUserId));
         }
         return jobPostRepository.findByVisibilityAndStatusOrderByUpvoteCountDescCreatedAtDesc(
                 JobVisibility.PUBLIC, JobStatus.OPEN, pageable)
-                .map(this::toJobSummaryResponse);
+                .map(job -> toJobSummaryResponse(job, currentUserId));
     }
 
     public Page<JobSummaryResponse> getJobFeed(JobSearchRequest request, Pageable pageable, UUID currentUserId) {
@@ -266,12 +266,12 @@ public class JobService {
         };
 
         return jobPostRepository.findAll(spec, pageable)
-                .map(this::toJobSummaryResponse);
+                .map(job -> toJobSummaryResponse(job, currentUserId));
     }
 
     public Page<JobSummaryResponse> getMyJobPosts(UUID userId, Pageable pageable) {
         return jobPostRepository.findByPostedById(userId, pageable)
-                .map(this::toJobSummaryResponse);
+                .map(job -> toJobSummaryResponse(job, userId));
     }
 
     @Transactional
@@ -802,12 +802,14 @@ public class JobService {
         boolean hasApplied = false;
         VoteType currentUserVote = null;
         Integer applicationCount = null;
+        boolean isCurrentUserFlagged = false;
 
         if (currentUserId != null) {
             hasApplied = jobApplicationRepository.existsByJobIdAndApplicantId(job.getId(), currentUserId);
             currentUserVote = jobVoteRepository.findByJobIdAndUserId(job.getId(), currentUserId)
                     .map(JobVote::getVoteType)
                     .orElse(null);
+            isCurrentUserFlagged = jobFlagRepository.existsByJobIdAndFlaggedById(job.getId(), currentUserId);
 
             if (job.getPostedById().equals(currentUserId)) {
                 applicationCount = (int) jobApplicationRepository.findByJobId(job.getId(), Pageable.unpaged())
@@ -858,16 +860,30 @@ public class JobService {
                 job.isPinned(),
                 job.getPinnedUntil(),
                 postedByProfileId,
-                postedByCompanyName);
+                postedByCompanyName,
+                isCurrentUserFlagged);
     }
 
     private JobSummaryResponse toJobSummaryResponse(JobPost job) {
+        return toJobSummaryResponse(job, null);
+    }
+
+    private JobSummaryResponse toJobSummaryResponse(JobPost job, UUID currentUserId) {
         Role postedByRole = userRepository.findById(job.getPostedById())
                 .map(User::getRole)
                 .orElse(Role.DEVELOPER);
 
         List<String> tags = jobTagRepository.findByJobId(job.getId())
                 .stream().map(JobTag::getTag).toList();
+
+        VoteType currentUserVote = null;
+        boolean isCurrentUserFlagged = false;
+        if (currentUserId != null) {
+            currentUserVote = jobVoteRepository.findByJobIdAndUserId(job.getId(), currentUserId)
+                    .map(org.moseti.kedevsapi.jobs.entity.JobVote::getVoteType)
+                    .orElse(null);
+            isCurrentUserFlagged = jobFlagRepository.existsByJobIdAndFlaggedById(job.getId(), currentUserId);
+        }
 
         return new JobSummaryResponse(
                 job.getId(),
@@ -891,7 +907,9 @@ public class JobService {
                 job.getCreatedAt(),
                 postedByRole,
                 job.isPinned(),
-                job.getPinnedUntil());
+                job.getPinnedUntil(),
+                currentUserVote,
+                isCurrentUserFlagged);
     }
 
     private JobApplicationResponse toJobApplicationResponse(JobApplication application) {
@@ -939,27 +957,39 @@ public class JobService {
      * Returns up to 3 currently active pinned jobs for the /jobs page featured row.
      * Only OPEN jobs with a future pinnedUntil are included.
      */
-    public List<PinnedJobSummaryResponse> getPinnedJobs() {
+    public List<PinnedJobSummaryResponse> getPinnedJobs(UUID currentUserId) {
         return jobPostRepository
                 .findByIsPinnedTrueAndPinnedUntilAfterOrderByPinnedUntilDesc(java.time.LocalDateTime.now())
                 .stream()
                 .filter(job -> job.getStatus() == JobStatus.OPEN)
                 .limit(3)
-                .map(job -> new PinnedJobSummaryResponse(
-                        job.getId(),
-                        job.getTitle(),
-                        job.getCompanyName(),
-                        job.getLocationCity(),
-                        job.getLocationCountry(),
-                        job.getWorkType(),
-                        job.getJobType(),
-                        job.getPinnedUntil(),
-                        job.getApplicationDeadline(),
-                        job.getSalaryRangeMin(),
-                        job.getSalaryCurrency(),
-                        job.getCreatedAt(),
-                        job.getUpvoteCount(),
-                        job.isFlagged()))
+                .map(job -> {
+                    VoteType currentUserVote = null;
+                    boolean isCurrentUserFlagged = false;
+                    if (currentUserId != null) {
+                        currentUserVote = jobVoteRepository.findByJobIdAndUserId(job.getId(), currentUserId)
+                                .map(org.moseti.kedevsapi.jobs.entity.JobVote::getVoteType)
+                                .orElse(null);
+                        isCurrentUserFlagged = jobFlagRepository.existsByJobIdAndFlaggedById(job.getId(), currentUserId);
+                    }
+                    return new PinnedJobSummaryResponse(
+                            job.getId(),
+                            job.getTitle(),
+                            job.getCompanyName(),
+                            job.getLocationCity(),
+                            job.getLocationCountry(),
+                            job.getWorkType(),
+                            job.getJobType(),
+                            job.getPinnedUntil(),
+                            job.getApplicationDeadline(),
+                            job.getSalaryRangeMin(),
+                            job.getSalaryCurrency(),
+                            job.getCreatedAt(),
+                            job.getUpvoteCount(),
+                            job.isFlagged(),
+                            currentUserVote,
+                            isCurrentUserFlagged);
+                })
                 .toList();
     }
 

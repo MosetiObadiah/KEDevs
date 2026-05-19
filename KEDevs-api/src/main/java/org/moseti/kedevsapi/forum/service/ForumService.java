@@ -289,6 +289,9 @@ public class ForumService {
         }
         return userRepository.findById(authorId)
                 .map(u -> {
+                    if (u.getRole() == null) {
+                        return "DEVELOPER";
+                    }
                     if (u.getRole() == org.moseti.kedevsapi.shared.enums.Role.DEVELOPER) {
                         if (jobApplicationRepository != null && jobApplicationRepository.existsByJobIdAndApplicantId(jobId, authorId)) {
                             return "APPLICANT";
