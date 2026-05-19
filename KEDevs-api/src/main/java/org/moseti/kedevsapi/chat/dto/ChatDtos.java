@@ -16,7 +16,11 @@ public class ChatDtos {
         LocalDateTime lastMessageAt,
         int unreadCount,
         boolean developerAccepted,
-        boolean employerAccepted
+        boolean employerAccepted,
+        boolean blockedByDeveloper,
+        boolean blockedByEmployer,
+        boolean deletedByDeveloper,
+        boolean deletedByEmployer
     ) {}
 
     public record MessageDto(

@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { 
-  Briefcase, 
-  Building2, 
-  Calendar, 
-  ChevronRight, 
-  Loader2, 
+import {
+  Briefcase,
+  Building2,
+  Calendar,
+  ChevronRight,
+  Loader2,
   AlertCircle,
   Inbox,
   Clock,
@@ -55,7 +55,7 @@ export default function MyApplications() {
         if (showLoading) setLoading(false);
       }
     };
-    
+
     // Initial fetch with full spinner
     fetchApplications(true);
 
@@ -67,8 +67,8 @@ export default function MyApplications() {
     return () => clearInterval(interval);
   }, []);
 
-  const filteredApps = applications.filter(app => 
-    app.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredApps = applications.filter(app =>
+    app.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
     app.companyName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -92,13 +92,13 @@ export default function MyApplications() {
     <div className="flex flex-col min-h-screen bg-muted/30">
       <div className="container mx-auto px-6 pt-8 pb-12">
         <div className="flex flex-col md:flex-row justify-end items-center mb-6 space-y-4 md:space-y-0 print:hidden">
-           <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5" asChild>
-              <Link href="/jobs">
-                 <Briefcase className="mr-2 h-4 w-4 text-primary" /> Browse More Jobs
-              </Link>
-           </Button>
+          <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5" asChild>
+            <Link href="/jobs">
+              <Briefcase className="mr-2 h-4 w-4 text-primary" /> Browse More Jobs
+            </Link>
+          </Button>
         </div>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar */}
           <aside className="lg:col-span-1 space-y-8 print:hidden">
@@ -111,8 +111,8 @@ export default function MyApplications() {
                   <label className="text-xs font-medium text-muted-foreground uppercase">Search</label>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input 
-                      placeholder="Title or company..." 
+                    <Input
+                      placeholder="Title or company..."
                       className="pl-10 text-sm border-border/50 focus-visible:ring-primary/20"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -142,9 +142,9 @@ export default function MyApplications() {
                 </div>
 
                 {searchTerm && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="w-full text-xs font-medium text-muted-foreground"
                     onClick={() => setSearchTerm('')}
                   >
@@ -158,9 +158,9 @@ export default function MyApplications() {
           {/* Main Content - Updated to List Layout */}
           <main className="lg:col-span-3 print:col-span-full">
             {error && (
-               <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-xl mb-6 text-sm font-medium">
-                  {error}
-               </div>
+              <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-xl mb-6 text-sm font-medium">
+                {error}
+              </div>
             )}
 
             <Card className="border-border/50 shadow-sm overflow-hidden bg-white">
@@ -174,32 +174,32 @@ export default function MyApplications() {
                     {filteredApps.map((app) => {
                       const config = statusConfig[app.status] || { label: app.status, color: 'bg-slate-100 text-slate-700', icon: Clock };
                       const StatusIcon = config.icon;
-                      
+
                       return (
                         <Link key={app.id} href={`/jobs/${app.jobId}`} className="block group">
                           <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-muted/20 transition-colors">
                             <div className="flex items-center gap-6">
-                               <div className="h-12 w-12 rounded-xl bg-muted border border-border/50 flex items-center justify-center text-muted-foreground font-black group-hover:border-primary/20 group-hover:bg-primary/5 group-hover:text-primary transition-colors shrink-0">
-                                  {app.companyName?.charAt(0)}
-                               </div>
-                               <div className="space-y-1">
-                                  <h3 className="text-lg font-medium text-foreground group-hover:text-primary transition-colors leading-tight">{app.jobTitle}</h3>
-                                  <div className="flex items-center gap-3 text-xs font-medium text-muted-foreground">
-                                     <span className="flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5" /> {app.companyName}</span>
-                                     <span className="h-1 w-1 rounded-full bg-border" />
-                                     <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> {formatDateString(app.createdAt)}</span>
-                                  </div>
-                               </div>
+                              <div className="h-12 w-12 rounded-xl bg-muted border border-border/50 flex items-center justify-center text-muted-foreground font-black group-hover:border-primary/20 group-hover:bg-primary/5 group-hover:text-primary transition-colors shrink-0">
+                                {app.companyName?.charAt(0)}
+                              </div>
+                              <div className="space-y-1">
+                                <h3 className="text-lg font-medium text-foreground group-hover:text-primary transition-colors leading-tight">{app.jobTitle}</h3>
+                                <div className="flex items-center gap-3 text-xs font-medium text-muted-foreground">
+                                  <span className="flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5" /> {app.companyName}</span>
+                                  <span className="h-1 w-1 rounded-full bg-border" />
+                                  <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> {formatDateString(app.createdAt)}</span>
+                                </div>
+                              </div>
                             </div>
-                            
+
                             <div className="flex items-center justify-between md:justify-end gap-6">
-                               <Badge className={cn("rounded-xl font-black text-[9px] uppercase tracking-widest px-3 py-1.5 border-none flex items-center gap-2", config.color)}>
-                                  <StatusIcon className={cn("h-3 w-3", app.status === 'REVIEWED' && "animate-spin")} />
-                                  {config.label}
-                               </Badge>
-                               <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                                  <ChevronRight className="h-4 w-4" />
-                               </div>
+                              <Badge className={cn("rounded-xl font-black text-[9px] uppercase tracking-widest px-3 py-1.5 border-none flex items-center gap-2", config.color)}>
+                                <StatusIcon className={cn("h-3 w-3", app.status === 'REVIEWED' && "animate-spin")} />
+                                {config.label}
+                              </Badge>
+                              <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                                <ChevronRight className="h-4 w-4" />
+                              </div>
                             </div>
                           </div>
                         </Link>
@@ -208,27 +208,24 @@ export default function MyApplications() {
                   </div>
                 ) : (
                   <div className="text-center py-24 flex flex-col items-center">
-                     <div className="h-20 w-20 bg-muted rounded-3xl flex items-center justify-center text-muted-foreground/30 mb-6">
-                        <Inbox className="h-10 w-10" />
-                     </div>
-                     <h3 className="text-xl font-medium text-foreground mb-2">No Applications Found</h3>
-                     <p className="text-muted-foreground text-sm font-medium mb-8 max-w-sm mx-auto">
-                        {searchTerm ? "No applications match your current search criteria." : "You haven't applied to any jobs yet. Start your journey today!"}
-                     </p>
-                     {!searchTerm && (
-                       <Button size="lg" className="rounded-xl font-medium h-12 px-8 shadow-xl shadow-primary/10" asChild>
-                          <Link href="/jobs">
-                             Explore Jobs <ArrowRight className="ml-2 h-4 w-4" />
-                          </Link>
-                       </Button>
-                     )}
+                    <div className="h-20 w-20 bg-muted rounded-3xl flex items-center justify-center text-muted-foreground/30 mb-6">
+                      <Inbox className="h-10 w-10" />
+                    </div>
+                    <h3 className="text-xl font-medium text-foreground mb-2">No Applications Found</h3>
+                    <p className="text-muted-foreground text-sm font-medium mb-8 max-w-sm mx-auto">
+                      {searchTerm ? "No applications match your current search criteria." : "You haven't applied to any jobs yet. Start your journey today!"}
+                    </p>
+                    {!searchTerm && (
+                      <Button size="lg" className="rounded-xl font-medium h-12 px-8 shadow-xl shadow-primary/10" asChild>
+                        <Link href="/jobs">
+                          Explore Jobs <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </Button>
+                    )}
                   </div>
                 )}
-                
-                <div className="p-6 bg-muted/20 border-t border-border/50 flex items-center gap-3">
-                  <AlertCircle className="h-3.5 w-3.5 text-muted-foreground" />
-                  <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground opacity-60">Status updates are real-time. Contact employers directly for specific feedback.</p>
-                </div>
+
+
               </CardContent>
             </Card>
           </main>

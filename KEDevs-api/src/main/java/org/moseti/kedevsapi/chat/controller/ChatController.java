@@ -126,4 +126,34 @@ public class ChatController {
         ConversationDto dto = chatService.acceptConversation(userId, conversationId);
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Conversation accepted", dto));
     }
+
+    @Operation(summary = "Toggle block status of a conversation")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Conversation block toggled successfully"),
+        @ApiResponse(responseCode = "400", description = "User is not a participant"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "404", description = "Conversation not found")
+    })
+    @PostMapping("/conversations/{conversationId}/toggle-block")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<ConversationDto>> toggleBlockConversation(
+            @PathVariable UUID conversationId) {
+        UUID userId = getCurrentUserId();
+        ConversationDto dto = chatService.toggleBlockConversation(userId, conversationId);
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Conversation block toggled", dto));
+    }
+
+    @Operation(summary = "Soft delete a conversation")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Conversation deleted successfully"),
+        @ApiResponse(responseCode = "400", description = "User is not a participant"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "404", description = "Conversation not found")
+    })
+    @DeleteMapping("/conversations/{conversationId}")
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> deleteConversation(
+            @PathVariable UUID conversationId) {
+        UUID userId = getCurrentUserId();
+        chatService.deleteConversation(userId, conversationId);
+        return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Conversation deleted successfully", null));
+    }
 }

@@ -18,7 +18,15 @@ import {
   AlertCircle, 
   ArrowLeft,
   Lock,
-  Check
+  Check,
+  Plus,
+  Phone,
+  Paperclip,
+  ChevronDown,
+  Search,
+  CheckCheck,
+  Smile,
+  MoreHorizontal
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -27,6 +35,91 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'react-hot-toast';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+
+// Helper: get 2-letter initials from name
+const getInitials = (name: string) => {
+  if (!name) return '';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  }
+  return name.substring(0, 2).toUpperCase();
+};
+
+// Helper: map name to specific background color ramps (blue, amber, green)
+const getInitialsColors = (name: string) => {
+  if (!name) return 'bg-sky-50 text-sky-700 border-sky-200/60 dark:bg-sky-950/20 dark:text-sky-400 dark:border-sky-900/30';
+  const charCodeSum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const colors = [
+    // Blue ramp
+    "bg-sky-50 text-sky-700 border-sky-200/60 dark:bg-sky-950/20 dark:text-sky-400 dark:border-sky-900/30",
+    // Amber ramp
+    "bg-amber-50 text-amber-700 border-amber-200/60 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/30",
+    // Green ramp
+    "bg-emerald-50 text-emerald-700 border-emerald-200/60 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30",
+  ];
+  return colors[charCodeSum % colors.length];
+};
+
+// Helper: dynamic relative elapsed time formatting (e.g. 12m, 2h, 1d)
+const getRelativeTime = (isoString: string | null) => {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'now';
+  if (diffMins < 60) return `${diffMins}m`;
+  if (diffHours < 24) return `${diffHours}h`;
+  if (diffDays < 7) return `${diffDays}d`;
+  
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+};
+
+// Helper: dynamic visual topic tag generator for premium feel
+const getConversationTags = (conv: ConversationSummary) => {
+  const name = conv.otherUserName.toLowerCase();
+  const msg = (conv.lastMessage || '').toLowerCase();
+  
+  const tags: { text: string; variant: 'question' | 'help' | 'some' | 'bug' | 'followup' | 'request' }[] = [];
+
+  if (msg.includes('?') || msg.includes('how') || msg.includes('why')) {
+    tags.push({ text: 'Question', variant: 'question' });
+  }
+  if (msg.includes('help') || msg.includes('need') || msg.includes('please')) {
+    tags.push({ text: 'Help wanted', variant: 'help' });
+  }
+  if (msg.includes('bug') || msg.includes('error') || msg.includes('issue') || msg.includes('fail')) {
+    tags.push({ text: 'Bug', variant: 'bug' });
+  }
+  if (msg.includes('perfect') || msg.includes('great') || msg.includes('thanks') || msg.includes('thank')) {
+    tags.push({ text: 'Follow up', variant: 'followup' });
+  }
+  
+  if (tags.length === 0) {
+    const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    if (hash % 3 === 0) {
+      tags.push({ text: 'Question', variant: 'question' });
+      tags.push({ text: 'Help wanted', variant: 'help' });
+    } else if (hash % 3 === 1) {
+      tags.push({ text: 'Some content', variant: 'some' });
+    } else {
+      tags.push({ text: 'Follow up', variant: 'followup' });
+    }
+  }
+
+  return tags.slice(0, 2);
+};
 
 function ChatHubContent() {
   const { user } = useAuth();
@@ -46,6 +139,7 @@ function ChatHubContent() {
   const [sending, setSending] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const activeConv = conversations.find((c) => c.id === activeConvId);
@@ -311,6 +405,50 @@ function ChatHubContent() {
     }
   };
 
+  // Toggle Block Conversation Option
+  const handleToggleBlockConversation = async () => {
+    if (!activeConvId) return;
+    try {
+      const res = await chatService.toggleBlock(activeConvId);
+      if (res.success && res.data) {
+        const isBlocked = isDeveloper ? res.data.blockedByDeveloper : res.data.blockedByEmployer;
+        toast.success(isBlocked ? 'Conversation blocked successfully.' : 'Conversation unblocked.');
+        setConversations((prev) =>
+          prev.map((c) =>
+            c.id === activeConvId
+              ? {
+                  ...c,
+                  blockedByDeveloper: res.data.blockedByDeveloper,
+                  blockedByEmployer: res.data.blockedByEmployer,
+                }
+              : c
+          )
+        );
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || 'Failed to toggle block state.');
+    }
+  };
+
+  // Delete Conversation Option
+  const handleDeleteConversation = async () => {
+    if (!activeConvId) return;
+    if (!window.confirm('Are you sure you want to delete this chat history? This action is local and cannot be undone.')) return;
+    try {
+      const res = await chatService.deleteConversation(activeConvId);
+      if (res.success) {
+        toast.success('Chat deleted successfully.');
+        // Remove from local list and reset active conversation selection
+        setConversations((prev) => prev.filter((c) => c.id !== activeConvId));
+        setActiveConvId(null);
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || 'Failed to delete chat.');
+    }
+  };
+
   // 6. Helpers
   const amIAccepted = activeConv
     ? isDeveloper
@@ -324,50 +462,108 @@ function ChatHubContent() {
       : activeConv.developerAccepted
     : false;
 
+  const amIBlocked = activeConv
+    ? isDeveloper
+      ? activeConv.blockedByDeveloper
+      : activeConv.blockedByEmployer
+    : false;
+
+  const areTheyBlocked = activeConv
+    ? isDeveloper
+      ? activeConv.blockedByEmployer
+      : activeConv.blockedByDeveloper
+    : false;
+
+  const isBlocked = amIBlocked || areTheyBlocked;
+
   const isUnlocked = activeConv ? activeConv.developerAccepted && activeConv.employerAccepted : false;
 
   const formatTime = (isoString: string) => {
     return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  // Real-time conversation search filtering
+  const filteredConversations = conversations.filter((c) => {
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) return true;
+    return (
+      c.otherUserName.toLowerCase().includes(query) ||
+      (c.lastMessage || '').toLowerCase().includes(query)
+    );
+  });
+
+  // Count total unread chats
+  const totalUnreadCount = conversations.reduce((acc, curr) => acc + curr.unreadCount, 0);
+
   return (
-    <div className="flex flex-col min-h-screen bg-muted/30 font-sans">
-      <div className="container mx-auto px-6 pt-8 pb-12">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 h-[calc(100vh-140px)]">
+    <div className="flex flex-col min-h-screen bg-[#F8FAFC] dark:bg-[#0B0F19] font-sans w-full">
+      <div className="w-full px-0 sm:px-4 md:px-6 pt-0 sm:pt-6 pb-0 sm:pb-6">
+        <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-0 sm:gap-6 h-[calc(100vh-70px)] sm:h-[calc(100vh-140px)]">
           
           {/* Left Panel: Chat Profiles */}
-          <div className="md:col-span-4 flex flex-col h-full">
-            <Card className="flex-1 border-border/50 bg-background flex flex-col overflow-hidden shadow-sm">
-              <div className="p-4 border-b border-border bg-card">
-                <h3 className="text-sm font-black tracking-tight text-foreground flex items-center gap-2">
-                  <MessageSquare className="h-4.5 w-4.5 text-primary" /> Active Contacts
-                </h3>
-                <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">
-                  Authorizations are reciprocal. Double opt-in active channels.
-                </p>
+          <div className={cn("flex flex-col h-full", activeConvId ? "hidden md:flex md:col-span-4" : "flex md:col-span-4")}>
+            <Card className="flex-1 border-0 sm:border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-[#0F172A] flex flex-col overflow-hidden shadow-none sm:shadow-sm rounded-none sm:rounded-2xl">
+              
+              {/* Messages Header */}
+              <div className="p-4 border-b border-slate-100 dark:border-slate-800/80">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2 cursor-pointer group">
+                    <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
+                      Messages
+                    </h3>
+                    <ChevronDown className="h-4 w-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
+                    {totalUnreadCount > 0 && (
+                      <span className="bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                        {totalUnreadCount}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Plus button to add connection */}
+                  <Button 
+                    onClick={() => router.push('/developers')}
+                    size="icon" 
+                    className="h-8 w-8 rounded-full bg-primary hover:bg-primary/95 text-white border-none flex items-center justify-center shrink-0 shadow-sm"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Search bar */}
+                <div className="relative bg-[#F4F1EA]/60 dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-1.5 flex items-center">
+                  <Search className="h-4 w-4 text-slate-500 ml-2 mr-2 shrink-0" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search conversations."
+                    className="w-full bg-transparent border-none text-sm font-medium text-slate-800 dark:text-white placeholder:text-slate-500 focus:outline-none focus:ring-0"
+                  />
+                </div>
               </div>
 
+              {/* Chat Thread List */}
               {loadingConv ? (
                 <div className="flex-1 flex flex-col items-center justify-center space-y-2">
                   <Loader2 className="h-6 w-6 text-primary animate-spin" />
-                  <p className="text-[10px] text-muted-foreground font-black uppercase tracking-wider">Syncing profiles...</p>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Syncing conversations...</p>
                 </div>
-              ) : conversations.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-3 bg-background">
-                  <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center">
-                    <Users className="h-5 w-5 text-muted-foreground" />
+              ) : filteredConversations.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-3">
+                  <div className="h-10 w-10 rounded-xl bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center">
+                    <Users className="h-5 w-5 text-slate-400 dark:text-slate-500" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-foreground">No Connections Yet</h4>
-                    <p className="text-[10px] text-muted-foreground max-w-[180px] mx-auto mt-1 leading-relaxed">
-                      Accept incoming contact requests inside Notifications page to configure chat channels.
+                    <h4 className="text-xs font-bold text-slate-950 dark:text-white">No chats found</h4>
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 max-w-[180px] mx-auto mt-1 leading-relaxed">
+                      {searchQuery ? "Try checking spelling or reset query." : "Accept contact requests inside Notifications page."}
                     </p>
                   </div>
                 </div>
               ) : (
                 <ScrollArea className="flex-1 p-2">
                   <div className="space-y-1">
-                    {conversations.map((conv) => {
+                    {filteredConversations.map((conv) => {
                       const isActive = conv.id === activeConvId;
                       const unlocked = conv.developerAccepted && conv.employerAccepted;
 
@@ -376,54 +572,45 @@ function ChatHubContent() {
                           key={conv.id}
                           onClick={() => setActiveConvId(conv.id)}
                           className={cn(
-                            "w-full text-left p-3 rounded-xl transition-all flex gap-3 relative group border",
+                            "w-full text-left p-3.5 rounded-2xl transition-all flex gap-3.5 relative group border",
                             isActive
-                              ? "bg-primary/5 border-primary/20"
-                              : "bg-transparent border-transparent hover:bg-muted/30"
+                              ? "bg-primary/5 border-primary/20 dark:bg-primary/5 dark:border-primary/20 shadow-sm"
+                              : "bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/20"
                           )}
                         >
-                          <Avatar className="h-10 w-10 border border-border">
-                            <AvatarImage src={conv.otherUserAvatar || undefined} className="object-cover" />
-                            <AvatarFallback className="bg-gradient-to-tr from-sky-400 to-blue-500 text-white font-black text-xs">
-                              {conv.otherUserName.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
+                          <div className={cn("h-[34px] w-[34px] rounded-full flex items-center justify-center text-[10px] font-bold border shrink-0 relative", getInitialsColors(conv.otherUserName))}>
+                            {getInitials(conv.otherUserName)}
+                            {/* Online status indicator */}
+                            <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-white dark:border-[#0F172A] bg-emerald-500" />
+                          </div>
 
                           <div className="flex-1 min-w-0">
                             <div className="flex justify-between items-baseline mb-0.5">
                               <h4 className={cn(
-                                "text-xs font-black truncate pr-1 group-hover:text-primary transition-colors",
-                                isActive ? "text-primary" : "text-foreground"
+                                "text-sm font-bold truncate pr-1 group-hover:text-primary transition-colors",
+                                isActive ? "text-primary dark:text-primary" : "text-slate-900 dark:text-slate-100"
                               )}>
                                 {conv.otherUserName}
                               </h4>
-                              <span className="text-[8px] text-muted-foreground font-bold tracking-tight shrink-0">
-                                {conv.lastMessageAt ? new Date(conv.lastMessageAt).toLocaleDateString([], { month: 'short', day: 'numeric' }) : ''}
+                              <span className="text-xs text-slate-400 font-medium shrink-0">
+                                {getRelativeTime(conv.lastMessageAt)}
                               </span>
                             </div>
-                            <p className="text-[10px] text-muted-foreground truncate font-medium">
-                              {conv.lastMessage || <span className="text-muted-foreground/60 italic">No messages yet</span>}
-                            </p>
                             
-                            {/* Opt-in badges */}
-                            <div className="flex gap-1.5 mt-1.5">
-                              {!unlocked ? (
-                                <Badge variant="secondary" className="bg-amber-100 text-amber-800 text-[8px] px-1.5 py-0 rounded border-none font-bold uppercase tracking-wider gap-0.5">
-                                  <Lock className="h-2 w-2" /> Pending Double Opt-in
-                                </Badge>
-                              ) : (
-                                <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 text-[8px] px-1.5 py-0 rounded border-none font-bold uppercase tracking-wider gap-0.5">
-                                  <Check className="h-2 w-2" /> Active Connection
-                                </Badge>
-                              )}
+                            <div className="flex justify-between items-center gap-2 mt-0.5">
+                              <p className="text-xs text-slate-500 dark:text-slate-400 truncate font-medium flex-1">
+                                {conv.lastMessage || <span className="text-slate-400/60 dark:text-slate-500/60 italic">No messages yet</span>}
+                              </p>
+                              
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                {conv.unreadCount > 0 && (
+                                  <span className="h-[18px] min-w-[18px] px-1 flex items-center justify-center text-[10px] font-bold rounded-full bg-[#185FA5] text-white">
+                                    {conv.unreadCount}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
-
-                          {conv.unreadCount > 0 && (
-                            <Badge className="absolute right-3 top-3 h-4 min-w-4 p-0.5 flex items-center justify-center text-[8px] font-black rounded-full bg-gradient-to-tr from-sky-400 to-blue-500 text-white shadow-lg shadow-sky-500/20">
-                              {conv.unreadCount}
-                            </Badge>
-                          )}
                         </button>
                       );
                     })}
@@ -433,39 +620,81 @@ function ChatHubContent() {
             </Card>
           </div>
 
-          {/* Right Panel: Active Chat Viewport (Matching jobs/my-posts cards style) */}
-          <div className="md:col-span-8 flex flex-col h-full">
+          {/* Right Panel: Active Chat Viewport */}
+          <div className={cn("flex flex-col h-full", activeConvId ? "flex md:col-span-8" : "hidden md:flex md:col-span-8")}>
             {activeConvId && activeConv ? (
-              <Card className="flex-1 border-border/50 bg-background flex flex-col overflow-hidden shadow-sm">
+              <Card className="flex-1 border-0 sm:border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-[#0F172A] flex flex-col overflow-hidden shadow-none sm:shadow-sm rounded-none sm:rounded-2xl">
                 
                 {/* Viewport Header */}
-                <div className="p-4 border-b border-border bg-card flex justify-between items-center shrink-0">
-                  <div className="flex items-center gap-3.5">
-                    <Avatar className="h-10 w-10 border border-border">
-                      <AvatarImage src={activeConv.otherUserAvatar || undefined} className="object-cover" />
-                      <AvatarFallback className="bg-gradient-to-tr from-sky-400 to-blue-500 text-white font-black text-xs">
-                        {activeConv.otherUserName.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
+                <div className="p-4 border-b border-slate-100 dark:border-slate-800/80 bg-white dark:bg-[#0F172A] flex justify-between items-center shrink-0">
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setActiveConvId(null)}
+                      className="md:hidden h-9 w-9 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 mr-1 shrink-0"
+                    >
+                      <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                    <div className={cn("h-[34px] w-[34px] rounded-full flex items-center justify-center text-[10px] font-bold border shrink-0 relative", getInitialsColors(activeConv.otherUserName))}>
+                      {getInitials(activeConv.otherUserName)}
+                      {/* Online status indicator */}
+                      <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-white dark:border-[#0F172A] bg-emerald-500" />
+                    </div>
                     <div>
-                      <h4 className="text-xs font-black text-foreground">
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
                         {activeConv.otherUserName}
                       </h4>
-                      <p className="text-[10px] text-muted-foreground font-bold tracking-tight mt-0.5">
-                        {isUnlocked ? '🟢 Secure Channel Active' : '🟡 Awaiting Authorizations'}
+                      <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">
+                        Online
                       </p>
                     </div>
+                  </div>
+
+                  {/* Header Actions: Call & More */}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => toast.success("Voice and video calls coming soon!")}
+                      className="flex items-center gap-1.5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 rounded-xl px-3 py-1.5 h-9 font-medium text-xs shadow-sm hover:bg-slate-50 dark:hover:bg-slate-900"
+                    >
+                      <Phone className="h-3.5 w-3.5" /> Call
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-9 w-9 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 rounded-xl flex items-center justify-center shadow-sm"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuItem onClick={handleToggleBlockConversation}>
+                          {amIBlocked ? 'Unblock Chat' : 'Block Chat'}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          variant="destructive"
+                          onClick={handleDeleteConversation}
+                        >
+                          Delete Chat
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
 
                 {/* Acceptance Banners (The Double Opt-In Magic!) */}
                 {!isUnlocked && (
-                  <div className="p-4 shrink-0 border-b border-border bg-amber-500/5 flex flex-col sm:flex-row gap-4 items-center justify-between">
+                  <div className="p-4 shrink-0 border-b border-amber-100 dark:border-amber-900/30 bg-amber-500/5 flex flex-col sm:flex-row gap-4 items-center justify-between">
                     <div className="flex gap-3 items-start">
                       <AlertCircle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
                       <div>
-                        <h5 className="text-xs font-black text-amber-800 uppercase tracking-wider"> Reciprocal Chat Activation Required</h5>
-                        <p className="text-[10px] text-amber-700 font-medium leading-relaxed mt-0.5 max-w-lg">
+                        <h5 className="text-xs font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wider"> Reciprocal Chat Activation Required</h5>
+                        <p className="text-xs text-amber-700 dark:text-amber-500 font-medium leading-relaxed mt-0.5 max-w-lg">
                           {!amIAccepted 
                             ? `👋 ${activeConv.otherUserName} is ready to start a chat with you! Click Accept & Start Chat below to activate your chat interface.`
                             : `⏳ You have authorized the chat invitation. Waiting for ${activeConv.otherUserName} to also accept and start chat before messages can be exchanged.`
@@ -476,7 +705,7 @@ function ChatHubContent() {
                     {!amIAccepted && (
                       <Button 
                         onClick={handleAcceptConversation} 
-                        className="bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10px] uppercase tracking-wider rounded-xl shadow-md border-none shrink-0"
+                        className="bg-primary text-white hover:bg-primary/95 font-medium text-xs rounded-xl shadow-md border-none px-4 h-9 shrink-0 flex items-center gap-1.5"
                       >
                         Accept & Start Chat
                       </Button>
@@ -484,54 +713,114 @@ function ChatHubContent() {
                   </div>
                 )}
 
-                {/* Message Log Viewport */}
-                <div className="flex-1 overflow-hidden relative p-4 flex flex-col bg-background">
+                {/* Message Log Viewport (Grouped by consecutive senders) */}
+                <div className="flex-1 overflow-hidden relative p-4 flex flex-col bg-white dark:bg-[#0F172A]">
                   {loadingMessages ? (
                     <div className="flex-1 flex flex-col items-center justify-center space-y-2">
                       <Loader2 className="h-6 w-6 text-primary animate-spin" />
-                      <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Retrieving logs...</p>
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">Retrieving logs...</p>
                     </div>
                   ) : messages.length === 0 ? (
                     <div className="flex-1 flex flex-col items-center justify-center text-center space-y-3">
-                      <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
+                      <div className="h-10 w-10 rounded-full bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center text-slate-400">
                         <Mail className="h-5 w-5" />
                       </div>
                       <div>
-                        <h4 className="text-xs font-bold text-foreground">No Messages Sent Yet</h4>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">Start typing to kick off your reciprocal dialogue.</p>
+                        <h4 className="text-xs font-bold text-slate-950 dark:text-white">No Messages Sent Yet</h4>
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">Start typing to kick off your reciprocal dialogue.</p>
                       </div>
                     </div>
                   ) : (
                     <ScrollArea ref={scrollAreaRef} className="flex-1 pr-2">
-                      <div className="flex flex-col-reverse gap-3.5 py-2">
+                      <div className="flex flex-col gap-5 py-4">
                         {(() => {
                           const uniqueMessages = Array.from(
                             new Map(messages.map((msg) => [msg.id, msg])).values()
                           );
-                          return uniqueMessages.map((msg) => {
+                          const orderedMessages = [...uniqueMessages].reverse();
+
+                          // Group consecutive messages by sender
+                          interface MessageGroup {
+                            senderId: string;
+                            senderName: string;
+                            avatar: string | null;
+                            messages: ChatMessage[];
+                            isMe: boolean;
+                          }
+
+                          const groups: MessageGroup[] = [];
+                          let currentGroup: MessageGroup | null = null;
+
+                          orderedMessages.forEach((msg) => {
                             const isMe = msg.senderId === user?.id;
+                            const senderAvatar = isMe 
+                              ? (user?.avatar || user?.avatarUrl || null) 
+                              : (activeConv.otherUserAvatar || null);
+
+                            if (currentGroup && currentGroup.senderId === msg.senderId) {
+                              currentGroup.messages.push(msg);
+                            } else {
+                              currentGroup = {
+                                senderId: msg.senderId,
+                                senderName: msg.senderName,
+                                avatar: senderAvatar,
+                                messages: [msg],
+                                isMe,
+                              };
+                              groups.push(currentGroup);
+                            }
+                          });
+
+                          return groups.map((group, groupIdx) => {
                             return (
                               <div
-                                key={msg.id}
+                                key={groupIdx}
                                 className={cn(
-                                  "flex flex-col max-w-[70%] rounded-2xl p-3 text-xs font-medium leading-relaxed relative",
-                                  isMe
-                                    ? "self-end bg-primary text-white rounded-br-none shadow-md shadow-primary/5"
-                                    : "self-start bg-muted text-foreground rounded-bl-none border border-border/50"
+                                  "flex gap-3.5 items-start w-full",
+                                  group.isMe ? "justify-end" : "justify-start"
                                 )}
                               >
-                                {!isMe && (
-                                  <span className="text-[8px] font-bold text-muted-foreground mb-1 block uppercase tracking-wider">
-                                    {msg.senderName}
-                                  </span>
+                                {/* Incoming Avatar (on the left) */}
+                                {!group.isMe && (
+                                  <div className={cn("h-[34px] w-[34px] rounded-full flex items-center justify-center text-[10px] font-bold border shrink-0 relative mt-0.5", getInitialsColors(group.senderName))}>
+                                    {getInitials(group.senderName)}
+                                  </div>
                                 )}
-                                <p className="whitespace-pre-wrap">{msg.content}</p>
-                                <span className={cn(
-                                  "text-[8px] font-semibold block mt-1.5 text-right",
-                                  isMe ? "text-white/70" : "text-muted-foreground/70"
-                                )}>
-                                  {formatTime(msg.createdAt)}
-                                </span>
+
+                                {/* Message bubbles column */}
+                                <div
+                                  className={cn(
+                                    "flex flex-col gap-2 max-w-[70%]",
+                                    group.isMe ? "items-end" : "items-start"
+                                  )}
+                                >
+                                  {group.messages.map((msg) => {
+                                    return (
+                                      <div key={msg.id} className={cn("flex flex-col gap-1 w-full", group.isMe ? "items-end" : "items-start")}>
+                                        <div
+                                          className={cn(
+                                            "rounded-2xl px-4 py-2.5 text-sm md:text-base font-medium leading-relaxed shadow-sm relative",
+                                            group.isMe
+                                              ? "bg-[#185FA5] text-white rounded-br-none"
+                                              : "bg-white dark:bg-[#0F172A] border-[0.5px] border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 rounded-bl-none"
+                                          )}
+                                        >
+                                          <p className="whitespace-pre-wrap">{msg.content}</p>
+                                        </div>
+                                        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold px-1">
+                                          {formatTime(msg.createdAt)}{group.isMe && " · Delivered"}
+                                        </span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+
+                                {/* Outgoing Avatar (on the right) */}
+                                {group.isMe && (
+                                  <div className={cn("h-[34px] w-[34px] rounded-full flex items-center justify-center text-[10px] font-bold border shrink-0 relative mt-0.5", getInitialsColors(user?.fullName || "Me"))}>
+                                    {getInitials(user?.fullName || "Me")}
+                                  </div>
+                                )}
                               </div>
                             );
                           });
@@ -541,41 +830,75 @@ function ChatHubContent() {
                   )}
                 </div>
 
-                {/* Input Text Form */}
-                <div className="p-4 border-t border-border bg-card shrink-0">
-                  <form onSubmit={handleSendMessage} className="flex gap-2.5">
-                    <input
-                      type="text"
-                      value={inputText}
-                      onChange={(e) => setInputText(e.target.value)}
-                      placeholder={
-                        !isUnlocked 
-                          ? "Reciprocal activation required to begin typing..." 
-                          : "Type a secure message..."
-                      }
-                      disabled={!isUnlocked || sending}
-                      className="flex-1 h-11 bg-background border border-border/70 rounded-xl px-4 text-xs font-medium placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/50 disabled:bg-muted/50 disabled:cursor-not-allowed"
-                    />
-                    <Button
-                      type="submit"
-                      disabled={!isUnlocked || !inputText.trim() || sending}
-                      className="h-11 w-11 rounded-xl bg-primary hover:bg-primary/95 text-white flex items-center justify-center shrink-0 shadow-lg shadow-primary/10 border-none disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                    </Button>
+                {/* Input Text Form (Single integrated pill-shaped row) */}
+                <div className="p-4 border-t border-slate-100 dark:border-slate-800/80 bg-white dark:bg-[#0F172A] shrink-0 flex flex-col items-center gap-1.5">
+                  <form onSubmit={handleSendMessage} className="w-full">
+                    <div className="flex items-center gap-2 bg-[#F4F1EA]/60 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl px-2 py-1.5">
+                      {/* Attachment Button */}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => toast.success("Attachments feature coming soon!")}
+                        className="h-9 w-9 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 rounded-full shrink-0"
+                      >
+                        <Paperclip className="h-5 w-5" />
+                      </Button>
+
+                      <input
+                        type="text"
+                        value={inputText}
+                        onChange={(e) => setInputText(e.target.value)}
+                        placeholder={
+                          isBlocked
+                            ? amIBlocked
+                              ? "You have blocked this conversation. Unblock to type..."
+                              : "This conversation is blocked."
+                            : !isUnlocked 
+                            ? "Reciprocal activation required to begin typing..." 
+                            : "Type a message..."
+                        }
+                        disabled={!isUnlocked || isBlocked || sending}
+                        className="flex-1 bg-transparent border-none text-sm text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:ring-0 disabled:cursor-not-allowed px-1"
+                      />
+
+                      {/* Emoji Icon */}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => toast.success("Emojis coming soon!")}
+                        disabled={isBlocked}
+                        className="h-9 w-9 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 rounded-full shrink-0"
+                      >
+                        <Smile className="h-5 w-5" />
+                      </Button>
+
+                      {/* Send Button */}
+                      <Button
+                        type="submit"
+                        disabled={!isUnlocked || isBlocked || !inputText.trim() || sending}
+                        className="h-9 w-9 rounded-xl bg-[#185FA5] hover:bg-[#185FA5]/90 text-white flex items-center justify-center shrink-0 shadow-sm border-none disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                      </Button>
+                    </div>
                   </form>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+                    <kbd className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 font-mono text-[9px] shadow-sm mr-1">Shift</kbd>+<kbd className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 font-mono text-[9px] shadow-sm mx-1">Enter</kbd> for new line
+                  </p>
                 </div>
 
               </Card>
             ) : (
-              <Card className="flex-1 border-border/50 bg-background flex flex-col items-center justify-center p-8 text-center space-y-4 shadow-sm border-dashed">
-                <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center">
-                  <MessageSquare className="h-6 w-6 text-muted-foreground" />
+              <Card className="flex-1 border-0 sm:border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-[#0F172A] flex flex-col items-center justify-center p-8 text-center space-y-4 shadow-none sm:shadow-sm rounded-none sm:rounded-2xl border-dashed">
+                <div className="h-12 w-12 rounded-2xl bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center">
+                  <MessageSquare className="h-6 w-6 text-slate-400 dark:text-slate-500" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black text-foreground">Secure Chat Hub</h3>
-                  <p className="text-xs text-muted-foreground max-w-[280px] mx-auto mt-1 leading-relaxed">
-                    Select a connection profile from the left drawer list to initialize a live reciprocal viewport.
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">Secure Chat Hub</h3>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 max-w-[280px] mx-auto mt-1 leading-relaxed font-medium">
+                    Select a conversation profile from the left list to begin messaging.
                   </p>
                 </div>
               </Card>

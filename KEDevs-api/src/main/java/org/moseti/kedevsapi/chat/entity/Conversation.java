@@ -35,4 +35,16 @@ public class Conversation extends BaseEntity {
 
     @Column(name = "employer_accepted", nullable = false)
     private boolean employerAccepted = false;
+
+    @Column(name = "blocked_by_developer", nullable = false)
+    private boolean blockedByDeveloper = false;
+
+    @Column(name = "blocked_by_employer", nullable = false)
+    private boolean blockedByEmployer = false;
+
+    @Column(name = "deleted_by_developer", nullable = false)
+    private boolean deletedByDeveloper = false;
+
+    @Column(name = "deleted_by_employer", nullable = false)
+    private boolean deletedByEmployer = false;
 }

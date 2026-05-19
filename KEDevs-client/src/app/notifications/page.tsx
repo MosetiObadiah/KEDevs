@@ -450,26 +450,26 @@ export default function NotificationsPage() {
                           )}
 
                           {n.category === 'CONTACT' && n.title === 'Contact Request Update' && n.message.toLowerCase().includes('accepted') && (
-                            <div className="mt-4 flex flex-wrap gap-2">
-                              <Button 
-                                size="sm" 
-                                className="h-8 rounded-xl font-medium text-[10px] uppercase gap-1.5 bg-gradient-to-tr from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white shadow-md shadow-sky-500/10 border-none px-4" 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  let meta = n.metadata;
-                                  if (typeof meta === 'string') {
-                                    try { meta = JSON.parse(meta); } catch (err) {}
-                                  }
-                                  const reqId = meta?.requestId;
-                                  if (reqId) {
-                                    router.push(`/chat?requestId=${reqId}&autoAccept=true`);
-                                  }
-                                }}
-                              >
-                                <MessageSquare className="h-3.5 w-3.5" /> Start Chat
-                              </Button>
-                            </div>
-                          )}
+                             <div className="mt-4 flex flex-wrap gap-2">
+                               <Button 
+                                 size="sm" 
+                                 className="h-9 rounded-xl font-medium text-xs bg-primary text-white hover:bg-primary/95 shadow-md shadow-primary/10 border-none px-4 flex items-center gap-1.5" 
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   let meta = n.metadata;
+                                   if (typeof meta === 'string') {
+                                     try { meta = JSON.parse(meta); } catch (err) {}
+                                   }
+                                   const reqId = meta?.requestId;
+                                   if (reqId) {
+                                     router.push(`/chat?requestId=${reqId}&autoAccept=true`);
+                                   }
+                                 }}
+                               >
+                                 <MessageSquare className="h-4 w-4" /> Start Chat
+                               </Button>
+                             </div>
+                           )}
 
                           {n.category === 'ENDORSEMENT' && n.metadata?.authorDeveloperId && (
                             <div className="mt-4 flex flex-wrap gap-2">
@@ -508,18 +508,18 @@ export default function NotificationsPage() {
                                   acceptedRequests[targetId] ? (
                                     <Button
                                       size="sm"
-                                      className="h-8 rounded-xl font-medium text-[10px] uppercase gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white shadow-md shadow-emerald-500/10 border-none px-4"
+                                      className="h-9 rounded-xl font-medium text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-500/10 border-none px-4 flex items-center gap-1.5"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         router.push(`/chat?requestId=${targetId}`);
                                       }}
                                     >
-                                      <MessageSquare className="h-3.5 w-3.5" /> Connected - Open Chat
+                                      <MessageSquare className="h-4 w-4" /> Connected - Open Chat
                                     </Button>
                                   ) : (
                                     <Button
                                       size="sm"
-                                      className="h-8 rounded-xl font-medium text-[10px] uppercase gap-1.5 bg-gradient-to-tr from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white shadow-md shadow-sky-500/10 border-none px-4"
+                                      className="h-9 rounded-xl font-medium text-xs bg-primary text-white hover:bg-primary/95 shadow-md shadow-primary/10 border-none px-4 flex items-center gap-1.5"
                                       disabled={acceptingIds[targetId]}
                                       onClick={(e) => {
                                         e.stopPropagation();
@@ -527,9 +527,9 @@ export default function NotificationsPage() {
                                       }}
                                     >
                                       {acceptingIds[targetId] ? (
-                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                        <Loader2 className="h-4 w-4 animate-spin" />
                                       ) : (
-                                        <MessageSquare className="h-3.5 w-3.5" />
+                                        <MessageSquare className="h-4 w-4" />
                                       )}
                                       Accept & Start Chat
                                     </Button>

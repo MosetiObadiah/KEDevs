@@ -54,15 +54,40 @@ public class ChatService {
         Conversation conv = new Conversation();
         conv.setContactRequest(request);
         conv.setDeveloperAccepted(true);
-        conv.setEmployerAccepted(false);
-        conversationRepository.save(conv);
+        conv.setEmployerAccepted(true);
+        Conversation savedConv = conversationRepository.save(conv);
         log.info("Conversation created successfully for accepted contact request: {}", request.getId());
+
+        // Notify both via WebSocket that the chat is active!
+        Conversation convForDto = savedConv != null ? savedConv : conv;
+        ConversationDto devDto = convertToDto(convForDto, request.getDeveloperProfile().getUserId());
+        ConversationDto senderDto = convertToDto(convForDto, request.getSenderUserId());
+        
+        messagingTemplate.convertAndSendToUser(
+                request.getDeveloperProfile().getUserId().toString(),
+                "/queue/chats",
+                new WebSocketEvent<>("CHAT_ACTIVATED", devDto)
+        );
+        messagingTemplate.convertAndSendToUser(
+                request.getSenderUserId().toString(),
+                "/queue/chats",
+                new WebSocketEvent<>("CHAT_ACTIVATED", senderDto)
+        );
     }
 
     @Transactional(readOnly = true)
     public List<ConversationDto> getUserConversations(UUID userId) {
         List<Conversation> conversations = conversationRepository.findAllByUserIdOrderByUpdatedAtDesc(userId);
         return conversations.stream()
+                .filter(c -> {
+                    ContactRequest cr = c.getContactRequest();
+                    boolean isDev = cr.getDeveloperProfile().getUserId().equals(userId);
+                    if (isDev) {
+                        return !c.isDeletedByDeveloper();
+                    } else {
+                        return !c.isDeletedByEmployer();
+                    }
+                })
                 .map(c -> convertToDto(c, userId))
                 .collect(Collectors.toList());
     }
@@ -114,6 +139,10 @@ public class ChatService {
             throw new BadRequestException("You are not a participant in this conversation");
         }
 
+        if (conv.isBlockedByDeveloper() || conv.isBlockedByEmployer()) {
+            throw new BadRequestException("This conversation is blocked");
+        }
+
         User sender = userRepository.findById(senderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Sender not found"));
 
@@ -127,6 +156,8 @@ public class ChatService {
         // Update conversation dynamic fields (O(1) fast fetch)
         conv.setLastMessageContent(req.content());
         conv.setLastMessageAt(msg.getCreatedAt());
+        conv.setDeletedByDeveloper(false);
+        conv.setDeletedByEmployer(false);
 
         // Increment unread count for the other participant
         if (senderId.equals(devUserId)) {
@@ -200,7 +231,11 @@ public class ChatService {
                 conv.getLastMessageAt(),
                 unreadCount,
                 conv.isDeveloperAccepted(),
-                conv.isEmployerAccepted()
+                conv.isEmployerAccepted(),
+                conv.isBlockedByDeveloper(),
+                conv.isBlockedByEmployer(),
+                conv.isDeletedByDeveloper(),
+                conv.isDeletedByEmployer()
         );
     }
 
@@ -241,5 +276,48 @@ public class ChatService {
         }
 
         return dto;
+    }
+
+    @Transactional
+    public ConversationDto toggleBlockConversation(UUID userId, UUID conversationId) {
+        Conversation conv = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
+
+        ContactRequest cr = conv.getContactRequest();
+        UUID devUserId = cr.getDeveloperProfile().getUserId();
+        UUID senderUserId = cr.getSenderUserId();
+
+        if (!userId.equals(devUserId) && !userId.equals(senderUserId)) {
+            throw new BadRequestException("You are not a participant in this conversation");
+        }
+
+        if (userId.equals(devUserId)) {
+            conv.setBlockedByDeveloper(!conv.isBlockedByDeveloper());
+        } else {
+            conv.setBlockedByEmployer(!conv.isBlockedByEmployer());
+        }
+        conv = conversationRepository.save(conv);
+        return convertToDto(conv, userId);
+    }
+
+    @Transactional
+    public void deleteConversation(UUID userId, UUID conversationId) {
+        Conversation conv = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
+
+        ContactRequest cr = conv.getContactRequest();
+        UUID devUserId = cr.getDeveloperProfile().getUserId();
+        UUID senderUserId = cr.getSenderUserId();
+
+        if (!userId.equals(devUserId) && !userId.equals(senderUserId)) {
+            throw new BadRequestException("You are not a participant in this conversation");
+        }
+
+        if (userId.equals(devUserId)) {
+            conv.setDeletedByDeveloper(true);
+        } else {
+            conv.setDeletedByEmployer(true);
+        }
+        conversationRepository.save(conv);
     }
 }

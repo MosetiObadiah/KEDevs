@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.moseti.kedevsapi.shared.exception.BadRequestException;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -172,5 +174,55 @@ class ChatServiceTest {
 
         // Verify WebSocket broadcast is sent to both users when both accepted
         verify(messagingTemplate, times(2)).convertAndSendToUser(anyString(), eq("/queue/chats"), any());
+    }
+
+    @Test
+    void toggleBlockConversation_togglesCorrectly() {
+        UUID devUserId = mockDevProfile.getUserId();
+        mockConversation.setBlockedByDeveloper(false);
+
+        when(conversationRepository.findById(mockConversation.getId())).thenReturn(Optional.of(mockConversation));
+        when(conversationRepository.save(any(Conversation.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        ConversationDto dto = chatService.toggleBlockConversation(devUserId, mockConversation.getId());
+        assertTrue(dto.blockedByDeveloper());
+
+        dto = chatService.toggleBlockConversation(devUserId, mockConversation.getId());
+        assertFalse(dto.blockedByDeveloper());
+    }
+
+    @Test
+    void deleteConversation_marksSoftDeleted() {
+        UUID devUserId = mockDevProfile.getUserId();
+        mockConversation.setDeletedByDeveloper(false);
+
+        when(conversationRepository.findById(mockConversation.getId())).thenReturn(Optional.of(mockConversation));
+        when(conversationRepository.save(any(Conversation.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        chatService.deleteConversation(devUserId, mockConversation.getId());
+        assertTrue(mockConversation.isDeletedByDeveloper());
+    }
+
+    @Test
+    void sendMessage_throwsExceptionIfBlocked() {
+        SendMessageRequest request = new SendMessageRequest("Hello Kenya");
+        mockConversation.setBlockedByDeveloper(true);
+
+        when(conversationRepository.findById(mockConversation.getId())).thenReturn(Optional.of(mockConversation));
+
+        assertThrows(BadRequestException.class, () -> {
+            chatService.sendMessage(mockSender.getId(), mockConversation.getId(), request);
+        });
+    }
+
+    @Test
+    void getUserConversations_excludesDeletedConversations() {
+        UUID devUserId = mockDevProfile.getUserId();
+        mockConversation.setDeletedByDeveloper(true);
+
+        when(conversationRepository.findAllByUserIdOrderByUpdatedAtDesc(devUserId)).thenReturn(List.of(mockConversation));
+
+        List<ConversationDto> list = chatService.getUserConversations(devUserId);
+        assertTrue(list.isEmpty());
     }
 }

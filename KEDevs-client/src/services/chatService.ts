@@ -11,6 +11,10 @@ export interface ConversationSummary {
   unreadCount: number;
   developerAccepted: boolean;
   employerAccepted: boolean;
+  blockedByDeveloper: boolean;
+  blockedByEmployer: boolean;
+  deletedByDeveloper: boolean;
+  deletedByEmployer: boolean;
 }
 
 export interface ChatMessage {
@@ -45,5 +49,13 @@ export const chatService = {
 
   async acceptConversation(conversationId: string): Promise<ApiResponse<ConversationSummary>> {
     return apiClient.post<ApiResponse<ConversationSummary>>(`/api/v1/chat/conversations/${conversationId}/accept`, {});
+  },
+
+  async toggleBlock(conversationId: string): Promise<ApiResponse<ConversationSummary>> {
+    return apiClient.post<ApiResponse<ConversationSummary>>(`/api/v1/chat/conversations/${conversationId}/toggle-block`, {});
+  },
+
+  async deleteConversation(conversationId: string): Promise<ApiResponse<void>> {
+    return apiClient.delete<ApiResponse<void>>(`/api/v1/chat/conversations/${conversationId}`);
   },
 };

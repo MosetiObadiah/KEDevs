@@ -399,6 +399,8 @@ ensure_container() {
 # Clean shutdown — stops containers, restores terminal
 # ──────────────────────────────────────
 shutdown() {
+    # Reset traps to prevent infinite recursion
+    trap - INT TERM EXIT
     echo ""
     warn "Shutting down all services..."
 
