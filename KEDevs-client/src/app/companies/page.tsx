@@ -283,18 +283,16 @@ function CompaniesPageContent() {
 
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
-      <div className="container mx-auto px-6 pt-8 pb-12">
-        <div className="flex justify-between items-center mb-8 print:hidden gap-3">
-          <div>
-            <h1 className="text-3xl font-black tracking-tight text-foreground">Explore Ecosystem</h1>
-            <p className="text-muted-foreground font-medium">Discover top tech companies and startups in Kenya.</p>
-          </div>
-          <div className="flex items-center gap-3 ml-auto shrink-0">
+      <div className="max-w-none w-full px-4 md:px-8 xl:px-12 pt-8 pb-12">
+        {/* Compact Top Toolbar Row */}
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 mb-6 print:hidden bg-white p-4 rounded-2xl border border-slate-100 shadow-sm animate-in fade-in duration-300">
+          {/* Left: Filters Trigger & Results Count */}
+          <div className="flex items-center gap-4">
             {/* Mobile Filter Button */}
             <div className="lg:hidden">
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-5 shrink-0">
+                  <Button variant="outline" className="font-semibold border-slate-200 hover:bg-slate-50 h-10 px-4 rounded-xl text-xs">
                     <SlidersHorizontal className="mr-2 h-4 w-4 text-primary" />
                     Filters
                   </Button>
@@ -315,26 +313,35 @@ function CompaniesPageContent() {
             <div className="hidden lg:block">
               <Button 
                 variant="outline" 
-                className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-5 shrink-0"
+                className="font-semibold border-slate-200 hover:bg-slate-50 h-10 px-4 rounded-xl text-xs"
                 onClick={() => setShowDesktopFilters(!showDesktopFilters)}
               >
                 <SlidersHorizontal className="mr-2 h-4 w-4 text-primary" />
-                Filters
+                {showDesktopFilters ? 'Hide Filters' : 'Show Filters'}
               </Button>
             </div>
 
+            {/* Results Count */}
+            <p className="text-xs font-semibold text-slate-500 border-l border-slate-200 pl-4">
+              Showing <span className="text-navy-900 font-bold">{companies.length}</span> compan{companies.length !== 1 ? 'ies' : 'y'}
+            </p>
+          </div>
+
+          {/* Right: Export */}
+          <div className="flex items-center gap-3 self-end sm:self-auto">
+            {/* Export Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                 <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-6" disabled={isExporting}>
+                 <Button variant="outline" className="font-semibold border-slate-200 hover:bg-slate-50 h-10 px-4 rounded-xl text-xs" disabled={isExporting}>
                     <Download className="mr-2 h-4 w-4 text-primary" /> 
                     {isExporting ? 'Exporting...' : 'Export'}
                  </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                 <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium">
+              <DropdownMenuContent align="end" className="rounded-xl border-slate-200">
+                 <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium text-xs">
                     <FileSpreadsheet className="mr-2 h-4 w-4" /> Download as CSV
                  </DropdownMenuItem>
-                 <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium">
+                 <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium text-xs">
                     <FileText className="mr-2 h-4 w-4" /> Download as PDF
                  </DropdownMenuItem>
               </DropdownMenuContent>
@@ -346,7 +353,7 @@ function CompaniesPageContent() {
           {/* Filters Sidebar (Desktop) */}
           {showDesktopFilters && (
             <aside className="hidden lg:block w-72 shrink-0 space-y-6 print:hidden sticky top-24 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent pr-1">
-              <Card className="border-border/50 shadow-sm">
+              <Card className="border-border/50 shadow-sm bg-white">
                 <CardHeader className="pb-4">
                   <h3 className="text-sm font-medium uppercase tracking-wider text-foreground">Filter Companies</h3>
                 </CardHeader>
@@ -380,11 +387,11 @@ function CompaniesPageContent() {
                 ))
               ) : companies.length > 0 ? (
                 companies.map((company) => (
-                  <Card key={company.id} className="group bg-white rounded-2xl border border-slate-100 hover:border-slate-200 transition-colors flex flex-col overflow-hidden shadow-none cursor-pointer" onClick={() => router.push(`/companies/${company.id}`)}>
+                  <Card key={company.id} className="group border-border/50 hover:shadow-xl hover:shadow-primary/5 transition-all overflow-hidden bg-background flex flex-col cursor-pointer" onClick={() => router.push(`/companies/${company.id}`)}>
                     <CardContent className="p-8 text-center flex-1 relative">
                       {company.openJobsCount > 0 && (
                         <div className="absolute top-4 right-4">
-                           <Badge className="bg-success-50 text-success-600 border-none text-[10px] font-medium px-2 py-0.5 rounded-full">
+                           <Badge className="bg-success-50 text-success-600 border-none text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">
                               {company.openJobsCount} Open Roles
                            </Badge>
                         </div>
@@ -401,29 +408,29 @@ function CompaniesPageContent() {
                       
                       <div className="mb-4">
                         <div className="flex items-center justify-center gap-2">
-                          <h3 className="text-base font-medium text-navy-900 group-hover:text-azure-500 transition-colors truncate max-w-full">
+                          <h3 className="text-base font-semibold text-navy-900 group-hover:text-primary transition-colors truncate max-w-full">
                             {company.companyName}
                           </h3>
                         </div>
-                        <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mt-1">
+                        <p className="text-xs font-black uppercase tracking-widest text-slate-400 mt-1">
                           {company.industry || 'Tech Ecosystem'}
                         </p>
                       </div>
  
                       <div className="flex flex-wrap justify-center items-center gap-2">
-                        <Badge className="text-[10px] font-medium py-0.5 px-3 bg-slate-100 text-slate-700 hover:bg-slate-100 border-none rounded-full">
+                        <Badge className="text-[10px] font-black uppercase tracking-widest py-0.5 px-3 bg-slate-100 text-slate-700 hover:bg-slate-100 border-none rounded-full">
                           {formatCompanySize(company.companySize)}
                         </Badge>
                       </div>
  
                     </CardContent>
  
-                    <CardFooter className="p-4 border-t border-slate-100 bg-transparent flex justify-between items-center text-[10px] font-medium text-slate-400 uppercase tracking-widest" onClick={(e) => e.stopPropagation()}>
+                    <CardFooter className="p-4 border-t border-border/50 bg-transparent flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-400" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center gap-1.5 truncate max-w-[60%]">
-                        <MapPin className="h-3 w-3 text-slate-400 shrink-0" />
-                        <span className="truncate capitalize">{company.locationHQ}</span>
+                        <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                        <span className="truncate capitalize font-semibold text-foreground/80">{company.locationHQ}</span>
                       </div>
-                      <Button size="sm" className="bg-azure-500 hover:bg-azure-600 text-white text-xs font-medium px-3.5 py-1.5 rounded-lg flex items-center gap-1 transition-colors h-8 border-none" asChild>
+                      <Button size="sm" className="bg-azure-500 hover:bg-azure-600 text-white text-xs font-black uppercase tracking-widest px-3.5 py-1.5 rounded-lg flex items-center gap-1 transition-colors h-8 border-none" asChild>
                         <Link href={`/companies/${company.id}`}>
                           Profile <ArrowRight className="h-3 w-3" />
                         </Link>

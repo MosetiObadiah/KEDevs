@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
 import { Loader2, Zap } from 'lucide-react';
 
-const publicRoutes = ['/', '/login', '/register', '/jobs', '/developers', '/companies', '/contact', '/verify-email', '/reset-password', '/spotlight'];
+const publicRoutes = ['/', '/login', '/register', '/jobs', '/developers', '/companies', '/contact', '/verify-email', '/reset-password', '/spotlight', '/pricing'];
 const devOnboarding = '/onboarding/developer';
 const empOnboarding = '/onboarding/employer';
 const pendingApproval = '/pending-approval';
@@ -29,7 +29,8 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
       '/contact',
       '/verify-email',
       '/reset-password',
-      '/spotlight'
+      '/spotlight',
+      '/pricing'
     ];
 
     if (exactPublics.includes(path)) return true;

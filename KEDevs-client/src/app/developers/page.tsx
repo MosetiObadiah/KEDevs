@@ -24,7 +24,9 @@ import {
   ChevronDown,
   Plus,
   X,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Clock,
+  Globe
 } from 'lucide-react';
 import {
   Sheet,
@@ -552,54 +554,80 @@ function DevelopersPageContent() {
 
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
-      <PageLayoutContainer className="max-w-full px-8 xl:px-16">
-        <div className="flex justify-between items-center mb-8 print:hidden gap-3">
-          {/* Mobile Filter Button */}
-          <div className="lg:hidden">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-5 shrink-0">
-                  <SlidersHorizontal className="mr-2 h-4 w-4 text-primary" />
-                  Filters
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] sm:w-[350px] p-0 overflow-y-auto">
-                <SheetHeader className="p-6 pb-2 text-left">
-                  <SheetTitle>Filter Developers</SheetTitle>
-                  <SheetDescription className="sr-only">Choose options to narrow down developer listings.</SheetDescription>
-                </SheetHeader>
-                <div className="p-6 pt-0 space-y-6">
-                  {renderFilters()}
-                </div>
-              </SheetContent>
-            </Sheet>
+      <PageLayoutContainer className="max-w-none w-full px-4 md:px-8 xl:px-12">
+        {/* Compact Top Toolbar Row */}
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 mb-6 print:hidden bg-white p-4 rounded-2xl border border-slate-100 shadow-sm animate-in fade-in duration-300">
+          {/* Left: Filters Trigger & Results Count */}
+          <div className="flex items-center gap-4">
+            {/* Mobile Filter Button */}
+            <div className="lg:hidden">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" className="font-semibold border-slate-200 hover:bg-slate-50 h-10 px-4 rounded-xl text-xs">
+                    <SlidersHorizontal className="mr-2 h-4 w-4 text-primary" />
+                    Filters
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-[300px] sm:w-[350px] p-0 overflow-y-auto">
+                  <SheetHeader className="p-6 pb-2 text-left">
+                    <SheetTitle>Filter Developers</SheetTitle>
+                    <SheetDescription className="sr-only">Choose options to narrow down developer listings.</SheetDescription>
+                  </SheetHeader>
+                  <div className="p-6 pt-0 space-y-6">
+                    {renderFilters()}
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
+
+            {/* Desktop Toggle Button */}
+            <div className="hidden lg:block">
+              <Button
+                variant="outline"
+                className="font-semibold border-slate-200 hover:bg-slate-50 h-10 px-4 rounded-xl text-xs"
+                onClick={() => setShowDesktopFilters(!showDesktopFilters)}
+              >
+                <SlidersHorizontal className="mr-2 h-4 w-4 text-primary" />
+                {showDesktopFilters ? 'Hide Filters' : 'Show Filters'}
+              </Button>
+            </div>
+
+            {/* Results Count */}
+            <p className="text-xs font-semibold text-slate-500 border-l border-slate-200 pl-4">
+              Showing <span className="text-navy-900 font-bold">{filteredDevs.length}</span> developer{filteredDevs.length !== 1 && 's'}
+            </p>
           </div>
 
-          {/* Desktop Toggle Button */}
-          <div className="hidden lg:block">
-            <Button 
-              variant="outline" 
-              className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-5 shrink-0"
-              onClick={() => setShowDesktopFilters(!showDesktopFilters)}
-            >
-              <SlidersHorizontal className="mr-2 h-4 w-4 text-primary" />
-              Filters
-            </Button>
-          </div>
+          {/* Right: Sort & Export Controls */}
+          <div className="flex items-center gap-3 self-end sm:self-auto">
+            {/* Sort Dropdown */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider hidden xs:inline">Sort:</span>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-36 border-slate-200 focus:ring-azure-200 text-xs h-10 rounded-xl">
+                  <SelectValue placeholder="Sort" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="recently-active">Recently Active</SelectItem>
+                  <SelectItem value="most-endorsed">Most Endorsed</SelectItem>
+                  <SelectItem value="most-projects">Most Projects</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="flex items-center gap-3 ml-auto shrink-0">
+            {/* Export Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-6" disabled={isExporting}>
+                <Button variant="outline" className="font-semibold border-slate-200 hover:bg-slate-50 h-10 px-4 rounded-xl text-xs" disabled={isExporting}>
                   <Download className="mr-2 h-4 w-4 text-primary" />
                   {isExporting ? 'Exporting...' : 'Export'}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium">
+              <DropdownMenuContent align="end" className="rounded-xl border-slate-200">
+                <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium text-xs">
                   <FileSpreadsheet className="mr-2 h-4 w-4" /> Download as CSV
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium">
+                <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium text-xs">
                   <FileText className="mr-2 h-4 w-4" /> Download as PDF
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -616,7 +644,7 @@ function DevelopersPageContent() {
           {/* Filters Sidebar (Desktop) */}
           {showDesktopFilters && (
             <aside className="hidden lg:block w-72 shrink-0 space-y-6 print:hidden sticky top-24 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent pr-1">
-              <Card className="border-border/50 shadow-sm">
+              <Card className="border-border/50 shadow-sm bg-white">
                 <CardHeader className="pb-4">
                   <h3 className="text-sm font-medium uppercase tracking-wider text-foreground">Filter Developers</h3>
                 </CardHeader>
@@ -635,135 +663,128 @@ function DevelopersPageContent() {
               </div>
             )}
 
-            {/* Results Bar */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 print:hidden bg-white p-4 rounded-2xl border border-slate-100">
-              <p className="text-sm font-medium text-slate-500">
-                Showing <span className="text-navy-900 font-medium">{filteredDevs.length}</span> developer{filteredDevs.length !== 1 && 's'}
-              </p>
-              
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Sort by:</span>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-44 border-slate-200 focus:ring-azure-200 text-xs h-9 rounded-xl">
-                    <SelectValue placeholder="Sort" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="recently-active">Recently Active</SelectItem>
-                    <SelectItem value="most-endorsed">Most Endorsed</SelectItem>
-                    <SelectItem value="most-projects">Most Projects</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-6">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
               {isLoading ? (
                 [1, 2, 3, 4, 5, 6].map(i => (
-                  <Card key={i} className="p-8 flex flex-col items-center border-border/50">
-                    <Skeleton className="h-20 w-20 rounded-full mb-4" />
-                    <Skeleton className="h-6 w-3/4 mb-2" />
-                    <Skeleton className="h-4 w-1/2 mb-6" />
-                    <div className="flex gap-2">
-                      <Skeleton className="h-5 w-12" />
-                      <Skeleton className="h-5 w-12" />
+                  <Card key={i} className="p-5 flex flex-col border-border/50 w-full min-h-[190px]">
+                    <div className="flex items-start gap-3">
+                      <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+                      <div className="flex-1 space-y-1.5">
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-3 w-1/2" />
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mt-4">
+                      <Skeleton className="h-5 w-16 rounded-full" />
+                      <Skeleton className="h-5 w-16 rounded-full" />
+                    </div>
+                    <div className="space-y-1.5 mt-3">
+                      <Skeleton className="h-3.5 w-full" />
+                      <Skeleton className="h-3.5 w-2/3" />
                     </div>
                   </Card>
                 ))
               ) : sortedDevs.length > 0 ? (
                 sortedDevs.map((dev) => (
-                  <Card key={dev.id} className="bg-white rounded-2xl border border-slate-100 hover:border-slate-200 transition-colors p-5 flex flex-col items-center text-center cursor-pointer group shadow-none" onClick={() => router.push(`/developers/${dev.id}`)}>
-                    {/* Avatar */}
-                    <div className="relative mb-2 shrink-0">
-                      <Avatar className="w-14 h-14 border border-slate-100 mx-auto">
-                        <AvatarImage src={dev.profilePhoto} />
-                        <AvatarFallback className="bg-navy-700 text-white text-xl font-medium uppercase">
-                          {dev.firstName?.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      {/* Verified badge — only show if is_verified = true */}
-                      {dev.isVerified && (
-                        <div className="absolute bottom-0 right-[calc(50%-1.75rem)] w-5 h-5 rounded-full bg-cyan-400 border-2 border-white flex items-center justify-center shadow-sm z-10">
-                          <BadgeCheck className="h-3 w-3 text-white fill-current" />
+                  <Card
+                    key={dev.id}
+                    className="group border-border/50 hover:shadow-xl hover:shadow-primary/5 transition-all overflow-hidden bg-background p-5 flex flex-col cursor-pointer"
+                    onClick={() => router.push(`/developers/${dev.id}`)}
+                  >
+                    {/* Header: Avatar, Name & Role side by side */}
+                    <div className="flex items-start gap-3 w-full">
+                      {/* Avatar with Online Dot Overlay */}
+                      <div className="relative shrink-0">
+                        <Avatar className="w-8 h-8 border border-slate-100">
+                          <AvatarImage src={dev.profilePhoto} />
+                          <AvatarFallback className="bg-navy-700 text-white text-xs font-semibold uppercase">
+                            {dev.firstName?.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        {/* Online status dot overlaid on the avatar */}
+                        <div className={cn(
+                          "absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white shadow-sm",
+                          dev.availabilityStatus === 'OPEN_TO_OFFERS' ? "bg-green-500" : "bg-slate-300"
+                        )} />
+                      </div>
+
+                      {/* Name & Role Stack */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1">
+                          <h3 className="text-sm font-semibold text-navy-900 group-hover:text-primary transition-colors truncate capitalize">
+                            {toTitleCase(`${dev.firstName} ${dev.lastName}`)}
+                          </h3>
+                          {dev.isVerified && (
+                            <BadgeCheck className="h-3.5 w-3.5 text-cyan-400 fill-current shrink-0" />
+                          )}
                         </div>
-                      )}
+                        <p className="text-xs text-slate-500 truncate mt-0.5">{dev.currentLastRole}</p>
+                      </div>
                     </div>
 
-                    {/* Projects — only show if > 0 */}
-                    {dev.numberOfProjects > 0 ? (
-                      <p className="text-xs text-azure-500 font-medium mb-1">{dev.numberOfProjects} {dev.numberOfProjects === 1 ? 'Project' : 'Projects'}</p>
-                    ) : (
-                      <div className="h-4 mb-1" />
-                    )}
-
-                    <h3 className="text-sm font-medium text-navy-900 mb-0.5 truncate max-w-full capitalize">
-                      {toTitleCase(`${dev.firstName} ${dev.lastName}`)}
-                    </h3>
-                    <p className="text-xs text-slate-500 mb-3 truncate max-w-full">{dev.currentLastRole}</p>
-
-                    {/* Status badge */}
-                    <div className="mb-3 shrink-0">
+                    {/* Badges Row: "Open to Offers" green pill + project count blue pill */}
+                    <div className="flex flex-nowrap overflow-hidden gap-1.5 items-center mt-3 w-full">
                       {dev.availabilityStatus === 'OPEN_TO_OFFERS' ? (
-                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-success-50 text-success-600">Open to Offers</span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-green-50 text-green-700 border border-green-200/50 shrink-0">
+                          Open to Offers
+                        </span>
                       ) : (
-                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-500">Not Available</span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-slate-50 text-slate-500 border border-slate-200/50 shrink-0">
+                          Not Available
+                        </span>
+                      )}
+
+                      {dev.numberOfProjects > 0 ? (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-blue-50 text-blue-700 border border-blue-200/50 shrink-0 truncate">
+                          {dev.numberOfProjects} {dev.numberOfProjects === 1 ? 'Project' : 'Projects'}
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-slate-50 text-slate-400 border border-slate-200/50 shrink-0">
+                          No Projects
+                        </span>
                       )}
                     </div>
 
-                    {/* Meta */}
-                    <p className="text-xs text-slate-500 mb-1">
-                      {formatExperience(dev.yearsOfExperience)} · <span className="text-slate-700 font-medium">{formatWorkType(dev.preferredWorkType)}</span>
-                    </p>
+                    {/* Meta List: Experience and Work Type, each on their own line */}
+                    <div className="space-y-1.5 text-[11px] text-muted-foreground mt-3 font-medium w-full">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                        <span className="font-semibold text-foreground/80">Years of Experience:</span>
+                        <span>{formatExperience(dev.yearsOfExperience)}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Globe className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                        <span className="font-semibold text-foreground/80">Preferred Work Type:</span>
+                        <span>{formatWorkType(dev.preferredWorkType)}</span>
+                      </div>
+                    </div>
 
-                    {/* Endorsements — only if > 0 */}
-                    {dev.endorsementCount > 0 ? (
-                      <p className="text-xs text-azure-500 font-medium my-1">{dev.endorsementCount} {dev.endorsementCount === 1 ? 'Endorsement' : 'Endorsements'}</p>
-                    ) : (
-                      <div className="h-4 my-1" />
-                    )}
-
-                    {/* Skills */}
-                    <div className="flex flex-wrap gap-1 justify-center my-2 shrink-0">
-                      {dev.skills.slice(0, 3).map((skill, idx) => (
-                        <span key={`${skill}-${idx}`} className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full text-xs truncate max-w-[80px]">
+                    {/* Skills Row: max 2-3 with +N overflow count */}
+                    <div className="flex flex-wrap gap-1.5 mt-2.5 shrink-0">
+                      {dev.skills.slice(0, 2).map((skill, idx) => (
+                        <span key={`${skill}-${idx}`} className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest truncate max-w-[80px]">
                           {skill}
                         </span>
                       ))}
-                      {dev.skills.length > 3 && (
-                        <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full text-xs">
-                          +{dev.skills.length - 3}
+                      {dev.skills.length > 2 && (
+                        <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest shrink-0">
+                          +{dev.skills.length - 2}
                         </span>
                       )}
                     </div>
 
-                    {/* Footer */}
-                    <div className="w-full mt-auto pt-3 border-t border-slate-100 flex items-center justify-between gap-2 uppercase tracking-widest text-[10px] font-medium text-slate-400 print:hidden" onClick={(e) => e.stopPropagation()}>
-                      <span className="text-xs text-slate-400 flex items-center gap-1 truncate max-w-[60%]">
-                        <MapPin className="h-3 w-3 shrink-0" />
-                        <span className="capitalize truncate">{formatLocation(dev.locationCity)}</span>
+                    {/* Footer: location on the left, View button on the right, thin top border */}
+                    <div className="w-full mt-auto pt-2.5 border-t border-border/50 flex items-center justify-between gap-2 uppercase tracking-widest text-[10px] font-black text-slate-400" onClick={(e) => e.stopPropagation()}>
+                      <span className="text-[11px] text-muted-foreground flex items-center gap-1 truncate max-w-[60%] normal-case font-medium">
+                        <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                        <span className="capitalize truncate font-medium text-foreground/80">{formatLocation(dev.locationCity)}</span>
                       </span>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 rounded-full hover:text-danger-600 hover:bg-danger-50 transition-colors"
-                          onClick={() => {
-                            if (!isLoggedIn) {
-                              toast.error("Please sign in to report profiles");
-                              router.push('/login');
-                              return;
-                            }
-                            setSelectedDevId(dev.id);
-                            setIsFlagOpen(true);
-                          }}
-                        >
-                          <Flag className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" className="bg-azure-500 hover:bg-azure-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors h-8 border-none" asChild>
-                          <Link href={`/developers/${dev.id}`}>
-                            View <ArrowRight className="h-3 w-3" />
-                          </Link>
-                        </Button>
-                      </div>
+
+                      <Button size="sm" className="bg-azure-500 hover:bg-azure-600 text-white text-[11px] font-black uppercase tracking-widest px-2.5 h-7 rounded-lg flex items-center gap-1 transition-colors border-none" asChild>
+                        <Link href={`/developers/${dev.id}`}>
+                          View <ArrowRight className="h-3 w-3" />
+                        </Link>
+                      </Button>
                     </div>
                   </Card>
                 ))

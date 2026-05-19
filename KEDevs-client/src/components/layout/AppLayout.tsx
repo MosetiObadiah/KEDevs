@@ -133,7 +133,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       '/contact',
       '/verify-email',
       '/reset-password',
-      '/spotlight'
+      '/spotlight',
+      '/pricing'
     ];
     
     if (exactPublics.includes(path)) return true;

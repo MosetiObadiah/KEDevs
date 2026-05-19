@@ -748,63 +748,74 @@ function JobsPageContent() {
 
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
-      <PageContainer className="max-w-full px-8 xl:px-16">
-        <div className="flex justify-between items-center mb-8 print:hidden gap-3">
-          {/* Mobile Filter Button */}
-          <div className="lg:hidden">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-5 shrink-0">
-                  <SlidersHorizontal className="mr-2 h-4 w-4 text-primary" />
-                  Filters
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] sm:w-[350px] p-0 overflow-y-auto">
-                <SheetHeader className="p-6 pb-2 text-left">
-                  <SheetTitle>Filter Jobs</SheetTitle>
-                  <SheetDescription className="sr-only">Choose options to narrow down job postings.</SheetDescription>
-                </SheetHeader>
-                <div className="p-6 pt-0 space-y-6">
-                  {renderFilters()}
-                </div>
-              </SheetContent>
-            </Sheet>
+      <PageContainer className="max-w-none w-full px-4 md:px-8 xl:px-12">
+        {/* Compact Top Toolbar Row */}
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 mb-6 print:hidden bg-white p-4 rounded-2xl border border-slate-100 shadow-sm animate-in fade-in duration-300">
+          {/* Left: Filters Trigger & Results Count */}
+          <div className="flex items-center gap-4">
+            {/* Mobile Filter Button */}
+            <div className="lg:hidden">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" className="font-semibold border-slate-200 hover:bg-slate-50 h-10 px-4 rounded-xl text-xs">
+                    <SlidersHorizontal className="mr-2 h-4 w-4 text-primary" />
+                    Filters
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-[300px] sm:w-[350px] p-0 overflow-y-auto">
+                  <SheetHeader className="p-6 pb-2 text-left">
+                    <SheetTitle>Filter Jobs</SheetTitle>
+                    <SheetDescription className="sr-only">Choose options to narrow down job postings.</SheetDescription>
+                  </SheetHeader>
+                  <div className="p-6 pt-0 space-y-6">
+                    {renderFilters()}
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
+
+            {/* Desktop Toggle Button */}
+            <div className="hidden lg:block">
+              <Button 
+                variant="outline" 
+                className="font-semibold border-slate-200 hover:bg-slate-50 h-10 px-4 rounded-xl text-xs"
+                onClick={() => setShowDesktopFilters(!showDesktopFilters)}
+              >
+                <SlidersHorizontal className="mr-2 h-4 w-4 text-primary" />
+                {showDesktopFilters ? 'Hide Filters' : 'Show Filters'}
+              </Button>
+            </div>
+
+            {/* Results Count */}
+            <p className="text-xs font-semibold text-slate-500 border-l border-slate-200 pl-4">
+              Showing <span className="text-navy-900 font-bold">{filteredJobs.length}</span> job{filteredJobs.length !== 1 && 's'}
+            </p>
           </div>
 
-          {/* Desktop Toggle Button */}
-          <div className="hidden lg:block">
-            <Button 
-              variant="outline" 
-              className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-5 shrink-0"
-              onClick={() => setShowDesktopFilters(!showDesktopFilters)}
-            >
-              <SlidersHorizontal className="mr-2 h-4 w-4 text-primary" />
-              Filters
-            </Button>
-          </div>
-
-          <div className="flex items-center gap-3 ml-auto shrink-0">
+          {/* Right: Export & Actions */}
+          <div className="flex items-center gap-3 self-end sm:self-auto">
+            {/* Export Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-12 px-6" disabled={isExporting}>
+                <Button variant="outline" className="font-semibold border-slate-200 hover:bg-slate-50 h-10 px-4 rounded-xl text-xs" disabled={isExporting}>
                   <Download className="mr-2 h-4 w-4 text-primary" />
                   {isExporting ? 'Exporting...' : 'Export'}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium">
+              <DropdownMenuContent align="end" className="rounded-xl border-slate-200">
+                <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium text-xs">
                   <FileSpreadsheet className="mr-2 h-4 w-4" /> Download as CSV
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium">
+                <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium text-xs">
                   <FileText className="mr-2 h-4 w-4" /> Download as PDF
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
             {isLoggedIn && (
-              <Button className="h-12 px-6 font-medium shadow-lg shadow-primary/20" asChild>
+              <Button className="h-10 px-4 font-semibold text-xs rounded-xl shadow-none" asChild>
                 <Link href="/jobs/post">
-                  <Plus className="mr-2 h-5 w-5" /> Post a Job
+                  <Plus className="mr-1.5 h-4 w-4" /> Post a Job
                 </Link>
               </Button>
             )}
@@ -820,7 +831,7 @@ function JobsPageContent() {
           {/* Filters Sidebar (Desktop) */}
           {showDesktopFilters && (
             <aside className="hidden lg:block w-72 shrink-0 space-y-6 print:hidden sticky top-24 h-fit max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent pr-1">
-              <Card className="border-border/50 shadow-sm">
+              <Card className="border-border/50 shadow-sm bg-white">
                 <CardHeader className="pb-4">
                   <h3 className="text-sm font-medium uppercase tracking-wider text-foreground">Filter Jobs</h3>
                 </CardHeader>
@@ -931,45 +942,46 @@ function JobsPageContent() {
                   const isSkillsMatch = isLoggedIn && user?.role === 'DEVELOPER' && job.tags && job.tags.some(tag => userSkills.map(s => s.toLowerCase()).includes(tag.toLowerCase()));
                   
                   return (
-                    <Card key={job.id} className="group bg-white rounded-2xl border border-slate-100 hover:border-slate-200 transition-all overflow-hidden shadow-none">
+                    <Card key={job.id} className="group border-border/50 hover:shadow-xl hover:shadow-primary/5 transition-all overflow-hidden bg-background">
                       <CardContent className="p-6">
                         <div className="flex flex-col md:flex-row gap-6">
-                          {/* Job Content */}
+                          {/* Job Content - Matching /my-posts layout */}
                           <div className="flex-1 min-w-0">
-                            <div className="flex flex-wrap items-center gap-2 mb-2">
-                              <Link href={`/jobs/${job.id}`} className="flex-1 min-w-0">
-                                <h3 className="text-lg font-medium text-navy-900 group-hover:text-azure-500 transition-colors truncate">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Link href={`/jobs/${job.id}`} className="min-w-0 flex-1">
+                                <h3 className="text-xl font-medium group-hover:text-primary transition-colors truncate">
                                   {job.title}
                                 </h3>
                               </Link>
                               
                               {/* Skills Match Badge */}
                               {isSkillsMatch && (
-                                <Badge className="bg-success-50 text-success-600 border-none font-medium text-[10px] uppercase tracking-wider shrink-0">
+                                <Badge className="bg-success-50 text-success-600 border-none font-black text-[10px] uppercase tracking-widest shrink-0">
                                   Skills Match
                                 </Badge>
                               )}
 
                               {(() => {
                                 const isExpired = job.applicationDeadline && new Date(job.applicationDeadline) < new Date();
-                                if (isExpired) return <Badge variant="destructive" className="bg-danger-50 text-danger-600 border-none text-[10px] font-medium uppercase tracking-wider py-0.5 shrink-0">Expired</Badge>;
-                                if (job.status === 'OPEN') return <Badge className="bg-success-50 text-success-600 border-none text-[10px] font-medium uppercase tracking-wider py-0.5 shrink-0">Open</Badge>;
-                                return <Badge variant="destructive" className="bg-danger-50 text-danger-600 border-none text-[10px] font-medium uppercase tracking-wider py-0.5 shrink-0">Closed</Badge>;
+                                if (isExpired) return <Badge variant="destructive" className="text-[10px] uppercase py-0.5 shrink-0 font-black tracking-widest">Expired</Badge>;
+                                if (job.status === 'OPEN') return <Badge className="bg-cyan-600 hover:bg-cyan-600 text-[10px] uppercase py-0.5 shrink-0 font-black tracking-widest">Active</Badge>;
+                                return <Badge variant="secondary" className="text-[10px] uppercase py-0.5 shrink-0 font-black tracking-widest">Closed</Badge>;
                               })()}
                             </div>
 
-                            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-500 font-medium mb-6">
-                              <span className="font-medium text-slate-700">
-                                {job.isPeerSourced || job.postedByRole !== 'EMPLOYER' ? (job.postedByName || 'Community Member') : job.companyName}
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground font-medium mb-6">
+                              <span className="flex items-center gap-1.5 font-medium text-foreground/80">
+                                <Building2 className="h-4 w-4" /> {job.isPeerSourced || job.postedByRole !== 'EMPLOYER' ? (job.postedByName || 'Community Member') : job.companyName}
                               </span>
-                              <span className="flex items-center gap-1.5 text-xs text-slate-400">
-                                <MapPin className="h-3.5 w-3.5" /> {job.locationCity}, {job.locationCountry}
+                              <span className="flex items-center gap-1.5">
+                                <MapPin className="h-4 w-4" /> {job.locationCity}, {job.locationCountry}
                               </span>
-                              <span className="flex items-center gap-1.5 text-xs text-slate-400">
-                                <Briefcase className="h-3.5 w-3.5" /> {formatExperienceLevel(job.experienceLevel)}
+                              <span className="flex items-center gap-1.5">
+                                <Briefcase className="h-4 w-4" /> {formatExperienceLevel(job.experienceLevel)}
                               </span>
                               {(job.salaryRangeMin || job.salaryRangeMax) && (
-                                <span className="flex items-center gap-1.5 text-azure-500 font-medium text-xs">
+                                <span className="flex items-center gap-1.5 text-azure-500 font-bold">
+                                  <DollarSign className="h-4 w-4 shrink-0" />
                                   {job.salaryRangeMin && `KES ${job.salaryRangeMin.toLocaleString()}`}
                                   {job.salaryRangeMin && job.salaryRangeMax && ' – '}
                                   {job.salaryRangeMax && `KES ${job.salaryRangeMax.toLocaleString()}`}
@@ -977,30 +989,30 @@ function JobsPageContent() {
                               )}
                               {job.applicationDeadline && (
                                 <span className={cn(
-                                  "flex items-center gap-1.5 font-medium text-xs",
-                                  new Date(job.applicationDeadline) < sevenDaysFromNow ? "text-danger-600" : "text-slate-400"
+                                  "flex items-center gap-1.5 font-medium",
+                                  new Date(job.applicationDeadline) < sevenDaysFromNow ? "text-danger-600" : "text-muted-foreground"
                                 )}>
-                                  <Calendar className="h-3.5 w-3.5" />
+                                  <Calendar className="h-4 w-4" />
                                   {new Date(job.applicationDeadline) < now ? 'Expired: ' : 'Deadline: '}
                                   {format(new Date(job.applicationDeadline), 'dd MMM yyyy')}
                                 </span>
                               )}
                             </div>
 
-                            <div className="flex flex-wrap gap-1.5">
-                              <Badge className="text-[10px] font-medium uppercase tracking-wider bg-slate-100 text-slate-700 hover:bg-slate-100 border-none">
+                            <div className="flex flex-wrap gap-2">
+                              <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-muted-foreground/20 text-muted-foreground">
                                 {formatJobType(job.jobType)}
                               </Badge>
-                              <Badge className="text-[10px] font-medium uppercase tracking-wider bg-slate-100 text-slate-700 hover:bg-slate-100 border-none">
+                              <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest bg-primary/10 text-primary border-none">
                                 {formatWorkType(job.workType)}
                               </Badge>
                               {job.tags.slice(0, 3).map(tag => (
-                                <Badge key={tag} className="text-[10px] font-medium bg-slate-100 text-slate-700 hover:bg-slate-100 border-none">
+                                <Badge key={tag} className="text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-700 hover:bg-slate-100 border-none">
                                   {tag}
                                 </Badge>
                               ))}
                               {job.tags.length > 3 && (
-                                <Badge className="text-[10px] font-medium bg-slate-100 text-slate-700 hover:bg-slate-100 border-none">
+                                <Badge className="text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-700 hover:bg-slate-100 border-none">
                                   +{job.tags.length - 3} more
                                 </Badge>
                               )}
