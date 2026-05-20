@@ -285,13 +285,15 @@ public class EmailService {
                 
                 Your email has been verified successfully! Welcome to KEDevs - Kenya's premier developer community platform.
                 
-                You now have a 3-day grace period to explore the platform. After that, an annual subscription will be required to continue accessing all features.
-                
                 Get started:
                 - Complete your profile
                 - Browse job opportunities
                 - Connect with other developers
                 - Participate in forums
+                
+                Boost your presence:
+                Stand out by verifying your profile and buying Spotlight slots! 
+                Spotlight features your profile or job postings at the top of the feed, giving you maximum visibility to the community.
                 
                 Best regards,
                 The KEDevs Team
