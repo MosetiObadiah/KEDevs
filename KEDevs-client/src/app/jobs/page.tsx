@@ -1040,7 +1040,7 @@ function JobsPageContent() {
                         key={pJob.id} 
                         className={cn(
                           "relative overflow-hidden bg-white border transition-all duration-300 group flex flex-col justify-between p-5 rounded-xl min-h-[220px] shadow-sm",
-                          isUrgent ? "border-amber-400/60 bg-amber-50/10 shadow-[0_0_15px_rgba(245,158,11,0.03)]" : "border-slate-100 hover:border-slate-200"
+                          isUrgent ? "border-amber-400/60 shadow-[0_0_15px_rgba(245,158,11,0.03)]" : "border-slate-100 hover:border-slate-200"
                         )}
                       >
                         <div className="space-y-3">

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import React, { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import {
   MailCheck,
   ArrowRight,
@@ -9,22 +9,22 @@ import {
   ShieldCheck,
   Mail,
   Loader2,
-  AlertCircle
-} from 'lucide-react';
-import { authService } from '@/services/authService';
-import { useAuth } from '@/context/AuthContext';
-import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
+  AlertCircle,
+} from "lucide-react";
+import { authService } from "@/services/authService";
+import { useAuth } from "@/context/AuthContext";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 export default function VerifyEmailPage() {
   const { userId } = useParams();
   const router = useRouter();
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { setAuthData } = useAuth();
@@ -37,7 +37,16 @@ export default function VerifyEmailPage() {
     try {
       const response = await authService.verifyEmail(userId as string, code);
       if (response.success) {
-        const { accessToken, refreshToken, userId, email, fullName, role, emailVerified, requiresApproval } = response.data;
+        const {
+          accessToken,
+          refreshToken,
+          userId,
+          email,
+          fullName,
+          role,
+          emailVerified,
+          requiresApproval,
+        } = response.data;
 
         const userData = {
           id: userId,
@@ -46,19 +55,19 @@ export default function VerifyEmailPage() {
           role,
           isEmailVerified: true,
           isApproved: !requiresApproval,
-          isVerified: false
+          isVerified: false,
         };
 
         setAuthData(userData, accessToken, refreshToken);
-        toast.success('Email verified successfully!');
+        toast.success("Email verified successfully!");
 
-        if (role === 'DEVELOPER') router.push('/onboarding/developer');
-        else if (role === 'EMPLOYER') router.push('/onboarding/employer');
-        else if (role === 'ADMIN') router.push('/admin/dashboard');
-        else router.push('/feed');
+        if (role === "DEVELOPER") router.push("/onboarding/developer");
+        else if (role === "EMPLOYER") router.push("/onboarding/employer");
+        else if (role === "ADMIN") router.push("/admin/dashboard");
+        else router.push("/feed");
       }
     } catch (err: any) {
-      setError(err.message || 'Invalid or expired verification code.');
+      setError(err.message || "Invalid or expired verification code.");
     } finally {
       setLoading(false);
     }
@@ -78,12 +87,21 @@ export default function VerifyEmailPage() {
             </div>
 
             <div className="space-y-4 mb-10">
-              <Badge variant="outline" className="rounded-xl font-black tracking-widest text-[10px] uppercase bg-primary/5 text-primary border-primary/10 px-3 py-1">
-                SECURITY SYNC
+              <Badge
+                variant="outline"
+                className="rounded-xl font-black tracking-widest text-[10px] uppercase bg-primary/5 text-primary border-primary/10 px-3 py-1"
+              >
+                Secure OTP
               </Badge>
-              <h1 className="text-4xl font-black text-slate-900 tracking-tight">Identity Check</h1>
+              <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+                Identity Check
+              </h1>
               <p className="text-sm font-medium text-slate-500">
-                We've transmitted a <span className="text-slate-900 font-black">6-digit access code</span> to your inbox. Please enter it below.
+                We've sent a{" "}
+                <span className="text-slate-900 font-black">
+                  6-digit access code
+                </span>{" "}
+                to your inbox. Please enter it below.
               </p>
             </div>
 
@@ -99,7 +117,9 @@ export default function VerifyEmailPage() {
                   placeholder="000000"
                   className="h-20 rounded-2xl bg-slate-50 border-none text-center text-4xl font-black tracking-[0.5em] focus-visible:ring-primary/20"
                   value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  onChange={(e) =>
+                    setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                  }
                 />
               </div>
 
@@ -108,13 +128,22 @@ export default function VerifyEmailPage() {
                 disabled={loading || code.length !== 6}
                 onClick={handleVerify}
               >
-                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ShieldCheck className="h-5 w-5" />}
+                {loading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <ShieldCheck className="h-5 w-5" />
+                )}
                 Verify Account
               </Button>
 
               <div className="pt-4 space-y-4">
-                <p className="text-xs font-medium text-slate-500">Didn't receive the transmission?</p>
-                <Button variant="ghost" className="rounded-xl font-black text-[10px] uppercase tracking-widest text-primary hover:bg-primary/5">
+                <p className="text-xs font-medium text-slate-500">
+                  Didn't receive the code?
+                </p>
+                <Button
+                  variant="ghost"
+                  className="rounded-xl font-black text-[10px] uppercase tracking-widest text-primary hover:bg-primary/5"
+                >
                   <RefreshCcw className="h-3.5 w-3.5 mr-2" /> Resend Access Code
                 </Button>
               </div>
