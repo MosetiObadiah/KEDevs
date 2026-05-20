@@ -209,345 +209,336 @@ export default function VerificationFlow() {
 
    if (loading) {
       return (
-         <div className="min-h-screen flex flex-col items-center justify-center space-y-4">
-            <Loader2 className="h-10 w-10 text-primary animate-spin" />
-            <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Accessing protocol state...</p>
+         <div className="min-h-screen flex flex-col items-center justify-center bg-muted/30">
+            <Loader2 className="h-8 w-8 text-primary animate-spin" />
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mt-3">Accessing verification state...</p>
          </div>
       );
    }
-
-   if (verifyStatus?.status === VerificationStatus.APPROVED) {
-      return (
-         <div className="min-h-screen bg-muted/30 pb-20 pt-12 animate-in fade-in duration-700">
-            <div className="container mx-auto px-6 max-w-2xl">
-               <Card className="rounded-xl-[2.5rem] border-none shadow-xl overflow-hidden bg-white">
-                  <CardContent className="p-16 text-center space-y-8">
-                     <div className="h-24 w-24 bg-cyan-50 rounded-full flex items-center justify-center mx-auto">
-                        <BadgeCheck className="h-12 w-12 text-cyan-600" />
-                     </div>
-                     <div className="space-y-3">
-                        <h2 className="text-3xl font-black text-slate-900">Already Verified</h2>
-                        <p className="text-slate-500 font-medium leading-relaxed">
-                           Your identity has already been verified. You carry the <span className="text-cyan-600 font-black">Verified Badge</span> on the KEDevs platform.
-                        </p>
-                     </div>
-                     <Button asChild className="h-14 rounded-2xl font-black bg-slate-900 px-10 shadow-xl">
-                        <Link href="/profile/me">Go to Dashboard</Link>
-                     </Button>
-                  </CardContent>
-               </Card>
-            </div>
-         </div>
-      );
-   }
-
-   return (
-      <div className="min-h-screen bg-muted/30 pb-20 pt-12 animate-in fade-in duration-700">
-         <div className="container mx-auto px-6 max-w-6xl">
-            <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
-               <div className="space-y-2">
-                  <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">Identity Verification</h1>
-                  <p className="text-muted-foreground font-medium text-lg leading-relaxed">
-                     Complete the verification sequence to earn your <span className="text-cyan-600 font-black italic">Verified Badge</span>.
-                  </p>
-               </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                  <div className="lg:col-span-1 order-2 lg:order-1 space-y-6">
-                     <Card className="rounded-xl-[2.5rem] border-none shadow-xl shadow-slate-200/50 bg-white sticky top-24 overflow-hidden">
-                        <CardHeader className="pb-4 pt-8 px-8">
-                           <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-500">Sequence Progress</h3>
-                        </CardHeader>
-                        <CardContent className="px-8 pb-10 space-y-6">
-                           {steps.map((step, i) => {
-                              const Icon = step.icon;
-                              const isActive = activeStep === i;
-                              const isCompleted = activeStep > i;
-
-                              return (
-                                 <div key={step.id} className="flex items-center gap-4 group">
-                                    <div className={cn(
-                                       "h-12 w-12 rounded-2xl flex items-center justify-center transition-all duration-500 border-2",
-                                       isActive ? "bg-primary text-white border-primary shadow-lg shadow-primary/20 scale-105" :
-                                          isCompleted ? "bg-cyan-600 text-white border-emerald-500" :
-                                             "bg-slate-50 text-slate-500 border-slate-100"
-                                    )}>
-                                       {isCompleted ? <CheckCircle2 className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
-                                    </div>
-                                    <div className="flex flex-col">
-                                       <span className={cn(
-                                          "text-xs font-black uppercase tracking-wider",
-                                          isActive ? "text-primary" : "text-slate-500"
-                                       )}>
-                                          {step.label}
-                                       </span>
-                                       <span className="text-[10px] font-medium text-slate-500 uppercase tracking-widest">
-                                          {isActive ? 'Active Phase' : isCompleted ? 'Completed' : 'Pending'}
-                                       </span>
-                                    </div>
-                                 </div>
-                              );
-                           })}
-                        </CardContent>
-                     </Card>
-
-                  </div>
-
-                  <div className="lg:col-span-2 order-1 lg:order-2 space-y-10">
-                     <Card className="rounded-xl-[2.5rem] border-none shadow-xl shadow-slate-200/50 overflow-hidden bg-white">
-                        <CardContent className="p-10 md:p-14">
-                           {activeStep === 0 && (
-                              <div className="space-y-10">
-                                 <div className="space-y-4">
-                                    <h3 className="text-2xl font-black flex items-center gap-2">
-                                       <div className="h-6 w-1.5 bg-primary rounded-full" />
-                                       Phase 01: Eligibility Scan
-                                    </h3>
-                                    <p className="text-muted-foreground font-medium italic leading-relaxed">We audit your profile for baseline compliance and completeness.</p>
-                                 </div>
-
-                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {verifyStatus && Object.entries(verifyStatus.profileCompleteness).map(([req, met]) => (
-                                       <Link 
-                                          href="/profile/me" 
-                                          key={req} 
-                                          className={cn(
-                                             "p-5 rounded-2xl border transition-all flex items-center gap-4 group cursor-pointer",
-                                             met ? "bg-cyan-50/30 border-emerald-100" : "bg-slate-50 border-slate-100 hover:border-primary/30 hover:bg-white hover:shadow-lg hover:shadow-primary/5 active:scale-[0.98]"
-                                          )}
-                                       >
-                                          <div className={cn(
-                                             "h-10 w-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm transition-all duration-300",
-                                             met ? "bg-cyan-600 text-white" : "bg-slate-200 text-slate-500 group-hover:bg-primary group-hover:text-white group-hover:rotate-12"
-                                          )}>
-                                             {met ? <CheckCircle2 className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
-                                          </div>
-                                          <div className="flex flex-col">
-                                             <span className={cn("text-xs font-black uppercase tracking-widest transition-colors", met ? "text-emerald-900" : "text-slate-500 group-hover:text-primary")}>{req}</span>
-                                             <span className="text-[10px] font-medium text-slate-500">{met ? 'Verified' : 'Click to fix'}</span>
-                                          </div>
-                                       </Link>
-                                    ))}
-                                 </div>
-
-                              </div>
-                           )}
-
-                           {activeStep === 1 && (
-                              <div className="space-y-10 text-center">
-                                 <div className="h-20 w-20 bg-primary/5 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                                    <Smartphone className="h-10 w-10 text-primary" />
-                                 </div>
-                                 <div className="space-y-4">
-                                    <h3 className="text-2xl font-black flex items-center justify-center gap-2">
-                                       <div className="h-6 w-1.5 bg-primary rounded-full" />
-                                       Phase 02: Transaction Authorization
-                                    </h3>
-                                    <p className="text-muted-foreground font-medium italic leading-relaxed">
-                                       Manual review requires a processing fee of <span className="text-slate-900 font-black">KES {user?.role === 'DEVELOPER' ? getPrice('VERIFIED_BADGE_DEVELOPER', '250') : getPrice('VERIFIED_BADGE_EMPLOYER', '500')}</span>.
-                                    </p>
-                                 </div>
-
-                                 <div className="max-w-sm mx-auto space-y-6">
-                                    <div className="relative">
-                                       <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
-                                       <Input
-                                          value={phoneNumber}
-                                          onChange={(e) => setPhoneNumber(e.target.value)}
-                                          placeholder="07xxxxxxxx"
-                                          className="h-16 rounded-2xl bg-slate-50 border-none pl-12 font-black text-lg focus-visible:ring-primary/20"
-                                       />
-                                    </div>
-                                    <Button
-                                       className="w-full h-16 rounded-xl-[2rem] bg-slate-900 text-white font-black text-lg shadow-xl shadow-slate-900/10 gap-3"
-                                       onClick={handleInitiate}
-                                       disabled={isSubmitting || isPollingPayment || (verifyStatus?.status !== VerificationStatus.NONE && verifyStatus?.status !== VerificationStatus.PENDING_PAYMENT && verifyStatus?.status !== VerificationStatus.REJECTED)}
-                                    >
-                                       {isSubmitting ? <Loader2 className="h-6 w-6 animate-spin" /> : <Zap className="h-6 w-6" />}
-                                       {verifyStatus?.status === VerificationStatus.PENDING_DOCS ? 'Payment Confirmed' : 'Authorize STK Push'}
-                                    </Button>
-
-                                    {isPollingPayment && (
-                                       <div className="flex items-center justify-center gap-3 p-4 rounded-2xl bg-azure-50 border border-azure-100">
-                                          <Loader2 className="h-4 w-4 text-azure-500 animate-spin shrink-0" />
-                                          <div className="text-left">
-                                             <p className="text-xs font-black text-azure-800 uppercase tracking-widest">Awaiting M-Pesa Confirmation</p>
-                                             <p className="text-[10px] font-medium text-azure-500 mt-0.5">Checking every 5 seconds · up to 50 seconds</p>
-                                          </div>
-                                       </div>
-                                    )}
-
-                                 </div>
-                              </div>
-                           )}
-
-                           {activeStep === 2 && (
-                              <div className="space-y-10">
-                                 <div className="space-y-4">
-                                    <h3 className="text-2xl font-black flex items-center gap-2">
-                                       <div className="h-6 w-1.5 bg-primary rounded-full" />
-                                       Documents Uploading
-                                    </h3>
-                                    <p className="text-muted-foreground font-medium italic leading-relaxed">Please transmit high-fidelity copies of your identification artifacts.</p>
-                                 </div>
-
-                                 <div className="space-y-6">
-                                    <input type="file" hidden ref={idRef} onChange={(e) => { const file = e.target.files?.[0] || null; if (validateFile(file)) setIdFile(file); }} />
-                                    <div
-                                       onClick={() => idFile ? setIdFile(null) : idRef.current?.click()}
-                                       className={cn(
-                                          "p-8 rounded-xl-[2.5rem] border-2 border-dashed flex flex-col items-center justify-center gap-4 cursor-pointer transition-all group relative",
-                                          idFile ? "bg-cyan-50/50 border-emerald-500/30 hover:border-danger-200" : "bg-slate-50 border-slate-100 hover:border-primary/30"
-                                       )}
-                                    >
-                                       <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center transition-colors", idFile ? "bg-cyan-600 text-white group-hover:bg-danger-500" : "bg-white text-slate-500")}>
-                                          {idFile ? <X className="h-6 w-6" /> : <FileText className="h-6 w-6" />}
-                                       </div>
-                                       <div className="text-center">
-                                          <p className="font-black text-slate-900">{idFile ? idFile.name : 'National ID / Passport Archive'}</p>
-                                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">
-                                             {idFile ? 'Click to remove' : 'PNG, JPEG, WEBP or PDF (Max 10MB)'}
-                                          </p>
-                                       </div>
-                                    </div>
-
-                                    <input type="file" hidden ref={passportRef} onChange={(e) => { const file = e.target.files?.[0] || null; if (validateFile(file)) setPassportFile(file); }} />
-                                    <div
-                                       onClick={() => passportFile ? setPassportFile(null) : passportRef.current?.click()}
-                                       className={cn(
-                                          "p-8 rounded-xl-[2.5rem] border-2 border-dashed flex flex-col items-center justify-center gap-4 cursor-pointer transition-all group relative",
-                                          passportFile ? "bg-cyan-50/50 border-emerald-500/30 hover:border-danger-200" : "bg-slate-50 border-slate-100 hover:border-primary/30"
-                                       )}
-                                    >
-                                       <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center transition-colors", passportFile ? "bg-cyan-600 text-white group-hover:bg-danger-500" : "bg-slate-500")}>
-                                          {passportFile ? <X className="h-6 w-6" /> : <ShieldCheck className="h-6 w-6" />}
-                                       </div>
-                                       <div className="text-center">
-                                          <p className="font-black text-slate-900">{passportFile ? passportFile.name : 'Passport Photo'}</p>
-                                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-1">
-                                             {passportFile ? 'Click to remove' : 'Images only (PNG, JPEG, WEBP)'}
-                                          </p>
-                                       </div>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                       {certFiles.length > 0 && (
-                                          <div className="space-y-2">
-                                             {certFiles.map((file, idx) => (
-                                                <div key={idx} className="flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-100 shadow-sm animate-in fade-in slide-in-from-top-1 duration-200">
-                                                   <div className="flex items-center gap-3 overflow-hidden">
-                                                      <div className="h-8 w-8 bg-slate-50 rounded-xl flex items-center justify-center text-slate-500">
-                                                         <FileText className="h-4 w-4" />
-                                                      </div>
-                                                      <span className="text-xs font-medium text-slate-700 truncate">{file.name}</span>
-                                                   </div>
-                                                   <button
-                                                      type="button"
-                                                      onClick={() => setCertFiles(prev => prev.filter((_, i) => i !== idx))}
-                                                      className="h-8 w-8 flex items-center justify-center text-slate-500 hover:text-danger-500 hover:bg-danger-50 rounded-xl transition-all"
-                                                   >
-                                                      <X className="h-4 w-4" />
-                                                   </button>
-                                                </div>
-                                             ))}
-                                          </div>
-                                       )}
-
-                                       <input type="file" hidden multiple ref={certRef} onChange={(e) => { const files = Array.from(e.target.files || []); const validFiles = files.filter(validateFile); setCertFiles(prev => [...prev, ...validFiles]); e.target.value = ''; }} />
-                                       <div
-                                          onClick={() => certRef.current?.click()}
-                                          className="p-6 rounded-2xl bg-slate-50 border border-slate-100 border-dashed text-center cursor-pointer hover:bg-slate-100 transition-all"
-                                       >
-                                          <p className="text-xs font-black text-slate-500 uppercase tracking-widest">
-                                             {certFiles.length > 0 ? `${certFiles.length} Certificate${certFiles.length === 1 ? '' : 's'} Added` : 'Professional Certificates (Required)'}
-                                          </p>
-                                       </div>
-                                    </div>
-                                 </div>
-                              </div>
-                           )}
-
-                           {activeStep === 3 && (
-                              <div className="space-y-12 text-center">
-                                 <div className="relative mx-auto h-32 w-32">
-                                    <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
-                                    <div className={cn(
-                                       "relative h-32 w-32 rounded-xl-[3rem] flex items-center justify-center shadow-2xl",
-                                       (verifyStatus?.status as string) === VerificationStatus.APPROVED ? "bg-cyan-600 text-white" : "bg-slate-900 text-white"
-                                    )}>
-                                       {(verifyStatus?.status as string) === VerificationStatus.APPROVED ? <BadgeCheck className="h-16 w-16" /> : <Clock className="h-16 w-16 animate-spin-slow" />}
-                                    </div>
-                                 </div>
-
-                                 <div className="space-y-4 max-w-lg mx-auto">
-                                    <h3 className="text-3xl font-black flex items-center justify-center gap-2">
-                                       <div className="h-6 w-1.5 bg-primary rounded-full" />
-                                       {(verifyStatus?.status as string) === VerificationStatus.APPROVED ? 'Protocol Success' : 'Under Review'}
-                                    </h3>
-                                    <p className="text-muted-foreground font-medium italic leading-relaxed">
-                                       {(verifyStatus?.status as string) === VerificationStatus.APPROVED
-                                          ? 'Congratulations. Your identity is verified across the KEDevs ecosystem. You now possess priority trust status.'
-                                          : 'The admin will review your request in 24 to 48 hrs'}
-                                    </p>
-                                 </div>
-
-                                 <div className="p-10 rounded-xl-[3rem] bg-slate-50 border-2 border-slate-100 max-w-md mx-auto space-y-4">
-                                    <div className="flex justify-between items-center text-xs font-black uppercase tracking-widest">
-                                       <span className="text-slate-500">Timestamp</span>
-                                       <span className="text-slate-900">{verifyStatus?.createdAt ? formatDateString(verifyStatus.createdAt) : 'N/A'}</span>
-                                    </div>
-                                    <Separator className="bg-slate-200/50" />
-                                    <div className="flex justify-between items-center text-xs font-black uppercase tracking-widest">
-                                       <span className="text-slate-500">Current Phase</span>
-                                       <Badge className={cn(
-                                          "rounded-xl font-black text-[10px] border-none shadow-sm",
-                                          (verifyStatus?.status as string) === VerificationStatus.APPROVED ? "bg-cyan-600" : "bg-azure-500"
-                                       )}>
-                                          {(verifyStatus?.status as string) === VerificationStatus.APPROVED ? 'AUTHORIZED' : 'UNDER_AUDIT'}
-                                       </Badge>
-                                    </div>
-                                 </div>
-
-                                 <Button asChild className="h-16 rounded-xl-[2rem] px-12 font-black bg-slate-900 shadow-2xl shadow-slate-900/20 text-lg">
-                                    <Link href="/profile/me">Access Profile</Link>
-                                 </Button>
-                              </div>
-                           )}
-
-                           {activeStep < 3 && (
-                              <div className="mt-16 pt-10 border-t border-slate-50 flex items-center justify-between">
-                                 <Button
-                                    variant="ghost"
-                                    className="h-12 rounded-xl font-black text-[10px] uppercase tracking-widest gap-2 disabled:opacity-0"
-                                    onClick={() => setActiveStep(prev => prev - 1)}
-                                    disabled={activeStep === 0 || isPollingPayment}
-                                 >
-                                    <ChevronLeft className="h-4 w-4" /> Backtrack
-                                 </Button>
-
-                                 <Button
-                                    className="h-16 rounded-2xl px-12 font-black bg-primary text-white shadow-xl shadow-primary/20 text-lg group"
-                                    onClick={() => activeStep === 2 ? handleSubmitDocuments() : setActiveStep(prev => prev + 1)}
-                                    disabled={
-                                       isSubmitting ||
-                                       isPollingPayment ||
-                                       (activeStep === 0 && !verifyStatus?.isEligible) ||
-                                       (activeStep === 1 && verifyStatus?.status !== VerificationStatus.PENDING_DOCS) ||
-                                       (activeStep === 2 && (!idFile || !passportFile || certFiles.length === 0))
-                                    }
-                                 >
-                                    {isSubmitting ? <Loader2 className="h-6 w-6 animate-spin mr-2" /> : activeStep === 2 ? <ShieldCheck className="h-6 w-6 mr-2" /> : null}
-                                    {activeStep === 2 ? 'Get Verified' : 'Proceed'}
-                                    {activeStep < 2 && <ArrowRight className="ml-2 h-6 w-6 transition-transform group-hover:translate-x-1" />}
-                                 </Button>
-                              </div>
-                           )}
-                        </CardContent>
-                     </Card>
-                  </div>
-               </div>
-            </div>
-      </div>
-   );
+ 
+    if (verifyStatus?.status === VerificationStatus.APPROVED) {
+       return (
+          <div className="min-h-screen bg-muted/30 flex flex-col items-center justify-center p-4">
+             <Card className="max-w-md w-full rounded-2xl border border-border/50 shadow-md text-center p-8 sm:p-12 bg-white">
+                <div className="h-16 w-16 bg-cyan-50 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+                   <BadgeCheck className="h-9 w-9 text-cyan-600" />
+                </div>
+                <div className="space-y-2 mb-6">
+                   <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Already Verified</h2>
+                   <p className="text-sm text-slate-500 font-medium leading-relaxed font-sans">
+                      Your identity has already been verified. You carry the <span className="text-cyan-600 font-semibold">Verified Badge</span> on the KEDevs platform.
+                   </p>
+                </div>
+                <Button asChild className="h-10 rounded-xl font-semibold bg-primary text-white px-8 shadow-sm">
+                   <Link href="/profile/me">Go to Dashboard</Link>
+                </Button>
+             </Card>
+          </div>
+       );
+    }
+ 
+    return (
+       <div className="min-h-screen bg-muted/30 pb-16 pt-8 sm:pt-12 animate-in fade-in duration-500">
+          <div className="w-full max-w-4xl mx-auto px-4">
+             <div className="mb-8 text-center sm:text-left">
+                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Identity Verification</h1>
+                <p className="text-sm font-medium text-slate-500 mt-1 font-sans">
+                   Complete the verification sequence to earn your <span className="text-cyan-600 font-semibold italic">Verified Badge</span>.
+                </p>
+             </div>
+ 
+             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Stepper Card */}
+                <div className="lg:col-span-1 order-2 lg:order-1">
+                   <Card className="rounded-2xl border border-border/50 shadow-md bg-white overflow-hidden">
+                      <CardHeader className="border-b border-border/50 bg-slate-50/50 p-4 sm:p-5">
+                         <h3 className="text-xs font-black uppercase tracking-wider text-slate-500">Sequence Progress</h3>
+                      </CardHeader>
+                      <CardContent className="p-4 sm:p-5 space-y-4">
+                         {steps.map((step, i) => {
+                            const Icon = step.icon;
+                            const isActive = activeStep === i;
+                            const isCompleted = activeStep > i;
+ 
+                            return (
+                               <div key={step.id} className="flex items-center gap-3">
+                                  <div className={cn(
+                                     "h-8 w-8 rounded-xl flex items-center justify-center transition-all duration-300 border shadow-sm font-semibold text-xs shrink-0",
+                                     isActive ? "bg-primary text-white border-primary scale-105" :
+                                        isCompleted ? "bg-cyan-600 text-white border-cyan-600" :
+                                           "bg-white text-slate-300 border-slate-100"
+                                  )}>
+                                     {isCompleted ? <CheckCircle2 className="h-4 w-4" /> : <Icon className="h-4.5 w-4.5" />}
+                                  </div>
+                                  <div className="flex flex-col">
+                                     <span className={cn(
+                                        "text-xs font-bold tracking-tight",
+                                        isActive ? "text-primary" : "text-slate-600"
+                                     )}>
+                                        {step.label}
+                                     </span>
+                                     <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                                        {isActive ? 'Active Phase' : isCompleted ? 'Completed' : 'Pending'}
+                                     </span>
+                                  </div>
+                               </div>
+                            );
+                         })}
+                      </CardContent>
+                   </Card>
+                </div>
+ 
+                {/* Flow Step Card */}
+                <div className="lg:col-span-2 order-1 lg:order-2">
+                   <Card className="rounded-2xl border border-border/50 shadow-md overflow-hidden bg-white">
+                      <CardContent className="p-5 sm:p-8 min-h-[350px]">
+                         {activeStep === 0 && (
+                            <div className="space-y-6">
+                               <div className="space-y-1">
+                                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                     <div className="h-4.5 w-1 bg-primary rounded-full" />
+                                     Phase 01: Eligibility Scan
+                                  </h3>
+                                  <p className="text-xs text-slate-500 font-medium font-sans">We audit your profile for baseline compliance and completeness.</p>
+                               </div>
+ 
+                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                  {verifyStatus && Object.entries(verifyStatus.profileCompleteness).map(([req, met]) => (
+                                     <Link 
+                                        href="/profile/me" 
+                                        key={req} 
+                                        className={cn(
+                                           "p-4 rounded-xl border transition-all flex items-center gap-3.5 group cursor-pointer",
+                                           met ? "bg-cyan-50/20 border-cyan-100" : "bg-slate-50 border-slate-100 hover:border-primary/30 hover:bg-white hover:shadow-sm"
+                                        )}
+                                     >
+                                        <div className={cn(
+                                           "h-8 w-8 rounded-lg flex items-center justify-center shrink-0 shadow-sm transition-all duration-300",
+                                           met ? "bg-cyan-600 text-white" : "bg-slate-200 text-slate-500 group-hover:bg-primary group-hover:text-white"
+                                        )}>
+                                           {met ? <CheckCircle2 className="h-4.5 w-4.5" /> : <Clock className="h-4.5 w-4.5" />}
+                                        </div>
+                                        <div className="flex flex-col">
+                                           <span className={cn("text-xs font-bold tracking-tight transition-colors truncate", met ? "text-cyan-900" : "text-slate-500 group-hover:text-primary")}>{req}</span>
+                                           <span className="text-[10px] font-semibold text-slate-400">{met ? 'Verified' : 'Click to fix'}</span>
+                                        </div>
+                                     </Link>
+                                  ))}
+                               </div>
+                            </div>
+                         )}
+ 
+                         {activeStep === 1 && (
+                            <div className="space-y-6 text-center max-w-sm mx-auto py-4">
+                               <div className="h-14 w-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
+                                  <Smartphone className="h-7 w-7 text-primary" />
+                               </div>
+                               <div className="space-y-1">
+                                  <h3 className="text-lg font-bold text-slate-900">
+                                     Phase 02: Transaction Authorization
+                                  </h3>
+                                  <p className="text-xs text-slate-500 font-medium font-sans leading-relaxed">
+                                     Manual review requires a processing fee of <span className="text-slate-950 font-semibold">KES {user?.role === 'DEVELOPER' ? getPrice('VERIFIED_BADGE_DEVELOPER', '250') : getPrice('VERIFIED_BADGE_EMPLOYER', '500')}</span>.
+                                  </p>
+                               </div>
+ 
+                               <div className="space-y-4">
+                                  <div className="relative">
+                                     <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                     <Input
+                                        value={phoneNumber}
+                                        onChange={(e) => setPhoneNumber(e.target.value)}
+                                        placeholder="07xxxxxxxx"
+                                        className="h-10 rounded-xl bg-slate-50 pl-9 font-semibold text-sm focus-visible:ring-primary/20"
+                                     />
+                                  </div>
+                                  <Button
+                                     className="w-full h-10 rounded-xl bg-primary text-white font-semibold text-sm shadow-sm gap-2"
+                                     onClick={handleInitiate}
+                                     disabled={isSubmitting || isPollingPayment || (verifyStatus?.status !== VerificationStatus.NONE && verifyStatus?.status !== VerificationStatus.PENDING_PAYMENT && verifyStatus?.status !== VerificationStatus.REJECTED)}
+                                  >
+                                     {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+                                     {verifyStatus?.status === VerificationStatus.PENDING_DOCS ? 'Payment Confirmed' : 'Authorize STK Push'}
+                                  </Button>
+ 
+                                  {isPollingPayment && (
+                                     <div className="flex items-center gap-3 p-3.5 rounded-xl bg-azure-50/50 border border-azure-100 text-left">
+                                        <Loader2 className="h-4 w-4 text-azure-500 animate-spin shrink-0" />
+                                        <div>
+                                           <p className="text-xs font-bold text-azure-800 uppercase tracking-wider">Awaiting M-Pesa Confirmation</p>
+                                           <p className="text-[10px] font-medium text-azure-500 mt-0.5">Checking every 5 seconds · up to 50 seconds</p>
+                                        </div>
+                                     </div>
+                                  )}
+                               </div>
+                            </div>
+                         )}
+ 
+                         {activeStep === 2 && (
+                            <div className="space-y-6">
+                               <div className="space-y-1">
+                                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                     <div className="h-4.5 w-1 bg-primary rounded-full" />
+                                     Documents Uploading
+                                  </h3>
+                                  <p className="text-xs text-slate-500 font-medium font-sans">Please transmit high-fidelity copies of your identification artifacts.</p>
+                               </div>
+ 
+                               <div className="space-y-4">
+                                  <input type="file" hidden ref={idRef} onChange={(e) => { const file = e.target.files?.[0] || null; if (validateFile(file)) setIdFile(file); }} />
+                                  <div
+                                     onClick={() => idFile ? setIdFile(null) : idRef.current?.click()}
+                                     className={cn(
+                                        "p-5 rounded-xl border border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer transition-all group relative",
+                                        idFile ? "bg-cyan-50/20 border-cyan-200 hover:border-danger-200" : "bg-slate-50 border-slate-100 hover:border-primary/30"
+                                     )}
+                                  >
+                                     <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center transition-colors shadow-sm", idFile ? "bg-cyan-600 text-white group-hover:bg-danger-500" : "bg-white text-slate-500")}>
+                                        {idFile ? <X className="h-4.5 w-4.5" /> : <FileText className="h-4.5 w-4.5" />}
+                                     </div>
+                                     <div className="text-center">
+                                        <p className="text-sm font-semibold text-slate-900">{idFile ? idFile.name : 'National ID / Passport Archive'}</p>
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-0.5">
+                                           {idFile ? 'Click to remove' : 'PNG, JPEG, WEBP or PDF (Max 10MB)'}
+                                        </p>
+                                     </div>
+                                  </div>
+ 
+                                  <input type="file" hidden ref={passportRef} onChange={(e) => { const file = e.target.files?.[0] || null; if (validateFile(file)) setPassportFile(file); }} />
+                                  <div
+                                     onClick={() => passportFile ? setPassportFile(null) : passportRef.current?.click()}
+                                     className={cn(
+                                        "p-5 rounded-xl border border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer transition-all group relative",
+                                        passportFile ? "bg-cyan-50/20 border-cyan-200 hover:border-danger-200" : "bg-slate-50 border-slate-100 hover:border-primary/30"
+                                     )}
+                                  >
+                                     <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center transition-colors shadow-sm", passportFile ? "bg-cyan-600 text-white group-hover:bg-danger-500" : "bg-white text-slate-500")}>
+                                        {passportFile ? <X className="h-4.5 w-4.5" /> : <ShieldCheck className="h-4.5 w-4.5" />}
+                                     </div>
+                                     <div className="text-center">
+                                        <p className="text-sm font-semibold text-slate-900">{passportFile ? passportFile.name : 'Passport Photo'}</p>
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-0.5">
+                                           {passportFile ? 'Click to remove' : 'Images only (PNG, JPEG, WEBP)'}
+                                        </p>
+                                     </div>
+                                  </div>
+ 
+                                  <div className="space-y-2">
+                                     {certFiles.length > 0 && (
+                                        <div className="space-y-2">
+                                           {certFiles.map((file, idx) => (
+                                              <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm animate-in fade-in slide-in-from-top-1 duration-200">
+                                                 <div className="flex items-center gap-2.5 overflow-hidden">
+                                                    <div className="h-7 w-7 bg-slate-50 rounded-lg flex items-center justify-center text-slate-500 shrink-0">
+                                                       <FileText className="h-3.5 w-3.5" />
+                                                    </div>
+                                                    <span className="text-xs font-semibold text-slate-700 truncate">{file.name}</span>
+                                                 </div>
+                                                 <button
+                                                    type="button"
+                                                    onClick={() => setCertFiles(prev => prev.filter((_, i) => i !== idx))}
+                                                    className="h-7 w-7 flex items-center justify-center text-slate-500 hover:text-danger-500 hover:bg-danger-50 rounded-lg transition-all"
+                                                 >
+                                                    <X className="h-3.5 w-3.5" />
+                                                 </button>
+                                              </div>
+                                           ))}
+                                        </div>
+                                     )}
+ 
+                                     <input type="file" hidden multiple ref={certRef} onChange={(e) => { const files = Array.from(e.target.files || []); const validFiles = files.filter(validateFile); setCertFiles(prev => [...prev, ...validFiles]); e.target.value = ''; }} />
+                                     <div
+                                        onClick={() => certRef.current?.click()}
+                                        className="p-4 rounded-xl bg-slate-50 border border-slate-100 border-dashed text-center cursor-pointer hover:bg-slate-100/50 transition-all"
+                                     >
+                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                           {certFiles.length > 0 ? `${certFiles.length} Certificate${certFiles.length === 1 ? '' : 's'} Added` : 'Professional Certificates (Required)'}
+                                        </p>
+                                     </div>
+                                  </div>
+                               </div>
+                            </div>
+                         )}
+ 
+                         {activeStep === 3 && (
+                            <div className="space-y-6 text-center max-w-sm mx-auto py-4">
+                               <div className="relative mx-auto h-16 w-16 mb-4">
+                                  <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
+                                  <div className={cn(
+                                     "relative h-16 w-16 rounded-2xl flex items-center justify-center shadow-md",
+                                     (verifyStatus?.status as string) === VerificationStatus.APPROVED ? "bg-cyan-600 text-white" : "bg-primary text-white"
+                                  )}>
+                                     {(verifyStatus?.status as string) === VerificationStatus.APPROVED ? <BadgeCheck className="h-9 w-9" /> : <Clock className="h-9 w-9" />}
+                                  </div>
+                               </div>
+ 
+                               <div className="space-y-1">
+                                  <h3 className="text-lg font-bold text-slate-900">
+                                     {(verifyStatus?.status as string) === VerificationStatus.APPROVED ? 'Protocol Success' : 'Under Review'}
+                                  </h3>
+                                  <p className="text-xs text-slate-500 font-medium font-sans leading-relaxed">
+                                     {(verifyStatus?.status as string) === VerificationStatus.APPROVED
+                                        ? 'Congratulations. Your identity is verified across the KEDevs ecosystem. You now possess priority trust status.'
+                                        : 'Our moderators are reviewing your credentials. This process typically completes within 24-48 hours.'}
+                                  </p>
+                               </div>
+ 
+                               <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-3 text-left">
+                                  <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
+                                     <span className="text-slate-400">Timestamp</span>
+                                     <span className="text-slate-700">{verifyStatus?.createdAt ? formatDateString(verifyStatus.createdAt) : 'N/A'}</span>
+                                  </div>
+                                  <Separator className="bg-slate-200/50" />
+                                  <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
+                                     <span className="text-slate-400">Current Phase</span>
+                                     <Badge className={cn(
+                                        "rounded-xl font-bold text-[9px] border-none shadow-sm px-2.5 py-0.5",
+                                        (verifyStatus?.status as string) === VerificationStatus.APPROVED ? "bg-cyan-600" : "bg-azure-500"
+                                     )}>
+                                        {(verifyStatus?.status as string) === VerificationStatus.APPROVED ? 'AUTHORIZED' : 'UNDER_AUDIT'}
+                                     </Badge>
+                                  </div>
+                               </div>
+ 
+                               <Button asChild className="h-10 rounded-xl px-8 font-semibold bg-primary text-white shadow-sm">
+                                  <Link href="/profile/me">Access Profile</Link>
+                               </Button>
+                            </div>
+                         )}
+ 
+                         {activeStep < 3 && (
+                            <div className="mt-8 pt-5 border-t border-slate-100 flex items-center justify-between">
+                               <Button
+                                  variant="ghost"
+                                  className="h-10 rounded-xl text-[10px] font-bold uppercase tracking-wider gap-1.5 disabled:opacity-0"
+                                  onClick={() => setActiveStep(prev => prev - 1)}
+                                  disabled={activeStep === 0 || isPollingPayment}
+                               >
+                                  <ChevronLeft className="h-3.5 w-3.5" /> Backtrack
+                               </Button>
+ 
+                               <Button
+                                  className="h-10 rounded-xl px-5 font-semibold bg-primary text-white shadow-sm text-sm group"
+                                  onClick={() => activeStep === 2 ? handleSubmitDocuments() : setActiveStep(prev => prev + 1)}
+                                  disabled={
+                                     isSubmitting ||
+                                     isPollingPayment ||
+                                     (activeStep === 0 && !verifyStatus?.isEligible) ||
+                                     (activeStep === 1 && verifyStatus?.status !== VerificationStatus.PENDING_DOCS) ||
+                                     (activeStep === 2 && (!idFile || !passportFile || certFiles.length === 0))
+                                  }
+                               >
+                                  {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : activeStep === 2 ? <ShieldCheck className="h-4 w-4 mr-1.5" /> : null}
+                                  {activeStep === 2 ? 'Get Verified' : 'Proceed'}
+                                  {activeStep < 2 && <ArrowRight className="ml-1.5 h-4 w-4 transition-transform group-hover:translate-x-0.5" />}
+                               </Button>
+                            </div>
+                         )}
+                      </CardContent>
+                   </Card>
+                </div>
+             </div>
+          </div>
+       </div>
+    );
 }

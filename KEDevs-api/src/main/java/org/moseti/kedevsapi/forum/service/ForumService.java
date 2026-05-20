@@ -28,7 +28,11 @@ import org.moseti.kedevsapi.shared.dto.WebSocketEvent;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -64,7 +68,10 @@ public class ForumService {
         comment.setContent(request.content());
 
         ForumComment saved = commentRepository.save(comment);
-        CommentResponse response = toCommentResponse(saved, userId, false);
+
+        // Batch-load the author name for this single comment (only 1 user lookup)
+        Map<UUID, User> userMap = loadUserMap(Set.of(userId));
+        CommentResponse response = toCommentResponse(saved, userId, false, userMap, Set.of());
         pushForumEvent(jobId, "NEW_COMMENT", response);
 
         // Notify job poster if commenter != job poster
@@ -73,7 +80,7 @@ public class ForumService {
                 job.getPostedById(),
                 org.moseti.kedevsapi.shared.enums.NotificationCategory.FORUM,
                 "New Comment on Job",
-                resolveAuthorName(userId) + " commented on your job \"" + job.getTitle() + "\".",
+                resolveAuthorName(userId, userMap) + " commented on your job \"" + job.getTitle() + "\".",
                 "{\"jobId\":\"" + jobId + "\",\"commentId\":\"" + saved.getId() + "\"}"
             );
         }
@@ -108,7 +115,16 @@ public class ForumService {
         reply.setContent(request.content());
 
         ForumComment saved = commentRepository.save(reply);
-        CommentResponse response = toCommentResponse(saved, userId, false);
+
+        // Batch-load the two relevant users (replier + parent author) in one query
+        Set<UUID> authorIds = Set.of(userId);
+        if (parentComment.getAuthorId() != null) {
+            authorIds = new java.util.HashSet<>(authorIds);
+            authorIds.add(parentComment.getAuthorId());
+        }
+        Map<UUID, User> userMap = loadUserMap(authorIds);
+
+        CommentResponse response = toCommentResponse(saved, userId, false, userMap, Set.of());
         pushForumEvent(jobId, "NEW_REPLY", response);
 
         // Notify parent comment author if replier != parent author
@@ -117,7 +133,7 @@ public class ForumService {
                 parentComment.getAuthorId(),
                 org.moseti.kedevsapi.shared.enums.NotificationCategory.FORUM,
                 "New Reply to Comment",
-                resolveAuthorName(userId) + " replied to your comment.",
+                resolveAuthorName(userId, userMap) + " replied to your comment.",
                 "{\"jobId\":\"" + jobId + "\",\"commentId\":\"" + saved.getId() + "\",\"parentId\":\"" + parentComment.getId() + "\"}"
             );
         }
@@ -128,7 +144,7 @@ public class ForumService {
                 job.getPostedById(),
                 org.moseti.kedevsapi.shared.enums.NotificationCategory.FORUM,
                 "New Activity on Job",
-                resolveAuthorName(userId) + " replied on your job \"" + job.getTitle() + "\".",
+                resolveAuthorName(userId, userMap) + " replied on your job \"" + job.getTitle() + "\".",
                 "{\"jobId\":\"" + jobId + "\",\"commentId\":\"" + saved.getId() + "\"}"
             );
         }
@@ -144,13 +160,45 @@ public class ForumService {
         } else {
             comments = commentRepository.findByJobIdAndParentCommentIdIsNullAndIsHiddenFalse(jobId, pageable);
         }
-        return comments.map(c -> toCommentResponse(c, currentUserId, true));
+
+        // Batch load all authors on this page (top-level + all their replies) in two queries
+        Set<UUID> topLevelAuthorIds = comments.stream()
+                .map(ForumComment::getAuthorId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+
+        // Also load reply authors — one extra query per page, not per comment
+        List<ForumComment> allReplies = comments.stream()
+                .flatMap(c -> commentRepository.findByParentCommentIdAndIsHiddenFalse(c.getId(), Pageable.unpaged()).stream())
+                .collect(Collectors.toList());
+
+        Set<UUID> allAuthorIds = new java.util.HashSet<>(topLevelAuthorIds);
+        allReplies.stream().map(ForumComment::getAuthorId).filter(id -> id != null).forEach(allAuthorIds::add);
+
+        Map<UUID, User> userMap = loadUserMap(allAuthorIds);
+
+        // One applicant-set query for the entire job — shared across all comment+reply mappings
+        Set<UUID> applicantIds = commentRepository.findApplicantIdsByJobId(jobId);
+
+        return comments.map(c -> toCommentResponse(c, currentUserId, true, userMap, applicantIds));
     }
 
     @Transactional(readOnly = true)
     public Page<CommentResponse> getCommentReplies(UUID commentId, UUID currentUserId, Pageable pageable) {
-        return commentRepository.findByParentCommentIdAndIsHiddenFalse(commentId, pageable)
-                .map(c -> toCommentResponse(c, currentUserId, false));
+        Page<ForumComment> replies = commentRepository.findByParentCommentIdAndIsHiddenFalse(commentId, pageable);
+
+        Set<UUID> authorIds = replies.stream()
+                .map(ForumComment::getAuthorId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+        Map<UUID, User> userMap = loadUserMap(authorIds);
+
+        // Determine the job ID from the first reply (all share the same jobId)
+        Set<UUID> applicantIds = replies.stream().findFirst()
+                .map(r -> commentRepository.findApplicantIdsByJobId(r.getJobId()))
+                .orElse(Set.of());
+
+        return replies.map(c -> toCommentResponse(c, currentUserId, false, userMap, applicantIds));
     }
 
     @Transactional
@@ -169,7 +217,8 @@ public class ForumService {
 
         comment.setContent(request.content());
         ForumComment saved = commentRepository.save(comment);
-        return toCommentResponse(saved, userId, false);
+        Map<UUID, User> userMap = loadUserMap(userId != null ? Set.of(userId) : Set.of());
+        return toCommentResponse(saved, userId, false, userMap, Set.of());
     }
 
     @Transactional
@@ -267,43 +316,57 @@ public class ForumService {
 
     @Transactional(readOnly = true)
     public Page<CommentResponse> getUserComments(UUID userId, Pageable pageable) {
+        Map<UUID, User> userMap = loadUserMap(Set.of(userId));
         return commentRepository.findByAuthorId(userId, pageable)
                 .map(c -> {
+                    // Skip hidden comments — return null, caller must handle sparse pages
                     if (c.isHidden()) return null;
-                    return toCommentResponse(c, null, false);
+                    return toCommentResponse(c, null, false, userMap, Set.of());
                 });
     }
 
-    private String resolveAuthorName(UUID authorId) {
-        if (authorId == null) {
-            return "Unknown User";
-        }
-        return userRepository.findById(authorId)
-                .map(User::getFullName)
-                .orElse("Unknown User");
+    // ============================================================
+    // Private helpers
+    // ============================================================
+
+    /** Loads a map of UUID → User in one query via findAllById. */
+    private Map<UUID, User> loadUserMap(Set<UUID> ids) {
+        if (ids == null || ids.isEmpty()) return Map.of();
+        return userRepository.findAllById(ids).stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
     }
 
-    private String resolveAuthorRole(UUID authorId, UUID jobId) {
-        if (authorId == null) {
-            return "DEVELOPER";
-        }
-        return userRepository.findById(authorId)
-                .map(u -> {
-                    if (u.getRole() == null) {
-                        return "DEVELOPER";
-                    }
-                    if (u.getRole() == org.moseti.kedevsapi.shared.enums.Role.DEVELOPER) {
-                        if (jobApplicationRepository != null && jobApplicationRepository.existsByJobIdAndApplicantId(jobId, authorId)) {
-                            return "APPLICANT";
-                        }
-                        return "DEVELOPER";
-                    }
-                    return u.getRole().name();
-                })
-                .orElse("DEVELOPER");
+    private String resolveAuthorName(UUID authorId, Map<UUID, User> userMap) {
+        if (authorId == null) return "Unknown User";
+        User u = userMap.get(authorId);
+        return u != null ? u.getFullName() : "Unknown User";
     }
 
-    private CommentResponse toCommentResponse(ForumComment comment, UUID currentUserId, boolean includeRepliesCount) {
+    private String resolveAuthorRole(UUID authorId, UUID jobId, Map<UUID, User> userMap, Set<UUID> applicantIds) {
+        if (authorId == null) return "DEVELOPER";
+        User u = userMap.get(authorId);
+        if (u == null || u.getRole() == null) return "DEVELOPER";
+        if (u.getRole() == org.moseti.kedevsapi.shared.enums.Role.DEVELOPER) {
+            // Use pre-fetched applicant set — no extra DB query per comment
+            return applicantIds.contains(authorId) ? "APPLICANT" : "DEVELOPER";
+        }
+        return u.getRole().name();
+    }
+
+    /**
+     * Maps a ForumComment to a CommentResponse.
+     * Uses pre-loaded userMap and applicantIds — no per-comment DB queries.
+     * When includeRepliesCount is true, replies are sourced from the page already loaded
+     * by the caller; this method only maps the replies list that was passed in via the
+     * comment's context (resolved inline in getJobComments).
+     */
+    private CommentResponse toCommentResponse(
+            ForumComment comment,
+            UUID currentUserId,
+            boolean includeRepliesCount,
+            Map<UUID, User> userMap,
+            Set<UUID> applicantIds
+    ) {
         VoteType currentUserVote = null;
         if (currentUserId != null) {
             currentUserVote = voteRepository.findByCommentIdAndUserId(comment.getId(), currentUserId)
@@ -312,14 +375,13 @@ public class ForumService {
         }
 
         int replyCount = 0;
+        List<CommentResponse> replies = List.of();
+
         if (includeRepliesCount && comment.getParentCommentId() == null) {
             replyCount = commentRepository.countByParentCommentIdAndIsHiddenFalse(comment.getId());
-        }
-
-        List<CommentResponse> replies = List.of();
-        if (includeRepliesCount && comment.getParentCommentId() == null) {
-            replies = commentRepository.findByParentCommentIdAndIsHiddenFalse(comment.getId(), org.springframework.data.domain.Pageable.unpaged())
-                    .map(c -> toCommentResponse(c, currentUserId, false))
+            // Map replies using the same pre-loaded userMap and applicantIds — no recursive DB calls
+            replies = commentRepository.findByParentCommentIdAndIsHiddenFalse(comment.getId(), Pageable.unpaged())
+                    .map(r -> toCommentResponse(r, currentUserId, false, userMap, applicantIds))
                     .getContent();
         }
 
@@ -327,8 +389,8 @@ public class ForumService {
                 comment.getId(),
                 comment.getJobId(),
                 comment.getAuthorId(),
-                resolveAuthorName(comment.getAuthorId()),
-                resolveAuthorRole(comment.getAuthorId(), comment.getJobId()),
+                resolveAuthorName(comment.getAuthorId(), userMap),
+                resolveAuthorRole(comment.getAuthorId(), comment.getJobId(), userMap, applicantIds),
                 comment.getParentCommentId(),
                 comment.getContent(),
                 comment.getUpvoteCount(),

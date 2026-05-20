@@ -109,9 +109,7 @@ export const jobService = {
     });
     
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/v1/jobs/export?${urlParams.toString()}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
+      credentials: 'include',
     });
     
     if (!response.ok) throw new Error('Failed to export PDF');

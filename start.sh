@@ -272,6 +272,10 @@ color_frontend_line() {
 color_postgres_line() {
     should_show_log "pg" || return
     local line="$1"
+    
+    # Suppress noisy background checkpoints
+    if [[ "$line" =~ checkpoint\ (starting|complete) ]]; then return; fi
+    
     local prefix="${PG_LABEL}[PG]${NC}"
     if   [[ "$line" =~ [Ee]rror|[Ff]atal|[Pp]anic ]]; then echo "${prefix} ${PG_ERROR}$line${NC}"
     elif [[ "$line" =~ [Ww]arn ]];                      then echo "${prefix} ${PG_WARN}$line${NC}"
@@ -438,6 +442,13 @@ start_backend() {
     free_port 8080
     > "$BACKEND_LOG"
     echo "${BE_LABEL}[Backend]${NC} ${GREEN}Starting Spring Boot...${NC}"
+    # Load .env into the environment so Spring resolves ${VAR} placeholders.
+    # set -a exports every variable defined after it; set +a stops that.
+    if [ -f "$ROOT_DIR/.env" ]; then
+        set -a; source "$ROOT_DIR/.env"; set +a
+    else
+        warn ".env not found at $ROOT_DIR/.env — Spring may fail to resolve secrets."
+    fi
     cd "$BACKEND_DIR" && mvn spring-boot:run >> "$BACKEND_LOG" 2>&1 &
     BACKEND_PID=$!
     echo "${BE_LABEL}[Backend]${NC} ${GRAY}PID=$BACKEND_PID  •  log: $BACKEND_LOG${NC}"

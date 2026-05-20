@@ -167,13 +167,10 @@ export default function VerificationQueue() {
    const handleExport = async (formatType: 'csv' | 'pdf') => {
       setIsExporting(formatType);
       try {
-         const token = localStorage.getItem('token');
          const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
          const response = await fetch(`${API_URL}/api/v1/admin/verification/export?format=${formatType}`, {
-            headers: {
-               'Authorization': `Bearer ${token}`
-            }
+            credentials: 'include',
          });
 
          if (!response.ok) throw new Error('Export generation failed');

@@ -50,12 +50,14 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       return;
     }
 
-    const token = localStorage.getItem('token');
+    // ws_token is stored in sessionStorage (tab-scoped) specifically for STOMP handshakes.
+    // SockJS/STOMP cannot use httpOnly cookies during the WebSocket upgrade.
+    const wsToken = sessionStorage.getItem('ws_token');
 
     const client = new Client({
       webSocketFactory: () => new SockJS('/ws'),
       connectHeaders: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${wsToken}`
       },
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,

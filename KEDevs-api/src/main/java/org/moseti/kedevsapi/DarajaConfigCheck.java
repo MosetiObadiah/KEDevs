@@ -18,11 +18,12 @@ public class DarajaConfigCheck {
 
     @Value("${cloudinary.cloud-name}")
     private String cloudinaryCloudName;
-    
+
     @PostConstruct
     public void init() {
         // This will print to your console immediately after the bean is initialized
-        System.out.println("DEBUG: The callback URL is: " + callbackUrl);
-        
+        System.out.println(
+            "DEBUG: You can check if credential are loaded well here"
+        );
     }
 }

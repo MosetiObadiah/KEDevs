@@ -105,8 +105,9 @@ public class SpotlightController {
                 spotlightService.getPastSpotlights(pageable)));
     }
 
-    @Operation(summary = "Export past spotlights", security = {})
+    @Operation(summary = "Export past spotlights", description = "Requires authentication.")
     @GetMapping("/past/export")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Resource> exportPastSpotlights(@RequestParam String format) {
         var data = spotlightService.getPastSpotlightsForExport();
         byte[] file;

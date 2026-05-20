@@ -61,10 +61,9 @@ export const companyService = {
     }
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     const response = await fetch(`${API_URL}/api/v1/employers/public/export?${params.toString()}`, {
       method: 'GET',
-      headers: token ? { 'Authorization': `Bearer ${token}` } : undefined
+      credentials: 'include',
     });
     if (!response.ok) throw new Error('Export failed');
     return response.blob();

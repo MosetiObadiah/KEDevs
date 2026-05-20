@@ -508,32 +508,9 @@ public class PaymentService {
     }
 
     /**
-     * Administrative override to manually activate a spotlight slot.
-     */
-    @Transactional
-    public SpotlightSlotConfirmResponse adminConfirmSpotlight(UUID userId) {
-        Payment payment = paymentRepository.findFirstByUserIdAndTypeInAndStatusInOrderByCreatedAtDesc(
-                userId,
-                List.of(PaymentType.SPOTLIGHT_DAY, PaymentType.SPOTLIGHT_WEEK),
-                List.of(PaymentStatus.PENDING)
-        ).orElseThrow(() -> new BadRequestException(
-                "No pending spotlight payment found for manual override."));
-
-        payment.setStatus(PaymentStatus.COMPLETED);
-        payment.setPaidAt(LocalDateTime.now());
-        payment.setMpesaReceiptNo("MANUAL-ADMIN-" + System.currentTimeMillis());
-        paymentRepository.save(payment);
-
-        SpotlightType type = payment.getType() == PaymentType.SPOTLIGHT_DAY
-                ? SpotlightType.DAY : SpotlightType.WEEK;
-        SpotlightSlot slot = spotlightService.activateSpotlight(userId, payment.getId(), type);
-
-        return new SpotlightSlotConfirmResponse(slot.getId(), type, slot.getEndDate());
-    }
-
-    /**
-     * Manually confirm a pending pinned-job payment.
-     * Used in development when Daraja callback URL isn't publicly reachable.
+     * [ADMIN/DEV] Manually confirm a pending pinned-job payment.
+     * Used in development when the Daraja callback URL isn't publicly reachable.
+     * Restricted to ADMIN role in the controller. Receipt is stamped DEV-MANUAL for audit clarity.
      */
     @Transactional
     public void confirmPinnedJob(UUID userId) {
@@ -546,7 +523,7 @@ public class PaymentService {
 
         payment.setStatus(PaymentStatus.COMPLETED);
         payment.setPaidAt(LocalDateTime.now());
-        payment.setMpesaReceiptNo("MANUAL-" + System.currentTimeMillis());
+        payment.setMpesaReceiptNo("DEV-MANUAL-" + java.util.UUID.randomUUID());
         paymentRepository.save(payment);
 
         activatePinnedJob(payment);

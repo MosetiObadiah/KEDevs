@@ -2,6 +2,7 @@ package org.moseti.kedevsapi.shared.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -36,16 +37,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
+        // 1. Authorization: Bearer header — kept for backward compatibility (May 2026)
+        //    Still used by: mobile app, external API consumers, Postman/Swagger testing.
+        //    Review for removal once mobile app is migrated to cookie auth.
         final String authHeader = request.getHeader(Constants.JWT_HEADER);
+        String jwt = null;
 
-        if (authHeader == null || !authHeader.startsWith(Constants.JWT_PREFIX)) {
+        if (authHeader != null && authHeader.startsWith(Constants.JWT_PREFIX)) {
+            jwt = authHeader.substring(Constants.JWT_PREFIX.length());
+        }
+
+        // 2. access_token httpOnly cookie — primary auth path for web browser clients
+        //    (cookie migration completed May 2026, see troubles.md)
+        if (jwt == null && request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("access_token".equals(cookie.getName())) {
+                    jwt = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        if (jwt == null) {
             filterChain.doFilter(request, response);
             return;
         }
 
         try {
-            final String jwt = authHeader.substring(Constants.JWT_PREFIX.length());
-
             if (jwtService.isTokenValid(jwt) && !jwtService.isTokenExpired(jwt)) {
                 UUID userId = jwtService.extractUserId(jwt);
 

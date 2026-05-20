@@ -220,107 +220,106 @@ export default function DeveloperOnboarding() {
   if (!isLoggedIn) return null;
 
   return (
-    <div className="min-h-screen bg-slate-50/50 flex flex-col items-center justify-center p-4 py-20">
-      <div className="absolute top-0 left-0 w-full h-[400px] bg-gradient-to-b from-primary/5 to-transparent -z-10" />
-
-      <div className="w-full max-w-2xl animate-in fade-in slide-in-from-bottom-8 duration-700">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-black tracking-tight text-slate-900">Developer Onboarding</h1>
-          <p className="text-slate-500 font-medium mt-2">Let's build your professional presence</p>
+    <div className="min-h-screen bg-muted/30 flex flex-col items-center justify-center p-4 py-12 sm:py-16">
+      <div className="w-full max-w-xl animate-in fade-in slide-in-from-bottom-6 duration-500">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Developer Onboarding</h1>
+          <p className="text-sm text-slate-500 font-medium mt-1.5 font-sans">Let&apos;s build your professional presence</p>
         </div>
 
-        <div className="flex justify-between items-center mb-12 relative px-4 max-w-md mx-auto">
-          <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-200 -translate-y-1/2 -z-10 rounded-full" />
+        {/* Stepper */}
+        <div className="flex justify-between items-center mb-8 relative px-4 max-w-xs sm:max-w-sm mx-auto">
+          <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 -translate-y-1/2 -z-10 rounded-full" />
           <div
-            className="absolute top-1/2 left-0 h-1 bg-primary -translate-y-1/2 -z-10 transition-all duration-500 rounded-full"
+            className="absolute top-1/2 left-0 h-0.5 bg-primary -translate-y-1/2 -z-10 transition-all duration-500 rounded-full"
             style={{ width: `${(activeStep / (steps.length - 1)) * 100}%` }}
           />
           {steps.map((step, index) => {
             const Icon = step.icon;
             return (
-              <div key={step.label} className="flex flex-col items-center gap-2">
+              <div key={step.label} className="flex flex-col items-center gap-1.5">
                 <div
                   className={cn(
-                    "h-10 w-10 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-lg",
+                    "h-8 w-8 sm:h-9 sm:w-9 rounded-xl flex items-center justify-center transition-all duration-300 shadow-sm",
                     index < activeStep ? "bg-primary text-white scale-90" :
-                      index === activeStep ? "bg-white text-primary border-4 border-primary scale-110" : "bg-white text-slate-300 border-2 border-slate-100"
+                      index === activeStep ? "bg-white text-primary border-2 border-primary scale-105 font-bold" : "bg-white text-slate-300 border border-slate-100"
                   )}
                 >
-                  {index < activeStep ? <CheckCircle2 className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+                  {index < activeStep ? <CheckCircle2 className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
                 </div>
               </div>
             );
           })}
         </div>
 
-        <Card className="rounded-xl-[2.5rem] border-none shadow-2xl shadow-primary/5 overflow-hidden">
-          <CardHeader className="bg-slate-900 p-8 text-white">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center">
-                {activeStep === 0 && <User className="h-6 w-6" />}
-                {activeStep === 1 && <Code2 className="h-6 w-6" />}
-                {activeStep === 2 && <Briefcase className="h-6 w-6" />}
+        <Card className="rounded-2xl border border-border/50 shadow-md bg-white overflow-hidden">
+          <CardHeader className="border-b border-border/50 bg-slate-50/50 p-5 sm:p-6">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                {activeStep === 0 && <User className="h-4.5 w-4.5" />}
+                {activeStep === 1 && <Code2 className="h-4.5 w-4.5" />}
+                {activeStep === 2 && <Briefcase className="h-4.5 w-4.5" />}
               </div>
               <div>
-                <CardTitle className="text-2xl font-black uppercase tracking-tight">{steps[activeStep].label}</CardTitle>
-                <CardDescription className="text-slate-500 font-medium uppercase text-[10px] tracking-widest">
+                <CardTitle className="text-base sm:text-lg font-semibold text-slate-900">{steps[activeStep].label}</CardTitle>
+                <CardDescription className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">
                   Step {activeStep + 1} of {steps.length}
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
 
-          <CardContent className="p-8 md:p-12 min-h-[400px]">
+          <CardContent className="p-5 sm:p-8 min-h-[350px] space-y-5">
             {activeStep === 0 && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">First Name</Label>
+              <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-slate-700">First Name</Label>
                     <Input
                       value={formData.firstName}
                       onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                      className="h-14 rounded-2xl border-slate-200 font-medium focus-visible:ring-primary/20"
+                      className="h-10 rounded-xl border-border/50 font-medium text-sm focus-visible:ring-primary/20"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">Last Name</Label>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-slate-700">Last Name</Label>
                     <Input
                       value={formData.lastName}
                       onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                      className="h-14 rounded-2xl border-slate-200 font-medium focus-visible:ring-primary/20"
+                      className="h-10 rounded-xl border-border/50 font-medium text-sm focus-visible:ring-primary/20"
                     />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">Current Role</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-slate-700">Current Role</Label>
                   <Popover open={isRoleOpen} onOpenChange={setIsRoleOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         role="combobox"
                         aria-expanded={isRoleOpen}
-                        className="w-full h-14 rounded-2xl border-slate-200 font-medium justify-between px-4 hover:bg-white active:scale-100"
+                        className="w-full h-10 rounded-xl border-border/50 font-medium justify-between px-3 hover:bg-white text-sm"
                       >
                         {formData.role || "Select your current role..."}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 rounded-2xl border-slate-100 shadow-2xl overflow-hidden">
-                      <div className="p-3 border-b border-slate-50 bg-slate-50/50">
+                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 rounded-xl border border-border/50 shadow-lg overflow-hidden">
+                      <div className="p-2 border-b border-slate-50 bg-slate-50/50">
                         <div className="relative">
-                          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                          <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
                           <Input
                             placeholder="Search roles..."
-                            className="pl-10 h-10 rounded-xl border-none bg-white shadow-sm font-medium text-sm"
+                            className="pl-8 h-8 rounded-lg border-border/50 bg-white shadow-sm font-medium text-xs"
                             value={roleSearch}
                             onChange={(e) => setRoleSearch(e.target.value)}
                           />
                         </div>
                       </div>
-                      <ScrollArea className="h-[300px]">
-                        <div className="p-2">
+                      <ScrollArea className="h-[200px]">
+                        <div className="p-1">
                           {COMMON_ROLES.filter(r => r.toLowerCase().includes(roleSearch.toLowerCase())).length === 0 && (
-                            <div className="py-6 text-center text-sm text-slate-500 font-medium italic">
+                            <div className="py-4 text-center text-xs text-slate-500 font-medium italic">
                               No roles found...
                             </div>
                           )}
@@ -328,16 +327,17 @@ export default function DeveloperOnboarding() {
                             <button
                               key={r}
                               className={cn(
-                                "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all",
+                                "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-left transition-all",
                                 formData.role === r ? "bg-primary text-white" : "text-slate-700 hover:bg-slate-50"
                               )}
+                              type="button"
                               onClick={() => {
                                 setFormData({ ...formData, role: r });
                                 setIsRoleOpen(false);
                                 setRoleSearch("");
                               }}
                             >
-                              <Check className={cn("h-4 w-4", formData.role === r ? "opacity-100" : "opacity-0")} />
+                              <Check className={cn("h-3 w-3", formData.role === r ? "opacity-100" : "opacity-0")} />
                               {r}
                             </button>
                           ))}
@@ -346,36 +346,36 @@ export default function DeveloperOnboarding() {
                     </PopoverContent>
                   </Popover>
                 </div>
-                <div className="space-y-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">Location (Kenya)</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-slate-700">Location (Kenya)</Label>
                   <Select value={formData.city} onValueChange={(v) => setFormData({ ...formData, city: v })}>
-                    <SelectTrigger className="h-14 rounded-2xl border-slate-200 font-black">
+                    <SelectTrigger className="h-10 rounded-xl border-border/50 text-sm">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl max-h-[300px]">
-                      {KENYA_COUNTIES.map(c => <SelectItem key={c} value={c} className="font-medium">{c}</SelectItem>)}
+                    <SelectContent className="rounded-xl max-h-[200px]">
+                      {KENYA_COUNTIES.map(c => <SelectItem key={c} value={c} className="font-medium text-xs">{c}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">Public Email</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-slate-700">Public Email</Label>
                     <Input
                       type="email"
                       placeholder="e.g. hello@example.com"
                       value={formData.publicEmail}
                       onChange={(e) => setFormData({ ...formData, publicEmail: e.target.value })}
-                      className="h-14 rounded-2xl border-slate-200 font-medium focus-visible:ring-primary/20"
+                      className="h-10 rounded-xl border-border/50 font-medium text-sm focus-visible:ring-primary/20"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">Public Phone (Optional)</Label>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-slate-700">Public Phone (Optional)</Label>
                     <Input
                       type="tel"
                       placeholder="e.g. 0712345678"
                       value={formData.publicPhone}
                       onChange={(e) => setFormData({ ...formData, publicPhone: e.target.value })}
-                      className="h-14 rounded-2xl border-slate-200 font-medium focus-visible:ring-primary/20"
+                      className="h-10 rounded-xl border-border/50 font-medium text-sm focus-visible:ring-primary/20"
                     />
                   </div>
                 </div>
@@ -383,25 +383,26 @@ export default function DeveloperOnboarding() {
             )}
 
             {activeStep === 1 && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                <div className="space-y-4">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">Your Current Skills</Label>
-                  <div className="flex flex-wrap gap-2 mb-4">
+              <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="space-y-3">
+                  <Label className="text-xs font-semibold text-slate-700">Your Current Skills (At least 3 required)</Label>
+                  <div className="flex flex-wrap gap-1.5 mb-2">
                     {formData.skills.map((skill: string) => (
-                      <Badge key={skill} className="h-10 px-4 rounded-xl bg-primary text-white font-black text-sm flex items-center gap-2 group">
+                      <Badge key={skill} className="h-8 px-3 rounded-lg bg-primary text-white font-semibold text-xs flex items-center gap-1.5">
                         {skill}
-                        <button onClick={() => removeSkill(skill)}><X className="h-4 w-4" /></button>
+                        <button type="button" onClick={() => removeSkill(skill)} className="hover:text-slate-200 transition-colors"><X className="h-3.5 w-3.5" /></button>
                       </Badge>
                     ))}
-                    {formData.skills.length === 0 && <p className="text-slate-500 font-medium italic py-2">Select skills from below or type to add...</p>}
+                    {formData.skills.length === 0 && <p className="text-slate-500 font-medium italic text-xs py-1">Select skills from below or type to add...</p>}
                   </div>
 
                   <div className="space-y-2">
                     <Input
                       placeholder="Type a skill and press enter..."
-                      className="h-12 rounded-xl"
+                      className="h-10 rounded-xl border-border/50 text-sm"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
+                          e.preventDefault();
                           const val = (e.target as HTMLInputElement).value.trim();
                           if (val) {
                             addSkill(val);
@@ -410,15 +411,15 @@ export default function DeveloperOnboarding() {
                         }
                       }}
                     />
-                    <div className="flex flex-wrap gap-2 pt-4">
+                    <div className="flex flex-wrap gap-1.5 pt-2">
                       {skillsOptions.map((skill: string) => (
                         <button
                           key={skill}
                           type="button"
                           onClick={() => addSkill(skill)}
                           className={cn(
-                            "px-4 py-2 rounded-xl border font-medium text-xs transition-all",
-                            formData.skills.includes(skill) ? "bg-slate-100 text-slate-500 border-slate-100" : "bg-white text-slate-700 border-slate-200 hover:border-primary hover:text-primary"
+                            "px-3 py-1.5 rounded-lg border font-medium text-xs transition-all",
+                            formData.skills.includes(skill) ? "bg-slate-100 text-slate-400 border-slate-100" : "bg-white text-slate-700 border-border/50 hover:border-primary hover:text-primary"
                           )}
                         >
                           {skill}
@@ -428,29 +429,29 @@ export default function DeveloperOnboarding() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
-                  <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">Work Availability</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-border/30">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-slate-700">Work Availability</Label>
                     <Select value={formData.availability} onValueChange={(v) => setFormData({ ...formData, availability: v })}>
-                      <SelectTrigger className="h-14 rounded-2xl border-slate-200 font-black">
+                      <SelectTrigger className="h-10 rounded-xl border-border/50 text-sm">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl">
-                        <SelectItem value="OPEN_TO_OFFERS" className="font-medium">Open to Offers</SelectItem>
-                        <SelectItem value="NOT_AVAILABLE" className="font-medium">Not Available</SelectItem>
+                        <SelectItem value="OPEN_TO_OFFERS" className="font-medium text-xs">Open to Offers</SelectItem>
+                        <SelectItem value="NOT_AVAILABLE" className="font-medium text-xs">Not Available</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">Preferred Work Type</Label>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-slate-700">Preferred Work Type</Label>
                     <Select value={formData.preferredWorkType} onValueChange={(v) => setFormData({ ...formData, preferredWorkType: v })}>
-                      <SelectTrigger className="h-14 rounded-2xl border-slate-200 font-black">
+                      <SelectTrigger className="h-10 rounded-xl border-border/50 text-sm">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl">
-                        <SelectItem value="REMOTE" className="font-medium">Remote</SelectItem>
-                        <SelectItem value="HYBRID" className="font-medium">Hybrid</SelectItem>
-                        <SelectItem value="ONSITE" className="font-medium">On-site</SelectItem>
+                        <SelectItem value="REMOTE" className="font-medium text-xs">Remote</SelectItem>
+                        <SelectItem value="HYBRID" className="font-medium text-xs">Hybrid</SelectItem>
+                        <SelectItem value="ONSITE" className="font-medium text-xs">On-site</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -459,32 +460,32 @@ export default function DeveloperOnboarding() {
             )}
 
             {activeStep === 2 && (
-              <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
-                <div className="space-y-2">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">Years of Experience</Label>
+              <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-slate-700">Years of Experience</Label>
                   <Select value={formData.yearsOfExperience} onValueChange={(v) => setFormData({ ...formData, yearsOfExperience: v })}>
-                    <SelectTrigger className="h-14 rounded-2xl border-slate-200 font-black">
+                    <SelectTrigger className="h-10 rounded-xl border-border/50 text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
-                      {experienceLevels.map(l => <SelectItem key={l.value} value={l.value} className="font-medium">{l.label}</SelectItem>)}
+                      {experienceLevels.map(l => <SelectItem key={l.value} value={l.value} className="font-medium text-xs">{l.label}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <div className="flex justify-between items-center">
-                    <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">Professional Summary</Label>
+                    <Label className="text-xs font-semibold text-slate-700">Professional Summary</Label>
                     <span className={cn(
-                      "text-[10px] font-medium tracking-widest uppercase",
-                      formData.bio.length >= 300 ? "text-danger-500" : "text-slate-500"
+                      "text-[10px] font-semibold tracking-wider uppercase",
+                      formData.bio.length >= 300 ? "text-danger-500" : "text-slate-400"
                     )}>
                       {formData.bio.length} / 300
                     </span>
                   </div>
                   <Textarea
                     placeholder="Highlight your best work, achievements, and what you're looking for..."
-                    className="min-h-[150px] rounded-2xl border-slate-200 font-medium text-base focus-visible:ring-primary/20"
+                    className="min-h-[100px] rounded-xl border-border/50 font-medium text-sm focus-visible:ring-primary/20"
                     value={formData.bio}
                     onChange={(e) => {
                       if (e.target.value.length <= 300) {
@@ -495,18 +496,18 @@ export default function DeveloperOnboarding() {
                   />
                 </div>
 
-                <div className="flex items-start space-x-3 pt-4">
+                <div className="flex items-start space-x-2.5 pt-2">
                   <Checkbox
                     id="terms"
                     checked={agreedToTerms}
                     onCheckedChange={(v) => setAgreedToTerms(v as boolean)}
-                    className="mt-1"
+                    className="mt-0.5 rounded animate-none"
                   />
-                  <div className="grid gap-1.5 leading-none">
-                    <Label htmlFor="terms" className="text-sm font-medium text-slate-700 leading-relaxed cursor-pointer">
-                      I agree to the <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link> and <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>.
+                  <div className="grid gap-1 leading-none">
+                    <Label htmlFor="terms" className="text-xs font-medium text-slate-700 leading-normal cursor-pointer">
+                      I agree to the <Link href="/terms" className="text-primary hover:underline font-semibold font-sans">Terms of Service</Link> and <Link href="/privacy" className="text-primary hover:underline font-semibold font-sans">Privacy Policy</Link>.
                     </Label>
-                    <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Required to finalize account</p>
+                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Required to finalize account</p>
                   </div>
                 </div>
               </div>
@@ -514,34 +515,34 @@ export default function DeveloperOnboarding() {
 
           </CardContent>
 
-          <CardFooter className="bg-slate-50 p-8 flex justify-between gap-4">
+          <CardFooter className="bg-slate-50/50 border-t border-border/50 p-5 sm:p-6 flex justify-between items-center gap-3 sm:gap-4">
             <Button
               variant="ghost"
-              size="lg"
-              className="rounded-2xl font-black h-14 px-8"
+              size="default"
+              className="rounded-xl font-semibold h-10 px-4 sm:px-5"
               onClick={handleBack}
               disabled={activeStep === 0 || loading}
             >
-              <ChevronLeft className="mr-2 h-5 w-5" /> Back
+              <ChevronLeft className="mr-1.5 h-4 w-4" /> Back
             </Button>
 
             {activeStep === steps.length - 1 ? (
               <Button
-                size="lg"
-                className="rounded-2xl font-black h-14 px-10 shadow-xl shadow-primary/20 transition-all active:scale-95"
+                size="default"
+                className="rounded-xl font-semibold h-10 px-5 sm:px-6 shadow-sm transition-all active:scale-95 bg-primary text-white"
                 onClick={handleNext}
                 disabled={loading || !agreedToTerms}
               >
-                {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <ShieldCheck className="mr-2 h-5 w-5" />}
+                {loading ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <ShieldCheck className="mr-1.5 h-4 w-4" />}
                 {loading ? 'Submitting...' : 'Submit Profile'}
               </Button>
             ) : (
               <Button
-                size="lg"
-                className="rounded-2xl font-black h-14 px-10 shadow-xl shadow-primary/20"
+                size="default"
+                className="rounded-xl font-semibold h-10 px-5 sm:px-6 shadow-sm bg-primary text-white"
                 onClick={handleNext}
               >
-                Continue <ChevronRight className="ml-2 h-5 w-5" />
+                Continue <ChevronRight className="ml-1.5 h-4 w-4" />
               </Button>
             )}
           </CardFooter>

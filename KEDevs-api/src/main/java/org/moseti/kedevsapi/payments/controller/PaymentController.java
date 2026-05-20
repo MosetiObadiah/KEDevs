@@ -118,14 +118,16 @@ public class PaymentController {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("STK push initiated", response));
     }
 
-    @Operation(summary = "Manually confirm a pending pinned-job payment",
-               description = "Dev use only — activates pinned status without a real M-Pesa callback.")
+    @Operation(summary = "[ADMIN/DEV] Manually confirm a pending pinned-job payment",
+               description = "Dev escape hatch — activates pinned status without a real M-Pesa callback. Restricted to ADMIN role.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Pinned job activated"),
         @ApiResponse(responseCode = "400", description = "No pending pinned job payment found"),
-        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "403", description = "Admin role required")
     })
     @PostMapping("/confirm-pinned-job")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<Void>> confirmPinnedJob() {
         paymentService.confirmPinnedJob(getCurrentUserId());
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Pinned job activated"));

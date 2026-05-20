@@ -82,13 +82,9 @@ export default function SpotlightPage() {
     setIsExporting(true);
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      const token = localStorage.getItem('token');
-      
       const response = await fetch(`${API_URL}/api/v1/spotlight/past/export?format=${format}`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        credentials: 'include',
       });
       if (!response.ok) throw new Error('Export failed');
       const blob = await response.blob();

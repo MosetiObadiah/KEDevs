@@ -1,6 +1,7 @@
 package org.moseti.kedevsapi.shared.security;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -30,6 +31,10 @@ import java.util.Map;
 public class SecurityConfig {
 
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
+        private final RateLimitFilter rateLimitFilter;
+
+        @Value("${cors.allowed-origins}")
+        private List<String> allowedOrigins;
 
         private static final String[] PUBLIC_URLS = {
                         "/api/v1/auth/**",
@@ -93,6 +98,7 @@ public class SecurityConfig {
                                                         );
                                                 })
                                 )
+                                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
                 return http.build();
         }
@@ -100,8 +106,7 @@ public class SecurityConfig {
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration config = new CorsConfiguration();
-                config.setAllowedOrigins(
-                                List.of("http://localhost:3000", "https://monogamy-revoke-treble.ngrok-free.dev"));
+                config.setAllowedOrigins(allowedOrigins);
                 config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 config.setAllowedHeaders(List.of("*"));
                 config.setAllowCredentials(true);

@@ -4,6 +4,8 @@ import org.moseti.kedevsapi.forum.entity.ForumComment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -32,7 +34,10 @@ public interface ForumCommentRepository extends JpaRepository<ForumComment, UUID
 
     long countByIsFlaggedTrue();
 
-    @org.springframework.data.jpa.repository.Query("SELECT fc.jobId, COUNT(fc) as cnt FROM ForumComment fc " +
+    @Query("SELECT fc.jobId, COUNT(fc) as cnt FROM ForumComment fc " +
             "WHERE fc.isHidden = false GROUP BY fc.jobId ORDER BY cnt DESC")
     java.util.List<Object[]> findMostActiveJob(Pageable pageable);
+
+    @Query("SELECT ja.applicantId FROM JobApplication ja WHERE ja.jobId = :jobId")
+    java.util.Set<UUID> findApplicantIdsByJobId(@Param("jobId") UUID jobId);
 }

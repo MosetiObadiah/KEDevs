@@ -23,7 +23,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.moseti.kedevsapi.admin.entity.AdminAction;
 import org.moseti.kedevsapi.admin.entity.AdminActionTypes;
@@ -168,44 +172,77 @@ public class SpotlightService {
     }
 
     public Page<SpotlightSlotResponse> getSlotHistory(Pageable pageable) {
-        return spotlightSlotRepository.findAll(pageable)
-                .map(slot -> {
-                    String devName = userRepository.findById(slot.getDeveloperId())
-                            .map(User::getFullName)
-                            .orElse("Unknown Developer");
+        Page<SpotlightSlot> slots = spotlightSlotRepository.findAll(pageable);
 
-                    return new SpotlightSlotResponse(
-                            slot.getId(),
-                            slot.getDeveloperId(),
-                            devName,
-                            slot.getType(),
-                            slot.getStartDate(),
-                            slot.getEndDate(),
-                            slot.isActive(),
-                            slot.isOverriddenByAdmin(),
-                            slot.getPaymentId(),
-                            slot.getCreatedAt()
-                    );
-                });
+        // Batch-load all developers on this page in one query
+        Set<UUID> devIds = slots.stream()
+                .map(SpotlightSlot::getDeveloperId)
+                .collect(Collectors.toSet());
+        Map<UUID, User> userMap = userRepository.findAllById(devIds).stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
+
+        return slots.map(slot -> {
+            String devName = userMap.containsKey(slot.getDeveloperId())
+                    ? userMap.get(slot.getDeveloperId()).getFullName()
+                    : "Unknown Developer";
+
+            return new SpotlightSlotResponse(
+                    slot.getId(),
+                    slot.getDeveloperId(),
+                    devName,
+                    slot.getType(),
+                    slot.getStartDate(),
+                    slot.getEndDate(),
+                    slot.isActive(),
+                    slot.isOverriddenByAdmin(),
+                    slot.getPaymentId(),
+                    slot.getCreatedAt()
+            );
+        });
     }
 
     public Page<PastSpotlightResponse> getPastSpotlights(Pageable pageable) {
-        return spotlightSlotRepository.findAllByIsActiveFalseAndOverriddenByAdminFalseOrderByEndDateDesc(pageable)
-                .map(this::mapToPastSpotlightResponse);
+        Page<SpotlightSlot> slots = spotlightSlotRepository
+                .findAllByIsActiveFalseAndOverriddenByAdminFalseOrderByEndDateDesc(pageable);
+        return slots.map(slot -> mapToPastSpotlightResponse(slot,
+                batchLoadUsers(slots.stream().map(SpotlightSlot::getDeveloperId).collect(Collectors.toSet())),
+                batchLoadProfiles(slots.stream().map(SpotlightSlot::getDeveloperId).collect(Collectors.toSet()))));
     }
 
     public List<PastSpotlightResponse> getPastSpotlightsForExport() {
-        return spotlightSlotRepository.findAllByIsActiveFalseAndOverriddenByAdminFalseOrderByEndDateDesc()
-                .stream()
-                .map(this::mapToPastSpotlightResponse)
+        List<SpotlightSlot> slots = spotlightSlotRepository
+                .findAllByIsActiveFalseAndOverriddenByAdminFalseOrderByEndDateDesc();
+
+        Set<UUID> devIds = slots.stream().map(SpotlightSlot::getDeveloperId).collect(Collectors.toSet());
+        Map<UUID, User> userMap = batchLoadUsers(devIds);
+        Map<UUID, DeveloperProfile> profileMap = batchLoadProfiles(devIds);
+
+        return slots.stream()
+                .map(slot -> mapToPastSpotlightResponse(slot, userMap, profileMap))
                 .toList();
     }
 
-    private PastSpotlightResponse mapToPastSpotlightResponse(SpotlightSlot slot) {
-        DeveloperProfile profile = developerProfileRepository.findByUserId(slot.getDeveloperId()).orElse(null);
-        String developerName = userRepository.findById(slot.getDeveloperId())
-                .map(User::getFullName)
-                .orElse("Unknown Developer");
+    private Map<UUID, User> batchLoadUsers(Set<UUID> ids) {
+        if (ids == null || ids.isEmpty()) return Map.of();
+        return userRepository.findAllById(ids).stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
+    }
+
+    private Map<UUID, DeveloperProfile> batchLoadProfiles(Set<UUID> userIds) {
+        if (userIds == null || userIds.isEmpty()) return Map.of();
+        return developerProfileRepository.findAllByUserIdIn(userIds).stream()
+                .collect(Collectors.toMap(DeveloperProfile::getUserId, Function.identity()));
+    }
+
+    private PastSpotlightResponse mapToPastSpotlightResponse(
+            SpotlightSlot slot,
+            Map<UUID, User> userMap,
+            Map<UUID, DeveloperProfile> profileMap
+    ) {
+        DeveloperProfile profile = profileMap.get(slot.getDeveloperId());
+        String developerName = userMap.containsKey(slot.getDeveloperId())
+                ? userMap.get(slot.getDeveloperId()).getFullName()
+                : "Unknown Developer";
 
         return new PastSpotlightResponse(
                 slot.getId(),

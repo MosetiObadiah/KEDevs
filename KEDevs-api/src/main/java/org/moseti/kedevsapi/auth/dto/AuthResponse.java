@@ -29,6 +29,24 @@ public class AuthResponse {
     private boolean onboarded;
     private boolean isVerified;
     private String accountStatus;
+
+    /** Returns a copy of this response with tokens stripped — used when tokens are set as httpOnly cookies instead. */
+    public AuthResponse withoutTokens() {
+        return AuthResponse.builder()
+                .accessToken(null)
+                .refreshToken(null)
+                .tokenType(null)
+                .userId(this.userId)
+                .email(this.email)
+                .fullName(this.fullName)
+                .role(this.role)
+                .emailVerified(this.emailVerified)
+                .requiresApproval(this.requiresApproval)
+                .onboarded(this.onboarded)
+                .isVerified(this.isVerified)
+                .accountStatus(this.accountStatus)
+                .build();
+    }
 }
 
 

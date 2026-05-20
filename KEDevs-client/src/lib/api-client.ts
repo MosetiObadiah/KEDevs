@@ -1,4 +1,6 @@
 // src/lib/api-client.ts
+// Auth tokens are now httpOnly cookies — the browser sends them automatically.
+// All fetch calls include credentials: 'include' so cookies cross the origin boundary.
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -40,11 +42,10 @@ export interface PaginatedResponse<T> {
 
 async function handleResponse<T>(response: Response, requestFn?: () => Promise<Response>): Promise<T> {
   if (response.status === 401 || response.status === 403) {
+    // If the refresh endpoint itself returned 401/403, the session is fully expired.
     if (response.url.includes('/api/v1/auth/refresh')) {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('user');
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
         localStorage.removeItem('isOnboarded');
         window.location.href = '/login';
       }
@@ -52,43 +53,31 @@ async function handleResponse<T>(response: Response, requestFn?: () => Promise<R
       throw new Error(errorData?.message || 'Session expired.');
     }
 
+    // Otherwise attempt a silent token refresh.
+    // No body needed — the browser sends the refresh_token cookie automatically.
     if (typeof window !== 'undefined') {
-      const hasSession = localStorage.getItem('user') || localStorage.getItem('token');
-      const refreshToken = localStorage.getItem('refreshToken');
-
-      if (hasSession && refreshToken) {
+      const hasSession = !!localStorage.getItem('user');
+      if (hasSession) {
         try {
           const refreshResponse = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ refreshToken }),
+            credentials: 'include',
           });
 
-          if (refreshResponse.ok) {
-            const refreshData = await refreshResponse.json();
-            const newAccessToken = refreshData.data?.accessToken || refreshData.accessToken;
-            if (newAccessToken) {
-              localStorage.setItem('token', newAccessToken);
-              if (requestFn) {
-                const retriedResponse = await requestFn();
-                return handleResponse<T>(retriedResponse);
-              }
-            }
+          if (refreshResponse.ok && requestFn) {
+            // New access_token cookie set by server — retry original request
+            const retriedResponse = await requestFn();
+            return handleResponse<T>(retriedResponse);
           }
         } catch (refreshErr) {
           console.error('Error refreshing token:', refreshErr);
         }
 
-        // If refresh fails, clear session and redirect to login
+        // Refresh failed — clear local state and redirect
         localStorage.removeItem('user');
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
         localStorage.removeItem('isOnboarded');
         window.location.href = '/login';
-        // Return a never-resolving promise — the page is navigating away
-        return new Promise(() => { }) as Promise<T>;
+        return Promise.reject(new Error('Session expired. Redirecting to login.')) as Promise<T>;
       }
     }
   }
@@ -112,19 +101,11 @@ async function handleResponse<T>(response: Response, requestFn?: () => Promise<R
 export const apiClient = {
   getHeaders(options: RequestInit = {}, body?: any): HeadersInit {
     const headers: Record<string, string> = {};
-
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-    }
-
+    // No Authorization header — access_token cookie is sent automatically via credentials: 'include'
     const contentType = options.headers && (options.headers as any)['Content-Type'];
     if (!contentType && !(body instanceof FormData)) {
       headers['Content-Type'] = 'application/json';
     }
-
     return {
       ...headers,
       ...options.headers,
@@ -136,6 +117,7 @@ export const apiClient = {
       cache: 'no-store',
       ...options,
       method: 'GET',
+      credentials: 'include',
       headers: this.getHeaders(options),
     });
     const response = await execute();
@@ -146,6 +128,7 @@ export const apiClient = {
     const execute = () => fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       method: 'POST',
+      credentials: 'include',
       headers: this.getHeaders(options, body),
       body: body instanceof FormData ? body : JSON.stringify(body),
     });
@@ -157,6 +140,7 @@ export const apiClient = {
     const execute = () => fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       method: 'PUT',
+      credentials: 'include',
       headers: this.getHeaders(options, body),
       body: body instanceof FormData ? body : JSON.stringify(body),
     });
@@ -168,6 +152,7 @@ export const apiClient = {
     const execute = () => fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       method: 'PATCH',
+      credentials: 'include',
       headers: this.getHeaders(options, body),
       body: body instanceof FormData ? body : JSON.stringify(body),
     });
@@ -179,10 +164,10 @@ export const apiClient = {
     const execute = () => fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       method: 'DELETE',
+      credentials: 'include',
       headers: this.getHeaders(options),
     });
     const response = await execute();
     return handleResponse<T>(response, execute);
   },
 };
-

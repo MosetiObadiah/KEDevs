@@ -39,13 +39,10 @@ export default function VerifyEmailPage() {
       const response = await authService.verifyEmail(userId as string, code);
       if (response.success) {
         const {
-          accessToken,
-          refreshToken,
           userId,
           email,
           fullName,
           role,
-          emailVerified,
           requiresApproval,
         } = response.data;
 
@@ -59,7 +56,7 @@ export default function VerifyEmailPage() {
           isVerified: false,
         };
 
-        setAuthData(userData, accessToken, refreshToken);
+        setAuthData(userData);
         toast.success("Email verified successfully!");
 
         if (role === "DEVELOPER") router.push("/onboarding/developer");

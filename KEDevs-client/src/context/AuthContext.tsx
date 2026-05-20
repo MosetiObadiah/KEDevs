@@ -14,7 +14,7 @@ interface AuthContextType {
   googleLogin: (token: string, role?: string) => Promise<void>;
   logout: () => void;
   completeOnboarding: () => void;
-  setAuthData: (userData: User, token: string, refreshToken?: string) => void;
+  setAuthData: (userData: User) => void;
   isLoading: boolean;
   refreshUserStatus: () => Promise<void>;
 }
@@ -27,28 +27,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
+  // On mount: validate session by calling /me.
+  // The access_token cookie is sent automatically — if valid, we get the user back.
+  // On 401, the cookie is missing/expired and the user is logged out.
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
-    if (storedUser && token) {
-      try {
-        setUser(JSON.parse(storedUser));
-        const storedOnboarded = localStorage.getItem('isOnboarded');
-        if (storedOnboarded === 'true') {
-          setIsOnboarded(true);
+    authService.me()
+      .then(response => {
+        if (response.success && response.data) {
+          const d = response.data;
+          const userData: User = {
+            id: d.userId,
+            email: d.email,
+            fullName: d.fullName,
+            role: d.role,
+            isEmailVerified: d.emailVerified,
+            isApproved: !d.requiresApproval,
+            isVerified: d.isVerified || !d.requiresApproval,
+            spotlightStatus: { isActive: false },
+            accountStatus: d.accountStatus || 'ACTIVE'
+          };
+          setUser(userData);
+          // Restore onboarded state from localStorage (non-sensitive, safe to keep here)
+          setIsOnboarded(localStorage.getItem('isOnboarded') === 'true');
+          // Persist user profile info (non-sensitive) for fast renders before /me resolves
+          localStorage.setItem('user', JSON.stringify(userData));
+        } else {
+          setUser(null);
+          localStorage.removeItem('user');
+          localStorage.removeItem('isOnboarded');
         }
-      } catch (e) {
-        console.error('Failed to parse user from localStorage', e);
+      })
+      .catch(() => {
+        // 401 = not logged in, that's fine
+        setUser(null);
         localStorage.removeItem('user');
-        localStorage.removeItem('token');
         localStorage.removeItem('isOnboarded');
-      }
-    }
-    setIsLoading(false);
+      })
+      .finally(() => setIsLoading(false));
   }, []);
 
+  /**
+   * Handles successful auth responses (login, register, Google, verify-email).
+   * Tokens are no longer in the response body — they're in httpOnly cookies.
+   * We only store non-sensitive user profile data in localStorage for fast hydration.
+   */
   const handleAuthSuccess = useCallback((data: any) => {
-    const { accessToken, refreshToken, userId, email, fullName, role, emailVerified, requiresApproval, onboarded } = data;
+    const { userId, email, fullName, role, emailVerified, requiresApproval, onboarded } = data;
 
     const userData: User = {
       id: userId,
@@ -65,28 +89,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(userData);
     setIsOnboarded(onboarded);
 
+    // Store non-sensitive profile info only
     localStorage.setItem('user', JSON.stringify(userData));
-    localStorage.setItem('token', accessToken);
-    if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
     if (onboarded) localStorage.setItem('isOnboarded', 'true');
     else localStorage.removeItem('isOnboarded');
+
+    // WebSocket-only token: sessionStorage is tab-scoped and cleared on browser close.
+    // SockJS/STOMP cannot use httpOnly cookies during the handshake, so we store
+    // the raw access token here for the STOMP connectHeaders ONLY.
+    // This is a documented tradeoff — see troubles.md.
+    if (data.accessToken) sessionStorage.setItem('ws_token', data.accessToken);
 
     // Redirect based on role and status
     if (role === 'ADMIN') {
       router.push('/admin');
     } else if (role === 'DEVELOPER') {
-      if (onboarded) {
-        router.push('/jobs');
-      } else {
-        router.push('/onboarding/developer');
-      }
+      router.push(onboarded ? '/jobs' : '/onboarding/developer');
     } else if (role === 'EMPLOYER') {
       if (onboarded) {
-        if (requiresApproval) {
-          router.push('/pending-approval');
-        } else {
-          router.push('/developers');
-        }
+        router.push(requiresApproval ? '/pending-approval' : '/developers');
       } else {
         router.push('/onboarding/employer');
       }
@@ -106,7 +127,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err: any) {
       setUser(null);
       localStorage.removeItem('user');
-      localStorage.removeItem('token');
       throw err;
     } finally {
       setIsLoading(false);
@@ -126,16 +146,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [handleAuthSuccess]);
 
   const logout = useCallback(() => {
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (refreshToken) {
-      authService.logout(refreshToken).catch(console.error);
-    }
+    authService.logout().catch(console.error);
     setUser(null);
     setIsOnboarded(false);
     localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
     localStorage.removeItem('isOnboarded');
+    sessionStorage.removeItem('ws_token');
     router.push('/login');
   }, [router]);
 
@@ -144,21 +160,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('isOnboarded', 'true');
   }, []);
 
-  const setAuthData = useCallback((userData: User, token: string, refreshToken?: string) => {
+  /** Called after profile updates that don't require re-auth — no token needed. */
+  const setAuthData = useCallback((userData: User) => {
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
-    localStorage.setItem('token', token);
-    if (refreshToken) {
-      localStorage.setItem('refreshToken', refreshToken);
-    }
     setIsOnboarded(false);
     localStorage.removeItem('isOnboarded');
   }, []);
 
   const refreshUserStatus = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
       const response = await authService.me();
       if (response.success && response.data) {
         const storedUser = localStorage.getItem('user');

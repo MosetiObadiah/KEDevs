@@ -71,9 +71,7 @@ public class DarajaService {
             cachedToken = response.accessToken();
             tokenExpiresAt = LocalDateTime.now().plusSeconds(3500);
 
-            System.out.println("================================");
-            System.out.println("DARAJA ACCESS TOKEN: " + cachedToken);
-            System.out.println("================================");
+            log.debug("Daraja access token refreshed (expires in ~58 min)");
 
             return cachedToken;
 

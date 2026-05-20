@@ -176,6 +176,26 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
+        <!-- Rate limiting -->
+        <dependency>
+            <groupId>com.bucket4j</groupId>
+            <artifactId>bucket4j-core</artifactId>
+            <version>8.10.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+        <!-- .env file support (Spring Boot 4) — resolves ${VAR} from .env in IDE/CI runs.
+             springboot4-dotenv is the correct artifact for Spring Boot 4 (not spring-dotenv).
+             Version managed by spring-dotenv-bom. optional=true keeps it out of production JARs.
+             start.sh also sources .env via set -a — they don't conflict; env vars take precedence. -->
+        <dependency>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>springboot4-dotenv</artifactId>
+            <optional>true</optional>
+        </dependency>
+
     </dependencies>
 
     <build>
