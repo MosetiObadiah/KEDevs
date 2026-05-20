@@ -12,6 +12,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useGoogleLogin } from '@react-oauth/google';
 import { cn } from '@/lib/utils';
@@ -29,6 +30,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
   const { login, googleLogin } = useAuth();
 
   const handleGoogleLogin = useGoogleLogin({
@@ -59,6 +61,13 @@ export default function LoginPage() {
       await login({ email, password });
     } catch (err: any) {
       console.error('Login error:', err);
+      
+      if (err.status === 403 && err.data?.userId) {
+        toast.error('Please verify your email to continue.');
+        router.push(`/verify-email/${err.data.userId}`);
+        return;
+      }
+
       const errorMessage = err.message || 'Invalid email or password. Please try again.';
       setError(errorMessage);
       toast.error(errorMessage);

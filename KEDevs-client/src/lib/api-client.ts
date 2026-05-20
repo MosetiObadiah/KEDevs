@@ -95,7 +95,10 @@ async function handleResponse<T>(response: Response, requestFn?: () => Promise<R
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData?.message || `HTTP error! status: ${response.status}`);
+    const error = new Error(errorData?.message || `HTTP error! status: ${response.status}`);
+    (error as any).data = errorData?.data;
+    (error as any).status = response.status;
+    throw error;
   }
 
   const data = await response.json();
