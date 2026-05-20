@@ -194,6 +194,12 @@ export default function DeveloperOnboarding() {
         setLoading(false);
       }
     } else {
+      if (activeStep === 1) {
+        if (formData.skills.length < 3) {
+          toast.error('Please select at least 3 skills to continue');
+          return;
+        }
+      }
       setActiveStep((prev) => prev + 1);
     }
   };
@@ -401,7 +407,7 @@ export default function DeveloperOnboarding() {
             {activeStep === 1 && (
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div className="space-y-4">
-                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">Your Arsenal (Skills)</Label>
+                  <Label className="font-black text-[10px] uppercase tracking-widest text-slate-500">Your Current Skills</Label>
                   <div className="flex flex-wrap gap-2 mb-4">
                     {formData.skills.map((skill: string) => (
                       <Badge key={skill} className="h-10 px-4 rounded-xl bg-primary text-white font-black text-sm flex items-center gap-2 group">
