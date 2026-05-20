@@ -20,6 +20,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.moseti.kedevsapi.shared.dto.WebSocketEvent;
 import org.moseti.kedevsapi.users.repository.BlockedUserRepository;
 
+import org.springframework.dao.DataIntegrityViolationException;
+
 import java.util.UUID;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -102,9 +104,14 @@ public class NotificationService {
     public NotificationPreference getOrCreatePreferences(UUID userId) {
         return preferenceRepository.findByUserId(userId)
                 .orElseGet(() -> {
-                    NotificationPreference prefs = new NotificationPreference();
-                    prefs.setUserId(userId);
-                    return preferenceRepository.save(prefs);
+                    try {
+                        NotificationPreference prefs = new NotificationPreference();
+                        prefs.setUserId(userId);
+                        return preferenceRepository.save(prefs);
+                    } catch (DataIntegrityViolationException e) {
+                        return preferenceRepository.findByUserId(userId)
+                                .orElseThrow(() -> e);
+                    }
                 });
     }
 

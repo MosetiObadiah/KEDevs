@@ -771,6 +771,7 @@ public class DeveloperProfileService {
         int projectCount = (int) projectRepository.countByDeveloperId(profile.getId());
         return new UserDtos.DeveloperSummaryResponse(
                 profile.getId(),
+                profile.getUserId(),
                 profile.getFirstName(), profile.getLastName(),
                 profile.getProfilePhoto(), profile.getCurrentLastRole(),
                 skills, profile.getAvailabilityStatus(),

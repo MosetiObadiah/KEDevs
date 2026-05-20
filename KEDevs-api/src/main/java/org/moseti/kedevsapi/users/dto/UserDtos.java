@@ -200,6 +200,7 @@ public class UserDtos {
 
     public record DeveloperSummaryResponse(
             java.util.UUID id,
+            java.util.UUID userId,
             String firstName,
             String lastName,
             String profilePhoto,

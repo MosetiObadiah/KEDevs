@@ -37,6 +37,7 @@ export interface JobSummary {
 
 export interface DeveloperSummary {
   id: string;
+  userId: string;
   firstName: string;
   lastName: string;
   profilePhoto: string;

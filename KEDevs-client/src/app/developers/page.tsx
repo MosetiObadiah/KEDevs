@@ -689,7 +689,13 @@ function DevelopersPageContent() {
                   <Card
                     key={dev.id}
                     className="group border-border/50 hover:shadow-xl hover:shadow-primary/5 transition-all overflow-hidden bg-background p-5 flex flex-col cursor-pointer"
-                    onClick={() => router.push(`/developers/${dev.id}`)}
+                    onClick={() => {
+                      if (isLoggedIn && user && dev.userId === user.id) {
+                        router.push('/profile/me');
+                      } else {
+                        router.push(`/developers/${dev.id}`);
+                      }
+                    }}
                   >
                     {/* Header: Avatar, Name & Role side by side */}
                     <div className="flex items-start gap-3 w-full">
@@ -781,7 +787,7 @@ function DevelopersPageContent() {
                       </span>
 
                       <Button size="sm" className="bg-azure-500 hover:bg-azure-600 text-white text-[11px] font-black uppercase tracking-widest px-2.5 h-7 rounded-lg flex items-center gap-1 transition-colors border-none" asChild>
-                        <Link href={`/developers/${dev.id}`}>
+                        <Link href={isLoggedIn && user && dev.userId === user.id ? '/profile/me' : `/developers/${dev.id}`}>
                           View <ArrowRight className="h-3 w-3" />
                         </Link>
                       </Button>

@@ -104,7 +104,6 @@ export default function DeveloperOnboarding() {
   const [activeStep, setActiveStep] = useState(0);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [roleSearch, setRoleSearch] = useState("");
   const [isRoleOpen, setIsRoleOpen] = useState(false);
 
@@ -147,10 +146,10 @@ export default function DeveloperOnboarding() {
   useEffect(() => {
     if (!isLoggedIn) {
       router.push('/login');
-    } else if (isOnboarded && !success) {
+    } else if (isOnboarded) {
       router.push('/developers');
     }
-  }, [isLoggedIn, isOnboarded, success, router]);
+  }, [isLoggedIn, isOnboarded, router]);
 
   const handleNext = async () => {
     if (activeStep === steps.length - 1) {
@@ -185,8 +184,8 @@ export default function DeveloperOnboarding() {
         const response = await developerService.createProfile(payload);
         if (response.success) {
           localStorage.removeItem('developer_onboarding');
-          setSuccess(true);
-          completeOnboarding(); // called after success state is set to avoid redirect race
+          completeOnboarding();
+          router.push('/developers');
         }
       } catch (err: any) {
         toast.error(err.message || 'Failed to create profile');
@@ -219,27 +218,6 @@ export default function DeveloperOnboarding() {
   };
 
   if (!isLoggedIn) return null;
-
-  if (success) {
-    return (
-      <div className="min-h-screen bg-slate-50/50 flex flex-col items-center justify-center p-4">
-        <div className="text-center space-y-6 max-w-md animate-in zoom-in-95 duration-500">
-          <div className="h-24 w-24 bg-cyan-50 text-cyan-600 rounded-full flex items-center justify-center mx-auto border-4 border-emerald-100 shadow-xl">
-            <CheckCircle2 className="h-12 w-12" />
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-3xl font-black text-slate-900">Application Received!</h1>
-            <p className="text-slate-500 font-medium leading-relaxed">
-              Your profile is under review. Please wait 24 hours for the verification process to complete. You can still browse the platform in the meantime.
-            </p>
-          </div>
-          <Button className="rounded-2xl font-black h-14 w-full shadow-xl shadow-primary/20" asChild>
-            <Link href="/developers">Go to Developers Page</Link>
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-slate-50/50 flex flex-col items-center justify-center p-4 py-20">

@@ -85,6 +85,7 @@ export default function HomePage() {
             if (slot && !devs.some(d => d.id === slot.developerId)) {
               devs.push({
                 id: slot.developerId,
+                userId: slot.developerId, // Using developerId as a fallback since userId is not available here
                 firstName: slot.developerName.split(' ')[0],
                 lastName: slot.developerName.split(' ')[1] || '',
                 profilePhoto: slot.profilePhoto,
