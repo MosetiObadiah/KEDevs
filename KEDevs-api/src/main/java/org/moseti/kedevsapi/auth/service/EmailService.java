@@ -2,9 +2,10 @@ package org.moseti.kedevsapi.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailAuthenticationException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.MailAuthenticationException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +16,14 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
+    @Value("${app.mail.from}")
+    private String fromEmail;
+
     @Async
     public void sendVerificationCode(String to, String code, String fullName) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
             message.setTo(to);
             message.setSubject("KEDevs - Email Verification Code");
             message.setText(buildVerificationEmail(fullName, code));
@@ -33,6 +38,7 @@ public class EmailService {
     public void sendPasswordResetCode(String to, String code, String fullName) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
             message.setTo(to);
             message.setSubject("KEDevs - Password Reset Code");
             message.setText(buildPasswordResetEmail(fullName, code));
@@ -47,6 +53,7 @@ public class EmailService {
     public void sendWelcomeEmail(String to, String fullName) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
             message.setTo(to);
             message.setSubject("Welcome to KEDevs!");
             message.setText(buildWelcomeEmail(fullName));
@@ -61,6 +68,7 @@ public class EmailService {
     public void sendPaymentConfirmationEmail(String to, String fullName, String paymentType, java.math.BigDecimal amount, String receiptNo) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
             message.setTo(to);
             message.setSubject("Payment Confirmed - KEDevs");
             message.setText(String.format("""
@@ -84,6 +92,7 @@ public class EmailService {
     public void sendSubscriptionExpiryWarningEmail(String to, String fullName, java.time.LocalDateTime expiryDate) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
             message.setTo(to);
             message.setSubject("Your KEDevs Subscription Expires Soon");
             message.setText(String.format("""
@@ -105,6 +114,7 @@ public class EmailService {
     public void sendJobApplicationEmail(String to, String posterName, String jobTitle, String applicantName) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
             message.setTo(to);
             message.setSubject("New Application - " + jobTitle);
             message.setText(String.format("""
@@ -125,6 +135,7 @@ public class EmailService {
     public void sendJobFlaggedEmail(String to, String jobTitle, String reporterName, String reason) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
             message.setTo(to);
             message.setSubject("Job Flagged for Review - KEDevs Admin");
             message.setText(String.format("""
@@ -150,6 +161,7 @@ public class EmailService {
     public void sendSpotlightExpiredEmail(String to, String fullName, String spotlightType) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
             message.setTo(to);
             message.setSubject("Your Spotlight Has Ended - KEDevs");
             message.setText(String.format("""
@@ -171,6 +183,7 @@ public class EmailService {
     public void sendSpotlightOverriddenEmail(String to, String fullName, String reason) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
             message.setTo(to);
             message.setSubject("Your Spotlight Has Been Removed - KEDevs");
             message.setText(String.format("""
@@ -192,6 +205,7 @@ public class EmailService {
     public void sendJobAdvertisementExpiredEmail(String to, String fullName, String jobTitle) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
             message.setTo(to);
             message.setSubject("Your Job Advertisement Has Ended - KEDevs");
             message.setText(String.format("""
@@ -213,6 +227,7 @@ public class EmailService {
     public void sendJobAdvertisementOverriddenEmail(String to, String fullName, String jobTitle, String reason) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
             message.setTo(to);
             message.setSubject("Your Job Advertisement Has Been Removed - KEDevs");
             message.setText(String.format("""

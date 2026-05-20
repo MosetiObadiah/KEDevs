@@ -19,5 +19,7 @@ public interface VerificationCodeRepository extends JpaRepository<VerificationCo
     );
     
     void deleteByUserIdAndType(UUID userId, VerificationCode.CodeType type);
+
+    java.util.List<VerificationCode> findAllByUserIdAndType(UUID userId, VerificationCode.CodeType type);
 }
 

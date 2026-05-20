@@ -20,8 +20,14 @@ public class VerificationCodeService {
 
     @Transactional
     public String generateCode(UUID userId, VerificationCode.CodeType type) {
-        // Delete any existing codes for this user and type to avoid confusion
-        verificationCodeRepository.deleteByUserIdAndType(userId, type);
+        // Mark any existing codes for this user and type as used instead of deleting them
+        var existingCodes = verificationCodeRepository.findAllByUserIdAndType(userId, type);
+        for (var existingCode : existingCodes) {
+            if (!existingCode.isUsed()) {
+                existingCode.setUsed(true);
+            }
+        }
+        verificationCodeRepository.saveAll(existingCodes);
 
         String code = generateRandomCode();
 
