@@ -27,6 +27,7 @@ export default function VerifyEmailPage() {
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const { setAuthData } = useAuth();
 
   const handleVerify = async () => {
@@ -70,6 +71,25 @@ export default function VerifyEmailPage() {
       setError(err.message || "Invalid or expired verification code.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (!userId) return;
+
+    setError(null);
+    setResending(true);
+    try {
+      const response = await authService.resendVerification(userId as string);
+      if (response.success) {
+        toast.success("A new access code has been sent to your email.");
+      } else {
+        toast.error(response.message || "Failed to resend code.");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to resend code. Please try again later.");
+    } finally {
+      setResending(false);
     }
   };
 
@@ -143,8 +163,15 @@ export default function VerifyEmailPage() {
                 <Button
                   variant="ghost"
                   className="rounded-xl font-black text-[10px] uppercase tracking-widest text-primary hover:bg-primary/5"
+                  onClick={handleResend}
+                  disabled={resending || loading}
                 >
-                  <RefreshCcw className="h-3.5 w-3.5 mr-2" /> Resend Access Code
+                  {resending ? (
+                    <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
+                  ) : (
+                    <RefreshCcw className="h-3.5 w-3.5 mr-2" />
+                  )}
+                  Resend Access Code
                 </Button>
               </div>
             </div>
