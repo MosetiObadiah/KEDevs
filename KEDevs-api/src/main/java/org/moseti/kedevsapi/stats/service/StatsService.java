@@ -23,7 +23,7 @@ public class StatsService {
     public StatsDtos.PublicStatsResponse getPublicStats() {
         long developers = developerProfileRepository.countByProfileVisibility(ProfileVisibility.PUBLIC);
         long companies = employerProfileRepository.countByIsApprovedTrue();
-        long jobs = jobPostRepository.countByVisibilityAndStatus(JobVisibility.PUBLIC, JobStatus.OPEN);
+        long jobs = jobPostRepository.countActivePublicJobs(JobVisibility.PUBLIC, JobStatus.OPEN, java.time.LocalDate.now());
 
         return new StatsDtos.PublicStatsResponse(developers, companies, jobs);
     }

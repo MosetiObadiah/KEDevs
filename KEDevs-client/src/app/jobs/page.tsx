@@ -856,18 +856,6 @@ function JobsPageContent() {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <label className="text-xs font-medium text-muted-foreground uppercase">Job Status</label>
-        <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="text-xs h-9 rounded-xl w-full">
-            <SelectValue placeholder="Filter by Status" />
-          </SelectTrigger>
-          <SelectContent className="max-h-60 overflow-y-auto">
-            <SelectItem value="OPEN">Open Only</SelectItem>
-            <SelectItem value="CLOSED">Closed Only</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
 
       <div className="space-y-2 border-t pt-4">
         <label className="text-xs font-medium text-muted-foreground uppercase">Order Results By</label>

@@ -59,17 +59,31 @@ export default function HomePage() {
         }).catch(console.error);
 
         // Fetch Jobs
-        const pinnedResponse = await jobService.getPinnedJobs();
-        if (pinnedResponse.success && pinnedResponse.data.length > 0) {
-          setFeaturedJobs(pinnedResponse.data.slice(0, 3));
-        } else {
-          const jobsResponse = await jobService.getPublicJobs(undefined, 0, 20);
-          if (jobsResponse.success) {
-            const allJobs = jobsResponse.data.content;
-            const shuffledJobs = [...allJobs].sort(() => Math.random() - 0.5).slice(0, 3);
-            setFeaturedJobs(shuffledJobs);
+        let pinnedJobs: JobSummary[] = [];
+        try {
+          const pinnedResponse = await jobService.getPinnedJobs();
+          if (pinnedResponse.success && Array.isArray(pinnedResponse.data)) {
+            pinnedJobs = pinnedResponse.data;
           }
+        } catch (err) {
+          console.error('Failed to fetch pinned jobs:', err);
         }
+
+        let publicJobs: JobSummary[] = [];
+        try {
+          const jobsResponse = await jobService.getPublicJobs(undefined, 0, 20);
+          if (jobsResponse.success && jobsResponse.data && Array.isArray(jobsResponse.data.content)) {
+            publicJobs = jobsResponse.data.content;
+          }
+        } catch (err) {
+          console.error('Failed to fetch public jobs:', err);
+        }
+
+        const pinnedIds = new Set(pinnedJobs.map(j => j.id));
+        const filteredPublicJobs = publicJobs.filter(j => !pinnedIds.has(j.id));
+        const shuffledPublic = [...filteredPublicJobs].sort(() => Math.random() - 0.5);
+        const combinedJobs = [...pinnedJobs.slice(0, 3), ...shuffledPublic].slice(0, 3);
+        setFeaturedJobs(combinedJobs);
         setIsLoadingJobs(false);
 
         // Fetch Developers

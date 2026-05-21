@@ -28,6 +28,23 @@ public interface JobPostRepository extends JpaRepository<JobPost, UUID>, JpaSpec
 
     Page<JobPost> findByPostedById(UUID postedById, Pageable pageable);
 
+    @Query("SELECT j FROM JobPost j WHERE j.visibility = :visibility AND j.status = :status " +
+           "AND (:postedById IS NULL OR j.postedById = :postedById) " +
+           "AND (j.applicationDeadline IS NULL OR j.applicationDeadline >= :today) " +
+           "ORDER BY j.upvoteCount DESC, j.createdAt DESC")
+    Page<JobPost> findActivePublicJobs(@Param("visibility") JobVisibility visibility,
+                                       @Param("status") JobStatus status,
+                                       @Param("postedById") UUID postedById,
+                                       @Param("today") java.time.LocalDate today,
+                                       Pageable pageable);
+
+    @Query("SELECT COUNT(j) FROM JobPost j WHERE j.visibility = :visibility AND j.status = :status " +
+           "AND (j.applicationDeadline IS NULL OR j.applicationDeadline >= :today)")
+    long countActivePublicJobs(@Param("visibility") JobVisibility visibility,
+                               @Param("status") JobStatus status,
+                               @Param("today") java.time.LocalDate today);
+
+
     @Query("SELECT j FROM JobPost j WHERE " +
            "(CAST(:keyword AS String) IS NULL OR LOWER(j.title) LIKE LOWER(CONCAT('%', CAST(:keyword AS String), '%')) OR LOWER(j.description) LIKE LOWER(CONCAT('%', CAST(:keyword AS String), '%'))) AND " +
            "(:locationCity IS NULL OR j.locationCity = :locationCity) AND " +

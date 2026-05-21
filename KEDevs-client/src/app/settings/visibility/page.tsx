@@ -3,12 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  Eye, 
-  Bell, 
-  ShieldCheck, 
-  Loader2, 
-  ChevronLeft, 
+import {
+  Eye,
+  Bell,
+  ShieldCheck,
+  Loader2,
+  ChevronLeft,
   MessageSquare,
   Settings,
   Shield,
@@ -66,7 +66,7 @@ export default function VisibilitySettingsPage() {
     if (!profile) return;
     const newVal = !profile.canEmployersReachOut;
     setProfile({ ...profile, canEmployersReachOut: newVal });
-    
+
     try {
       const response = await developerService.updateProfile({ canEmployersReachOut: newVal });
       if (response.success) {
@@ -126,9 +126,9 @@ export default function VisibilitySettingsPage() {
           {/* Header Section */}
           <div className="flex flex-col md:flex-row justify-end items-center mb-6 space-y-4 md:space-y-0">
             <div className="flex gap-3">
-               <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-11" onClick={() => router.back()}>
-                  <ChevronLeft className="mr-2 h-4 w-4" /> Back
-               </Button>
+              <Button variant="outline" className="font-medium border-primary/20 hover:bg-primary/5 h-11" onClick={() => router.back()}>
+                <ChevronLeft className="mr-2 h-4 w-4" /> Back
+              </Button>
             </div>
           </div>
 
@@ -141,9 +141,9 @@ export default function VisibilitySettingsPage() {
                 </CardHeader>
                 <CardContent className="p-2 space-y-1">
                   <Button variant="ghost" className="w-full justify-start font-medium h-10 gap-3 text-muted-foreground" asChild>
-                     <Link href="/settings/notifications">
-                        <Bell className="h-4 w-4" /> Notifications
-                     </Link>
+                    <Link href="/settings/notifications">
+                      <Bell className="h-4 w-4" /> Notifications
+                    </Link>
                   </Button>
                   <Button variant="secondary" className="w-full justify-start font-medium h-10 gap-3 bg-primary/5 text-primary border-none">
                     <Eye className="h-4 w-4" /> Visibility
@@ -155,13 +155,7 @@ export default function VisibilitySettingsPage() {
                     <Shield className="h-4 w-4" /> Privacy
                   </Button>
                 </CardContent>
-                <Separator className="bg-border/50" />
-                <CardFooter className="p-4 flex flex-col items-start gap-2">
-                  <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
-                    <ShieldCheck className="h-3 w-3 text-cyan-600" /> Secure Protocol
-                  </div>
-                  <p className="text-[10px] text-muted-foreground leading-tight">Preferences are synchronized in real-time with your profile.</p>
-                </CardFooter>
+
               </Card>
             </aside>
 
@@ -175,7 +169,7 @@ export default function VisibilitySettingsPage() {
                     </div>
                     <div>
                       <CardTitle className="text-lg font-medium">Visibility & Preferences</CardTitle>
-                      <CardDescription className="text-xs font-medium text-muted-foreground">Control your accessibility to potential employers</CardDescription>
+                      <CardDescription className="text-xs font-medium text-muted-foreground">Control your accessibility to potential employers and developers</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
@@ -183,10 +177,10 @@ export default function VisibilitySettingsPage() {
                   <div className="divide-y divide-border/50">
                     <div className="p-6 flex items-center justify-between gap-6 hover:bg-muted/10 transition-colors">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-foreground text-sm tracking-tight">Recruitment Pulse</h3>
+                        <h3 className="font-medium text-foreground text-sm tracking-tight">Recruitment Contact</h3>
                         <p className="text-xs font-medium text-muted-foreground leading-relaxed">Can other users reach out to me directly?</p>
                       </div>
-                      <Switch 
+                      <Switch
                         checked={profile?.canEmployersReachOut || false}
                         onCheckedChange={handleToggleReachOut}
                         className="data-[state=checked]:bg-primary"
@@ -215,15 +209,15 @@ export default function VisibilitySettingsPage() {
                       <div className="flex items-center justify-between gap-6">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                             <h3 className="font-medium text-foreground text-sm tracking-tight">Privacy Mode</h3>
-                             <Tooltip>
-                                <TooltipTrigger asChild>
-                                   <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-[200px] p-3 text-xs leading-relaxed" side="right">
-                                   Hover over the options below to see how each mode impacts your visibility.
-                                </TooltipContent>
-                             </Tooltip>
+                            <h3 className="font-medium text-foreground text-sm tracking-tight">Privacy Mode</h3>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-[200px] p-3 text-xs leading-relaxed" side="right">
+                                Hover over the options below to see how each mode impacts your visibility.
+                              </TooltipContent>
+                            </Tooltip>
                           </div>
                           <p className="text-xs font-medium text-muted-foreground leading-relaxed">Control who sees your profile in the ecosystem</p>
                         </div>
@@ -234,24 +228,24 @@ export default function VisibilitySettingsPage() {
                         </SelectTrigger>
                         <SelectContent className="rounded-xl border-border/50 shadow-xl">
                           <Tooltip>
-                             <TooltipTrigger asChild>
-                                <div><SelectItem value="PUBLIC">🌎 Public Search</SelectItem></div>
-                             </TooltipTrigger>
-                             <TooltipContent side="right">{visibilityInfo.PUBLIC}</TooltipContent>
-                          </Tooltip>
-                          
-                          <Tooltip>
-                             <TooltipTrigger asChild>
-                                <div><SelectItem value="PRIVATE">🔒 Private Link Only</SelectItem></div>
-                             </TooltipTrigger>
-                             <TooltipContent side="right">{visibilityInfo.PRIVATE}</TooltipContent>
+                            <TooltipTrigger asChild>
+                              <div><SelectItem value="PUBLIC">🌎 Public Search</SelectItem></div>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">{visibilityInfo.PUBLIC}</TooltipContent>
                           </Tooltip>
 
                           <Tooltip>
-                             <TooltipTrigger asChild>
-                                <div><SelectItem value="HIDDEN">👻 Hidden (Ghost mode)</SelectItem></div>
-                             </TooltipTrigger>
-                             <TooltipContent side="right">{visibilityInfo.HIDDEN}</TooltipContent>
+                            <TooltipTrigger asChild>
+                              <div><SelectItem value="PRIVATE">🔒 Private Link Only</SelectItem></div>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">{visibilityInfo.PRIVATE}</TooltipContent>
+                          </Tooltip>
+
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div><SelectItem value="HIDDEN">👻 Hidden (Ghost mode)</SelectItem></div>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">{visibilityInfo.HIDDEN}</TooltipContent>
                           </Tooltip>
                         </SelectContent>
                       </Select>
@@ -261,16 +255,16 @@ export default function VisibilitySettingsPage() {
               </Card>
 
               <div className="bg-primary/5 rounded-2xl border border-primary/10 p-8 flex items-start gap-6">
-                 <div className="h-12 w-12 rounded-2xl bg-white shadow-sm flex items-center justify-center border border-border/50 flex-shrink-0">
-                    <Search className="h-6 w-6 text-primary" />
-                 </div>
-                 <div>
-                    <h4 className="font-medium text-slate-900">SEO Synchronization</h4>
-                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                       When your profile is set to Public, it will be indexed by our internal search protocols and external search engines. 
-                       Private profiles are only accessible via direct encrypted links.
-                    </p>
-                 </div>
+                <div className="h-12 w-12 rounded-2xl bg-white shadow-sm flex items-center justify-center border border-border/50 flex-shrink-0">
+                  <Search className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-slate-900">SEO Search</h4>
+                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                    When your profile is set to Public, it will be indexed by our internal search protocols and external search engines.
+                    Private profiles are only accessible via direct encrypted links.
+                  </p>
+                </div>
               </div>
             </main>
           </div>

@@ -213,7 +213,7 @@ BEGIN
             (ARRAY['ENTRY','MID','SENIOR'])[1 + floor(random()*3)],
             null, null, 'KES',
             CURRENT_DATE + (random()*45)::int,
-            peer_urls[i], true, 'EXTERNAL', 'OPEN',
+            peer_urls[i], true, 'PUBLIC', 'OPEN',
             now(), now()
         )
         RETURNING id INTO v_job_id;
@@ -280,7 +280,7 @@ BEGIN
             (30000 + floor(random()*150000))::numeric,
             (80000 + floor(random()*250000))::numeric, 'KES',
             CURRENT_DATE + (random()*60)::int,
-            null, false, 'EXTERNAL', 'OPEN',
+            null, false, 'PUBLIC', 'OPEN',
             now(), now()
         )
         RETURNING id INTO v_job_id;
@@ -349,7 +349,7 @@ BEGIN
                 (50000 + floor(random()*200000))::numeric,
                 (120000 + floor(random()*300000))::numeric, 'KES',
                 CURRENT_DATE + (random()*60)::int,
-                null, false, 'EXTERNAL', v_statuses[1 + floor(random()*array_length(v_statuses,1))],
+                null, false, 'PUBLIC', v_statuses[1 + floor(random()*array_length(v_statuses,1))],
                 now(), now()
             )
             RETURNING id INTO v_job_id;

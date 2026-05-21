@@ -222,8 +222,8 @@ public class JobService {
         }
 
 
-        List<JobSummaryResponse> list = jobPostRepository.findByVisibilityAndStatusOrderByUpvoteCountDescCreatedAtDesc(
-                JobVisibility.PUBLIC, JobStatus.OPEN, Pageable.unpaged())
+        List<JobSummaryResponse> list = jobPostRepository.findActivePublicJobs(
+                JobVisibility.PUBLIC, JobStatus.OPEN, null, java.time.LocalDate.now(), Pageable.unpaged())
                 .getContent()
                 .stream()
                 .map(this::toJobSummaryResponse)
@@ -237,8 +237,8 @@ public class JobService {
 
     public Page<JobSummaryResponse> getPublicJobs(UUID postedById, Pageable pageable, UUID currentUserId) {
         if (postedById != null) {
-            return jobPostRepository.findByVisibilityAndStatusAndPostedByIdOrderByUpvoteCountDescCreatedAtDesc(
-                    JobVisibility.PUBLIC, JobStatus.OPEN, postedById, pageable)
+            return jobPostRepository.findActivePublicJobs(
+                    JobVisibility.PUBLIC, JobStatus.OPEN, postedById, java.time.LocalDate.now(), pageable)
                     .map(job -> toJobSummaryResponse(job, currentUserId));
         }
 
@@ -261,8 +261,15 @@ public class JobService {
         Specification<JobPost> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // Always exclude REMOVED jobs
-            predicates.add(cb.notEqual(root.get("status"), JobStatus.REMOVED));
+            // Public board strictly enforces active public positions only
+            predicates.add(cb.equal(root.get("visibility"), JobVisibility.PUBLIC));
+            predicates.add(cb.equal(root.get("status"), JobStatus.OPEN));
+
+            java.time.LocalDate today = java.time.LocalDate.now();
+            predicates.add(cb.or(
+                    cb.isNull(root.get("applicationDeadline")),
+                    cb.greaterThanOrEqualTo(root.get("applicationDeadline"), today)
+            ));
 
             if (request.keyword() != null && !request.keyword().trim().isEmpty()) {
                 String pattern = "%" + request.keyword().trim().toLowerCase() + "%";
@@ -324,14 +331,6 @@ public class JobService {
 
             if (request.minUpvotes() != null) {
                 predicates.add(cb.greaterThanOrEqualTo(root.get("upvoteCount"), request.minUpvotes()));
-            }
-
-            if (request.status() != null) {
-                predicates.add(cb.equal(root.get("status"), request.status()));
-            }
-
-            if (request.visibility() != null) {
-                predicates.add(cb.equal(root.get("visibility"), request.visibility()));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
@@ -1039,10 +1038,11 @@ public class JobService {
      * Only OPEN jobs with a future pinnedUntil are included.
      */
     public List<PinnedJobSummaryResponse> getPinnedJobs(UUID currentUserId) {
+        java.time.LocalDate today = java.time.LocalDate.now();
         return jobPostRepository
                 .findByIsPinnedTrueAndPinnedUntilAfterOrderByPinnedUntilDesc(java.time.LocalDateTime.now())
                 .stream()
-                .filter(job -> job.getStatus() == JobStatus.OPEN)
+                .filter(job -> job.getStatus() == JobStatus.OPEN && (job.getApplicationDeadline() == null || !job.getApplicationDeadline().isBefore(today)))
                 .limit(3)
                 .map(job -> {
                     VoteType currentUserVote = null;
@@ -1083,10 +1083,11 @@ public class JobService {
      */
     public PinnedSlotAvailabilityResponse getPinnedSlotAvailability() {
         int maxSlots = 3;
+        java.time.LocalDate today = java.time.LocalDate.now();
         List<JobPost> activelyPinned = jobPostRepository
                 .findByIsPinnedTrueAndPinnedUntilAfterOrderByPinnedUntilDesc(java.time.LocalDateTime.now())
                 .stream()
-                .filter(job -> job.getStatus() == JobStatus.OPEN)
+                .filter(job -> job.getStatus() == JobStatus.OPEN && (job.getApplicationDeadline() == null || !job.getApplicationDeadline().isBefore(today)))
                 .limit(maxSlots)
                 .toList();
 

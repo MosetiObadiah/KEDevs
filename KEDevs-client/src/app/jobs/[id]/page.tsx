@@ -4,13 +4,13 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
-import { 
-  MapPin, 
-  Briefcase, 
-  Calendar as CalendarIcon, 
-  ThumbsUp, 
-  ThumbsDown, 
-  Mail, 
+import {
+  MapPin,
+  Briefcase,
+  Calendar as CalendarIcon,
+  ThumbsUp,
+  ThumbsDown,
+  Mail,
   ArrowLeft,
   BarChart3,
   ExternalLink,
@@ -207,11 +207,11 @@ export default function JobDetailPage() {
   const formatQualification = (q: string) => {
     if (!q) return 'Not Specified';
     return q.split('_')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-            .join(' ')
-            .replace('Bachelors', "Bachelor's Degree")
-            .replace('Masters', "Master's Degree")
-            .replace('Equivalent Experience', 'Equivalent Work Experience');
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ')
+      .replace('Bachelors', "Bachelor's Degree")
+      .replace('Masters', "Master's Degree")
+      .replace('Equivalent Experience', 'Equivalent Work Experience');
   };
 
   const formatJobType = (type?: string) => {
@@ -284,7 +284,7 @@ export default function JobDetailPage() {
               <h1 className="text-4xl font-medium text-foreground leading-tight break-words">
                 {job.title}
               </h1>
-              
+
               {/* Show company name for employer jobs, hide for peer/personal */}
               {!job.isPeerSourced && job.postedByRole === 'EMPLOYER' && job.companyName && (
                 <p className="text-xl text-muted-foreground font-medium break-words">
@@ -351,7 +351,7 @@ export default function JobDetailPage() {
             <Card className="rounded-xl border shadow-none">
               <CardContent className="p-6 space-y-6">
                 <h2 className="text-lg font-medium">Requirements</h2>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Minimum Experience</p>
@@ -384,10 +384,10 @@ export default function JobDetailPage() {
 
             {/* 4. Forum Discussion */}
             <div className="space-y-6 pt-4">
-              <Forum 
-                jobId={id as string} 
+              <Forum
+                jobId={id as string}
                 jobTitle={job.title}
-                initialComments={comments} 
+                initialComments={comments}
                 onRefresh={async () => {
                   try {
                     const response = await forumService.getJobComments(id as string);
@@ -395,7 +395,7 @@ export default function JobDetailPage() {
                       const raw = response.data;
                       setComments(Array.isArray(raw) ? raw : raw?.content || []);
                     }
-                  } catch (err) {}
+                  } catch (err) { }
                 }}
               />
             </div>
@@ -408,18 +408,18 @@ export default function JobDetailPage() {
               <CardContent className="p-5 space-y-4">
                 <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Community Sentiment</p>
                 <div className="flex items-center gap-3">
-                  <Button 
-                    variant={isUpvoted ? "default" : "outline"} 
-                    size="sm" 
+                  <Button
+                    variant={isUpvoted ? "default" : "outline"}
+                    size="sm"
                     onClick={() => handleVote('UPVOTE')}
                     className="flex-1"
                   >
                     <ThumbsUp className="w-4 h-4 mr-2" />
                     {upvoteCount}
                   </Button>
-                  <Button 
-                    variant={isDownvoted ? "default" : "outline"} 
-                    size="sm" 
+                  <Button
+                    variant={isDownvoted ? "default" : "outline"}
+                    size="sm"
                     onClick={() => handleVote('DOWNVOTE')}
                     className={cn("flex-1", isDownvoted && "bg-destructive text-destructive-foreground")}
                   >
@@ -433,7 +433,7 @@ export default function JobDetailPage() {
             <Card className="rounded-xl border shadow-none bg-card">
               <CardContent className="p-6 space-y-4">
                 <h3 className="text-base font-medium">Ready to Apply?</h3>
-                
+
                 {!isActive && !isPoster ? (
                   <div className="space-y-2">
                     <div className="bg-destructive/10 border border-destructive/30 text-destructive rounded-xl p-4 text-center">
@@ -485,7 +485,7 @@ export default function JobDetailPage() {
                   <div className="space-y-2">
                     <div className="bg-azure-50 border border-azure-200 rounded-xl p-4 text-center text-azure-800">
                       <p className="text-xs font-medium leading-snug">
-                        You are currently marked as <strong>Not Available</strong>. Update your status to apply for jobs.
+                        Your current availability status is <strong>Not Available</strong>. Update your status to apply for jobs.
                       </p>
                       <Button variant="link" size="sm" className="font-medium text-azure-700 h-auto p-0 mt-2" asChild>
                         <Link href="/settings/visibility">Change Status &rarr;</Link>
@@ -535,7 +535,7 @@ export default function JobDetailPage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <Button variant="outline" size="sm" className="w-full font-medium" asChild>
                     <Link href={job.postedByRole === 'EMPLOYER' ? `/companies/${job.postedByProfileId}` : `/developers/${job.postedByProfileId}`}>
                       View Profile
@@ -548,15 +548,15 @@ export default function JobDetailPage() {
         </div>
       </div>
 
-      <ApplyDialog 
-        open={applyOpen} 
-        onClose={() => setApplyOpen(false)} 
-        job={job} 
+      <ApplyDialog
+        open={applyOpen}
+        onClose={() => setApplyOpen(false)}
+        job={job}
         onSuccess={() => {
           setJob({ ...job, hasApplied: true });
           toast.success('Application sent!');
           setTimeout(() => router.push('/jobs/my-applications'), 2000);
-        }} 
+        }}
       />
 
       <PinJobDialog
@@ -578,42 +578,42 @@ export default function JobDetailPage() {
           <div className="space-y-5 py-4">
             <div className="space-y-1.5">
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Job Title</Label>
-              <Input value={editForm.title || ''} onChange={e => setEditForm({...editForm, title: e.target.value})} className="h-12 rounded-xl" />
+              <Input value={editForm.title || ''} onChange={e => setEditForm({ ...editForm, title: e.target.value })} className="h-12 rounded-xl" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Summary</Label>
-              <Input value={editForm.summary || ''} onChange={e => setEditForm({...editForm, summary: e.target.value})} className="h-12 rounded-xl" />
+              <Input value={editForm.summary || ''} onChange={e => setEditForm({ ...editForm, summary: e.target.value })} className="h-12 rounded-xl" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Description (Markdown)</Label>
-              <Textarea value={editForm.description || ''} onChange={e => setEditForm({...editForm, description: e.target.value})} className="min-h-[140px] rounded-xl font-mono text-sm" />
+              <Textarea value={editForm.description || ''} onChange={e => setEditForm({ ...editForm, description: e.target.value })} className="min-h-[140px] rounded-xl font-mono text-sm" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">City</Label>
-                <Input value={editForm.locationCity || ''} onChange={e => setEditForm({...editForm, locationCity: e.target.value})} className="h-12 rounded-xl" />
+                <Input value={editForm.locationCity || ''} onChange={e => setEditForm({ ...editForm, locationCity: e.target.value })} className="h-12 rounded-xl" />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Country</Label>
-                <Input value={editForm.locationCountry || ''} onChange={e => setEditForm({...editForm, locationCountry: e.target.value})} className="h-12 rounded-xl" />
+                <Input value={editForm.locationCountry || ''} onChange={e => setEditForm({ ...editForm, locationCountry: e.target.value })} className="h-12 rounded-xl" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Job Type</Label>
-                <Select value={editForm.jobType || ''} onValueChange={v => setEditForm({...editForm, jobType: v})}>
+                <Select value={editForm.jobType || ''} onValueChange={v => setEditForm({ ...editForm, jobType: v })}>
                   <SelectTrigger className="h-12 rounded-xl"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {['FULL_TIME','PART_TIME','CONTRACT','INTERNSHIP','FREELANCE'].map(t => <SelectItem key={t} value={t}>{t.replace('_',' ')}</SelectItem>)}
+                    {['FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP', 'FREELANCE'].map(t => <SelectItem key={t} value={t}>{t.replace('_', ' ')}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Work Type</Label>
-                <Select value={editForm.workType || ''} onValueChange={v => setEditForm({...editForm, workType: v})}>
+                <Select value={editForm.workType || ''} onValueChange={v => setEditForm({ ...editForm, workType: v })}>
                   <SelectTrigger className="h-12 rounded-xl"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {['REMOTE','HYBRID','ONSITE'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                    {['REMOTE', 'HYBRID', 'ONSITE'].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -621,22 +621,22 @@ export default function JobDetailPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Experience Level</Label>
-                <Select value={editForm.experienceLevel || ''} onValueChange={v => setEditForm({...editForm, experienceLevel: v})}>
+                <Select value={editForm.experienceLevel || ''} onValueChange={v => setEditForm({ ...editForm, experienceLevel: v })}>
                   <SelectTrigger className="h-12 rounded-xl"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {['JUNIOR','MID_LEVEL','SENIOR','LEAD','PRINCIPAL'].map(t => <SelectItem key={t} value={t}>{t.replace('_',' ')}</SelectItem>)}
+                    {['JUNIOR', 'MID_LEVEL', 'SENIOR', 'LEAD', 'PRINCIPAL'].map(t => <SelectItem key={t} value={t}>{t.replace('_', ' ')}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Min Experience (Years)</Label>
-                <Input type="number" min={0} value={editForm.minExperienceYears ?? 0} onChange={e => setEditForm({...editForm, minExperienceYears: e.target.value})} className="h-12 rounded-xl" />
+                <Input type="number" min={0} value={editForm.minExperienceYears ?? 0} onChange={e => setEditForm({ ...editForm, minExperienceYears: e.target.value })} className="h-12 rounded-xl" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Visibility</Label>
-                <Select value={editForm.visibility || 'PUBLIC'} onValueChange={v => setEditForm({...editForm, visibility: v})}>
+                <Select value={editForm.visibility || 'PUBLIC'} onValueChange={v => setEditForm({ ...editForm, visibility: v })}>
                   <SelectTrigger className="h-12 rounded-xl"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="PUBLIC">Public</SelectItem>
@@ -646,12 +646,12 @@ export default function JobDetailPage() {
               </div>
               <div className="space-y-1.5">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Application Deadline</Label>
-                <Input type="date" min={new Date().toISOString().split('T')[0]} value={editForm.applicationDeadline || ''} onChange={e => setEditForm({...editForm, applicationDeadline: e.target.value})} className="h-12 rounded-xl" />
+                <Input type="date" min={new Date().toISOString().split('T')[0]} value={editForm.applicationDeadline || ''} onChange={e => setEditForm({ ...editForm, applicationDeadline: e.target.value })} className="h-12 rounded-xl" />
               </div>
             </div>
             <div className="space-y-1.5">
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Tags (comma-separated)</Label>
-              <Input value={editForm.tags || ''} onChange={e => setEditForm({...editForm, tags: e.target.value})} className="h-12 rounded-xl" placeholder="e.g. react, typescript, remote" />
+              <Input value={editForm.tags || ''} onChange={e => setEditForm({ ...editForm, tags: e.target.value })} className="h-12 rounded-xl" placeholder="e.g. react, typescript, remote" />
             </div>
           </div>
           <DialogFooter className="gap-2">

@@ -168,10 +168,9 @@ class JobServiceTest {
     @Test
     void getPublicJobs_onlyReturnsPublicOpen() {
         Pageable pageable = PageRequest.of(0, 10);
-        when(jobPostRepository.findByVisibilityAndStatusOrderByUpvoteCountDescCreatedAtDesc(
-                JobVisibility.PUBLIC, JobStatus.OPEN, org.springframework.data.domain.Pageable.unpaged()))
+        when(jobPostRepository.findActivePublicJobs(
+                eq(JobVisibility.PUBLIC), eq(JobStatus.OPEN), eq(null), any(java.time.LocalDate.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(jobPost)));
-
 
         Page<JobSummaryResponse> response = jobService.getPublicJobs(null, pageable, null);
         assertThat(response.getContent()).hasSize(1);
@@ -181,8 +180,8 @@ class JobServiceTest {
     void getPublicJobs_withPostedById_returnsFiltered() {
         Pageable pageable = PageRequest.of(0, 10);
         UUID postedBy = UUID.randomUUID();
-        when(jobPostRepository.findByVisibilityAndStatusAndPostedByIdOrderByUpvoteCountDescCreatedAtDesc(
-                JobVisibility.PUBLIC, JobStatus.OPEN, postedBy, pageable))
+        when(jobPostRepository.findActivePublicJobs(
+                eq(JobVisibility.PUBLIC), eq(JobStatus.OPEN), eq(postedBy), any(java.time.LocalDate.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(jobPost)));
 
         Page<JobSummaryResponse> response = jobService.getPublicJobs(postedBy, pageable, null);
