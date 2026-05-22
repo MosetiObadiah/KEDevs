@@ -21,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Textarea } from '@/components/ui/textarea';
+import Image from 'next/image';
 
 interface ProfileTabsProps {
   profile: any;
@@ -169,10 +170,11 @@ export function ProfileTabs({
                       <div className="grid grid-cols-1 md:grid-cols-12">
                         {project.screenshotUrl && (
                           <div className="md:col-span-4 h-48 md:h-auto relative overflow-hidden bg-muted">
-                            <img 
+                            <Image 
                               src={project.screenshotUrl} 
                               alt={project.title}
-                              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                              fill
+                              className="object-cover transition-transform duration-700 group-hover:scale-105"
                             />
                           </div>
                         )}

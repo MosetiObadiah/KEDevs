@@ -31,7 +31,7 @@ import { paymentService } from '@/services/paymentService';
 import { verificationService } from '@/services/verificationService';
 import { KENYA_COUNTIES, INDUSTRIES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -248,18 +248,18 @@ export default function EmployerOnboarding() {
   const companySizeLabel = COMPANY_SIZES.find((s) => s.value === formData.companySize)?.label || '';
 
   return (
-    <div className="min-h-screen bg-muted/30 flex flex-col items-center justify-center p-4 py-12 sm:py-16">
-      <div className="w-full max-w-xl animate-in fade-in slide-in-from-bottom-6 duration-500">
-        <div className="text-center mb-8">
-           <Badge variant="outline" className="rounded-xl font-black tracking-widest text-[10px] uppercase bg-primary/10 text-primary border-none mb-3 px-3 py-1">
+    <div className="min-h-[calc(100vh-112px)] lg:h-[calc(100vh-112px)] lg:overflow-hidden bg-muted/30 flex flex-col items-center justify-center p-4 py-4">
+      <div className="w-full max-w-xl animate-in fade-in slide-in-from-bottom-6 duration-500 flex flex-col lg:max-h-full">
+        <div className="text-center mb-4">
+           <Badge variant="outline" className="rounded-xl font-black tracking-widest text-xs uppercase bg-primary/10 text-primary border-none mb-2 px-3 py-1">
               EMPLOYER VERIFICATION
            </Badge>
-           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Build Your Presence</h1>
-           <p className="text-sm text-slate-500 font-medium mt-1.5 font-sans">Connect with the top tech talent in Kenya</p>
+           <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Build Your Presence</h1>
+           <p className="text-base text-slate-500 font-medium mt-1 font-sans">Connect with the top tech talent in Kenya</p>
         </div>
 
         {/* Stepper */}
-        <div className="flex justify-between items-center mb-8 relative px-4 max-w-xs sm:max-w-md mx-auto">
+        <div className="flex justify-between items-center mb-4 relative px-4 max-w-xs sm:max-w-md mx-auto w-full">
           <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 -translate-y-1/2 -z-10 rounded-full" />
           <div 
             className="absolute top-1/2 left-0 h-0.5 bg-primary -translate-y-1/2 -z-10 transition-all duration-500 rounded-full" 
@@ -283,8 +283,8 @@ export default function EmployerOnboarding() {
           })}
         </div>
 
-        <Card className="rounded-2xl border border-border/50 shadow-md bg-white overflow-hidden">
-          <CardHeader className="border-b border-border/50 bg-slate-50/50 p-5 sm:p-6">
+        <Card className="rounded-2xl border border-border/50 shadow-md bg-white overflow-hidden flex flex-col lg:max-h-[calc(100vh-220px)]">
+          <CardHeader className="border-b border-border/50 bg-slate-50/50 p-4 sm:p-5 shrink-0">
              <div className="flex items-center gap-3">
                 <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
                    {activeStep === 0 && <Building2 className="h-4.5 w-4.5" />}
@@ -294,66 +294,66 @@ export default function EmployerOnboarding() {
                    {activeStep === 4 && <Eye className="h-4.5 w-4.5" />}
                 </div>
                 <div>
-                   <CardTitle className="text-base sm:text-lg font-semibold text-slate-900">{steps[activeStep].label}</CardTitle>
-                   <CardDescription className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">
+                   <CardTitle className="text-lg sm:text-xl font-semibold text-slate-900">{steps[activeStep].label}</CardTitle>
+                   <CardDescription className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">
                       Step {activeStep + 1} of {steps.length}
                    </CardDescription>
                 </div>
              </div>
           </CardHeader>
           
-          <CardContent className="p-5 sm:p-8 min-h-[350px] space-y-5">
+          <CardContent className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1">
             {activeStep === 0 && (
-              <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+              <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-slate-700">Company Name</Label>
+                  <Label className="text-sm font-semibold text-slate-700">Company Name</Label>
                   <Input 
                     placeholder="e.g. TechFlow Solutions Ltd"
                     value={formData.companyName}
                     onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                    className="h-10 rounded-xl border-border/50 font-medium text-sm focus-visible:ring-primary/20"
+                    className="h-11 rounded-xl border-border/50 font-medium text-base focus-visible:ring-primary/20"
                   />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-700">Industry</Label>
+                    <Label className="text-sm font-semibold text-slate-700">Industry</Label>
                     <Select value={formData.industry} onValueChange={(v) => setFormData({ ...formData, industry: v })}>
-                      <SelectTrigger className="h-10 rounded-xl border-border/50 text-sm">
+                      <SelectTrigger className="h-11 rounded-xl border-border/50 text-base">
                         <SelectValue placeholder="Select industry..." />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl max-h-[200px]">
-                        {INDUSTRIES.map((i: string) => <SelectItem key={i} value={i} className="font-medium text-xs">{i}</SelectItem>)}
+                        {INDUSTRIES.map((i: string) => <SelectItem key={i} value={i} className="font-medium text-sm">{i}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-700">Company Size</Label>
+                    <Label className="text-sm font-semibold text-slate-700">Company Size</Label>
                     <Select value={formData.companySize} onValueChange={(v) => setFormData({ ...formData, companySize: v })}>
-                      <SelectTrigger className="h-10 rounded-xl border-border/50 text-sm">
+                      <SelectTrigger className="h-11 rounded-xl border-border/50 text-base">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl">
-                        {COMPANY_SIZES.map((s: { value: string; label: string }) => <SelectItem key={s.value} value={s.value} className="font-medium text-xs">{s.label}</SelectItem>)}
+                        {COMPANY_SIZES.map((s: { value: string; label: string }) => <SelectItem key={s.value} value={s.value} className="font-medium text-sm">{s.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-slate-700">HQ Location (Kenya)</Label>
+                  <Label className="text-sm font-semibold text-slate-700">HQ Location (Kenya)</Label>
                   <Select value={formData.locationCity} onValueChange={(v) => setFormData({ ...formData, locationCity: v })}>
-                    <SelectTrigger className="h-10 rounded-xl border-border/50 text-sm">
+                    <SelectTrigger className="h-11 rounded-xl border-border/50 text-base">
                       <SelectValue placeholder="Select county..." />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl max-h-[200px]">
-                      {KENYA_COUNTIES.map((c: string) => <SelectItem key={c} value={c} className="font-medium text-xs">{c}</SelectItem>)}
+                      {KENYA_COUNTIES.map((c: string) => <SelectItem key={c} value={c} className="font-medium text-sm">{c}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-slate-700">Company Bio / Culture</Label>
+                  <Label className="text-sm font-semibold text-slate-700">Company Bio / Culture</Label>
                   <Textarea 
                     placeholder="Tell developers what makes your company a great place to work..."
-                    className="min-h-[100px] rounded-xl border-border/50 font-medium text-sm focus-visible:ring-primary/20"
+                    className="min-h-[85px] rounded-xl border-border/50 font-medium text-base focus-visible:ring-primary/20"
                     value={formData.companyBio}
                     onChange={(e) => setFormData({ ...formData, companyBio: e.target.value })}
                   />
@@ -362,22 +362,22 @@ export default function EmployerOnboarding() {
             )}
 
             {activeStep === 1 && (
-              <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+              <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-700 px-0.5">Recruitment Contact</Label>
+                    <Label className="text-sm font-semibold text-slate-700 px-0.5">Recruitment Contact</Label>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <Input 
                         placeholder="e.g. HR Manager"
                         value={formData.contactPersonName}
                         onChange={(e) => setFormData({ ...formData, contactPersonName: e.target.value })}
-                        className="pl-9 h-10 rounded-xl border-border/50 font-medium text-sm focus-visible:ring-primary/20"
+                        className="pl-9 h-11 rounded-xl border-border/50 font-medium text-base focus-visible:ring-primary/20"
                       />
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-700 px-0.5">Contact Email</Label>
+                    <Label className="text-sm font-semibold text-slate-700 px-0.5">Contact Email</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <Input 
@@ -385,16 +385,16 @@ export default function EmployerOnboarding() {
                         placeholder="hiring@company.com"
                         value={formData.contactEmail}
                         onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
-                        className="pl-9 h-10 rounded-xl border-border/50 font-medium text-sm focus-visible:ring-primary/20"
+                        className="pl-9 h-11 rounded-xl border-border/50 font-medium text-base focus-visible:ring-primary/20"
                       />
                     </div>
                   </div>
                 </div>
 
-                <Separator className="my-6" />
+                <Separator className="my-4" />
 
                 <div className="space-y-3">
-                   <Label className="text-xs font-semibold text-slate-700 px-0.5">Online Presence (Optional)</Label>
+                   <Label className="text-sm font-semibold text-slate-700 px-0.5">Online Presence (Optional)</Label>
                    <div className="space-y-3">
                       <div className="relative">
                          <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -402,7 +402,7 @@ export default function EmployerOnboarding() {
                             placeholder="Website URL"
                             value={formData.websiteUrl}
                             onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
-                            className="pl-9 h-10 rounded-xl border-border/50 font-medium text-sm focus-visible:ring-primary/20"
+                            className="pl-9 h-11 rounded-xl border-border/50 font-medium text-base focus-visible:ring-primary/20"
                          />
                       </div>
                       <div className="relative">
@@ -411,7 +411,7 @@ export default function EmployerOnboarding() {
                             placeholder="LinkedIn Profile"
                             value={formData.linkedinUrl}
                             onChange={(e) => setFormData({ ...formData, linkedinUrl: e.target.value })}
-                            className="pl-9 h-10 rounded-xl border-border/50 font-medium text-sm focus-visible:ring-primary/20"
+                            className="pl-9 h-11 rounded-xl border-border/50 font-medium text-base focus-visible:ring-primary/20"
                          />
                       </div>
                        <div className="relative">
@@ -420,7 +420,7 @@ export default function EmployerOnboarding() {
                              placeholder="X / Twitter Handle"
                              value={formData.twitterHandle}
                              onChange={(e) => setFormData({ ...formData, twitterHandle: e.target.value })}
-                             className="pl-9 h-10 rounded-xl border-border/50 font-medium text-sm focus-visible:ring-primary/20"
+                             className="pl-9 h-11 rounded-xl border-border/50 font-medium text-base focus-visible:ring-primary/20"
                           />
                        </div>
                    </div>
@@ -436,32 +436,32 @@ export default function EmployerOnboarding() {
                   </div>
                   <div className="space-y-1">
                     <h3 className="text-lg font-black text-slate-900">Verification Fee</h3>
-                    <p className="text-xs text-slate-500 font-medium leading-relaxed font-sans max-w-sm mx-auto">Kenya law requires business verification. This one-time fee covers document processing and background checks.</p>
+                    <p className="text-sm text-slate-500 font-medium leading-relaxed font-sans max-w-sm mx-auto">Kenya law requires business verification. This one-time fee covers document processing and background checks.</p>
                   </div>
                   <div className="py-2">
                     <div className="text-3xl font-black text-slate-900">KES {verificationFee}</div>
-                    <Badge variant="secondary" className="mt-1.5 font-black uppercase text-[10px] tracking-widest bg-primary/10 text-primary border-none">One-Time Lifetime Fee</Badge>
+                    <Badge variant="secondary" className="mt-1.5 font-black uppercase text-xs tracking-widest bg-primary/10 text-primary border-none">One-Time Lifetime Fee</Badge>
                   </div>
                 </div>
 
                 {!hasPaid ? (
                   <div className="space-y-4">
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold text-slate-700">M-Pesa Phone Number</Label>
+                      <Label className="text-sm font-semibold text-slate-700">M-Pesa Phone Number</Label>
                       <div className="relative">
                         <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <Input 
                           placeholder="0712345678"
                           value={phoneNumber}
                           onChange={(e) => setPhoneNumber(e.target.value)}
-                          className="pl-9 h-10 rounded-xl border-border/50 font-medium text-sm focus-visible:ring-primary/20"
+                          className="pl-9 h-11 rounded-xl border-border/50 font-medium text-base focus-visible:ring-primary/20"
                         />
                       </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                       <Button 
                         size="default" 
-                        className="h-10 rounded-xl font-semibold bg-primary text-white shadow-sm"
+                        className="h-11 rounded-xl font-semibold bg-primary text-white shadow-sm text-base"
                         onClick={handleInitiatePayment}
                         disabled={isPaying}
                       >
@@ -471,7 +471,7 @@ export default function EmployerOnboarding() {
                       <Button 
                         variant="outline" 
                         size="default" 
-                        className="h-10 rounded-xl font-semibold border-border/50"
+                        className="h-11 rounded-xl font-semibold border-border/50 text-base"
                         onClick={checkPaymentStatus}
                         disabled={isVerifyingPayment}
                       >
@@ -484,10 +484,10 @@ export default function EmployerOnboarding() {
                     <CheckCircle2 className="h-10 w-10 text-cyan-600 mx-auto" />
                     <div className="space-y-1">
                       <h4 className="text-base font-black text-cyan-800">Payment Verified!</h4>
-                      <p className="text-cyan-600 font-medium text-xs leading-relaxed font-sans">You have successfully unlocked the verification step.</p>
+                      <p className="text-cyan-600 font-medium text-sm leading-relaxed font-sans">You have successfully unlocked the verification step.</p>
                     </div>
                     <Button 
-                      className="bg-cyan-600 hover:bg-cyan-700 font-semibold text-white h-9 rounded-lg px-4"
+                      className="bg-cyan-600 hover:bg-cyan-700 font-semibold text-white h-11 rounded-xl px-5 text-base"
                       onClick={() => setActiveStep(3)}
                     >
                       Continue to Documents
@@ -498,32 +498,32 @@ export default function EmployerOnboarding() {
             )}
 
             {activeStep === 3 && (
-              <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
-                <div className="p-3.5 rounded-xl bg-azure-50/50 border border-azure-100 flex gap-2.5">
-                  <Info className="h-4 w-4 text-azure-500 shrink-0 mt-0.5" />
-                  <p className="text-[11px] font-medium text-azure-700 leading-relaxed font-sans">
+              <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="p-3 rounded-xl bg-azure-50/50 border border-azure-100 flex gap-2.5">
+                  <Info className="h-4.5 w-4.5 text-azure-500 shrink-0 mt-0.5" />
+                  <p className="text-xs font-medium text-azure-700 leading-relaxed font-sans">
                     To verify your company operates legally in Kenya, we require three official documents. These are reviewed by our team and kept securely — they are never shared publicly.
                   </p>
                 </div>
 
                 {/* Document 1: Certificate of Incorporation + CR12 */}
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <Label className="text-xs font-semibold text-slate-700">Certificate of Incorporation / CR12</Label>
-                    <Badge className="text-[9px] bg-danger-50 text-danger-500 border-none font-bold py-0.5 px-2 rounded-full">Required</Badge>
+                    <Label className="text-sm font-semibold text-slate-700">Certificate of Incorporation / CR12</Label>
+                    <Badge className="text-xs bg-danger-50 text-danger-500 border-none font-bold py-0.5 px-2 rounded-full">Required</Badge>
                   </div>
-                  <p className="text-[10px] text-slate-500 leading-relaxed font-sans">
-                    <strong>Why we collect this:</strong> The Certificate of Incorporation proves your company is legally registered with the Registrar of Companies in Kenya. The CR12 lists the current directors.
+                  <p className="text-xs text-slate-500 leading-relaxed font-sans">
+                    <strong>Why we collect this:</strong> The Certificate of Incorporation proves registration. The CR12 lists directors.
                   </p>
                   <label className={cn(
-                    "flex flex-col items-center justify-center w-full h-24 border border-dashed rounded-xl cursor-pointer transition-colors",
+                    "flex flex-col items-center justify-center w-full h-20 border border-dashed rounded-xl cursor-pointer transition-colors",
                     incorporationFile ? "border-emerald-400 bg-cyan-50/30 text-cyan-600" : "border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-500"
                   )}>
                     <div className="flex flex-col items-center gap-1">
                       {incorporationFile ? (
-                        <><CheckCircle2 className="h-5 w-5 text-cyan-600" /><span className="text-xs font-medium text-cyan-700">{incorporationFile.name}</span></>
+                        <><CheckCircle2 className="h-5 w-5 text-cyan-600" /><span className="text-sm font-medium text-cyan-700">{incorporationFile.name}</span></>
                       ) : (
-                        <><UploadCloud className="h-5 w-5 text-slate-400" /><span className="text-xs font-medium text-slate-500">Click to upload PDF, JPG, or PNG</span></>
+                        <><UploadCloud className="h-5 w-5 text-slate-400" /><span className="text-sm font-medium text-slate-500">Click to upload PDF, JPG, or PNG</span></>
                       )}
                     </div>
                     <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => setIncorporationFile(e.target.files?.[0] || null)} />
@@ -531,23 +531,23 @@ export default function EmployerOnboarding() {
                 </div>
 
                 {/* Document 2: KRA PIN Certificate */}
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <Label className="text-xs font-semibold text-slate-700">KRA PIN Certificate</Label>
-                    <Badge className="text-[9px] bg-danger-50 text-danger-500 border-none font-bold py-0.5 px-2 rounded-full">Required</Badge>
+                    <Label className="text-sm font-semibold text-slate-700">KRA PIN Certificate</Label>
+                    <Badge className="text-xs bg-danger-50 text-danger-500 border-none font-bold py-0.5 px-2 rounded-full">Required</Badge>
                   </div>
-                  <p className="text-[10px] text-slate-500 leading-relaxed font-sans">
-                    <strong>Why we collect this:</strong> The KRA PIN certificate proves your business is registered with the Kenya Revenue Authority for tax purposes.
+                  <p className="text-xs text-slate-500 leading-relaxed font-sans">
+                    <strong>Why we collect this:</strong> The KRA PIN certificate proves registration for tax purposes.
                   </p>
                   <label className={cn(
-                    "flex flex-col items-center justify-center w-full h-24 border border-dashed rounded-xl cursor-pointer transition-colors",
+                    "flex flex-col items-center justify-center w-full h-20 border border-dashed rounded-xl cursor-pointer transition-colors",
                     kraPinFile ? "border-emerald-400 bg-cyan-50/30 text-cyan-600" : "border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-500"
                   )}>
                     <div className="flex flex-col items-center gap-1">
                       {kraPinFile ? (
-                        <><CheckCircle2 className="h-5 w-5 text-cyan-600" /><span className="text-xs font-medium text-cyan-700">{kraPinFile.name}</span></>
+                        <><CheckCircle2 className="h-5 w-5 text-cyan-600" /><span className="text-sm font-medium text-cyan-700">{kraPinFile.name}</span></>
                       ) : (
-                        <><UploadCloud className="h-5 w-5 text-slate-400" /><span className="text-xs font-medium text-slate-500">Click to upload PDF, JPG, or PNG</span></>
+                        <><UploadCloud className="h-5 w-5 text-slate-400" /><span className="text-sm font-medium text-slate-500">Click to upload PDF, JPG, or PNG</span></>
                       )}
                     </div>
                     <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => setKraPinFile(e.target.files?.[0] || null)} />
@@ -555,23 +555,23 @@ export default function EmployerOnboarding() {
                 </div>
 
                 {/* Document 3: Single Business Permit */}
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <Label className="text-xs font-semibold text-slate-700">Single Business Permit / Trade Licence</Label>
-                    <Badge className="text-[9px] bg-danger-50 text-danger-500 border-none font-bold py-0.5 px-2 rounded-full">Required</Badge>
+                    <Label className="text-sm font-semibold text-slate-700">Single Business Permit / Trade Licence</Label>
+                    <Badge className="text-xs bg-danger-50 text-danger-500 border-none font-bold py-0.5 px-2 rounded-full">Required</Badge>
                   </div>
-                  <p className="text-[10px] text-slate-500 leading-relaxed font-sans">
-                    <strong>Why we collect this:</strong> A Single Business Permit issued by the county government confirms your company is legally allowed to operate from its physical premises.
+                  <p className="text-xs text-slate-500 leading-relaxed font-sans">
+                    <strong>Why we collect this:</strong> Single Business Permit confirms you can legally operate from your premises.
                   </p>
                   <label className={cn(
-                    "flex flex-col items-center justify-center w-full h-24 border border-dashed rounded-xl cursor-pointer transition-colors",
+                    "flex flex-col items-center justify-center w-full h-20 border border-dashed rounded-xl cursor-pointer transition-colors",
                     businessPermitFile ? "border-emerald-400 bg-cyan-50/30 text-cyan-600" : "border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-500"
                   )}>
                     <div className="flex flex-col items-center gap-1">
                       {businessPermitFile ? (
-                        <><CheckCircle2 className="h-5 w-5 text-cyan-600" /><span className="text-xs font-medium text-cyan-700">{businessPermitFile.name}</span></>
+                        <><CheckCircle2 className="h-5 w-5 text-cyan-600" /><span className="text-sm font-medium text-cyan-700">{businessPermitFile.name}</span></>
                       ) : (
-                        <><UploadCloud className="h-5 w-5 text-slate-400" /><span className="text-xs font-medium text-slate-500">Click to upload PDF, JPG, or PNG</span></>
+                        <><UploadCloud className="h-5 w-5 text-slate-400" /><span className="text-sm font-medium text-slate-500">Click to upload PDF, JPG, or PNG</span></>
                       )}
                     </div>
                     <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" onChange={(e) => setBusinessPermitFile(e.target.files?.[0] || null)} />
@@ -581,14 +581,14 @@ export default function EmployerOnboarding() {
             )}
 
             {activeStep === 4 && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                <div className="p-6 sm:p-8 rounded-xl bg-slate-50/50 border border-slate-100 space-y-4 shadow-sm">
+              <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="p-4 sm:p-5 rounded-xl bg-slate-50/50 border border-slate-100 space-y-4 shadow-sm">
                    <div className="flex justify-between items-start">
                       <div className="space-y-1">
-                         <h3 className="text-xl sm:text-2xl font-black text-slate-900">{formData.companyName || '—'}</h3>
+                         <h3 className="text-2xl sm:text-3xl font-black text-slate-900">{formData.companyName || '—'}</h3>
                          <div className="flex items-center gap-2 flex-wrap">
-                            <Badge className="bg-primary/10 text-primary border-none font-bold text-[9px] uppercase">{formData.industry || 'Industry'}</Badge>
-                            <span className="flex items-center gap-1 text-[10px] font-semibold text-slate-500 uppercase tracking-wider"><Users className="h-3 w-3" /> {companySizeLabel}</span>
+                            <Badge className="bg-primary/10 text-primary border-none font-bold text-xs uppercase">{formData.industry || 'Industry'}</Badge>
+                            <span className="flex items-center gap-1 text-xs font-semibold text-slate-500 uppercase tracking-wider"><Users className="h-3 w-3" /> {companySizeLabel}</span>
                          </div>
                       </div>
                       <div className="h-10 w-10 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-lg shrink-0">
@@ -600,22 +600,22 @@ export default function EmployerOnboarding() {
 
                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-0.5">
-                         <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Headquarters</p>
-                         <p className="font-semibold text-xs flex items-center gap-1 text-slate-700"><MapPin className="h-3.5 w-3.5 text-primary" /> {formData.locationCity}, Kenya</p>
+                         <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Headquarters</p>
+                         <p className="font-semibold text-sm flex items-center gap-1 text-slate-700"><MapPin className="h-3.5 w-3.5 text-primary" /> {formData.locationCity}, Kenya</p>
                       </div>
                       <div className="space-y-0.5">
-                         <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Main Contact</p>
-                         <p className="font-semibold text-xs text-slate-700">{formData.contactPersonName}</p>
+                         <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Main Contact</p>
+                         <p className="font-semibold text-sm text-slate-700">{formData.contactPersonName}</p>
                       </div>
                    </div>
 
                    <div className="space-y-1">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Company Bio</p>
-                      <p className="text-xs font-medium text-slate-600 line-clamp-3 italic leading-relaxed font-sans">{formData.companyBio}</p>
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Company Bio</p>
+                      <p className="text-sm font-medium text-slate-600 line-clamp-3 italic leading-relaxed font-sans">{formData.companyBio}</p>
                    </div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-azure-50/50 border border-azure-100 flex gap-3">
+                <div className="p-3 rounded-xl bg-azure-50/50 border border-azure-100 flex gap-3">
                    <Info className="h-4.5 w-4.5 text-azure-500 shrink-0 mt-0.5" />
                    <p className="text-xs font-medium text-azure-700 leading-relaxed font-sans">
                       Your profile will be reviewed by our moderation team. Approval usually takes less than 24 hours.
@@ -630,7 +630,7 @@ export default function EmployerOnboarding() {
                      className="mt-0.5 rounded animate-none"
                   />
                   <div className="grid gap-1 leading-none">
-                    <Label htmlFor="terms-employer" className="text-xs font-medium text-slate-700 leading-normal cursor-pointer">
+                    <Label htmlFor="terms-employer" className="text-sm font-medium text-slate-700 leading-normal cursor-pointer">
                       I agree to the <Link href="/terms" className="text-primary hover:underline font-semibold font-sans">Terms of Service</Link> and <Link href="/privacy" className="text-primary hover:underline font-semibold font-sans">Privacy Policy</Link>.
                     </Label>
                   </div>
@@ -639,11 +639,11 @@ export default function EmployerOnboarding() {
             )}
           </CardContent>
 
-          <CardFooter className="bg-slate-50/50 border-t border-border/50 p-5 sm:p-6 flex justify-between items-center gap-3 sm:gap-4">
+          <CardFooter className="bg-slate-50/50 border-t border-border/50 p-4 sm:p-5 flex justify-between items-center gap-3 sm:gap-4 shrink-0">
             <Button 
               variant="ghost" 
               size="default" 
-              className="rounded-xl font-semibold h-10 px-4 sm:px-5"
+              className="rounded-xl font-semibold h-11 px-4 sm:px-5 text-base"
               onClick={handleBack}
               disabled={activeStep === 0 || isSubmitting}
             >
@@ -653,7 +653,7 @@ export default function EmployerOnboarding() {
             {activeStep === steps.length - 1 ? (
               <Button 
                 size="default" 
-                className="rounded-xl font-semibold h-10 px-5 sm:px-6 shadow-sm transition-all active:scale-95 bg-primary text-white"
+                className="rounded-xl font-semibold h-11 px-5 sm:px-6 shadow-sm transition-all active:scale-95 bg-primary text-white text-base"
                 onClick={handleNext}
                 disabled={isSubmitting || !agreedToTerms}
               >
@@ -663,7 +663,7 @@ export default function EmployerOnboarding() {
             ) : (
               <Button 
                 size="default" 
-                className="rounded-xl font-semibold h-10 px-5 sm:px-6 shadow-sm bg-primary text-white"
+                className="rounded-xl font-semibold h-11 px-5 sm:px-6 shadow-sm bg-primary text-white text-base"
                 onClick={handleNext}
               >
                 Continue <ChevronRight className="ml-1.5 h-4 w-4" />

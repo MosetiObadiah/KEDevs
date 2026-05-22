@@ -33,7 +33,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -496,24 +496,24 @@ function ChatHubContent() {
   const totalUnreadCount = conversations.reduce((acc, curr) => acc + curr.unreadCount, 0);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F8FAFC] dark:bg-[#0B0F19] font-sans w-full">
-      <div className="w-full px-0 sm:px-4 md:px-6 pt-0 sm:pt-6 pb-0 sm:pb-6">
-        <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-0 sm:gap-6 h-[calc(100vh-70px)] sm:h-[calc(100vh-140px)]">
+    <div className="min-h-[calc(100vh-112px)] lg:h-[calc(100vh-112px)] lg:overflow-hidden bg-[#F8FAFC] dark:bg-[#0B0F19] font-sans w-full flex flex-col justify-center">
+      <div className="w-full px-0 sm:px-4 md:px-6 py-2 flex-1 lg:max-h-full flex flex-col lg:overflow-hidden">
+        <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-0 sm:gap-4 flex-1 lg:max-h-full lg:overflow-hidden">
           
           {/* Left Panel: Chat Profiles */}
-          <div className={cn("flex flex-col h-full", activeConvId ? "hidden md:flex md:col-span-4" : "flex md:col-span-4")}>
-            <Card className="flex-1 border-0 sm:border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-[#0F172A] flex flex-col overflow-hidden shadow-none sm:shadow-sm rounded-none sm:rounded-2xl">
+          <div className={cn("flex flex-col h-full lg:max-h-full lg:overflow-hidden", activeConvId ? "hidden md:flex md:col-span-4" : "flex md:col-span-4")}>
+            <Card className="flex-1 border-0 sm:border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-[#0F172A] flex flex-col overflow-hidden shadow-none sm:shadow-sm rounded-none sm:rounded-2xl lg:max-h-full">
               
               {/* Messages Header */}
-              <div className="p-4 border-b border-slate-100 dark:border-slate-800/80">
+              <div className="p-4 border-b border-slate-100 dark:border-slate-800/80 shrink-0">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2 cursor-pointer group">
-                    <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <h3 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
                       Messages
                     </h3>
-                    <ChevronDown className="h-4 w-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
+                    <ChevronDown className="h-5 w-5 text-slate-400 group-hover:text-slate-600 transition-colors" />
                     {totalUnreadCount > 0 && (
-                      <span className="bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                      <span className="bg-primary text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-sm">
                         {totalUnreadCount}
                       </span>
                     )}
@@ -523,21 +523,21 @@ function ChatHubContent() {
                   <Button 
                     onClick={() => router.push('/developers')}
                     size="icon" 
-                    className="h-8 w-8 rounded-full bg-primary hover:bg-primary/95 text-white border-none flex items-center justify-center shrink-0 shadow-sm"
+                    className="h-9 w-9 rounded-full bg-primary hover:bg-primary/95 text-white border-none flex items-center justify-center shrink-0 shadow-sm"
                   >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-5 w-5" />
                   </Button>
                 </div>
 
                 {/* Search bar */}
-                <div className="relative bg-[#F4F1EA]/60 dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-1.5 flex items-center">
-                  <Search className="h-4 w-4 text-slate-500 ml-2 mr-2 shrink-0" />
+                <div className="relative bg-[#F4F1EA]/60 dark:bg-slate-900/40 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-1.5 flex items-center h-11">
+                  <Search className="h-5 w-5 text-slate-500 ml-2 mr-2 shrink-0" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search conversations."
-                    className="w-full bg-transparent border-none text-sm font-medium text-slate-800 dark:text-white placeholder:text-slate-500 focus:outline-none focus:ring-0"
+                    placeholder="Search conversations..."
+                    className="w-full bg-transparent border-none text-base font-semibold text-slate-800 dark:text-white placeholder:text-slate-500 focus:outline-none focus:ring-0"
                   />
                 </div>
               </div>
@@ -545,23 +545,23 @@ function ChatHubContent() {
               {/* Chat Thread List */}
               {loadingConv ? (
                 <div className="flex-1 flex flex-col items-center justify-center space-y-2">
-                  <Loader2 className="h-6 w-6 text-primary animate-spin" />
-                  <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Syncing conversations...</p>
+                  <Loader2 className="h-7 w-7 text-primary animate-spin" />
+                  <p className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Syncing conversations...</p>
                 </div>
               ) : filteredConversations.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-3">
-                  <div className="h-10 w-10 rounded-xl bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center">
-                    <Users className="h-5 w-5 text-slate-400 dark:text-slate-500" />
+                  <div className="h-12 w-12 rounded-xl bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center">
+                    <Users className="h-6 w-6 text-slate-400 dark:text-slate-500" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-slate-950 dark:text-white">No chats found</h4>
-                    <p className="text-[10px] text-slate-400 dark:text-slate-500 max-w-[180px] mx-auto mt-1 leading-relaxed">
+                    <h4 className="text-sm font-bold text-slate-950 dark:text-white">No chats found</h4>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 max-w-[200px] mx-auto mt-1 leading-relaxed">
                       {searchQuery ? "Try checking spelling or reset query." : "Accept contact requests inside Notifications page."}
                     </p>
                   </div>
                 </div>
               ) : (
-                <ScrollArea className="flex-1 p-2">
+                <ScrollArea className="flex-1 p-2 overflow-y-auto">
                   <div className="space-y-1">
                     {filteredConversations.map((conv) => {
                       const isActive = conv.id === activeConvId;
@@ -578,33 +578,33 @@ function ChatHubContent() {
                               : "bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/20"
                           )}
                         >
-                          <div className={cn("h-[34px] w-[34px] rounded-full flex items-center justify-center text-[10px] font-bold border shrink-0 relative", getInitialsColors(conv.otherUserName))}>
+                          <div className={cn("h-[40px] w-[40px] rounded-full flex items-center justify-center text-xs font-bold border shrink-0 relative", getInitialsColors(conv.otherUserName))}>
                             {getInitials(conv.otherUserName)}
                             {/* Online status indicator */}
-                            <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-white dark:border-[#0F172A] bg-emerald-500" />
+                            <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border border-white dark:border-[#0F172A] bg-emerald-500" />
                           </div>
 
                           <div className="flex-1 min-w-0">
                             <div className="flex justify-between items-baseline mb-0.5">
                               <h4 className={cn(
-                                "text-sm font-bold truncate pr-1 group-hover:text-primary transition-colors",
+                                "text-base font-bold truncate pr-1 group-hover:text-primary transition-colors",
                                 isActive ? "text-primary dark:text-primary" : "text-slate-900 dark:text-slate-100"
                               )}>
                                 {conv.otherUserName}
                               </h4>
-                              <span className="text-xs text-slate-400 font-medium shrink-0">
+                              <span className="text-sm text-slate-400 font-medium shrink-0">
                                 {getRelativeTime(conv.lastMessageAt)}
                               </span>
                             </div>
                             
                             <div className="flex justify-between items-center gap-2 mt-0.5">
-                              <p className="text-xs text-slate-500 dark:text-slate-400 truncate font-medium flex-1">
+                              <p className="text-sm text-slate-500 dark:text-slate-400 truncate font-medium flex-1">
                                 {conv.lastMessage || <span className="text-slate-400/60 dark:text-slate-500/60 italic">No messages yet</span>}
                               </p>
                               
                               <div className="flex items-center gap-1.5 shrink-0">
                                 {conv.unreadCount > 0 && (
-                                  <span className="h-[18px] min-w-[18px] px-1 flex items-center justify-center text-[10px] font-bold rounded-full bg-[#185FA5] text-white">
+                                  <span className="h-[20px] min-w-[20px] px-1 flex items-center justify-center text-xs font-bold rounded-full bg-[#185FA5] text-white">
                                     {conv.unreadCount}
                                   </span>
                                 )}
@@ -621,9 +621,9 @@ function ChatHubContent() {
           </div>
 
           {/* Right Panel: Active Chat Viewport */}
-          <div className={cn("flex flex-col h-full", activeConvId ? "flex md:col-span-8" : "hidden md:flex md:col-span-8")}>
+          <div className={cn("flex flex-col h-full lg:max-h-full lg:overflow-hidden", activeConvId ? "flex md:col-span-8" : "hidden md:flex md:col-span-8")}>
             {activeConvId && activeConv ? (
-              <Card className="flex-1 border-0 sm:border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-[#0F172A] flex flex-col overflow-hidden shadow-none sm:shadow-sm rounded-none sm:rounded-2xl">
+              <Card className="flex-1 border-0 sm:border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-[#0F172A] flex flex-col overflow-hidden shadow-none sm:shadow-sm rounded-none sm:rounded-2xl lg:max-h-full">
                 
                 {/* Viewport Header */}
                 <div className="p-4 border-b border-slate-100 dark:border-slate-800/80 bg-white dark:bg-[#0F172A] flex justify-between items-center shrink-0">
@@ -632,20 +632,20 @@ function ChatHubContent() {
                       variant="ghost"
                       size="icon"
                       onClick={() => setActiveConvId(null)}
-                      className="md:hidden h-9 w-9 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 mr-1 shrink-0"
+                      className="md:hidden h-10 w-10 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 mr-1 shrink-0"
                     >
-                      <ArrowLeft className="h-5 w-5" />
+                      <ArrowLeft className="h-6 w-6" />
                     </Button>
-                    <div className={cn("h-[34px] w-[34px] rounded-full flex items-center justify-center text-[10px] font-bold border shrink-0 relative", getInitialsColors(activeConv.otherUserName))}>
+                    <div className={cn("h-[40px] w-[40px] rounded-full flex items-center justify-center text-xs font-bold border shrink-0 relative", getInitialsColors(activeConv.otherUserName))}>
                       {getInitials(activeConv.otherUserName)}
                       {/* Online status indicator */}
-                      <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-white dark:border-[#0F172A] bg-emerald-500" />
+                      <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border border-white dark:border-[#0F172A] bg-emerald-500" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
+                      <h4 className="text-base font-bold text-slate-900 dark:text-white leading-tight">
                         {activeConv.otherUserName}
                       </h4>
-                      <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">
                         Online
                       </p>
                     </div>
@@ -657,18 +657,18 @@ function ChatHubContent() {
                       variant="outline"
                       size="sm"
                       onClick={() => toast.success("Voice and video calls coming soon!")}
-                      className="flex items-center gap-1.5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 rounded-xl px-3 py-1.5 h-9 font-medium text-xs shadow-sm hover:bg-slate-50 dark:hover:bg-slate-900"
+                      className="flex items-center gap-1.5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 rounded-xl px-4 py-2 h-10 font-semibold text-sm shadow-sm hover:bg-slate-50 dark:hover:bg-slate-900"
                     >
-                      <Phone className="h-3.5 w-3.5" /> Call
+                      <Phone className="h-4 w-4" /> Call
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-9 w-9 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 rounded-xl flex items-center justify-center shadow-sm"
+                          className="h-10 w-10 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 rounded-xl flex items-center justify-center shadow-sm"
                         >
-                          <MoreHorizontal className="h-4 w-4" />
+                          <MoreHorizontal className="h-5 w-5" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-40">
@@ -691,10 +691,10 @@ function ChatHubContent() {
                 {!isUnlocked && (
                   <div className="p-4 shrink-0 border-b border-amber-100 dark:border-amber-900/30 bg-amber-500/5 flex flex-col sm:flex-row gap-4 items-center justify-between">
                     <div className="flex gap-3 items-start">
-                      <AlertCircle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                      <AlertCircle className="h-6 w-6 text-amber-500 shrink-0 mt-0.5" />
                       <div>
-                        <h5 className="text-xs font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wider"> Reciprocal Chat Activation Required</h5>
-                        <p className="text-xs text-amber-700 dark:text-amber-500 font-medium leading-relaxed mt-0.5 max-w-lg">
+                        <h5 className="text-sm font-black text-amber-800 dark:text-amber-400 uppercase tracking-wider"> Reciprocal Chat Activation Required</h5>
+                        <p className="text-sm text-amber-700 dark:text-amber-500 font-medium leading-relaxed mt-0.5 max-w-lg">
                           {!amIAccepted 
                             ? `👋 ${activeConv.otherUserName} is ready to start a chat with you! Click Accept & Start Chat below to activate your chat interface.`
                             : `⏳ You have authorized the chat invitation. Waiting for ${activeConv.otherUserName} to also accept and start chat before messages can be exchanged.`
@@ -705,7 +705,7 @@ function ChatHubContent() {
                     {!amIAccepted && (
                       <Button 
                         onClick={handleAcceptConversation} 
-                        className="bg-primary text-white hover:bg-primary/95 font-medium text-xs rounded-xl shadow-md border-none px-4 h-9 shrink-0 flex items-center gap-1.5"
+                        className="bg-primary text-white hover:bg-primary/95 font-semibold text-sm rounded-xl shadow-md border-none px-4 h-10 shrink-0 flex items-center gap-1.5"
                       >
                         Accept & Start Chat
                       </Button>
@@ -717,17 +717,17 @@ function ChatHubContent() {
                 <div className="flex-1 overflow-hidden relative p-4 flex flex-col bg-white dark:bg-[#0F172A]">
                   {loadingMessages ? (
                     <div className="flex-1 flex flex-col items-center justify-center space-y-2">
-                      <Loader2 className="h-6 w-6 text-primary animate-spin" />
-                      <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">Retrieving logs...</p>
+                      <Loader2 className="h-7 w-7 text-primary animate-spin" />
+                      <p className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">Retrieving logs...</p>
                     </div>
                   ) : messages.length === 0 ? (
                     <div className="flex-1 flex flex-col items-center justify-center text-center space-y-3">
-                      <div className="h-10 w-10 rounded-full bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center text-slate-400">
-                        <Mail className="h-5 w-5" />
+                      <div className="h-12 w-12 rounded-full bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center text-slate-400">
+                        <Mail className="h-6 w-6" />
                       </div>
                       <div>
-                        <h4 className="text-xs font-bold text-slate-950 dark:text-white">No Messages Sent Yet</h4>
-                        <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">Start typing to kick off your reciprocal dialogue.</p>
+                        <h4 className="text-sm font-bold text-slate-950 dark:text-white">No Messages Sent Yet</h4>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Start typing to kick off your reciprocal dialogue.</p>
                       </div>
                     </div>
                   ) : (
@@ -782,7 +782,7 @@ function ChatHubContent() {
                               >
                                 {/* Incoming Avatar (on the left) */}
                                 {!group.isMe && (
-                                  <div className={cn("h-[34px] w-[34px] rounded-full flex items-center justify-center text-[10px] font-bold border shrink-0 relative mt-0.5", getInitialsColors(group.senderName))}>
+                                  <div className={cn("h-[40px] w-[40px] rounded-full flex items-center justify-center text-xs font-bold border shrink-0 relative mt-0.5", getInitialsColors(group.senderName))}>
                                     {getInitials(group.senderName)}
                                   </div>
                                 )}
@@ -799,7 +799,7 @@ function ChatHubContent() {
                                       <div key={msg.id} className={cn("flex flex-col gap-1 w-full", group.isMe ? "items-end" : "items-start")}>
                                         <div
                                           className={cn(
-                                            "rounded-2xl px-4 py-2.5 text-sm md:text-base font-medium leading-relaxed shadow-sm relative",
+                                            "rounded-2xl px-4 py-2.5 text-base md:text-lg font-medium leading-relaxed shadow-sm relative",
                                             group.isMe
                                               ? "bg-[#185FA5] text-white rounded-br-none"
                                               : "bg-white dark:bg-[#0F172A] border-[0.5px] border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 rounded-bl-none"
@@ -807,7 +807,7 @@ function ChatHubContent() {
                                         >
                                           <p className="whitespace-pre-wrap">{msg.content}</p>
                                         </div>
-                                        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold px-1">
+                                        <span className="text-xs text-slate-400 dark:text-slate-500 font-semibold px-1">
                                           {formatTime(msg.createdAt)}{group.isMe && " · Delivered"}
                                         </span>
                                       </div>
@@ -817,7 +817,7 @@ function ChatHubContent() {
 
                                 {/* Outgoing Avatar (on the right) */}
                                 {group.isMe && (
-                                  <div className={cn("h-[34px] w-[34px] rounded-full flex items-center justify-center text-[10px] font-bold border shrink-0 relative mt-0.5", getInitialsColors(user?.fullName || "Me"))}>
+                                  <div className={cn("h-[40px] w-[40px] rounded-full flex items-center justify-center text-xs font-bold border shrink-0 relative mt-0.5", getInitialsColors(user?.fullName || "Me"))}>
                                     {getInitials(user?.fullName || "Me")}
                                   </div>
                                 )}
@@ -833,16 +833,16 @@ function ChatHubContent() {
                 {/* Input Text Form (Single integrated pill-shaped row) */}
                 <div className="p-4 border-t border-slate-100 dark:border-slate-800/80 bg-white dark:bg-[#0F172A] shrink-0 flex flex-col items-center gap-1.5">
                   <form onSubmit={handleSendMessage} className="w-full">
-                    <div className="flex items-center gap-2 bg-[#F4F1EA]/60 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl px-2 py-1.5">
+                    <div className="flex items-center gap-2 bg-[#F4F1EA]/60 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl px-2 py-1.5 h-13">
                       {/* Attachment Button */}
                       <Button
                         type="button"
                         variant="ghost"
                         size="icon"
                         onClick={() => toast.success("Attachments feature coming soon!")}
-                        className="h-9 w-9 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 rounded-full shrink-0"
+                        className="h-11 w-11 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 rounded-full shrink-0"
                       >
-                        <Paperclip className="h-5 w-5" />
+                        <Paperclip className="h-6 w-6" />
                       </Button>
 
                       <input
@@ -859,7 +859,7 @@ function ChatHubContent() {
                             : "Type a message..."
                         }
                         disabled={!isUnlocked || isBlocked || sending}
-                        className="flex-1 bg-transparent border-none text-sm text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:ring-0 disabled:cursor-not-allowed px-1"
+                        className="flex-1 bg-transparent border-none text-base text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:ring-0 disabled:cursor-not-allowed px-1"
                       />
 
                       {/* Emoji Icon */}
@@ -869,35 +869,35 @@ function ChatHubContent() {
                         size="icon"
                         onClick={() => toast.success("Emojis coming soon!")}
                         disabled={isBlocked}
-                        className="h-9 w-9 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 rounded-full shrink-0"
+                        className="h-11 w-11 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 rounded-full shrink-0"
                       >
-                        <Smile className="h-5 w-5" />
+                        <Smile className="h-6 w-6" />
                       </Button>
 
                       {/* Send Button */}
                       <Button
                         type="submit"
                         disabled={!isUnlocked || isBlocked || !inputText.trim() || sending}
-                        className="h-9 w-9 rounded-xl bg-[#185FA5] hover:bg-[#185FA5]/90 text-white flex items-center justify-center shrink-0 shadow-sm border-none disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="h-11 w-11 rounded-xl bg-[#185FA5] hover:bg-[#185FA5]/90 text-white flex items-center justify-center shrink-0 shadow-sm border-none disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                        {sending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
                       </Button>
                     </div>
                   </form>
-                  <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
-                    <kbd className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 font-mono text-[9px] shadow-sm mr-1">Shift</kbd>+<kbd className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 font-mono text-[9px] shadow-sm mx-1">Enter</kbd> for new line
+                  <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                    <kbd className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 font-mono text-xs shadow-sm mr-1">Shift</kbd>+<kbd className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 font-mono text-xs shadow-sm mx-1">Enter</kbd> for new line
                   </p>
                 </div>
 
               </Card>
             ) : (
               <Card className="flex-1 border-0 sm:border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-[#0F172A] flex flex-col items-center justify-center p-8 text-center space-y-4 shadow-none sm:shadow-sm rounded-none sm:rounded-2xl border-dashed">
-                <div className="h-12 w-12 rounded-2xl bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center">
-                  <MessageSquare className="h-6 w-6 text-slate-400 dark:text-slate-500" />
+                <div className="h-14 w-14 rounded-2xl bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center">
+                  <MessageSquare className="h-7 w-7 text-slate-400 dark:text-slate-500" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">Secure Chat Hub</h3>
-                  <p className="text-xs text-slate-400 dark:text-slate-500 max-w-[280px] mx-auto mt-1 leading-relaxed font-medium">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">Secure Chat Hub</h3>
+                  <p className="text-sm text-slate-400 dark:text-slate-500 max-w-[320px] mx-auto mt-1 leading-relaxed font-medium font-sans">
                     Select a conversation profile from the left list to begin messaging.
                   </p>
                 </div>

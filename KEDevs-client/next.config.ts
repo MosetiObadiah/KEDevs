@@ -4,8 +4,23 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: [
     'monogamy-revoke-treble.ngrok-free.dev',
     '192.168.100.3',
-    'monogamy-revoke-treble.ngrok-free.dev',
   ],
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'http',
+        hostname: '192.168.100.3',
+      }
+    ],
+  },
   async rewrites() {
     return [
       {

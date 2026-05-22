@@ -35,7 +35,7 @@ import { useNotification } from '@/context/NotificationContext';
 import { useAuth } from '@/context/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
 
 import { Button } from '@/components/ui/button';

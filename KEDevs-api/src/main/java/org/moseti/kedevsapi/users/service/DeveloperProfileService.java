@@ -1,6 +1,6 @@
 package org.moseti.kedevsapi.users.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.moseti.kedevsapi.shared.enums.AvailabilityStatus;
@@ -18,6 +18,7 @@ import org.moseti.kedevsapi.payments.exception.PaywallException;
 import org.moseti.kedevsapi.shared.service.FileUploadService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.moseti.kedevsapi.notifications.service.NotificationService;
@@ -28,10 +29,10 @@ import org.moseti.kedevsapi.payments.repository.UserFlagRepository;
 
 import java.util.List;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageImpl;
 
 
@@ -53,7 +54,15 @@ public class DeveloperProfileService {
     private final FileUploadService fileUploadService;
     private final NotificationService notificationService;
     private final UserFlagRepository userFlagRepository;
-    private final CacheManager cacheManager;
+
+    /**
+     * Self-reference injected lazily so that internal calls to @Cacheable methods
+     * go through the Spring AOP proxy and actually hit the cache interceptor.
+     * (Direct this.method() calls bypass the proxy entirely.)
+     */
+    @Lazy
+    @Autowired
+    private DeveloperProfileService self;
 
 
     // ----------------------------------------------------------------
@@ -569,42 +578,25 @@ public class DeveloperProfileService {
     // Public / Filtered Listings
     // ----------------------------------------------------------------
 
-    @SuppressWarnings("unchecked")
+    /**
+     * Fetches all public developer summaries, backed by Redis cache via @Cacheable.
+     * Spring's cache proxy handles serialization/deserialization through the configured
+     * RedisSerializer, which avoids the type-info mismatch that manual CacheManager.put/get causes.
+     */
+    @Cacheable(value = "publicDevelopers", key = "'all'")
+    @Transactional(readOnly = true)
     public List<UserDtos.DeveloperSummaryResponse> getPublicDevelopersList() {
-        Cache cache = cacheManager.getCache("publicDevelopers");
-        if (cache != null) {
-            try {
-                Cache.ValueWrapper wrapper = cache.get("all");
-                if (wrapper != null) {
-                    return (List<UserDtos.DeveloperSummaryResponse>) wrapper.get();
-                }
-            } catch (Exception e) {
-                log.error("Failed to deserialize publicDevelopers cache. Evicting and falling back to database.", e);
-                try {
-                    cache.evict("all");
-                } catch (Exception ex) {
-                    log.error("Failed to evict publicDevelopers key from cache", ex);
-                }
-            }
-        }
-
-
-        List<UserDtos.DeveloperSummaryResponse> list = profileRepository.findByProfileVisibility(ProfileVisibility.PUBLIC, Pageable.unpaged())
+        return profileRepository.findByProfileVisibility(ProfileVisibility.PUBLIC, PageRequest.of(0, 100))
                 .getContent()
                 .stream()
                 .map(this::toSummaryResponse)
                 .toList();
-
-        if (cache != null) {
-            cache.put("all", list);
-        }
-        return list;
     }
 
     @Transactional(readOnly = true)
     public Page<UserDtos.DeveloperSummaryResponse> getPublicDevelopers(Pageable pageable) {
-        List<UserDtos.DeveloperSummaryResponse> allDevs = getPublicDevelopersList();
-        
+        List<UserDtos.DeveloperSummaryResponse> allDevs = self.getPublicDevelopersList();
+
         int start = (int) pageable.getOffset();
         if (start >= allDevs.size()) {
             return new PageImpl<>(List.of(), pageable, allDevs.size());
@@ -616,7 +608,7 @@ public class DeveloperProfileService {
 
     @Transactional(readOnly = true)
     public Page<UserDtos.DeveloperSummaryResponse> filterDevelopers(UserDtos.DeveloperFilterRequest filter, Pageable pageable) {
-        List<DeveloperProfile> allProfiles = profileRepository.findByProfileVisibility(ProfileVisibility.PUBLIC, Pageable.unpaged()).getContent();
+        List<DeveloperProfile> allProfiles = profileRepository.findByProfileVisibility(ProfileVisibility.PUBLIC, PageRequest.of(0, 100)).getContent();
 
         List<UserDtos.DeveloperSummaryResponse> filtered = allProfiles.stream()
             .filter(p -> filter.availabilityStatus() == null || filter.availabilityStatus() == p.getAvailabilityStatus())

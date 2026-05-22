@@ -35,7 +35,7 @@ import { companyService } from '@/services/companyService';
 import { INDUSTRIES } from '@/lib/constants';
 import { cn, formatCompanySize } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

@@ -114,7 +114,6 @@ export const apiClient = {
 
   async get<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const execute = () => fetch(`${API_BASE_URL}${endpoint}`, {
-      cache: 'no-store',
       ...options,
       method: 'GET',
       credentials: 'include',

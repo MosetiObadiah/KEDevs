@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   CheckCircle2, 
   ExternalLink, 
@@ -93,7 +94,7 @@ function SpotlightBigCard({ dev, type }: { dev: any, type: string }) {
             <div className="flex flex-col h-full">
               <div className="relative aspect-video rounded-xl overflow-hidden bg-muted border border-border mb-6 group/img">
                 {project.screenshotUrl ? (
-                  <img src={project.screenshotUrl} alt={project.title} className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500" />
+                  <Image src={project.screenshotUrl} alt={project.title} fill sizes="(max-width: 768px) 100vw, 50vw" priority className="object-cover group-hover/img:scale-105 transition-transform duration-500" />
                 ) : (
                   <div className="flex items-center justify-center h-full text-muted-foreground opacity-20">
                     <Code className="h-16 w-16" />

@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Briefcase,
   Building2,
@@ -33,11 +34,13 @@ const statusConfig: Record<string, { label: string, color: string, icon: any }> 
   'REJECTED': { label: 'Closed', color: 'bg-danger-50 text-danger-500', icon: XCircle },
 };
 
-export default function MyApplications() {
+function MyApplicationsContent() {
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const searchTerm = searchParams.get('search') || '';
 
   useEffect(() => {
     const fetchApplications = async (showLoading = true) => {
@@ -107,21 +110,6 @@ export default function MyApplications() {
                 <h3 className="text-sm font-medium uppercase tracking-wider text-foreground">Application Tracker</h3>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground uppercase">Search</label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Title or company..."
-                      className="pl-10 text-sm border-border/50 focus-visible:ring-primary/20"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <Separator className="bg-border/50" />
-
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 rounded-xl bg-muted/50 border border-border/50 text-center">
                     <p className="text-[10px] font-black text-muted-foreground uppercase mb-1">Total</p>
@@ -146,7 +134,7 @@ export default function MyApplications() {
                     variant="ghost"
                     size="sm"
                     className="w-full text-xs font-medium text-muted-foreground"
-                    onClick={() => setSearchTerm('')}
+                    onClick={() => router.push('/jobs/my-applications')}
                   >
                     <FilterX className="mr-2 h-3.5 w-3.5" /> Clear Search
                   </Button>
@@ -232,5 +220,17 @@ export default function MyApplications() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function MyApplications() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+      </div>
+    }>
+      <MyApplicationsContent />
+    </Suspense>
   );
 }

@@ -58,25 +58,27 @@ export default function HomePage() {
           if (res.success) setStats(res.data);
         }).catch(console.error);
 
-        // Fetch Jobs
+        // Fetch all data in parallel
+        const [pinnedRes, jobsRes, spotlightRes, publicDevsRes] = await Promise.allSettled([
+          jobService.getPinnedJobs(),
+          jobService.getPublicJobs(undefined, 0, 20),
+          developerService.getCurrentSpotlight(),
+          developerService.getPublicDevelopers(0, 20),
+        ]);
+
+        // Process Jobs
         let pinnedJobs: JobSummary[] = [];
-        try {
-          const pinnedResponse = await jobService.getPinnedJobs();
-          if (pinnedResponse.success && Array.isArray(pinnedResponse.data)) {
-            pinnedJobs = pinnedResponse.data;
-          }
-        } catch (err) {
-          console.error('Failed to fetch pinned jobs:', err);
+        if (pinnedRes.status === 'fulfilled' && pinnedRes.value.success && Array.isArray(pinnedRes.value.data)) {
+          pinnedJobs = pinnedRes.value.data;
+        } else if (pinnedRes.status === 'rejected') {
+          console.error('Failed to fetch pinned jobs:', pinnedRes.reason);
         }
 
         let publicJobs: JobSummary[] = [];
-        try {
-          const jobsResponse = await jobService.getPublicJobs(undefined, 0, 20);
-          if (jobsResponse.success && jobsResponse.data && Array.isArray(jobsResponse.data.content)) {
-            publicJobs = jobsResponse.data.content;
-          }
-        } catch (err) {
-          console.error('Failed to fetch public jobs:', err);
+        if (jobsRes.status === 'fulfilled' && jobsRes.value.success && jobsRes.value.data && Array.isArray(jobsRes.value.data.content)) {
+          publicJobs = jobsRes.value.data.content;
+        } else if (jobsRes.status === 'rejected') {
+          console.error('Failed to fetch public jobs:', jobsRes.reason);
         }
 
         const pinnedIds = new Set(pinnedJobs.map(j => j.id));
@@ -86,12 +88,10 @@ export default function HomePage() {
         setFeaturedJobs(combinedJobs);
         setIsLoadingJobs(false);
 
-        // Fetch Developers
+        // Process Developers
         let devs: DeveloperSummary[] = [];
-        const spotlightResponse = await developerService.getCurrentSpotlight();
-
-        if (spotlightResponse.success) {
-          const { daySlot, weekSlot } = spotlightResponse.data;
+        if (spotlightRes.status === 'fulfilled' && spotlightRes.value.success) {
+          const { daySlot, weekSlot } = spotlightRes.value.data;
           setDayDev(daySlot);
           setWeekDev(weekSlot);
 
@@ -99,7 +99,7 @@ export default function HomePage() {
             if (slot && !devs.some(d => d.id === slot.developerId)) {
               devs.push({
                 id: slot.developerId,
-                userId: slot.developerId, // Using developerId as a fallback since userId is not available here
+                userId: slot.developerId,
                 firstName: slot.developerName.split(' ')[0],
                 lastName: slot.developerName.split(' ')[1] || '',
                 profilePhoto: slot.profilePhoto,
@@ -121,16 +121,19 @@ export default function HomePage() {
               });
             }
           });
+        } else if (spotlightRes.status === 'rejected') {
+          console.error('Failed to fetch spotlight:', spotlightRes.reason);
         }
 
-        const publicResponse = await developerService.getPublicDevelopers(0, 20);
-        if (publicResponse.success) {
-          const publicDevs = publicResponse.data.content;
+        if (publicDevsRes.status === 'fulfilled' && publicDevsRes.value.success) {
+          const publicDevs = publicDevsRes.value.data.content;
           const filteredPublic = publicDevs.filter((pd: any) => !devs.some(d => d.id === pd.id));
           const combined = [...devs, ...filteredPublic];
           const uniqueDevs = combined.filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i);
           const shuffledDevs = [...uniqueDevs].sort(() => Math.random() - 0.5).slice(0, 3);
           setSpotlightDevs(shuffledDevs);
+        } else if (publicDevsRes.status === 'rejected') {
+          console.error('Failed to fetch public devs:', publicDevsRes.reason);
         }
 
         setIsLoadingDevs(false);

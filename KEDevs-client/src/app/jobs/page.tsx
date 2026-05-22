@@ -145,7 +145,7 @@ function JobsPageContent() {
   const [deadlineTo, setDeadlineTo] = useState('');
   const [isPeerSourced, setIsPeerSourced] = useState<boolean | null>(null);
   const [minUpvotes, setMinUpvotes] = useState('');
-  const [status, setStatus] = useState<string>('OPEN');
+  // status is always OPEN on /jobs — enforced server-side; not a mutable filter
   const [metadata, setMetadata] = useState<{ qualifications: string[], experienceYears: number[] }>({ qualifications: [], experienceYears: [] });
 
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
@@ -353,7 +353,6 @@ function JobsPageContent() {
           deadlineTo: deadlineTo || undefined,
           isPeerSourced: isPeerSourced !== null ? isPeerSourced : undefined,
           minUpvotes: minUpvotes ? parseInt(minUpvotes) : undefined,
-          status: status as any,
         });
         if (response.success) {
           let content = response.data.content;
@@ -409,7 +408,7 @@ function JobsPageContent() {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchTerm, city, selectedJobTypes, selectedWorkTypes, selectedExpLevels, minSalary, maxSalary, minQualification, minExperienceYears, deadlineFrom, deadlineTo, isPeerSourced, minUpvotes, status, sortBy, isInitialLoad]);
+  }, [searchTerm, city, selectedJobTypes, selectedWorkTypes, selectedExpLevels, minSalary, maxSalary, minQualification, minExperienceYears, deadlineFrom, deadlineTo, isPeerSourced, minUpvotes, sortBy, isInitialLoad]);
 
   const [isExporting, setIsExporting] = useState(false);
 
@@ -870,7 +869,7 @@ function JobsPageContent() {
         </Select>
       </div>
 
-      {(searchTerm || selectedWorkTypes.length > 0 || selectedJobTypes.length > 0 || selectedExpLevels.length > 0 || city !== 'All' || minSalary || maxSalary || minQualification || minExperienceYears || deadlineFrom || deadlineTo || isPeerSourced !== null || minUpvotes || status !== 'OPEN' || selectedSkills.length > 0) && (
+      {(searchTerm || selectedWorkTypes.length > 0 || selectedJobTypes.length > 0 || selectedExpLevels.length > 0 || city !== 'All' || minSalary || maxSalary || minQualification || minExperienceYears || deadlineFrom || deadlineTo || isPeerSourced !== null || minUpvotes || selectedSkills.length > 0) && (
         <Button
           variant="ghost"
           size="sm"
@@ -889,7 +888,6 @@ function JobsPageContent() {
             setDeadlineTo('');
             setIsPeerSourced(null);
             setMinUpvotes('');
-            setStatus('OPEN');
             setSelectedSkills([]);
           }}
         >
@@ -1172,7 +1170,7 @@ function JobsPageContent() {
                   <Briefcase className="w-12 h-12 text-muted-foreground/50 mb-4" />
                   <h3 className={cn(TYPOGRAPHY.sectionHeading, "mb-2")}>No jobs found</h3>
                   <p className={cn(TYPOGRAPHY.body, "mb-4")}>Try adjusting your filters or search term.</p>
-                  {(searchTerm || selectedWorkTypes.length > 0 || selectedJobTypes.length > 0 || selectedExpLevels.length > 0 || city !== 'All' || minSalary || maxSalary || minQualification || minExperienceYears || deadlineFrom || deadlineTo || isPeerSourced !== null || minUpvotes || status !== 'OPEN' || selectedSkills.length > 0) && (
+                  {(searchTerm || selectedWorkTypes.length > 0 || selectedJobTypes.length > 0 || selectedExpLevels.length > 0 || city !== 'All' || minSalary || maxSalary || minQualification || minExperienceYears || deadlineFrom || deadlineTo || isPeerSourced !== null || minUpvotes || selectedSkills.length > 0) && (
                     <Button variant="outline" size="sm" onClick={() => {
                       router.push(pathname);
                       setSelectedWorkTypes([]);
@@ -1187,7 +1185,6 @@ function JobsPageContent() {
                       setDeadlineTo('');
                       setIsPeerSourced(null);
                       setMinUpvotes('');
-                      setStatus('OPEN');
                       setSelectedSkills([]);
                     }}>
                       Reset Filters
@@ -1226,7 +1223,7 @@ function JobsPageContent() {
                               {(() => {
                                 const isExpired = job.applicationDeadline && new Date(job.applicationDeadline) < new Date();
                                 if (isExpired) return <Badge variant="destructive" className="text-[10px] uppercase py-0.5 shrink-0 font-black tracking-widest">Expired</Badge>;
-                                if (job.status === 'OPEN') return <Badge className="bg-cyan-600 hover:bg-cyan-600 text-[10px] uppercase py-0.5 shrink-0 font-black tracking-widest">Active</Badge>;
+                                if (job.status === 'OPEN') return null;
                                 return <Badge variant="secondary" className="text-[10px] uppercase py-0.5 shrink-0 font-black tracking-widest">Closed</Badge>;
                               })()}
                             </div>

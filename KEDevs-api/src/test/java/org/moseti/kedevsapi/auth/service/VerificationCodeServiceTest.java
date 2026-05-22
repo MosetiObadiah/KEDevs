@@ -37,6 +37,8 @@ class VerificationCodeServiceTest {
     @Test
     void generateCode_Success() {
         // Given
+        when(verificationCodeRepository.findAllByUserIdAndType(any(), any()))
+                .thenReturn(java.util.List.of());
         when(verificationCodeRepository.save(any(VerificationCode.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -47,13 +49,16 @@ class VerificationCodeServiceTest {
         assertNotNull(code);
         assertEquals(6, code.length());
         assertTrue(code.matches("\\d{6}")); // 6 digits
-        verify(verificationCodeRepository).deleteByUserIdAndType(eq(testUserId), eq(VerificationCode.CodeType.EMAIL_VERIFICATION));
+        verify(verificationCodeRepository).findAllByUserIdAndType(eq(testUserId), eq(VerificationCode.CodeType.EMAIL_VERIFICATION));
+        verify(verificationCodeRepository).saveAll(any());
         verify(verificationCodeRepository).save(any(VerificationCode.class));
     }
 
     @Test
     void generateCode_DeletesOldCodes() {
         // Given
+        when(verificationCodeRepository.findAllByUserIdAndType(any(), any()))
+                .thenReturn(java.util.List.of());
         when(verificationCodeRepository.save(any(VerificationCode.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -61,7 +66,8 @@ class VerificationCodeServiceTest {
         verificationCodeService.generateCode(testUserId, VerificationCode.CodeType.EMAIL_VERIFICATION);
 
         // Then
-        verify(verificationCodeRepository).deleteByUserIdAndType(eq(testUserId), eq(VerificationCode.CodeType.EMAIL_VERIFICATION));
+        verify(verificationCodeRepository).findAllByUserIdAndType(eq(testUserId), eq(VerificationCode.CodeType.EMAIL_VERIFICATION));
+        verify(verificationCodeRepository).saveAll(any());
     }
 
     @Test

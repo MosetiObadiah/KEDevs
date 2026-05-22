@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import Cropper from 'react-easy-crop';
 import {
   Edit2,
@@ -85,7 +86,7 @@ const COMMON_SKILLS = [
 
 const getCroppedImg = (imageSrc: string, pixelCrop: any): Promise<Blob> => {
   return new Promise((resolve, reject) => {
-    const image = new Image();
+    const image = new window.Image();
     image.src = imageSrc;
     image.crossOrigin = 'anonymous';
     image.onload = () => {
@@ -933,7 +934,7 @@ export default function MyProfile() {
                   <Input type="file" accept="image/*" onChange={handleFileChange} className="rounded-xl h-10 px-2 pt-1.5" />
                   {previewUrl && (
                     <div className="mt-4 relative rounded-2xl overflow-hidden">
-                      <img src={previewUrl} className="w-full h-40 object-cover" />
+                      <Image src={previewUrl} alt="Preview" fill className="object-cover" />
                       <button
                         type="button"
                         onClick={(e) => {

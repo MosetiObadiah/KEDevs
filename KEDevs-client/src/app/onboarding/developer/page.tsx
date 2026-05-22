@@ -220,15 +220,15 @@ export default function DeveloperOnboarding() {
   if (!isLoggedIn) return null;
 
   return (
-    <div className="min-h-screen bg-muted/30 flex flex-col items-center justify-center p-4 py-12 sm:py-16">
-      <div className="w-full max-w-xl animate-in fade-in slide-in-from-bottom-6 duration-500">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Developer Onboarding</h1>
-          <p className="text-sm text-slate-500 font-medium mt-1.5 font-sans">Let&apos;s build your professional presence</p>
+    <div className="min-h-[calc(100vh-112px)] lg:h-[calc(100vh-112px)] lg:overflow-hidden bg-muted/30 flex flex-col items-center justify-center p-4 py-4">
+      <div className="w-full max-w-xl animate-in fade-in slide-in-from-bottom-6 duration-500 flex flex-col lg:max-h-full">
+        <div className="text-center mb-4">
+          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Developer Onboarding</h1>
+          <p className="text-base text-slate-500 font-medium mt-1 font-sans">Let&apos;s build your professional presence</p>
         </div>
 
         {/* Stepper */}
-        <div className="flex justify-between items-center mb-8 relative px-4 max-w-xs sm:max-w-sm mx-auto">
+        <div className="flex justify-between items-center mb-4 relative px-4 max-w-xs sm:max-w-sm mx-auto w-full">
           <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 -translate-y-1/2 -z-10 rounded-full" />
           <div
             className="absolute top-1/2 left-0 h-0.5 bg-primary -translate-y-1/2 -z-10 transition-all duration-500 rounded-full"
@@ -252,8 +252,8 @@ export default function DeveloperOnboarding() {
           })}
         </div>
 
-        <Card className="rounded-2xl border border-border/50 shadow-md bg-white overflow-hidden">
-          <CardHeader className="border-b border-border/50 bg-slate-50/50 p-5 sm:p-6">
+        <Card className="rounded-2xl border border-border/50 shadow-md bg-white overflow-hidden flex flex-col lg:max-h-[calc(100vh-220px)]">
+          <CardHeader className="border-b border-border/50 bg-slate-50/50 p-4 sm:p-5 shrink-0">
             <div className="flex items-center gap-3">
               <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
                 {activeStep === 0 && <User className="h-4.5 w-4.5" />}
@@ -261,44 +261,44 @@ export default function DeveloperOnboarding() {
                 {activeStep === 2 && <Briefcase className="h-4.5 w-4.5" />}
               </div>
               <div>
-                <CardTitle className="text-base sm:text-lg font-semibold text-slate-900">{steps[activeStep].label}</CardTitle>
-                <CardDescription className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">
+                <CardTitle className="text-lg sm:text-xl font-semibold text-slate-900">{steps[activeStep].label}</CardTitle>
+                <CardDescription className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mt-0.5">
                   Step {activeStep + 1} of {steps.length}
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
 
-          <CardContent className="p-5 sm:p-8 min-h-[350px] space-y-5">
+          <CardContent className="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1">
             {activeStep === 0 && (
-              <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+              <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-700">First Name</Label>
+                    <Label className="text-sm font-semibold text-slate-700">First Name</Label>
                     <Input
                       value={formData.firstName}
                       onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                      className="h-10 rounded-xl border-border/50 font-medium text-sm focus-visible:ring-primary/20"
+                      className="h-11 rounded-xl border-border/50 font-medium text-base focus-visible:ring-primary/20"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-700">Last Name</Label>
+                    <Label className="text-sm font-semibold text-slate-700">Last Name</Label>
                     <Input
                       value={formData.lastName}
                       onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                      className="h-10 rounded-xl border-border/50 font-medium text-sm focus-visible:ring-primary/20"
+                      className="h-11 rounded-xl border-border/50 font-medium text-base focus-visible:ring-primary/20"
                     />
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-slate-700">Current Role</Label>
+                  <Label className="text-sm font-semibold text-slate-700">Current Role</Label>
                   <Popover open={isRoleOpen} onOpenChange={setIsRoleOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         role="combobox"
                         aria-expanded={isRoleOpen}
-                        className="w-full h-10 rounded-xl border-border/50 font-medium justify-between px-3 hover:bg-white text-sm"
+                        className="w-full h-11 rounded-xl border-border/50 font-medium justify-between px-3 hover:bg-white text-base"
                       >
                         {formData.role || "Select your current role..."}
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -310,7 +310,7 @@ export default function DeveloperOnboarding() {
                           <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
                           <Input
                             placeholder="Search roles..."
-                            className="pl-8 h-8 rounded-lg border-border/50 bg-white shadow-sm font-medium text-xs"
+                            className="pl-8 h-9 rounded-lg border-border/50 bg-white shadow-sm font-medium text-sm"
                             value={roleSearch}
                             onChange={(e) => setRoleSearch(e.target.value)}
                           />
@@ -319,7 +319,7 @@ export default function DeveloperOnboarding() {
                       <ScrollArea className="h-[200px]">
                         <div className="p-1">
                           {COMMON_ROLES.filter(r => r.toLowerCase().includes(roleSearch.toLowerCase())).length === 0 && (
-                            <div className="py-4 text-center text-xs text-slate-500 font-medium italic">
+                            <div className="py-4 text-center text-sm text-slate-500 font-medium italic">
                               No roles found...
                             </div>
                           )}
@@ -327,7 +327,7 @@ export default function DeveloperOnboarding() {
                             <button
                               key={r}
                               className={cn(
-                                "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-left transition-all",
+                                "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-left transition-all",
                                 formData.role === r ? "bg-primary text-white" : "text-slate-700 hover:bg-slate-50"
                               )}
                               type="button"
@@ -347,35 +347,35 @@ export default function DeveloperOnboarding() {
                   </Popover>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-slate-700">Location (Kenya)</Label>
+                  <Label className="text-sm font-semibold text-slate-700">Location (Kenya)</Label>
                   <Select value={formData.city} onValueChange={(v) => setFormData({ ...formData, city: v })}>
-                    <SelectTrigger className="h-10 rounded-xl border-border/50 text-sm">
+                    <SelectTrigger className="h-11 rounded-xl border-border/50 text-base">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl max-h-[200px]">
-                      {KENYA_COUNTIES.map(c => <SelectItem key={c} value={c} className="font-medium text-xs">{c}</SelectItem>)}
+                      {KENYA_COUNTIES.map(c => <SelectItem key={c} value={c} className="font-medium text-sm">{c}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-700">Public Email</Label>
+                    <Label className="text-sm font-semibold text-slate-700">Public Email</Label>
                     <Input
                       type="email"
                       placeholder="e.g. hello@example.com"
                       value={formData.publicEmail}
                       onChange={(e) => setFormData({ ...formData, publicEmail: e.target.value })}
-                      className="h-10 rounded-xl border-border/50 font-medium text-sm focus-visible:ring-primary/20"
+                      className="h-11 rounded-xl border-border/50 font-medium text-base focus-visible:ring-primary/20"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-700">Public Phone (Optional)</Label>
+                    <Label className="text-sm font-semibold text-slate-700">Public Phone (Optional)</Label>
                     <Input
                       type="tel"
                       placeholder="e.g. 0712345678"
                       value={formData.publicPhone}
                       onChange={(e) => setFormData({ ...formData, publicPhone: e.target.value })}
-                      className="h-10 rounded-xl border-border/50 font-medium text-sm focus-visible:ring-primary/20"
+                      className="h-11 rounded-xl border-border/50 font-medium text-base focus-visible:ring-primary/20"
                     />
                   </div>
                 </div>
@@ -383,23 +383,23 @@ export default function DeveloperOnboarding() {
             )}
 
             {activeStep === 1 && (
-              <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+              <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div className="space-y-3">
-                  <Label className="text-xs font-semibold text-slate-700">Your Current Skills (At least 3 required)</Label>
+                  <Label className="text-sm font-semibold text-slate-700">Your Current Skills (At least 3 required)</Label>
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {formData.skills.map((skill: string) => (
-                      <Badge key={skill} className="h-8 px-3 rounded-lg bg-primary text-white font-semibold text-xs flex items-center gap-1.5">
+                      <Badge key={skill} className="h-9 px-3 rounded-lg bg-primary text-white font-semibold text-sm flex items-center gap-1.5">
                         {skill}
                         <button type="button" onClick={() => removeSkill(skill)} className="hover:text-slate-200 transition-colors"><X className="h-3.5 w-3.5" /></button>
                       </Badge>
                     ))}
-                    {formData.skills.length === 0 && <p className="text-slate-500 font-medium italic text-xs py-1">Select skills from below or type to add...</p>}
+                    {formData.skills.length === 0 && <p className="text-slate-500 font-medium italic text-sm py-1">Select skills from below or type to add...</p>}
                   </div>
 
                   <div className="space-y-2">
                     <Input
                       placeholder="Type a skill and press enter..."
-                      className="h-10 rounded-xl border-border/50 text-sm"
+                      className="h-11 rounded-xl border-border/50 text-base"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault();
@@ -418,7 +418,7 @@ export default function DeveloperOnboarding() {
                           type="button"
                           onClick={() => addSkill(skill)}
                           className={cn(
-                            "px-3 py-1.5 rounded-lg border font-medium text-xs transition-all",
+                            "px-3 py-1.5 rounded-lg border font-medium text-sm transition-all",
                             formData.skills.includes(skill) ? "bg-slate-100 text-slate-400 border-slate-100" : "bg-white text-slate-700 border-border/50 hover:border-primary hover:text-primary"
                           )}
                         >
@@ -431,27 +431,27 @@ export default function DeveloperOnboarding() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-border/30">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-700">Work Availability</Label>
+                    <Label className="text-sm font-semibold text-slate-700">Work Availability</Label>
                     <Select value={formData.availability} onValueChange={(v) => setFormData({ ...formData, availability: v })}>
-                      <SelectTrigger className="h-10 rounded-xl border-border/50 text-sm">
+                      <SelectTrigger className="h-11 rounded-xl border-border/50 text-base">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl">
-                        <SelectItem value="OPEN_TO_OFFERS" className="font-medium text-xs">Open to Offers</SelectItem>
-                        <SelectItem value="NOT_AVAILABLE" className="font-medium text-xs">Not Available</SelectItem>
+                        <SelectItem value="OPEN_TO_OFFERS" className="font-medium text-sm">Open to Offers</SelectItem>
+                        <SelectItem value="NOT_AVAILABLE" className="font-medium text-sm">Not Available</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-slate-700">Preferred Work Type</Label>
+                    <Label className="text-sm font-semibold text-slate-700">Preferred Work Type</Label>
                     <Select value={formData.preferredWorkType} onValueChange={(v) => setFormData({ ...formData, preferredWorkType: v })}>
-                      <SelectTrigger className="h-10 rounded-xl border-border/50 text-sm">
+                      <SelectTrigger className="h-11 rounded-xl border-border/50 text-base">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl">
-                        <SelectItem value="REMOTE" className="font-medium text-xs">Remote</SelectItem>
-                        <SelectItem value="HYBRID" className="font-medium text-xs">Hybrid</SelectItem>
-                        <SelectItem value="ONSITE" className="font-medium text-xs">On-site</SelectItem>
+                        <SelectItem value="REMOTE" className="font-medium text-sm">Remote</SelectItem>
+                        <SelectItem value="HYBRID" className="font-medium text-sm">Hybrid</SelectItem>
+                        <SelectItem value="ONSITE" className="font-medium text-sm">On-site</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -460,24 +460,24 @@ export default function DeveloperOnboarding() {
             )}
 
             {activeStep === 2 && (
-              <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+              <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-slate-700">Years of Experience</Label>
+                  <Label className="text-sm font-semibold text-slate-700">Years of Experience</Label>
                   <Select value={formData.yearsOfExperience} onValueChange={(v) => setFormData({ ...formData, yearsOfExperience: v })}>
-                    <SelectTrigger className="h-10 rounded-xl border-border/50 text-sm">
+                    <SelectTrigger className="h-11 rounded-xl border-border/50 text-base">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
-                      {experienceLevels.map(l => <SelectItem key={l.value} value={l.value} className="font-medium text-xs">{l.label}</SelectItem>)}
+                      {experienceLevels.map(l => <SelectItem key={l.value} value={l.value} className="font-medium text-sm">{l.label}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-1.5">
                   <div className="flex justify-between items-center">
-                    <Label className="text-xs font-semibold text-slate-700">Professional Summary</Label>
+                    <Label className="text-sm font-semibold text-slate-700">Professional Summary</Label>
                     <span className={cn(
-                      "text-[10px] font-semibold tracking-wider uppercase",
+                      "text-xs font-semibold tracking-wider uppercase",
                       formData.bio.length >= 300 ? "text-danger-500" : "text-slate-400"
                     )}>
                       {formData.bio.length} / 300
@@ -485,7 +485,7 @@ export default function DeveloperOnboarding() {
                   </div>
                   <Textarea
                     placeholder="Highlight your best work, achievements, and what you're looking for..."
-                    className="min-h-[100px] rounded-xl border-border/50 font-medium text-sm focus-visible:ring-primary/20"
+                    className="min-h-[80px] rounded-xl border-border/50 font-medium text-base focus-visible:ring-primary/20"
                     value={formData.bio}
                     onChange={(e) => {
                       if (e.target.value.length <= 300) {
@@ -504,10 +504,10 @@ export default function DeveloperOnboarding() {
                     className="mt-0.5 rounded animate-none"
                   />
                   <div className="grid gap-1 leading-none">
-                    <Label htmlFor="terms" className="text-xs font-medium text-slate-700 leading-normal cursor-pointer">
+                    <Label htmlFor="terms" className="text-sm font-medium text-slate-700 leading-normal cursor-pointer">
                       I agree to the <Link href="/terms" className="text-primary hover:underline font-semibold font-sans">Terms of Service</Link> and <Link href="/privacy" className="text-primary hover:underline font-semibold font-sans">Privacy Policy</Link>.
                     </Label>
-                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Required to finalize account</p>
+                    <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Required to finalize account</p>
                   </div>
                 </div>
               </div>
@@ -515,11 +515,11 @@ export default function DeveloperOnboarding() {
 
           </CardContent>
 
-          <CardFooter className="bg-slate-50/50 border-t border-border/50 p-5 sm:p-6 flex justify-between items-center gap-3 sm:gap-4">
+          <CardFooter className="bg-slate-50/50 border-t border-border/50 p-4 sm:p-5 flex justify-between items-center gap-3 sm:gap-4 shrink-0">
             <Button
               variant="ghost"
               size="default"
-              className="rounded-xl font-semibold h-10 px-4 sm:px-5"
+              className="rounded-xl font-semibold h-11 px-4 sm:px-5 text-base"
               onClick={handleBack}
               disabled={activeStep === 0 || loading}
             >
@@ -529,7 +529,7 @@ export default function DeveloperOnboarding() {
             {activeStep === steps.length - 1 ? (
               <Button
                 size="default"
-                className="rounded-xl font-semibold h-10 px-5 sm:px-6 shadow-sm transition-all active:scale-95 bg-primary text-white"
+                className="rounded-xl font-semibold h-11 px-5 sm:px-6 shadow-sm transition-all active:scale-95 bg-primary text-white text-base"
                 onClick={handleNext}
                 disabled={loading || !agreedToTerms}
               >
@@ -539,7 +539,7 @@ export default function DeveloperOnboarding() {
             ) : (
               <Button
                 size="default"
-                className="rounded-xl font-semibold h-10 px-5 sm:px-6 shadow-sm bg-primary text-white"
+                className="rounded-xl font-semibold h-11 px-5 sm:px-6 shadow-sm bg-primary text-white text-base"
                 onClick={handleNext}
               >
                 Continue <ChevronRight className="ml-1.5 h-4 w-4" />

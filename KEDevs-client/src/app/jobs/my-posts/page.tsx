@@ -26,7 +26,6 @@ import {
   FileSpreadsheet,
   FileText
 } from 'lucide-react';
-import { jsPDF } from 'jspdf';
 import { jobService } from '@/services/jobService';
 import { useAuth } from '@/context/AuthContext';
 import { cn, formatDateString } from '@/lib/utils';
@@ -122,6 +121,7 @@ export default function MyJobPosts() {
     setIsExporting(true);
     try {
       if (format === 'pdf') {
+        const { jsPDF } = await import('jspdf');
         const doc = new jsPDF({
           orientation: 'portrait',
           unit: 'mm',

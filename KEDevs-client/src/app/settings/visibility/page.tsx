@@ -17,7 +17,7 @@ import {
 import { developerService } from '@/services/developerService';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';

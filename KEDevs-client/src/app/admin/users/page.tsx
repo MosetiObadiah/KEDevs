@@ -37,7 +37,6 @@ import {
    DropdownMenuItem,
    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { jsPDF } from 'jspdf';
 import { adminService } from '@/services/adminService';
 import { cn, formatDateString, formatTimeString } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -130,8 +129,9 @@ export default function UserManagement() {
     return matchesSearch && matchesRole && matchesStatus && matchesAuthProvider && matchesAfter && matchesBefore;
   });
 
-  const handleExport = (format: 'csv' | 'pdf') => {
+  const handleExport = async (format: 'csv' | 'pdf') => {
     if (format === 'pdf') {
+       const { jsPDF } = await import('jspdf');
        const doc = new jsPDF({
           orientation: 'portrait',
           unit: 'mm',

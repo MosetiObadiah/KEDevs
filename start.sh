@@ -272,10 +272,10 @@ color_frontend_line() {
 color_postgres_line() {
     should_show_log "pg" || return
     local line="$1"
-    
+
     # Suppress noisy background checkpoints
     if [[ "$line" =~ checkpoint\ (starting|complete) ]]; then return; fi
-    
+
     local prefix="${PG_LABEL}[PG]${NC}"
     if   [[ "$line" =~ [Ee]rror|[Ff]atal|[Pp]anic ]]; then echo "${prefix} ${PG_ERROR}$line${NC}"
     elif [[ "$line" =~ [Ww]arn ]];                      then echo "${prefix} ${PG_WARN}$line${NC}"
@@ -606,6 +606,8 @@ fi
 CALLBACK_URL="${NGROK_URL}/api/v1/payments/callback"
 SITE_URL="$NGROK_URL"
 
+export CORS_ALLOWED_ORIGINS="http://localhost:3000,${NGROK_URL}"
+
 echo ""
 echo "${CYAN}────────────────────────────────────────${NC}"
 echo "${CYAN}  🌐  Site:   ${WHITE}${SITE_URL}${NC}"
@@ -628,8 +630,9 @@ inject_env() {
     fi
 }
 
-inject_env "$BACKEND_DIR/.env" "DARAJA_CALLBACK_URL" "$CALLBACK_URL"
-inject_env "$ROOT_DIR/.env"    "DARAJA_CALLBACK_URL" "$CALLBACK_URL"
+inject_env "$BACKEND_DIR/.env" "DARAJA_CALLBACK_URL"    "$CALLBACK_URL"
+inject_env "$ROOT_DIR/.env"    "DARAJA_CALLBACK_URL"    "$CALLBACK_URL"
+inject_env "$ROOT_DIR/.env"    "CORS_ALLOWED_ORIGINS"   "http://localhost:3000,${NGROK_URL}"
 
 if [ -f "$BACKEND_DIR/src/main/resources/application.properties" ]; then
     sed -i "s|daraja.callback.url=.*|daraja.callback.url=$CALLBACK_URL|" \

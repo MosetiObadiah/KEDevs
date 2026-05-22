@@ -238,23 +238,23 @@ export default function VerificationFlow() {
     }
  
     return (
-       <div className="min-h-screen bg-muted/30 pb-16 pt-8 sm:pt-12 animate-in fade-in duration-500">
-          <div className="w-full max-w-4xl mx-auto px-4">
-             <div className="mb-8 text-center sm:text-left">
-                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Identity Verification</h1>
-                <p className="text-sm font-medium text-slate-500 mt-1 font-sans">
+       <div className="min-h-[calc(100vh-112px)] lg:h-[calc(100vh-112px)] lg:overflow-hidden bg-muted/30 pb-4 pt-4 flex flex-col items-center justify-center animate-in fade-in duration-500">
+          <div className="w-full max-w-4xl mx-auto px-4 flex flex-col lg:max-h-full">
+             <div className="mb-4 text-center sm:text-left">
+                <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Identity Verification</h1>
+                <p className="text-base font-medium text-slate-500 mt-1 font-sans">
                    Complete the verification sequence to earn your <span className="text-cyan-600 font-semibold italic">Verified Badge</span>.
                 </p>
              </div>
  
-             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 lg:overflow-hidden">
                 {/* Stepper Card */}
-                <div className="lg:col-span-1 order-2 lg:order-1">
-                   <Card className="rounded-2xl border border-border/50 shadow-md bg-white overflow-hidden">
-                      <CardHeader className="border-b border-border/50 bg-slate-50/50 p-4 sm:p-5">
+                <div className="lg:col-span-1 order-2 lg:order-1 flex flex-col lg:max-h-full">
+                   <Card className="rounded-2xl border border-border/50 shadow-md bg-white overflow-hidden flex flex-col lg:max-h-full">
+                      <CardHeader className="border-b border-border/50 bg-slate-50/50 p-4 shrink-0">
                          <h3 className="text-xs font-black uppercase tracking-wider text-slate-500">Sequence Progress</h3>
                       </CardHeader>
-                      <CardContent className="p-4 sm:p-5 space-y-4">
+                      <CardContent className="p-4 sm:p-5 space-y-3.5 overflow-y-auto flex-1">
                          {steps.map((step, i) => {
                             const Icon = step.icon;
                             const isActive = activeStep === i;
@@ -272,12 +272,12 @@ export default function VerificationFlow() {
                                   </div>
                                   <div className="flex flex-col">
                                      <span className={cn(
-                                        "text-xs font-bold tracking-tight",
+                                        "text-sm font-bold tracking-tight",
                                         isActive ? "text-primary" : "text-slate-600"
                                      )}>
                                         {step.label}
                                      </span>
-                                     <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                                     <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
                                         {isActive ? 'Active Phase' : isCompleted ? 'Completed' : 'Pending'}
                                      </span>
                                   </div>
@@ -289,26 +289,27 @@ export default function VerificationFlow() {
                 </div>
  
                 {/* Flow Step Card */}
-                <div className="lg:col-span-2 order-1 lg:order-2">
-                   <Card className="rounded-2xl border border-border/50 shadow-md overflow-hidden bg-white">
-                      <CardContent className="p-5 sm:p-8 min-h-[350px]">
+                <div className="lg:col-span-2 order-1 lg:order-2 flex flex-col lg:max-h-full">
+                   <Card className="rounded-2xl border border-border/50 shadow-md overflow-hidden bg-white flex flex-col lg:max-h-full">
+                      <CardContent className="p-5 sm:p-6 min-h-[300px] flex flex-col justify-between overflow-y-auto flex-1">
+                         <div className="flex-1 overflow-y-auto pr-1">
                          {activeStep === 0 && (
-                            <div className="space-y-6">
+                            <div className="space-y-4">
                                <div className="space-y-1">
-                                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                  <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                                      <div className="h-4.5 w-1 bg-primary rounded-full" />
                                      Phase 01: Eligibility Scan
                                   </h3>
-                                  <p className="text-xs text-slate-500 font-medium font-sans">We audit your profile for baseline compliance and completeness.</p>
+                                  <p className="text-sm text-slate-500 font-medium font-sans">We audit your profile for baseline compliance and completeness.</p>
                                </div>
  
-                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                   {verifyStatus && Object.entries(verifyStatus.profileCompleteness).map(([req, met]) => (
                                      <Link 
                                         href="/profile/me" 
                                         key={req} 
                                         className={cn(
-                                           "p-4 rounded-xl border transition-all flex items-center gap-3.5 group cursor-pointer",
+                                           "p-3.5 rounded-xl border transition-all flex items-center gap-3 group cursor-pointer",
                                            met ? "bg-cyan-50/20 border-cyan-100" : "bg-slate-50 border-slate-100 hover:border-primary/30 hover:bg-white hover:shadow-sm"
                                         )}
                                      >
@@ -319,8 +320,8 @@ export default function VerificationFlow() {
                                            {met ? <CheckCircle2 className="h-4.5 w-4.5" /> : <Clock className="h-4.5 w-4.5" />}
                                         </div>
                                         <div className="flex flex-col">
-                                           <span className={cn("text-xs font-bold tracking-tight transition-colors truncate", met ? "text-cyan-900" : "text-slate-500 group-hover:text-primary")}>{req}</span>
-                                           <span className="text-[10px] font-semibold text-slate-400">{met ? 'Verified' : 'Click to fix'}</span>
+                                           <span className={cn("text-sm font-bold tracking-tight transition-colors truncate", met ? "text-cyan-900" : "text-slate-500 group-hover:text-primary")}>{req}</span>
+                                           <span className="text-xs font-semibold text-slate-400">{met ? 'Verified' : 'Click to fix'}</span>
                                         </div>
                                      </Link>
                                   ))}
@@ -329,31 +330,31 @@ export default function VerificationFlow() {
                          )}
  
                          {activeStep === 1 && (
-                            <div className="space-y-6 text-center max-w-sm mx-auto py-4">
+                            <div className="space-y-4 text-center max-w-sm mx-auto py-2">
                                <div className="h-14 w-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
                                   <Smartphone className="h-7 w-7 text-primary" />
-                               </div>
+                                </div>
                                <div className="space-y-1">
-                                  <h3 className="text-lg font-bold text-slate-900">
+                                  <h3 className="text-xl font-bold text-slate-900">
                                      Phase 02: Transaction Authorization
                                   </h3>
-                                  <p className="text-xs text-slate-500 font-medium font-sans leading-relaxed">
+                                  <p className="text-sm text-slate-500 font-medium font-sans leading-relaxed">
                                      Manual review requires a processing fee of <span className="text-slate-950 font-semibold">KES {user?.role === 'DEVELOPER' ? getPrice('VERIFIED_BADGE_DEVELOPER', '250') : getPrice('VERIFIED_BADGE_EMPLOYER', '500')}</span>.
                                   </p>
                                </div>
  
-                               <div className="space-y-4">
+                               <div className="space-y-3">
                                   <div className="relative">
                                      <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                      <Input
                                         value={phoneNumber}
                                         onChange={(e) => setPhoneNumber(e.target.value)}
                                         placeholder="07xxxxxxxx"
-                                        className="h-10 rounded-xl bg-slate-50 pl-9 font-semibold text-sm focus-visible:ring-primary/20"
+                                        className="h-11 rounded-xl bg-slate-50 pl-9 font-semibold text-base focus-visible:ring-primary/20"
                                      />
                                   </div>
                                   <Button
-                                     className="w-full h-10 rounded-xl bg-primary text-white font-semibold text-sm shadow-sm gap-2"
+                                     className="w-full h-11 rounded-xl bg-primary text-white font-semibold text-base shadow-sm gap-2"
                                      onClick={handleInitiate}
                                      disabled={isSubmitting || isPollingPayment || (verifyStatus?.status !== VerificationStatus.NONE && verifyStatus?.status !== VerificationStatus.PENDING_PAYMENT && verifyStatus?.status !== VerificationStatus.REJECTED)}
                                   >
@@ -362,11 +363,11 @@ export default function VerificationFlow() {
                                   </Button>
  
                                   {isPollingPayment && (
-                                     <div className="flex items-center gap-3 p-3.5 rounded-xl bg-azure-50/50 border border-azure-100 text-left">
+                                     <div className="flex items-center gap-3 p-3 rounded-xl bg-azure-50/50 border border-azure-100 text-left">
                                         <Loader2 className="h-4 w-4 text-azure-500 animate-spin shrink-0" />
                                         <div>
-                                           <p className="text-xs font-bold text-azure-800 uppercase tracking-wider">Awaiting M-Pesa Confirmation</p>
-                                           <p className="text-[10px] font-medium text-azure-500 mt-0.5">Checking every 5 seconds · up to 50 seconds</p>
+                                           <p className="text-sm font-bold text-azure-800 uppercase tracking-wider">Awaiting M-Pesa Confirmation</p>
+                                           <p className="text-xs font-medium text-azure-500 mt-0.5">Checking every 5 seconds · up to 50 seconds</p>
                                         </div>
                                      </div>
                                   )}
@@ -375,30 +376,27 @@ export default function VerificationFlow() {
                          )}
  
                          {activeStep === 2 && (
-                            <div className="space-y-6">
+                            <div className="space-y-4">
                                <div className="space-y-1">
-                                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                  <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                                      <div className="h-4.5 w-1 bg-primary rounded-full" />
                                      Documents Uploading
                                   </h3>
-                                  <p className="text-xs text-slate-500 font-medium font-sans">Please transmit high-fidelity copies of your identification artifacts.</p>
+                                  <p className="text-sm text-slate-500 font-medium font-sans">Please transmit high-fidelity copies of your identification artifacts.</p>
                                </div>
  
-                               <div className="space-y-4">
+                               <div className="space-y-3">
                                   <input type="file" hidden ref={idRef} onChange={(e) => { const file = e.target.files?.[0] || null; if (validateFile(file)) setIdFile(file); }} />
                                   <div
                                      onClick={() => idFile ? setIdFile(null) : idRef.current?.click()}
                                      className={cn(
-                                        "p-5 rounded-xl border border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer transition-all group relative",
+                                        "p-4 h-20 rounded-xl border border-dashed flex flex-col items-center justify-center gap-1 cursor-pointer transition-all group relative",
                                         idFile ? "bg-cyan-50/20 border-cyan-200 hover:border-danger-200" : "bg-slate-50 border-slate-100 hover:border-primary/30"
                                      )}
                                   >
-                                     <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center transition-colors shadow-sm", idFile ? "bg-cyan-600 text-white group-hover:bg-danger-500" : "bg-white text-slate-500")}>
-                                        {idFile ? <X className="h-4.5 w-4.5" /> : <FileText className="h-4.5 w-4.5" />}
-                                     </div>
                                      <div className="text-center">
                                         <p className="text-sm font-semibold text-slate-900">{idFile ? idFile.name : 'National ID / Passport Archive'}</p>
-                                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-0.5">
+                                        <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mt-0.5">
                                            {idFile ? 'Click to remove' : 'PNG, JPEG, WEBP or PDF (Max 10MB)'}
                                         </p>
                                      </div>
@@ -408,16 +406,13 @@ export default function VerificationFlow() {
                                   <div
                                      onClick={() => passportFile ? setPassportFile(null) : passportRef.current?.click()}
                                      className={cn(
-                                        "p-5 rounded-xl border border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer transition-all group relative",
+                                        "p-4 h-20 rounded-xl border border-dashed flex flex-col items-center justify-center gap-1 cursor-pointer transition-all group relative",
                                         passportFile ? "bg-cyan-50/20 border-cyan-200 hover:border-danger-200" : "bg-slate-50 border-slate-100 hover:border-primary/30"
                                      )}
                                   >
-                                     <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center transition-colors shadow-sm", passportFile ? "bg-cyan-600 text-white group-hover:bg-danger-500" : "bg-white text-slate-500")}>
-                                        {passportFile ? <X className="h-4.5 w-4.5" /> : <ShieldCheck className="h-4.5 w-4.5" />}
-                                     </div>
                                      <div className="text-center">
                                         <p className="text-sm font-semibold text-slate-900">{passportFile ? passportFile.name : 'Passport Photo'}</p>
-                                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-0.5">
+                                        <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mt-0.5">
                                            {passportFile ? 'Click to remove' : 'Images only (PNG, JPEG, WEBP)'}
                                         </p>
                                      </div>
@@ -425,14 +420,14 @@ export default function VerificationFlow() {
  
                                   <div className="space-y-2">
                                      {certFiles.length > 0 && (
-                                        <div className="space-y-2">
+                                        <div className="space-y-1.5">
                                            {certFiles.map((file, idx) => (
-                                              <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-100 shadow-sm animate-in fade-in slide-in-from-top-1 duration-200">
+                                              <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-100 shadow-sm animate-in fade-in slide-in-from-top-1 duration-200">
                                                  <div className="flex items-center gap-2.5 overflow-hidden">
                                                     <div className="h-7 w-7 bg-slate-50 rounded-lg flex items-center justify-center text-slate-500 shrink-0">
                                                        <FileText className="h-3.5 w-3.5" />
                                                     </div>
-                                                    <span className="text-xs font-semibold text-slate-700 truncate">{file.name}</span>
+                                                    <span className="text-sm font-semibold text-slate-700 truncate">{file.name}</span>
                                                  </div>
                                                  <button
                                                     type="button"
@@ -449,9 +444,9 @@ export default function VerificationFlow() {
                                      <input type="file" hidden multiple ref={certRef} onChange={(e) => { const files = Array.from(e.target.files || []); const validFiles = files.filter(validateFile); setCertFiles(prev => [...prev, ...validFiles]); e.target.value = ''; }} />
                                      <div
                                         onClick={() => certRef.current?.click()}
-                                        className="p-4 rounded-xl bg-slate-50 border border-slate-100 border-dashed text-center cursor-pointer hover:bg-slate-100/50 transition-all"
+                                        className="p-3 rounded-xl bg-slate-50 border border-slate-100 border-dashed text-center cursor-pointer hover:bg-slate-100/50 transition-all"
                                      >
-                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                        <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">
                                            {certFiles.length > 0 ? `${certFiles.length} Certificate${certFiles.length === 1 ? '' : 's'} Added` : 'Professional Certificates (Required)'}
                                         </p>
                                      </div>
@@ -461,38 +456,38 @@ export default function VerificationFlow() {
                          )}
  
                          {activeStep === 3 && (
-                            <div className="space-y-6 text-center max-w-sm mx-auto py-4">
-                               <div className="relative mx-auto h-16 w-16 mb-4">
+                            <div className="space-y-4 text-center max-w-sm mx-auto py-2">
+                               <div className="relative mx-auto h-14 w-14 mb-2">
                                   <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
                                   <div className={cn(
-                                     "relative h-16 w-16 rounded-2xl flex items-center justify-center shadow-md",
+                                     "relative h-14 w-14 rounded-2xl flex items-center justify-center shadow-md",
                                      (verifyStatus?.status as string) === VerificationStatus.APPROVED ? "bg-cyan-600 text-white" : "bg-primary text-white"
                                   )}>
-                                     {(verifyStatus?.status as string) === VerificationStatus.APPROVED ? <BadgeCheck className="h-9 w-9" /> : <Clock className="h-9 w-9" />}
+                                     {(verifyStatus?.status as string) === VerificationStatus.APPROVED ? <BadgeCheck className="h-8 w-8" /> : <Clock className="h-8 w-8" />}
                                   </div>
                                </div>
  
                                <div className="space-y-1">
-                                  <h3 className="text-lg font-bold text-slate-900">
+                                  <h3 className="text-xl font-bold text-slate-900">
                                      {(verifyStatus?.status as string) === VerificationStatus.APPROVED ? 'Protocol Success' : 'Under Review'}
                                   </h3>
-                                  <p className="text-xs text-slate-500 font-medium font-sans leading-relaxed">
+                                  <p className="text-sm text-slate-500 font-medium font-sans leading-relaxed">
                                      {(verifyStatus?.status as string) === VerificationStatus.APPROVED
                                         ? 'Congratulations. Your identity is verified across the KEDevs ecosystem. You now possess priority trust status.'
                                         : 'Our moderators are reviewing your credentials. This process typically completes within 24-48 hours.'}
                                   </p>
                                </div>
  
-                               <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-3 text-left">
-                                  <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
+                               <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-3 text-left">
+                                  <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider">
                                      <span className="text-slate-400">Timestamp</span>
                                      <span className="text-slate-700">{verifyStatus?.createdAt ? formatDateString(verifyStatus.createdAt) : 'N/A'}</span>
                                   </div>
                                   <Separator className="bg-slate-200/50" />
-                                  <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
+                                  <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider">
                                      <span className="text-slate-400">Current Phase</span>
                                      <Badge className={cn(
-                                        "rounded-xl font-bold text-[9px] border-none shadow-sm px-2.5 py-0.5",
+                                        "rounded-xl font-bold text-xs border-none shadow-sm px-2.5 py-0.5",
                                         (verifyStatus?.status as string) === VerificationStatus.APPROVED ? "bg-cyan-600" : "bg-azure-500"
                                      )}>
                                         {(verifyStatus?.status as string) === VerificationStatus.APPROVED ? 'AUTHORIZED' : 'UNDER_AUDIT'}
@@ -500,17 +495,18 @@ export default function VerificationFlow() {
                                   </div>
                                </div>
  
-                               <Button asChild className="h-10 rounded-xl px-8 font-semibold bg-primary text-white shadow-sm">
+                               <Button asChild className="h-11 rounded-xl px-8 font-semibold bg-primary text-white shadow-sm text-base">
                                   <Link href="/profile/me">Access Profile</Link>
                                </Button>
                             </div>
                          )}
+                         </div>
  
                          {activeStep < 3 && (
-                            <div className="mt-8 pt-5 border-t border-slate-100 flex items-center justify-between">
+                            <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between shrink-0">
                                <Button
                                   variant="ghost"
-                                  className="h-10 rounded-xl text-[10px] font-bold uppercase tracking-wider gap-1.5 disabled:opacity-0"
+                                  className="h-11 rounded-xl text-xs font-bold uppercase tracking-wider gap-1.5 disabled:opacity-0"
                                   onClick={() => setActiveStep(prev => prev - 1)}
                                   disabled={activeStep === 0 || isPollingPayment}
                                >
@@ -518,7 +514,7 @@ export default function VerificationFlow() {
                                </Button>
  
                                <Button
-                                  className="h-10 rounded-xl px-5 font-semibold bg-primary text-white shadow-sm text-sm group"
+                                  className="h-11 rounded-xl px-6 font-semibold bg-primary text-white shadow-sm text-base group"
                                   onClick={() => activeStep === 2 ? handleSubmitDocuments() : setActiveStep(prev => prev + 1)}
                                   disabled={
                                      isSubmitting ||
@@ -542,3 +538,4 @@ export default function VerificationFlow() {
        </div>
     );
 }
+

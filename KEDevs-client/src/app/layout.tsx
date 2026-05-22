@@ -7,7 +7,6 @@ import { AuthProvider } from "@/context/AuthContext";
 import { RouteGuard } from "@/components/auth/RouteGuard";
 import { GoogleAuthProvider } from "@/components/providers/GoogleAuthProvider";
 import { Toaster } from "@/components/ui/sonner";
-import { Toaster as HotToaster } from 'react-hot-toast';
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
@@ -40,7 +39,6 @@ export default function RootLayout({
                     </AppLayout>
                   </RouteGuard>
                   <Toaster richColors position="top-right" />
-                  <HotToaster position="bottom-right" />
                 </TooltipProvider>
               </GoogleAuthProvider>
             </NotificationProvider>

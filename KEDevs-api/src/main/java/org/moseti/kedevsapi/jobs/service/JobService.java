@@ -15,14 +15,15 @@ import org.moseti.kedevsapi.users.repository.DeveloperProfileRepository;
 import org.moseti.kedevsapi.users.repository.UserRepository;
 import org.moseti.kedevsapi.users.service.EmployerProfileService;
 import org.moseti.kedevsapi.shared.service.FileUploadService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,7 +55,15 @@ public class JobService {
     private final org.moseti.kedevsapi.auth.service.EmailService emailService;
     private final org.moseti.kedevsapi.users.service.PdfExportService pdfExportService;
     private final org.moseti.kedevsapi.payments.repository.PlatformSettingRepository platformSettingRepository;
-    private final CacheManager cacheManager;
+
+    /**
+     * Self-reference injected lazily so that internal calls to @Cacheable methods
+     * go through the Spring AOP proxy and actually hit the cache interceptor.
+     * (Direct this.method() calls bypass the proxy entirely.)
+     */
+    @Lazy
+    @Autowired
+    private JobService self;
 
 
     @Value("${app.api-base-url:http://localhost:8080}")
@@ -180,6 +189,18 @@ public class JobService {
             throw new JobNotFoundException("Job not found");
         }
 
+        // Non-owners cannot view closed, under-review, or deadline-passed jobs
+        boolean isOwner = currentUserId != null && currentUserId.equals(job.getPostedById());
+        if (!isOwner) {
+            if (job.getStatus() == JobStatus.CLOSED || job.getStatus() == JobStatus.UNDER_REVIEW) {
+                throw new JobNotFoundException("Job not found");
+            }
+            if (job.getApplicationDeadline() != null &&
+                    job.getApplicationDeadline().isBefore(java.time.LocalDate.now())) {
+                throw new JobNotFoundException("Job not found");
+            }
+        }
+
         return toJobPostResponse(job, currentUserId);
     }
 
@@ -202,37 +223,19 @@ public class JobService {
         );
     }
 
-    @SuppressWarnings("unchecked")
+    /**
+     * Fetches all active public job summaries, backed by Redis cache via @Cacheable.
+     * Spring's cache proxy handles serialization/deserialization through the configured
+     * RedisSerializer, avoiding the type-info mismatch from manual CacheManager.put/get.
+     */
+    @Cacheable(value = "publicJobs", key = "'all'")
     public List<JobSummaryResponse> getPublicJobsList() {
-        Cache cache = cacheManager.getCache("publicJobs");
-        if (cache != null) {
-            try {
-                Cache.ValueWrapper wrapper = cache.get("all");
-                if (wrapper != null) {
-                    return (List<JobSummaryResponse>) wrapper.get();
-                }
-            } catch (Exception e) {
-                log.error("Failed to deserialize publicJobs cache. Evicting and falling back to database.", e);
-                try {
-                    cache.evict("all");
-                } catch (Exception ex) {
-                    log.error("Failed to evict publicJobs key from cache", ex);
-                }
-            }
-        }
-
-
-        List<JobSummaryResponse> list = jobPostRepository.findActivePublicJobs(
-                JobVisibility.PUBLIC, JobStatus.OPEN, null, java.time.LocalDate.now(), Pageable.unpaged())
+        return jobPostRepository.findActivePublicJobs(
+                JobVisibility.PUBLIC, JobStatus.OPEN, null, java.time.LocalDate.now(), PageRequest.of(0, 100))
                 .getContent()
                 .stream()
                 .map(this::toJobSummaryResponse)
                 .toList();
-
-        if (cache != null) {
-            cache.put("all", list);
-        }
-        return list;
     }
 
     public Page<JobSummaryResponse> getPublicJobs(UUID postedById, Pageable pageable, UUID currentUserId) {
@@ -242,7 +245,7 @@ public class JobService {
                     .map(job -> toJobSummaryResponse(job, currentUserId));
         }
 
-        List<JobSummaryResponse> allJobs = getPublicJobsList();
+        List<JobSummaryResponse> allJobs = self.getPublicJobsList();
 
         List<JobSummaryResponse> enriched = allJobs.stream()
                 .map(job -> withUserContext(job, currentUserId))

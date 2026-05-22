@@ -29,6 +29,7 @@ import {
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import Image from 'next/image';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -617,10 +618,11 @@ export default function VerificationQueue() {
                         {previewUrl ? (
                            previewUrl.match(/\.(jpeg|jpg|gif|png)$/) != null ? (
                               <div className="absolute inset-0 overflow-auto p-6 flex items-center justify-center bg-slate-800/5 backdrop-blur-sm">
-                                 <img
+                                 <Image
                                     src={previewUrl}
-                                    alt="Immersive View"
-                                    className="max-w-full max-h-full object-contain shadow-2xl rounded-xl"
+                                    alt="Verification Document"
+                                    fill
+                                    className="object-contain"
                                  />
                               </div>
                            ) : (
