@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { jobService } from '@/services/jobService';
 import { useAuth } from '@/context/AuthContext';
-import { cn, formatDateString } from '@/lib/utils';
+import { cn, formatDateString, isJobExpired } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -88,7 +88,7 @@ export default function MyJobPosts() {
 
     // Status Filter
     if (statusFilter !== 'ALL') {
-      const isExpired = post.applicationDeadline && new Date(post.applicationDeadline) < new Date();
+      const isExpired = isJobExpired(post.applicationDeadline);
       if (statusFilter === 'ACTIVE' && (post.status !== 'OPEN' || isExpired)) return false;
       if (statusFilter === 'CLOSED' && (post.status !== 'CLOSED' || isExpired)) return false;
       if (statusFilter === 'EXPIRED' && !isExpired) return false;
@@ -203,7 +203,7 @@ export default function MyJobPosts() {
           const typeText = `${formatJobType(post.jobType)} (${post.workType})`;
           doc.text(typeText, 120, y);
 
-          const isExpired = post.applicationDeadline && new Date(post.applicationDeadline) < new Date();
+          const isExpired = isJobExpired(post.applicationDeadline);
           const statusText = post.status === 'REMOVED' ? 'REMOVED' : isExpired ? 'EXPIRED' : post.status === 'OPEN' ? 'ACTIVE' : 'CLOSED';
           doc.text(statusText, 170, y);
 
@@ -222,7 +222,7 @@ export default function MyJobPosts() {
       // CSV Export
       const headers = ['JobTitle', 'CompanyOrPoster', 'JobType', 'WorkType', 'Location', 'Status', 'Applicants', 'PostedAt'];
       const rows = filteredPosts.map(post => {
-        const isExpired = post.applicationDeadline && new Date(post.applicationDeadline) < new Date();
+        const isExpired = isJobExpired(post.applicationDeadline);
         const statusText = post.status === 'REMOVED' ? 'REMOVED' : isExpired ? 'EXPIRED' : post.status === 'OPEN' ? 'ACTIVE' : 'CLOSED';
         return [
           `"${post.title || ''}"`,
@@ -442,7 +442,7 @@ export default function MyJobPosts() {
                           </Link>
                           {(() => {
                             if (post.status === 'REMOVED') return <Badge variant="destructive" className="text-[10px] uppercase">Removed</Badge>;
-                            const isExpired = post.applicationDeadline && new Date(post.applicationDeadline) < new Date();
+                            const isExpired = isJobExpired(post.applicationDeadline);
                             if (isExpired) return <Badge variant="destructive" className="text-[10px] uppercase">Expired</Badge>;
                             if (post.status === 'OPEN') return <Badge className="bg-cyan-600 hover:bg-cyan-600 text-[10px] uppercase">Active</Badge>;
                             return <Badge variant="secondary" className="text-[10px] uppercase">Closed</Badge>;

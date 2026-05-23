@@ -76,7 +76,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { cn, formatDateString } from '@/lib/utils';
+import { cn, formatDateString, isJobExpired } from '@/lib/utils';
 import { toast } from 'sonner';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { LAYOUT, SPACING, TYPOGRAPHY } from '@/lib/constants';
@@ -169,8 +169,8 @@ function JobsPageContent() {
   );
 
   const filteredJobs = jobs.filter(job =>
-    selectedSkills.length === 0 ||
-    (job.tags && job.tags.some(t => selectedSkills.includes(t)))
+    !isJobExpired(job.applicationDeadline) &&
+    (selectedSkills.length === 0 || (job.tags && job.tags.some(t => selectedSkills.includes(t))))
   );
 
   const [sortBy, setSortBy] = useState('newest');
@@ -1002,13 +1002,17 @@ function JobsPageContent() {
             )}
 
             {/* Pinned Jobs Row */}
-            {!searchTerm && pinnedJobs.length > 0 && (
-              <div className="bg-slate-50/50 border border-slate-100 p-6 rounded-2xl mb-8 space-y-4">
-                <div className="flex items-center gap-2 px-1">
-                  <h2 className="text-xs font-black uppercase tracking-widest text-slate-900">Featured</h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {pinnedJobs.map((pJob) => {
+            {(() => {
+              const activePinnedJobs = pinnedJobs.filter(pJob => !isJobExpired(pJob.applicationDeadline));
+              if (searchTerm || activePinnedJobs.length === 0) return null;
+              
+              return (
+                <div className="bg-slate-50/50 border border-slate-100 p-6 rounded-2xl mb-8 space-y-4">
+                  <div className="flex items-center gap-2 px-1">
+                    <h2 className="text-xs font-black uppercase tracking-widest text-slate-900">Featured</h2>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {activePinnedJobs.map((pJob) => {
                     const daysLeft = pJob.applicationDeadline 
                       ? Math.ceil((new Date(pJob.applicationDeadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
                       : null;
@@ -1146,7 +1150,7 @@ function JobsPageContent() {
                   })}
                 </div>
               </div>
-            )}
+            ); })()}
 
             <div className={cn("space-y-4 transition-opacity duration-200", isFiltering && "opacity-60 pointer-events-none")}>
               {isLoading ? (
@@ -1221,7 +1225,7 @@ function JobsPageContent() {
                               )}
 
                               {(() => {
-                                const isExpired = job.applicationDeadline && new Date(job.applicationDeadline) < new Date();
+                                const isExpired = isJobExpired(job.applicationDeadline);
                                 if (isExpired) return <Badge variant="destructive" className="text-[10px] uppercase py-0.5 shrink-0 font-black tracking-widest">Expired</Badge>;
                                 if (job.status === 'OPEN') return null;
                                 return <Badge variant="secondary" className="text-[10px] uppercase py-0.5 shrink-0 font-black tracking-widest">Closed</Badge>;

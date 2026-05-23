@@ -97,3 +97,13 @@ export function formatTimeString(dateInput: string | Date | null | undefined): s
   return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 }
 
+export function isJobExpired(deadline: string | null | undefined): boolean {
+  if (!deadline) return false;
+  const dateString = typeof deadline === 'string' ? deadline : (deadline as any).toString();
+  const [year, month, day] = dateString.split('T')[0].split('-').map(Number);
+  if (!year || !month || !day) return false;
+  const deadlineDate = new Date(year, month - 1, day);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return deadlineDate < today;
+}

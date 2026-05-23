@@ -26,7 +26,7 @@ import { developerService } from '@/services/developerService';
 import ApplyDialog from '@/components/jobs/ApplyDialog';
 import PinJobDialog from '@/components/jobs/PinJobDialog';
 import Forum from '@/components/forum/Forum';
-import { cn, formatDateString } from '@/lib/utils';
+import { cn, formatDateString, isJobExpired } from '@/lib/utils';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -114,7 +114,7 @@ export default function JobDetailPage() {
   }, [isLoggedIn, user]);
 
   const isPoster = user?.id === job?.postedById;
-  const isExpired = job?.applicationDeadline && new Date(job.applicationDeadline) < new Date();
+  const isExpired = isJobExpired(job?.applicationDeadline);
   const isActive = job?.status === 'OPEN' && !isExpired;
 
   const handleEditJob = () => {
