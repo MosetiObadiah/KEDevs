@@ -37,6 +37,8 @@ public class AdminController {
 
     private final AdminService adminService;
     private final PaymentService paymentService;
+    private final org.moseti.kedevsapi.users.service.CsvExportService csvExportService;
+    private final org.moseti.kedevsapi.users.service.PdfExportService pdfExportService;
 
     // --- Dashboard & Analytics ---
 
@@ -392,12 +394,49 @@ public class AdminController {
         @ApiResponse(responseCode = "200", description = "Payments retrieved successfully")
     })
     @GetMapping("/payments")
-    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<org.springframework.data.domain.Page<PaymentResponse>>> getAllPayments(
+    public ResponseEntity<org.moseti.kedevsapi.shared.dto.ApiResponse<org.springframework.data.domain.Page<org.moseti.kedevsapi.payments.dto.PaymentDtos.AdminPaymentResponse>>> getAllPayments(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(required = false) PaymentStatus status) {
+            @RequestParam(required = false) PaymentStatus status,
+            @RequestParam(required = false) org.moseti.kedevsapi.shared.enums.Role role,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime startDate,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime endDate) {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success(
-                "Payments retrieved", paymentService.getAllPayments(page, size, status)));
+                "Payments retrieved", paymentService.getAllPayments(page, size, status, role, startDate, endDate)));
+    }
+
+    @Operation(summary = "Admin: Export filtered payment history")
+    @GetMapping("/payments/export")
+    public ResponseEntity<org.springframework.core.io.Resource> exportAdminPayments(
+            @RequestParam String format,
+            @RequestParam(required = false) PaymentStatus status,
+            @RequestParam(required = false) org.moseti.kedevsapi.shared.enums.Role role,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime startDate,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.LocalDateTime endDate) {
+        
+        java.util.List<org.moseti.kedevsapi.payments.dto.PaymentDtos.AdminPaymentResponse> payments = paymentService.getAllPaymentsForExport(status, role, startDate, endDate);
+
+        if ("csv".equalsIgnoreCase(format)) {
+            byte[] csv = csvExportService.generateAdminPaymentCsv(payments);
+            return ResponseEntity.ok()
+                    .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=admin-payments.csv")
+                    .contentType(org.springframework.http.MediaType.parseMediaType("text/csv"))
+                    .body(new org.springframework.core.io.ByteArrayResource(csv));
+        } else if ("pdf".equalsIgnoreCase(format)) {
+            StringBuilder filterSummary = new StringBuilder();
+            if (status != null) filterSummary.append("Status: ").append(status).append("; ");
+            if (role != null) filterSummary.append("Role: ").append(role).append("; ");
+            if (startDate != null) filterSummary.append("From: ").append(startDate).append("; ");
+            if (endDate != null) filterSummary.append("To: ").append(endDate).append("; ");
+            
+            byte[] pdf = pdfExportService.generateAdminPaymentPdf(payments, filterSummary.toString());
+            return ResponseEntity.ok()
+                    .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=admin-payments.pdf")
+                    .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
+                    .body(new org.springframework.core.io.ByteArrayResource(pdf));
+        }
+
+        return ResponseEntity.badRequest().build();
     }
 
     @Operation(summary = "Admin: view recent administrative actions")

@@ -19,7 +19,8 @@ import {
   Search,
   Bell,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  CreditCard
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
@@ -40,6 +41,7 @@ import {
 const menuItems = [
   { text: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
   { text: 'User Management', icon: Users, path: '/admin/users' },
+  { text: 'Payments', icon: CreditCard, path: '/admin/payments' },
   { text: 'Verification Queue', icon: ShieldCheck, path: '/admin/verification' },
   { text: 'Flagged Content', icon: Flag, path: '/admin/flags' },
   { text: 'Job Advertisements', icon: Megaphone, path: '/admin/job-advertisements' },

@@ -385,6 +385,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         { label: 'Flagged Content', href: '/admin/flags', icon: Flag },
         { label: 'Job Advertisements', href: '/admin/job-advertisements', icon: Megaphone },
         { label: 'Spotlight', href: '/admin/spotlight', icon: Sparkles },
+        { label: 'Support Tickets', href: '/admin/support', icon: MessageSquare },
         { label: 'Audit Log', href: '/admin/audit', icon: History },
         { label: 'Settings', href: '/admin/settings', icon: Settings },
       ]
@@ -393,7 +394,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         { label: 'Jobs', href: '/jobs', icon: Briefcase },
         { label: 'Developers', href: '/developers', icon: Users },
         { label: 'Companies', href: '/companies', icon: Building2 },
-        { label: 'Chat', href: '/chat', icon: MessageSquare },
         { label: 'My Posts', href: '/jobs/my-posts', icon: ClipboardList },
         { label: 'My Applications', href: '/jobs/my-applications', icon: FileText },
         { label: 'Spotlight', href: '/spotlight', icon: Star },
@@ -404,7 +404,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         { label: 'Browse Developers', href: '/developers', icon: Users },
         { label: 'Jobs', href: '/jobs', icon: Briefcase },
         { label: 'Companies', href: '/companies', icon: Building2 },
-        { label: 'Chat', href: '/chat', icon: MessageSquare },
         { label: 'My Job Posts', href: '/jobs/my-posts', icon: ClipboardList },
         { label: 'Spotlight', href: '/spotlight', icon: Star },
         { label: 'Payments', href: '/payments', icon: CreditCard },

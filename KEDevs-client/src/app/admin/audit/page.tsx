@@ -22,6 +22,8 @@ import {
 import { cn } from '@/lib/utils';
 import { adminService } from '@/services/adminService';
 import { toast } from 'sonner';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -157,6 +159,47 @@ export default function AuditLog() {
     });
   };
 
+  const handleExportPDF = () => {
+    try {
+      const doc = new jsPDF();
+      doc.setFillColor(15, 23, 42); // slate-900
+      doc.rect(0, 0, doc.internal.pageSize.width, 24, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text('KEDevs', 14, 16);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text('ADMIN AUDIT LOG EXPORT', doc.internal.pageSize.width - 14, 16, { align: 'right' });
+      
+      const tableData = logs.map(log => [
+        formatDate(log.createdAt),
+        log.adminName || 'Admin',
+        formatActionLabel(log.actionType),
+        log.targetType,
+        log.outcome || '-'
+      ]);
+
+      (doc as any).autoTable({
+        startY: 30,
+        head: [['Timestamp', 'Actor', 'Action', 'Target', 'Outcome']],
+        body: tableData,
+        theme: 'striped',
+        headStyles: { fillColor: [14, 165, 233] } // cyan-500
+      });
+
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text("KEDevs — Kenya's Premier Tech Talent Network", 14, doc.internal.pageSize.height - 10);
+      
+      doc.save(`kedevs-audit-export-${new Date().getTime()}.pdf`);
+      toast.success('PDF generated successfully');
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to generate PDF');
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
       {/* Action Bar */}
@@ -176,8 +219,8 @@ export default function AuditLog() {
             <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
             Refresh
           </Button>
-          <Button size="sm" className="rounded-xl font-black bg-slate-900 h-9 px-4 gap-2">
-            <Download className="h-3.5 w-3.5" /> Export CSV
+          <Button size="sm" className="rounded-xl font-black bg-slate-900 h-9 px-4 gap-2" onClick={handleExportPDF}>
+            <Printer className="h-3.5 w-3.5" /> Export PDF
           </Button>
         </div>
       </div>

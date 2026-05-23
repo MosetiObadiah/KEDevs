@@ -9,6 +9,10 @@ import org.moseti.kedevsapi.contact.repository.ContactMessageRepository;
 import org.moseti.kedevsapi.shared.dto.ApiResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 @Slf4j
 @Service
@@ -34,6 +38,13 @@ public class ContactService {
         // TODO: Integrate with email service to notify support@kedevelopers.com
         
         return ApiResponse.success("Message sent. We'll respond within 1–2 business days.", mapToResponse(saved));
+    }
+
+    @Transactional(readOnly = true)
+    public ApiResponse<Page<ContactMessageResponse>> getAllMessages(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<ContactMessage> messages = contactMessageRepository.findAll(pageable);
+        return ApiResponse.success("Messages retrieved successfully", messages.map(this::mapToResponse));
     }
 
     private ContactMessageResponse mapToResponse(ContactMessage message) {

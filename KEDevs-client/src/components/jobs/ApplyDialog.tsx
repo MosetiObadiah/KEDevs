@@ -111,6 +111,10 @@ export default function ApplyDialog({ open, onClose, job, onSuccess }: ApplyDial
       toast.error('Please upload a resume to continue.');
       return;
     }
+    if (!coverLetter) {
+      toast.error('Please upload a cover letter to continue.');
+      return;
+    }
     setLoading(true);
     try {
       const response = await jobService.applyToJob(job.id, resume, coverLetter);
@@ -257,7 +261,7 @@ export default function ApplyDialog({ open, onClose, job, onSuccess }: ApplyDial
                   </div>
 
                   <div className="space-y-2">
-                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Cover Letter (Optional)</p>
+                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Cover Letter (Required)</p>
                      <label className={cn(
                         "flex flex-col items-center justify-center p-8 rounded-xl-[2rem] border-4 border-dashed cursor-pointer transition-all",
                         coverLetter ? "border-emerald-500 bg-cyan-50" : "border-slate-100 hover:border-emerald-500/50"
@@ -276,7 +280,7 @@ export default function ApplyDialog({ open, onClose, job, onSuccess }: ApplyDial
                         ) : (
                            <div className="text-center space-y-2">
                               <CloudUpload className="h-10 w-10 text-slate-300 mx-auto" />
-                              <p className="font-black text-sm text-slate-500 italic">Optional Cover Letter</p>
+                              <p className="font-black text-sm">Upload Cover Letter PDF</p>
                            </div>
                         )}
                      </label>
@@ -345,7 +349,7 @@ export default function ApplyDialog({ open, onClose, job, onSuccess }: ApplyDial
               size="lg" 
               className="rounded-2xl font-black h-14 px-10 shadow-xl shadow-primary/20"
               onClick={handleNext}
-              disabled={loading || (activeStep === 0 && !profile) || (activeStep === 1 && !resume)}
+              disabled={loading || (activeStep === 0 && !profile) || (activeStep === 1 && (!resume || !coverLetter))}
             >
               Continue <ChevronRight className="ml-2 h-5 w-5" />
             </Button>

@@ -13,7 +13,10 @@ import {
   Trash2,
   Code2,
   MessageSquareQuote,
-  ThumbsUp
+  ThumbsUp,
+  Check,
+  X,
+  Edit2
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -26,7 +29,10 @@ import Image from 'next/image';
 interface ProfileTabsProps {
   profile: any;
   isOwner?: boolean;
-  isEditing?: boolean;
+  editingSection?: string | null;
+  onEditSection?: (section: string | null) => void;
+  onSaveSection?: (section: string) => void;
+  isSaving?: boolean;
   onUpdate?: (data: any) => void;
   onAddSkill?: () => void;
   onAddProject?: () => void;
@@ -36,12 +42,18 @@ interface ProfileTabsProps {
   onRemoveItem?: (type: string, id: string) => void;
   onToggleFeatured?: (id: string, current: boolean) => void;
   onEndorse?: () => void;
+  onAddCertification?: () => void;
+  onEditOSS?: (item: any) => void;
+  onEditAchievement?: (item: any) => void;
 }
 
 export function ProfileTabs({ 
   profile, 
   isOwner,
-  isEditing,
+  editingSection,
+  onEditSection,
+  onSaveSection,
+  isSaving,
   onUpdate,
   onAddSkill,
   onAddProject,
@@ -50,7 +62,10 @@ export function ProfileTabs({
   onAddAchievement,
   onRemoveItem,
   onToggleFeatured,
-  onEndorse
+  onEndorse,
+  onAddCertification,
+  onEditOSS,
+  onEditAchievement
 }: ProfileTabsProps) {
   return (
     <Tabs defaultValue="overview" className="w-full">
@@ -94,11 +109,29 @@ export function ProfileTabs({
       
       <TabsContent value="overview" className="space-y-10 animate-in fade-in duration-500">
         <section className="space-y-4">
-          <h3 className="text-xl font-black flex items-center gap-2">
-            <div className="h-6 w-1.5 bg-primary rounded-full" />
-            Professional Story
-          </h3>
-          {isEditing ? (
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-black flex items-center gap-2">
+              <div className="h-6 w-1.5 bg-primary rounded-full" />
+              Professional Story
+            </h3>
+            {isOwner && (
+              editingSection === null ? (
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => onEditSection?.('about')}>
+                  <Edit2 className="h-4 w-4" />
+                </Button>
+              ) : editingSection === 'about' ? (
+                <div className="flex gap-2">
+                  <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => onEditSection?.(null)} disabled={isSaving}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-8 w-8 text-primary hover:bg-primary/10" onClick={() => onSaveSection?.('about')} disabled={isSaving}>
+                    <Check className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : null
+            )}
+          </div>
+          {editingSection === 'about' ? (
             <Textarea 
               className="min-h-[200px] rounded-2xl border-slate-200 font-medium text-lg focus:border-primary" 
               value={profile.bio || ''} 
@@ -314,7 +347,7 @@ export function ProfileTabs({
               Certifications
             </h3>
             {isOwner && (
-              <Button variant="ghost" size="sm" className="text-primary font-medium hover:bg-primary/5" onClick={() => onAddEducation}>
+              <Button variant="ghost" size="sm" className="text-primary font-medium hover:bg-primary/5" onClick={onAddCertification}>
                 <Plus className="w-4 h-4 mr-1" /> Add Certificate
               </Button>
             )}
@@ -364,11 +397,18 @@ export function ProfileTabs({
                     <h4 className="font-black text-foreground truncate">{oss.projectName}</h4>
                     <p className="text-primary font-medium text-xs uppercase tracking-wider">{oss.role}</p>
                   </div>
-                  {isOwner && (
-                    <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive/50 hover:text-destructive" onClick={() => onRemoveItem?.('oss', oss.id)}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
+                  <div className="flex gap-2">
+                    {isOwner && onEditOSS && (
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-primary/50 hover:text-primary" onClick={() => onEditOSS(oss)}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                      </Button>
+                    )}
+                    {isOwner && (
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive/50 hover:text-destructive" onClick={() => onRemoveItem?.('oss', oss.id)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 <p className="text-sm text-muted-foreground font-medium leading-relaxed line-clamp-3">{oss.description}</p>
                 {oss.contributionUrl && (
@@ -405,11 +445,18 @@ export function ProfileTabs({
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start">
                     <h4 className="font-medium text-foreground truncate text-sm">{ach.title}</h4>
-                    {isOwner && (
-                      <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive/50 hover:text-destructive" onClick={() => onRemoveItem?.('achievement', ach.id)}>
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
+                    <div className="flex gap-2">
+                      {isOwner && onEditAchievement && (
+                        <Button size="icon" variant="ghost" className="h-8 w-8 text-primary/50 hover:text-primary" onClick={() => onEditAchievement(ach)}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                        </Button>
+                      )}
+                      {isOwner && (
+                        <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive/50 hover:text-destructive" onClick={() => onRemoveItem?.('achievement', ach.id)}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   <p className="text-muted-foreground font-medium text-[10px] uppercase tracking-wider">{ach.year}</p>
                   <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{ach.description}</p>

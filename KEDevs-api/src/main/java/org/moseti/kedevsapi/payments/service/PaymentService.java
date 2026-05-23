@@ -540,17 +540,14 @@ public class PaymentService {
                 ));
     }
 
-    public Page<PaymentResponse> getAllPayments(int page, int size, PaymentStatus status) {
+    public Page<AdminPaymentResponse> getAllPayments(int page, int size, PaymentStatus status, Role role, LocalDateTime startDate, LocalDateTime endDate) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
                 page, size, org.springframework.data.domain.Sort.by("createdAt").descending());
-        Page<Payment> payments = (status != null)
-                ? paymentRepository.findByStatus(status, pageable)
-                : paymentRepository.findAll(pageable);
-        return payments.map(p -> new PaymentResponse(
-                p.getId(), p.getType(), p.getAmount(), p.getCurrency(),
-                p.getStatus(), p.getMpesaReceiptNo(), p.getFailReason(),
-                p.getPhoneNumber(), p.getPaidAt(), p.getCreatedAt()
-        ));
+        return paymentRepository.findAdminPayments(status, role, startDate, endDate, pageable);
+    }
+
+    public List<AdminPaymentResponse> getAllPaymentsForExport(PaymentStatus status, Role role, LocalDateTime startDate, LocalDateTime endDate) {
+        return paymentRepository.findAdminPaymentsForExport(status, role, startDate, endDate);
     }
 
     public List<Payment> findByUserIdOrderByCreatedAtDesc(UUID userId) {

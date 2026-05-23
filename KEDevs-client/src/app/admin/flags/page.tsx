@@ -148,6 +148,14 @@ export default function FlaggedContent() {
       );
    };
 
+   const getEyeLink = (item: any, tabType: string) => {
+      const entityId = item.flaggedEntityId || item.jobId || item.flaggedUserId || item.id;
+      if (tabType === 'jobs') return `/jobs/${entityId}`;
+      if (tabType === 'users') return `/developers/${entityId}`;
+      if (tabType === 'comments') return `/forum`; 
+      return '#';
+   };
+
    return (
       <div className="space-y-8 animate-in fade-in duration-700">
          <div className="h-4" />
@@ -282,7 +290,7 @@ export default function FlaggedContent() {
                                        </div>
                                     ) : (
                                        <div className="flex justify-end gap-2">
-                                          <Button size="sm" variant="outline" className="h-9 w-9 p-0 rounded-xl border-slate-100 hover:bg-slate-50">
+                                          <Button size="sm" variant="outline" className="h-9 w-9 p-0 rounded-xl border-slate-100 hover:bg-slate-50" onClick={() => window.open(getEyeLink(item, tab), '_blank')}>
                                              <Eye className="h-4 w-4 text-slate-500" />
                                           </Button>
 

@@ -283,6 +283,14 @@ public class AdminService {
             // Reuse badge perform method logic
             performBadgeAction(adminId, vr.getUserId(), new BadgeActionRequest("GRANT", "Verified via document review"));
             
+            // Explicitly approve the employer account if they are an employer
+            if (user.getRole() == Role.EMPLOYER) {
+                var profileOpt = employerProfileRepository.findByUserId(user.getId());
+                if (profileOpt.isPresent()) {
+                    approveEmployer(adminId, profileOpt.get().getId(), new ApproveEmployerRequest(true, request.reason()));
+                }
+            }
+            
             if (oldStatus == VerificationStatus.REJECTED) {
                 notificationService.notify(vr.getUserId(), NotificationCategory.ADMIN,
                         "Account Re-reviewed",

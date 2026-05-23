@@ -133,4 +133,21 @@ public class PaymentDtos {
             org.moseti.kedevsapi.shared.enums.SpotlightType type,
             java.time.LocalDateTime expiresAt
     ) {}
+
+    public record AdminPaymentResponse(
+            UUID id,
+            PaymentType type,
+            BigDecimal amount,
+            String currency,
+            PaymentStatus status,
+            String mpesaReceiptNo,
+            String failReason,
+            String phoneNumber,
+            LocalDateTime paidAt,
+            LocalDateTime createdAt,
+            UUID userId,
+            String userName,
+            String userEmail,
+            org.moseti.kedevsapi.shared.enums.Role userRole
+    ) {}
 }

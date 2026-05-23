@@ -357,7 +357,12 @@ export default function VerificationQueue() {
                                  </p>
                               </div>
 
-                              <Badge className="bg-azure-50 text-azure-700 border-none font-black text-[9px] uppercase tracking-widest px-3 py-1 rounded-full mb-6 shadow-none group-hover:bg-azure-500 group-hover:text-white transition-all">
+                              <Badge className={cn(
+                                 "border-none font-black text-[9px] uppercase tracking-widest px-3 py-1 rounded-full mb-6 shadow-none transition-all",
+                                 req.status === 'APPROVED' ? "bg-cyan-50 text-cyan-700 group-hover:bg-cyan-500 group-hover:text-white" :
+                                 req.status === 'REJECTED' ? "bg-danger-50 text-danger-700 group-hover:bg-danger-500 group-hover:text-white" :
+                                 "bg-azure-50 text-azure-700 group-hover:bg-azure-500 group-hover:text-white"
+                               )}>
                                  {req.status?.replace('_', ' ')}
                               </Badge>
 
@@ -390,12 +395,12 @@ export default function VerificationQueue() {
                         </Card>
                      ))
                   ) : (
-                     <div className="col-span-full py-24 text-center space-y-4 bg-card rounded-xl-[3rem] border border-border/50 border-dashed">
+                     <div className="col-span-full py-12 text-center space-y-4 bg-card rounded-xl-[3rem] border border-border/50 border-dashed">
                         <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-muted mb-2">
                            <FilterX className="h-10 w-10 text-muted-foreground/50" />
                         </div>
                         <div>
-                           <h3 className="text-xl font-black text-slate-900 tracking-tight">Clear Horizon</h3>
+                           <h3 className="text-xl font-black text-slate-900 tracking-tight">No Pending Requests</h3>
                            <p className="text-sm text-muted-foreground font-medium">Zero unresolved verification artifacts remain in queue.</p>
                         </div>
                      </div>
@@ -510,12 +515,15 @@ export default function VerificationQueue() {
 
                      <div className="space-y-3">
                         {selectedReq?.idDocumentUrl && (
-                           <button
+                           <div
+                              role="button"
+                              tabIndex={0}
                               className={cn(
-                                 "w-full text-left flex items-center justify-between p-5 rounded-xl-[1.5rem] transition-all border",
+                                 "w-full text-left flex items-center justify-between p-5 rounded-xl-[1.5rem] transition-all border cursor-pointer",
                                  previewUrl === selectedReq.idDocumentUrl ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" : "bg-slate-50 text-slate-900 border-slate-100 hover:border-primary/30"
                               )}
                               onClick={() => setPreviewUrl(selectedReq.idDocumentUrl)}
+                              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setPreviewUrl(selectedReq.idDocumentUrl); }}
                            >
                               <div className="flex items-center gap-4">
                                  <div className={cn("p-2.5 rounded-xl", previewUrl === selectedReq.idDocumentUrl ? "bg-white/20" : "bg-white shadow-sm")}>
@@ -539,16 +547,19 @@ export default function VerificationQueue() {
                               >
                                  <Download className="h-4 w-4" />
                               </Button>
-                           </button>
+                           </div>
                         )}
 
                         {selectedReq?.passportPhotoUrl && (
-                           <button
+                           <div
+                              role="button"
+                              tabIndex={0}
                               className={cn(
-                                 "w-full text-left flex items-center justify-between p-5 rounded-xl-[1.5rem] transition-all border",
+                                 "w-full text-left flex items-center justify-between p-5 rounded-xl-[1.5rem] transition-all border cursor-pointer",
                                  previewUrl === selectedReq.passportPhotoUrl ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" : "bg-slate-50 text-slate-900 border-slate-100 hover:border-primary/30"
                               )}
                               onClick={() => setPreviewUrl(selectedReq.passportPhotoUrl)}
+                              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setPreviewUrl(selectedReq.passportPhotoUrl); }}
                            >
                               <div className="flex items-center gap-4">
                                  <div className={cn("p-2.5 rounded-xl", previewUrl === selectedReq.passportPhotoUrl ? "bg-white/20" : "bg-white shadow-sm")}>
@@ -572,17 +583,20 @@ export default function VerificationQueue() {
                               >
                                  <Download className="h-4 w-4" />
                               </Button>
-                           </button>
+                           </div>
                         )}
 
                         {selectedReq?.certificateUrls?.map((cert: string, idx: number) => (
-                           <button
+                           <div
                               key={idx}
+                              role="button"
+                              tabIndex={0}
                               className={cn(
-                                 "w-full text-left flex items-center justify-between p-5 rounded-xl-[1.5rem] transition-all border",
+                                 "w-full text-left flex items-center justify-between p-5 rounded-xl-[1.5rem] transition-all border cursor-pointer",
                                  previewUrl === cert ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" : "bg-slate-50 text-slate-900 border-slate-100 hover:border-primary/30"
                               )}
                               onClick={() => setPreviewUrl(cert)}
+                              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setPreviewUrl(cert); }}
                            >
                               <div className="flex items-center gap-4">
                                  <div className={cn("p-2.5 rounded-xl", previewUrl === cert ? "bg-white/20" : "bg-white shadow-sm")}>
@@ -606,7 +620,7 @@ export default function VerificationQueue() {
                               >
                                  <Download className="h-4 w-4" />
                               </Button>
-                           </button>
+                           </div>
                         ))}
                      </div>
 
@@ -616,13 +630,12 @@ export default function VerificationQueue() {
                   <div className="flex-1 p-12 flex flex-col">
                      <div className="flex-1 bg-white rounded-xl-[2.5rem] border-2 border-slate-100 shadow-inner shadow-slate-100 overflow-hidden relative flex items-center justify-center">
                         {previewUrl ? (
-                           previewUrl.match(/\.(jpeg|jpg|gif|png)$/) != null ? (
+                           !previewUrl.toLowerCase().includes('.pdf') ? (
                               <div className="absolute inset-0 overflow-auto p-6 flex items-center justify-center bg-slate-800/5 backdrop-blur-sm">
-                                 <Image
+                                 <img
                                     src={previewUrl}
                                     alt="Verification Document"
-                                    fill
-                                    className="object-contain"
+                                    className="max-w-full max-h-full object-contain"
                                  />
                               </div>
                            ) : (

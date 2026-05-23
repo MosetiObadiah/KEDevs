@@ -122,3 +122,23 @@ export interface PublicStats {
 }
 
 
+
+export interface PaymentResponse {
+  id: string;
+  type: 'VERIFIED_BADGE' | 'SPOTLIGHT_DAY' | 'SPOTLIGHT_WEEK' | 'PINNED_JOB';
+  amount: number;
+  currency: string;
+  status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+  mpesaReceiptNo?: string;
+  failReason?: string;
+  phoneNumber: string;
+  paidAt?: string;
+  createdAt: string;
+}
+
+export interface AdminPaymentResponse extends PaymentResponse {
+  userId: string;
+  userName: string;
+  userEmail: string;
+  userRole: string;
+}

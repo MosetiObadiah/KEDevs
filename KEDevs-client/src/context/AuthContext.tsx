@@ -17,6 +17,7 @@ interface AuthContextType {
   setAuthData: (userData: User) => void;
   isLoading: boolean;
   refreshUserStatus: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -190,6 +191,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    try {
+      const response = await authService.me();
+      if (response.success && response.data) {
+        const d = response.data;
+        const userData: User = {
+          id: d.userId,
+          email: d.email,
+          fullName: d.fullName,
+          role: d.role,
+          isEmailVerified: d.emailVerified,
+          isApproved: !d.requiresApproval,
+          isVerified: d.isVerified || !d.requiresApproval,
+          spotlightStatus: { isActive: false },
+          accountStatus: d.accountStatus || 'ACTIVE'
+        };
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+      }
+    } catch (e) {
+      console.error('Failed to refresh user', e);
+    }
+  }, []);
+
   const contextValue = useMemo(() => ({
     user,
     isLoggedIn: !!user,
@@ -200,7 +225,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     completeOnboarding,
     setAuthData,
     isLoading,
-    refreshUserStatus
+    refreshUserStatus,
+    refreshUser
   }), [
     user,
     isOnboarded,
@@ -210,7 +236,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     completeOnboarding,
     setAuthData,
     isLoading,
-    refreshUserStatus
+    refreshUserStatus,
+    refreshUser
   ]);
 
   return (

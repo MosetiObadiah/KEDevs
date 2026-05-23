@@ -48,4 +48,38 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     boolean existsByUserIdAndTypeAndStatus(UUID userId, PaymentType type, PaymentStatus status);
 
     java.util.List<Payment> findByStatusAndCreatedAtAfter(PaymentStatus status, java.time.LocalDateTime since);
+
+    @org.springframework.data.jpa.repository.Query("SELECT new org.moseti.kedevsapi.payments.dto.PaymentDtos$AdminPaymentResponse(" +
+           "p.id, p.type, p.amount, p.currency, p.status, p.mpesaReceiptNo, p.failReason, p.phoneNumber, p.paidAt, p.createdAt, " +
+           "u.id, u.fullName, u.email, u.role) " +
+           "FROM Payment p, org.moseti.kedevsapi.users.entity.User u " +
+           "WHERE p.userId = u.id " +
+           "AND (:#{#status == null} = true OR p.status = :status) " +
+           "AND (:#{#role == null} = true OR u.role = :role) " +
+           "AND (:#{#startDate == null} = true OR p.createdAt >= :startDate) " +
+           "AND (:#{#endDate == null} = true OR p.createdAt <= :endDate)")
+    Page<org.moseti.kedevsapi.payments.dto.PaymentDtos.AdminPaymentResponse> findAdminPayments(
+            @org.springframework.data.repository.query.Param("status") PaymentStatus status,
+            @org.springframework.data.repository.query.Param("role") org.moseti.kedevsapi.shared.enums.Role role,
+            @org.springframework.data.repository.query.Param("startDate") java.time.LocalDateTime startDate,
+            @org.springframework.data.repository.query.Param("endDate") java.time.LocalDateTime endDate,
+            Pageable pageable
+    );
+
+    @org.springframework.data.jpa.repository.Query("SELECT new org.moseti.kedevsapi.payments.dto.PaymentDtos$AdminPaymentResponse(" +
+           "p.id, p.type, p.amount, p.currency, p.status, p.mpesaReceiptNo, p.failReason, p.phoneNumber, p.paidAt, p.createdAt, " +
+           "u.id, u.fullName, u.email, u.role) " +
+           "FROM Payment p, org.moseti.kedevsapi.users.entity.User u " +
+           "WHERE p.userId = u.id " +
+           "AND (:status IS NULL OR p.status = :status) " +
+           "AND (:role IS NULL OR u.role = :role) " +
+           "AND (cast(:startDate as timestamp) IS NULL OR p.createdAt >= :startDate) " +
+           "AND (cast(:endDate as timestamp) IS NULL OR p.createdAt <= :endDate) " +
+           "ORDER BY p.createdAt DESC")
+    java.util.List<org.moseti.kedevsapi.payments.dto.PaymentDtos.AdminPaymentResponse> findAdminPaymentsForExport(
+            @org.springframework.data.repository.query.Param("status") PaymentStatus status,
+            @org.springframework.data.repository.query.Param("role") org.moseti.kedevsapi.shared.enums.Role role,
+            @org.springframework.data.repository.query.Param("startDate") java.time.LocalDateTime startDate,
+            @org.springframework.data.repository.query.Param("endDate") java.time.LocalDateTime endDate
+    );
 }

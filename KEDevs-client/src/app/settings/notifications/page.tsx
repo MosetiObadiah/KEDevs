@@ -17,8 +17,6 @@ import {
   Sparkles,
   Smartphone,
   AtSign,
-  Settings,
-  Shield,
   Eye,
   ArrowRight
 } from 'lucide-react';
@@ -121,7 +119,7 @@ export default function NotificationSettingsPage() {
         { key: 'emailOnPaymentReceipt', label: 'Financial Alerts', desc: 'Critical receipts and payment cycle notifications' },
         { key: 'emailOnJobApplication', label: 'Talent Acquisition', desc: 'Alerts for incoming talent and recruitment notifications' },
         { key: 'inAppOnJobApplication', label: 'Application Status', desc: 'Real-time status updates on active job cycles' },
-        { key: 'inAppOnCommentReply', label: 'Community Sync', desc: 'Instant alerts for forum interaction and replies' },
+        { key: 'inAppOnCommentReply', label: 'Community Notifications', desc: 'Instant alerts for forum interaction and replies' },
         { key: 'inAppOnEndorsement', label: 'Endorsements', desc: 'Notify when peers endorse your professional profile' },
       ],
     },
@@ -156,12 +154,6 @@ export default function NotificationSettingsPage() {
                   <Link href="/settings/visibility">
                     <Eye className="h-4 w-4" /> Visibility
                   </Link>
-                </Button>
-                <Button variant="ghost" className="w-full justify-start font-medium h-10 gap-3 text-muted-foreground opacity-50 cursor-not-allowed">
-                  <Settings className="h-4 w-4" /> Account
-                </Button>
-                <Button variant="ghost" className="w-full justify-start font-medium h-10 gap-3 text-muted-foreground opacity-50 cursor-not-allowed">
-                  <Shield className="h-4 w-4" /> Privacy
                 </Button>
               </CardContent>
               <Separator className="bg-border/50" />

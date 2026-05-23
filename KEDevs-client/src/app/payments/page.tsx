@@ -76,6 +76,9 @@ export default function PaymentsPage() {
   const [buySpotlightOpen, setBuySpotlightOpen] = useState(false);
   const [devProfile, setDevProfile] = useState<any>(null);
   const [selectedPayment, setSelectedPayment] = useState<any>(null);
+  const [filterFrom, setFilterFrom] = useState('');
+  const [filterTo, setFilterTo] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -162,16 +165,64 @@ export default function PaymentsPage() {
     return `${h}h ${m}m remaining`;
   };
 
+  const filteredPayments = paymentHistory.filter(p => {
+    let match = true;
+    if (statusFilter !== 'all') {
+      match = match && p.status?.toLowerCase() === statusFilter.toLowerCase();
+    }
+    if (filterFrom || filterTo) {
+      const d = new Date(p.paidAt || p.createdAt).getTime();
+      if (filterFrom) {
+        match = match && d >= new Date(filterFrom).getTime();
+      }
+      if (filterTo) {
+        match = match && d <= new Date(filterTo).getTime();
+      }
+    }
+    return match;
+  });
+
   const stats = {
-    total: paymentHistory.length,
-    pending: paymentHistory.filter(p => p.status === 'PENDING').length,
-    completed: paymentHistory.filter(p => p.status === 'COMPLETED').length,
-    failed: paymentHistory.filter(p => p.status === 'FAILED' || p.status === 'CANCELLED').length,
-    totalVolume: paymentHistory.filter(p => p.status === 'COMPLETED').reduce((acc, curr) => acc + (curr.amount || 0), 0)
+    total: filteredPayments.length,
+    pending: filteredPayments.filter(p => p.status === 'PENDING').length,
+    completed: filteredPayments.filter(p => p.status === 'COMPLETED').length,
+    failed: filteredPayments.filter(p => p.status === 'FAILED' || p.status === 'CANCELLED').length,
+    totalVolume: filteredPayments.filter(p => p.status === 'COMPLETED').reduce((acc, curr) => acc + (curr.amount || 0), 0)
   };
 
   // Check if any slot is available
   const hasSpotlightAvailability = availability ? (availability.daySlotAvailable || availability.weekSlotAvailable) : false;
+
+  const handlePrintReceipt = async () => {
+    if (!selectedPayment) return;
+    try {
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
+      doc.setFillColor(15, 23, 42);
+      doc.rect(0, 0, 210, 30, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.text('KEDevs', 14, 20);
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.text('PAYMENT RECEIPT', 140, 20);
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(11);
+      doc.text(`Receipt No: ${selectedPayment.mpesaReceiptNo || 'N/A'}`, 14, 50);
+      doc.text(`Date: ${formatDate(selectedPayment.paidAt || selectedPayment.createdAt)}`, 14, 60);
+      doc.text(`Service: ${selectedPayment.type?.split('_').map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(' ') || 'Platform Service'}`, 14, 70);
+      doc.text(`Amount: KES ${Number(selectedPayment.amount || 0).toLocaleString()}`, 14, 80);
+      doc.text(`Phone: ${selectedPayment.phoneNumber || 'N/A'}`, 14, 90);
+      doc.text(`Status: ${selectedPayment.status}`, 14, 100);
+      doc.setTextColor(128, 128, 128);
+      doc.setFontSize(9);
+      doc.text("KEDevs - Kenya's Premier Tech Talent Network", 14, 130);
+      doc.save(`receipt-${selectedPayment.mpesaReceiptNo || 'draft'}.pdf`);
+    } catch(e) {
+       toast.error("Failed to generate PDF");
+    }
+  };
 
   if (loading) {
     return (
@@ -262,8 +313,29 @@ export default function PaymentsPage() {
                   <History className="h-5 w-5 text-muted-foreground/30" />
                 </div>
               </CardHeader>
+              <div className="p-4 border-b border-border/50 bg-white flex flex-wrap items-center gap-4">
+                 <div className="flex items-center gap-2">
+                   <label className="text-xs font-medium text-muted-foreground">From</label>
+                   <input type="date" className="border rounded-md px-2 py-1 text-sm" value={filterFrom} onChange={(e) => setFilterFrom(e.target.value)} />
+                 </div>
+                 <div className="flex items-center gap-2">
+                   <label className="text-xs font-medium text-muted-foreground">To</label>
+                   <input type="date" className="border rounded-md px-2 py-1 text-sm" value={filterTo} onChange={(e) => setFilterTo(e.target.value)} />
+                 </div>
+                 <div className="flex items-center gap-2">
+                   <label className="text-xs font-medium text-muted-foreground">Status</label>
+                   <select className="border rounded-md px-2 py-1 text-sm" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                     <option value="all">All Statuses</option>
+                     <option value="completed">Completed</option>
+                     <option value="pending">Pending</option>
+                     <option value="failed">Failed</option>
+                     <option value="cancelled">Cancelled</option>
+                   </select>
+                 </div>
+                 <Button variant="ghost" size="sm" onClick={() => { setFilterFrom(''); setFilterTo(''); setStatusFilter('all'); }}>Clear Filters</Button>
+              </div>
               <CardContent className="p-0">
-                {paymentHistory.length === 0 ? (
+                {filteredPayments.length === 0 ? (
                   <div className="py-32 text-center space-y-6">
                     <div className="h-16 w-16 bg-muted rounded-2xl flex items-center justify-center mx-auto">
                       <Receipt className="h-8 w-8 text-muted-foreground/30" />
@@ -284,7 +356,7 @@ export default function PaymentsPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {paymentHistory.map((row) => (
+                        {filteredPayments.map((row) => (
                           <TableRow
                             key={row.id}
                             className={cn(
@@ -399,19 +471,6 @@ export default function PaymentsPage() {
                     </div>
                   </div>
                 </div>
-
-                {stats.failed > 0 && (
-                  <div className="mt-8 p-4 rounded-xl bg-danger-50 border border-danger-100 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <AlertTriangle className="h-5 w-5 text-danger-500" />
-                      <div>
-                        <p className="text-sm font-medium text-danger-700">Failed Transactions Detected</p>
-                        <p className="text-xs text-danger-500/70">{stats.failed} transaction(s) were cancelled or failed the protocol.</p>
-                      </div>
-                    </div>
-                    <Badge className="bg-danger-500 text-white border-none font-black">{stats.failed}</Badge>
-                  </div>
-                )}
               </CardContent>
             </Card>
 
@@ -459,7 +518,12 @@ export default function PaymentsPage() {
                     </div>
                   </div>
                 )}
-                <div className="text-center pt-2 pb-4">
+                <div className="text-center pt-2 pb-4 space-y-4">
+                  <div className="flex justify-center">
+                    <Button variant="outline" size="sm" onClick={handlePrintReceipt}>
+                      <FileText className="h-4 w-4 mr-2" /> Print Receipt
+                    </Button>
+                  </div>
                   <p className="text-[10px] text-muted-foreground font-medium italic">Thank you for your business. For any queries, contact support.</p>
                 </div>
               </DialogContent>

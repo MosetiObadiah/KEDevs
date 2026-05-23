@@ -283,13 +283,19 @@ public class EmployerProfileService {
         String folder = "kedevs/employers/verification";
 
         if (incorporationCertificate != null && !incorporationCertificate.isEmpty()) {
-            profile.setIncorporationCertificateUrl(fileUploadService.uploadFile(incorporationCertificate, folder));
+            String url = fileUploadService.uploadFile(incorporationCertificate, folder);
+            profile.setIncorporationCertificateUrl(url);
+            request.setIdDocumentUrl(url);
         }
         if (kraPinCertificate != null && !kraPinCertificate.isEmpty()) {
-            profile.setKraPinCertificateUrl(fileUploadService.uploadFile(kraPinCertificate, folder));
+            String url = fileUploadService.uploadFile(kraPinCertificate, folder);
+            profile.setKraPinCertificateUrl(url);
+            request.setPassportPhotoUrl(url);
         }
         if (businessPermit != null && !businessPermit.isEmpty()) {
-            profile.setBusinessPermitUrl(fileUploadService.uploadFile(businessPermit, folder));
+            String url = fileUploadService.uploadFile(businessPermit, folder);
+            profile.setBusinessPermitUrl(url);
+            request.setCertificateUrls(new java.util.ArrayList<>(List.of(url)));
         }
 
         profile = employerProfileRepository.save(profile);

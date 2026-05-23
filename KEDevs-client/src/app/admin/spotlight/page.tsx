@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
 import { cn, formatDateString } from '@/lib/utils';
 import { toast } from 'sonner';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -79,6 +81,46 @@ export default function SpotlightManagement() {
       toast.error(err.message || 'Failed to clear slot');
     } finally {
       setOverriding(false);
+    }
+  };
+
+  const handleExportPDF = () => {
+    try {
+      const doc = new jsPDF();
+      doc.setFillColor(15, 23, 42);
+      doc.rect(0, 0, doc.internal.pageSize.width, 24, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text('KEDevs', 14, 16);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text('SPOTLIGHT REGISTRY EXPORT', doc.internal.pageSize.width - 14, 16, { align: 'right' });
+      
+      const tableData = slots.map(slot => [
+        slot.developerName || 'Unknown',
+        slot.type,
+        slot.isActive ? 'Active' : (slot.overriddenByAdmin ? 'Cleared' : 'Expired'),
+        formatDateString(slot.endDate)
+      ]);
+
+      (doc as any).autoTable({
+        startY: 30,
+        head: [['Developer', 'Package Tier', 'Status', 'Expiration']],
+        body: tableData,
+        theme: 'striped',
+        headStyles: { fillColor: [14, 165, 233] }
+      });
+
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text("KEDevs — Kenya's Premier Tech Talent Network", 14, doc.internal.pageSize.height - 10);
+      
+      doc.save(`kedevs-spotlight-export-${new Date().getTime()}.pdf`);
+      toast.success('PDF generated successfully');
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to generate PDF');
     }
   };
 
@@ -175,6 +217,7 @@ export default function SpotlightManagement() {
             </div>
             <div className="flex gap-2">
                <Badge className="bg-slate-100 text-slate-500 border-none font-black text-[10px] uppercase tracking-widest px-3 py-1">{activeSlots} Active</Badge>
+               <Button size="sm" variant="outline" className="h-8 rounded-xl font-medium text-xs px-3" onClick={handleExportPDF}>Export PDF</Button>
             </div>
          </CardHeader>
 

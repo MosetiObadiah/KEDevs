@@ -116,6 +116,20 @@ public class PdfExportService {
         }
     }
 
+    public byte[] generateAdminPaymentPdf(List<org.moseti.kedevsapi.payments.dto.PaymentDtos.AdminPaymentResponse> payments, String filterSummary) {
+        try {
+            Context context = new Context();
+            context.setVariable("payments", payments);
+            enrichContext(context, filterSummary != null && !filterSummary.isBlank() ? filterSummary : "None (All Payments)");
+
+            String html = templateEngine.process("admin-payment-export", context);
+            return renderPdf(html);
+        } catch (Exception e) {
+            log.error("Failed to generate Admin Payment PDF export", e);
+            throw new RuntimeException("Failed to generate Admin Payment PDF export", e);
+        }
+    }
+
     public byte[] generateVerificationPdf(List<org.moseti.kedevsapi.admin.dto.AdminDtos.VerificationRequestAdminResponse> requests) {
         try {
             Context context = new Context();

@@ -1,5 +1,6 @@
 import React from 'react';
-import { MapPin, Briefcase, ShieldCheck, Globe, Camera, Star } from 'lucide-react';
+import { MapPin, Briefcase, ShieldCheck, Globe, Camera, Star, Edit2, Check, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { formatExperience, formatAvailability, formatWorkType, toTitleCase } from '@/lib/utils';
@@ -10,12 +11,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 interface ProfileHeaderProps {
   profile: any;
   isOwner?: boolean;
-  isEditing?: boolean;
+  editingSection?: string | null;
+  onEditSection?: (section: string | null) => void;
+  onSaveSection?: (section: string) => void;
+  isSaving?: boolean;
   onUpdate?: (data: any) => void;
   onPhotoSelect?: (file: File) => void;
 }
 
-export function ProfileHeader({ profile, isOwner, isEditing, onUpdate, onPhotoSelect }: ProfileHeaderProps) {
+export function ProfileHeader({ profile, isOwner, editingSection, onEditSection, onSaveSection, isSaving, onUpdate, onPhotoSelect }: ProfileHeaderProps) {
 
   const initials = `${profile.firstName?.[0] || ''}${profile.lastName?.[0] || ''}`;
   const profileImage = profile.profilePhoto || profile.avatarUrl;
@@ -27,11 +31,19 @@ export function ProfileHeader({ profile, isOwner, isEditing, onUpdate, onPhotoSe
     }
   };
 
-  if (isEditing) {
+  if (editingSection === 'header') {
     return (
-      <div className="flex flex-col md:flex-row items-start gap-8 mb-10 bg-white p-8 rounded-xl-[2.5rem] border border-primary/20 shadow-xl shadow-primary/5">
+      <div className="relative flex flex-col md:flex-row items-start gap-8 mb-10 bg-card p-8 rounded-xl-[2.5rem] border border-primary/20 shadow-xl shadow-primary/5">
+        <div className="absolute top-4 right-4 flex gap-2">
+          <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => onEditSection?.(null)} disabled={isSaving}>
+            <X className="h-4 w-4" />
+          </Button>
+          <Button size="icon" variant="ghost" className="h-8 w-8 text-primary hover:bg-primary/10" onClick={() => onSaveSection?.('header')} disabled={isSaving}>
+            <Check className="h-4 w-4" />
+          </Button>
+        </div>
         <div className="relative group">
-          <Avatar className="w-32 h-32 rounded-xl-[2rem] border-4 border-background shadow-xl overflow-hidden bg-white">
+          <Avatar className="w-32 h-32 rounded-xl-[2rem] border-4 border-background shadow-xl overflow-hidden bg-card">
             <AvatarImage src={profileImage} className="object-cover" />
             <AvatarFallback className="bg-primary text-white text-4xl font-black">
               {initials || 'DEV'}
@@ -148,9 +160,16 @@ export function ProfileHeader({ profile, isOwner, isEditing, onUpdate, onPhotoSe
   }
 
   return (
-    <div className="flex flex-col md:flex-row items-start gap-8 mb-10">
+    <div className="relative flex flex-col md:flex-row items-start gap-8 mb-10">
+      {isOwner && editingSection === null && (
+        <div className="absolute top-0 right-0">
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => onEditSection?.('header')}>
+            <Edit2 className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
       <div className="relative group">
-        <Avatar className="w-24 h-24 md:w-32 md:h-32 rounded-xl-[2rem] border-4 border-background shadow-xl overflow-hidden bg-white">
+        <Avatar className="w-24 h-24 md:w-32 md:h-32 rounded-xl-[2rem] border-4 border-background shadow-xl overflow-hidden bg-card">
           <AvatarImage src={profileImage} className="object-cover" />
           <AvatarFallback className="bg-primary text-white text-4xl font-black">
             {initials || 'DEV'}
@@ -196,15 +215,15 @@ export function ProfileHeader({ profile, isOwner, isEditing, onUpdate, onPhotoSe
             <span className="text-foreground">{formatExperience(profile.yearsOfExperience)}</span>
           </span>
           <span className="hidden md:block text-muted-foreground/30">•</span>
-          <span className="flex items-center gap-1.5 text-xs font-extrabold text-slate-700 normal-case">
+          <span className="flex items-center gap-1.5 text-xs font-extrabold text-foreground normal-case">
             <Globe className="w-3.5 h-3.5 text-primary" />
-            <span className="font-black uppercase tracking-wider text-[10px] text-slate-500">Preferred Work:</span>
+            <span className="font-black uppercase tracking-wider text-[10px] text-muted-foreground">Preferred Work:</span>
             {formatWorkType(profile.preferredWorkType || 'REMOTE')}
           </span>
         </div>
 
         <div className="flex items-center gap-2 pt-2">
-          <span className="font-black uppercase tracking-widest text-[10px] text-slate-500">Availability:</span>
+          <span className="font-black uppercase tracking-widest text-[10px] text-muted-foreground">Availability:</span>
           <Badge variant={profile.availabilityStatus === 'OPEN_TO_OFFERS' ? 'default' : 'secondary'} className="rounded-xl font-black tracking-widest text-[10px] uppercase px-3 py-1">
             {formatAvailability(profile.availabilityStatus)}
           </Badge>

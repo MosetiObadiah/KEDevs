@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Eye, 
   BadgeCheck, 
@@ -10,8 +10,10 @@ import {
   ShieldCheck,
   Mail,
   Phone,
+  HeadphonesIcon,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ContactSupportDialog } from '@/components/shared/ContactSupportDialog';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -21,21 +23,27 @@ import { Label } from '@/components/ui/label';
 
 interface ProfileSidebarProps {
   profile: any;
-  isEditing?: boolean;
+  editingSection?: string | null;
+  onEditSection?: (section: string | null) => void;
+  onSaveSection?: (section: string) => void;
+  isSaving?: boolean;
   onUpdate?: (data: any) => void;
   onBuySpotlight: () => void;
-  onPreviewPublic: () => void;
   onVerifyIdentity: () => void;
 }
 
 export function ProfileSidebar({ 
   profile, 
-  isEditing,
+  editingSection,
+  onEditSection,
+  onSaveSection,
+  isSaving,
   onUpdate,
   onBuySpotlight, 
-  onPreviewPublic, 
   onVerifyIdentity 
 }: ProfileSidebarProps) {
+  const [supportOpen, setSupportOpen] = useState(false);
+
   return (
     <div className="space-y-6">
       {/* Quick Actions Card */}
@@ -44,26 +52,42 @@ export function ProfileSidebar({
           <CardTitle className="text-sm font-black uppercase tracking-widest text-muted-foreground">Quick Actions</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Button variant="outline" className="w-full justify-start h-12 rounded-xl font-medium group" asChild>
-            <Link href={`/developers/${profile.id}`}>
-              <Eye className="w-4 h-4 mr-3 text-primary group-hover:scale-110 transition-transform" />
-              Preview Public View
-            </Link>
-          </Button>
           <Button variant="outline" className="w-full justify-start h-12 rounded-xl font-medium group" onClick={onVerifyIdentity}>
             <ShieldCheck className="w-4 h-4 mr-3 text-cyan-600 group-hover:scale-110 transition-transform" />
             Verify Identity
           </Button>
+          <button
+            onClick={() => setSupportOpen(true)}
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl hover:bg-accent transition-colors text-sm"
+          >
+            <HeadphonesIcon className="w-4 h-4 text-muted-foreground" />
+            <span className="font-medium">Contact Support</span>
+          </button>
         </CardContent>
       </Card>
+      <ContactSupportDialog open={supportOpen} onOpenChange={setSupportOpen} />
 
       {/* Connectivity Card */}
       <Card className="rounded-xl-[2.5rem] border-border/50 shadow-sm overflow-hidden bg-background">
-        <CardHeader className="pb-4 px-8 pt-8">
+        <CardHeader className="pb-4 px-8 pt-8 flex flex-row items-center justify-between">
           <CardTitle className="text-sm font-black uppercase tracking-widest text-muted-foreground">Connectivity</CardTitle>
+          {editingSection === null ? (
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => onEditSection?.('contact')}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+            </Button>
+          ) : editingSection === 'contact' ? (
+            <div className="flex gap-2">
+              <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => onEditSection?.(null)} disabled={isSaving}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </Button>
+              <Button size="icon" variant="ghost" className="h-8 w-8 text-primary hover:bg-primary/10" onClick={() => onSaveSection?.('contact')} disabled={isSaving}>
+                <ShieldCheck className="w-4 h-4" />
+              </Button>
+            </div>
+          ) : null}
         </CardHeader>
         <CardContent className="px-8 pb-8 space-y-6">
-          {isEditing ? (
+          {editingSection === 'contact' ? (
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Public Email</Label>
@@ -120,11 +144,25 @@ export function ProfileSidebar({
 
       {/* Personal Links Card */}
       <Card className="rounded-xl-[2rem] border-border/50 shadow-sm overflow-hidden bg-background">
-        <CardHeader className="pb-4">
+        <CardHeader className="pb-4 flex flex-row items-center justify-between">
           <CardTitle className="text-sm font-black uppercase tracking-widest text-muted-foreground">Personal Links</CardTitle>
+          {editingSection === null ? (
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => onEditSection?.('links')}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+            </Button>
+          ) : editingSection === 'links' ? (
+            <div className="flex gap-2">
+              <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => onEditSection?.(null)} disabled={isSaving}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </Button>
+              <Button size="icon" variant="ghost" className="h-8 w-8 text-primary hover:bg-primary/10" onClick={() => onSaveSection?.('links')} disabled={isSaving}>
+                <ShieldCheck className="w-4 h-4" />
+              </Button>
+            </div>
+          ) : null}
         </CardHeader>
         <CardContent className="space-y-4">
-          {isEditing ? (
+          {editingSection === 'links' ? (
             <div className="space-y-4">
                <div className="space-y-1.5">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">LinkedIn URL</Label>

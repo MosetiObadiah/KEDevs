@@ -32,13 +32,17 @@ import {
   ShieldCheck,
   Briefcase,
   BadgeCheck,
-  User
+  User,
+  HeadphonesIcon
 } from 'lucide-react';
+
+import { ContactSupportDialog } from '@/components/shared/ContactSupportDialog';
 
 import { useAuth } from '@/context/AuthContext';
 import { developerService } from '@/services/developerService';
 import { employerService } from '@/services/employerService';
 import { spotlightService } from '@/services/spotlightService';
+import { jobService } from '@/services/jobService';
 import { KENYA_COUNTIES, INDUSTRIES } from '@/lib/constants';
 import BuySpotlightDialog from '@/components/profile/BuySpotlightDialog';
 
@@ -130,11 +134,13 @@ const getCroppedImg = (imageSrc: string, pixelCrop: any): Promise<Blob> => {
 };
 
 export default function MyProfile() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [isEditing, setIsEditing] = useState(false);
+  const [editingSection, setEditingSection] = useState<string | null>(null);
+  const [isVerifyingLinks, setIsVerifyingLinks] = useState(false);
+  const isEditing = editingSection !== null;
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -215,6 +221,8 @@ export default function MyProfile() {
     }
   };
 
+  const [supportOpen, setSupportOpen] = useState(false);
+
   const loadProfile = async (initial = false) => {
     if (initial) setIsLoading(true);
     else setIsRefreshing(true);
@@ -278,9 +286,10 @@ export default function MyProfile() {
         : await developerService.updateProfile(payload);
 
       if (response.success) {
-        setIsEditing(false);
+        setEditingSection(null);
         setProfile({ ...profile, ...response.data });
         toast.success('Profile updated successfully');
+        if (refreshUser) refreshUser();
       }
     } catch (err: any) {
       console.error(err);
@@ -288,6 +297,28 @@ export default function MyProfile() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleSaveSection = async (section: string) => {
+    if (section === 'links') {
+      setIsVerifyingLinks(true);
+      const urls = [profile.linkedinUrl, profile.githubUrl, profile.portfolioUrl].filter(Boolean);
+      for (const url of urls) {
+        if (!url) continue;
+        try {
+          const check = await jobService.verifyUrl(url);
+          if (check.data && check.data.isSafe === false) {
+            toast.error('One or more URLs were flagged as unsafe');
+            setIsVerifyingLinks(false);
+            return;
+          }
+        } catch (e) {
+          // ignore or error
+        }
+      }
+      setIsVerifyingLinks(false);
+    }
+    await handleUpdateBasicInfo();
   };
 
   const handleToggleAvailability = async (status: string) => {
@@ -340,6 +371,16 @@ export default function MyProfile() {
     }
   };
 
+  const handleEditOSS = (item: any) => {
+    setNewItem({ ...item, editId: item.id });
+    setDialogOpen('oss');
+  };
+
+  const handleEditAchievement = (item: any) => {
+    setNewItem({ ...item, editId: item.id });
+    setDialogOpen('achievement');
+  };
+
   const handleAddItem = async (type: string) => {
     try {
       setIsSaving(true);
@@ -351,6 +392,16 @@ export default function MyProfile() {
           await developerService.addLanguage(newItem.language);
           break;
         case 'education':
+          if (!/^\d{4}$/.test(newItem.startYear)) {
+            toast.error('Start year must be a 4-digit number');
+            setIsSaving(false);
+            return;
+          }
+          if (newItem.endYear && (!/^\d{4}$/.test(newItem.endYear) || Number(newItem.endYear) < Number(newItem.startYear))) {
+            toast.error('End year must be a valid 4-digit number and greater than or equal to start year');
+            setIsSaving(false);
+            return;
+          }
           await developerService.addEducation({
             ...newItem,
             isCertification: newItem.isCertification || false
@@ -360,10 +411,28 @@ export default function MyProfile() {
           await developerService.addCertification(newItem);
           break;
         case 'oss':
-          await developerService.addOSS(newItem);
+          if (newItem.contributionUrl) {
+            try {
+              const check = await jobService.verifyUrl(newItem.contributionUrl);
+              if (check.data && check.data.isSafe === false) {
+                toast.error('Contribution URL is flagged as unsafe');
+                setIsSaving(false);
+                return;
+              }
+            } catch(e) {}
+          }
+          if (newItem.editId) {
+            await developerService.updateOSS(newItem.editId, newItem);
+          } else {
+            await developerService.addOSS(newItem);
+          }
           break;
         case 'achievement':
-          await developerService.addAchievement(newItem);
+          if (newItem.editId) {
+            await developerService.updateAchievement(newItem.editId, newItem);
+          } else {
+            await developerService.addAchievement(newItem);
+          }
           break;
         case 'project':
           if (newItem.isFeatured) {
@@ -501,7 +570,7 @@ export default function MyProfile() {
                   ? "bg-cyan-600 hover:bg-emerald-700 shadow-emerald-600/20 text-white"
                   : (isEditing ? "bg-primary hover:bg-primary/90 shadow-primary/20 text-white" : "shadow-primary/20")
               )}
-              onClick={() => isEditing ? handleUpdateBasicInfo() : setIsEditing(true)}
+              onClick={() => isEditing ? handleUpdateBasicInfo() : setEditingSection('all')}
               disabled={isSaving}
             >
               {isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : (isEditing ? <Save className="mr-2 h-5 w-5" /> : <Edit2 className="mr-2 h-5 w-5" />)}
@@ -512,7 +581,7 @@ export default function MyProfile() {
                 size="lg"
                 variant="outline"
                 className="rounded-xl font-medium h-12 border-border/50"
-                onClick={() => setIsEditing(false)}
+                onClick={() => setEditingSection(null)}
               >
                 Cancel
               </Button>
@@ -669,6 +738,18 @@ export default function MyProfile() {
               <Card className="rounded-xl-[2.5rem] border-none shadow-xl shadow-slate-200/40 overflow-hidden bg-white">
                 <CardContent className="p-8 space-y-8">
 
+                  {/* Quick Actions */}
+                  <div className="space-y-4">
+                     <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Quick Actions</h3>
+                     <button
+                        onClick={() => setSupportOpen(true)}
+                        className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors text-sm border border-slate-100"
+                     >
+                        <HeadphonesIcon className="w-4 h-4 text-cyan-600" />
+                        <span className="font-medium text-slate-700">Contact Support</span>
+                     </button>
+                  </div>
+
 
 
                   {/* Contact & Online Presence */}
@@ -798,7 +879,10 @@ export default function MyProfile() {
               <ProfileHeader
                 profile={profile}
                 isOwner={true}
-                isEditing={isEditing}
+                editingSection={editingSection}
+                onEditSection={setEditingSection}
+                onSaveSection={handleSaveSection}
+                isSaving={isSaving}
                 onUpdate={setProfile}
                 onPhotoSelect={(file) => {
                   const reader = new FileReader();
@@ -815,13 +899,19 @@ export default function MyProfile() {
               <ProfileTabs
                 profile={profile}
                 isOwner={true}
-                isEditing={isEditing}
+                editingSection={editingSection}
+                onEditSection={setEditingSection}
+                onSaveSection={handleSaveSection}
+                isSaving={isSaving}
                 onUpdate={setProfile}
                 onAddSkill={() => openAddDialog('skill')}
                 onAddProject={() => openAddDialog('project')}
                 onAddEducation={() => openAddDialog('education')}
+                onAddCertification={() => openAddDialog('certification')}
                 onAddOSS={() => openAddDialog('oss')}
                 onAddAchievement={() => openAddDialog('achievement')}
+                onEditOSS={handleEditOSS}
+                onEditAchievement={handleEditAchievement}
                 onRemoveItem={handleRemoveItem}
                 onToggleFeatured={handleToggleFeatured}
               />
@@ -831,10 +921,12 @@ export default function MyProfile() {
             <div className="lg:col-span-1">
               <ProfileSidebar
                 profile={profile}
-                isEditing={isEditing}
+                editingSection={editingSection}
+                onEditSection={setEditingSection}
+                onSaveSection={handleSaveSection}
+                isSaving={isSaving || isVerifyingLinks}
                 onUpdate={setProfile}
                 onBuySpotlight={() => setBuySpotlightOpen(true)}
-                onPreviewPublic={() => router.push(`/developers/${profile.id}`)}
                 onVerifyIdentity={() => router.push('/verify')}
               />
             </div>
@@ -1007,6 +1099,8 @@ export default function MyProfile() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      <ContactSupportDialog open={supportOpen} onOpenChange={setSupportOpen} />
     </div>
   );
 }

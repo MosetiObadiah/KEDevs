@@ -83,6 +83,10 @@ export const developerService = {
     return apiClient.post<ApiResponse<any>>('/api/v1/developers/profile/oss', data);
   },
 
+  async updateOSS(id: string, data: any): Promise<ApiResponse<any>> {
+    return apiClient.put<ApiResponse<any>>(`/api/v1/developers/profile/oss/${id}`, data);
+  },
+
   async deleteOSS(id: string): Promise<ApiResponse<void>> {
     return apiClient.delete<ApiResponse<void>>(`/api/v1/developers/profile/oss/${id}`);
   },
@@ -118,6 +122,10 @@ export const developerService = {
 
   async addAchievement(data: any): Promise<ApiResponse<any>> {
     return apiClient.post<ApiResponse<any>>('/api/v1/developers/profile/achievements', data);
+  },
+
+  async updateAchievement(id: string, data: any): Promise<ApiResponse<any>> {
+    return apiClient.put<ApiResponse<any>>(`/api/v1/developers/profile/achievements/${id}`, data);
   },
 
   async deleteAchievement(id: string): Promise<ApiResponse<void>> {

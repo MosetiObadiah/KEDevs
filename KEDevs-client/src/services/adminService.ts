@@ -207,5 +207,36 @@ export const adminService = {
     if (!response.ok) throw new Error(`Failed to export CSV: ${response.statusText}`);
     return response.blob();
   },
+
+  async getPayments(params: { page?: number; size?: number; status?: string; role?: string; startDate?: string; endDate?: string } = {}): Promise<ApiResponse<PaginatedResponse<any>>> {
+    const q = new URLSearchParams();
+    if (params.page !== undefined) q.append('page', String(params.page));
+    if (params.size !== undefined) q.append('size', String(params.size));
+    if (params.status) q.append('status', params.status);
+    if (params.role) q.append('role', params.role);
+    if (params.startDate) q.append('startDate', params.startDate);
+    if (params.endDate) q.append('endDate', params.endDate);
+    return apiClient.get<ApiResponse<PaginatedResponse<any>>>(`/api/v1/admin/payments?${q.toString()}`);
+  },
+
+  async exportPayments(format: 'csv' | 'pdf', params: { status?: string; role?: string; startDate?: string; endDate?: string } = {}): Promise<Blob> {
+    const headers = apiClient.getHeaders();
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+    const q = new URLSearchParams();
+    q.append('format', format);
+    if (params.status) q.append('status', params.status);
+    if (params.role) q.append('role', params.role);
+    if (params.startDate) q.append('startDate', params.startDate);
+    if (params.endDate) q.append('endDate', params.endDate);
+
+    const response = await fetch(`${baseUrl}/api/v1/admin/payments/export?${q.toString()}`, {
+      method: 'GET',
+      headers,
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to export payments: ${response.statusText}`);
+    }
+    return response.blob();
+  },
 };
 

@@ -19,13 +19,13 @@ interface NotificationContextType {
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
-  const { isLoggedIn, user } = useAuth();
+  const { isLoggedIn, user, isLoading } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
   const [stompClient, setStompClient] = useState<Client | null>(null);
   const [latestNotification, setLatestNotification] = useState<any | null>(null);
 
   const refreshUnreadCount = useCallback(async () => {
-    if (!isLoggedIn || user?.accountStatus === 'BANNED' || user?.accountStatus === 'SUSPENDED') return;
+    if (!isLoggedIn || isLoading || user?.accountStatus === 'BANNED' || user?.accountStatus === 'SUSPENDED') return;
     try {
       const response = await notificationService.getUnreadCount();
       if (response.success && response.data) {
@@ -34,7 +34,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     } catch (err) {
       console.error('Failed to fetch unread count:', err);
     }
-  }, [isLoggedIn, user?.accountStatus]);
+  }, [isLoggedIn, isLoading, user?.accountStatus]);
 
   useEffect(() => {
     if (isLoggedIn) {

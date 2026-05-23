@@ -2,7 +2,7 @@
 // Auth tokens are now httpOnly cookies — the browser sends them automatically.
 // All fetch calls include credentials: 'include' so cookies cross the origin boundary.
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -47,7 +47,9 @@ async function handleResponse<T>(response: Response, requestFn?: () => Promise<R
       if (typeof window !== 'undefined') {
         localStorage.removeItem('user');
         localStorage.removeItem('isOnboarded');
-        window.location.href = '/login';
+        if (!window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/register')) {
+          window.location.href = '/login';
+        }
       }
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData?.message || 'Session expired.');
@@ -76,8 +78,17 @@ async function handleResponse<T>(response: Response, requestFn?: () => Promise<R
         // Refresh failed — clear local state and redirect
         localStorage.removeItem('user');
         localStorage.removeItem('isOnboarded');
-        window.location.href = '/login';
+        if (!window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/register')) {
+          window.location.href = '/login';
+        }
         return Promise.reject(new Error('Session expired. Redirecting to login.')) as Promise<T>;
+      } else {
+        // No session stored locally, meaning the user is already logged out.
+        // Don't try to refresh, just redirect if they are on a protected route
+        if (!window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/register') && !window.location.pathname.startsWith('/onboarding') && window.location.pathname !== '/') {
+           window.location.href = '/login';
+        }
+        return Promise.reject(new Error('Unauthorized.'));
       }
     }
   }

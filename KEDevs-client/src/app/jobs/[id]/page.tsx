@@ -493,7 +493,13 @@ export default function JobDetailPage() {
                     </div>
                   </div>
                 ) : (
-                  <Button size="lg" className="w-full font-medium" onClick={() => setApplyOpen(true)}>
+                  <Button size="lg" className="w-full font-medium" onClick={() => {
+                    if (!isLoggedIn) {
+                      router.push('/register');
+                    } else {
+                      setApplyOpen(true);
+                    }
+                  }}>
                     Apply Now
                   </Button>
                 )}

@@ -23,6 +23,7 @@ import {
 import { developerService } from '@/services/developerService';
 import SpotlightSection from '@/components/home/SpotlightSection';
 import { cn, formatDateString } from '@/lib/utils';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -94,8 +95,10 @@ export default function SpotlightPage() {
       a.download = `past_spotlights.${format}`;
       a.click();
       window.URL.revokeObjectURL(url);
+      toast.success('Export successful');
     } catch (err) {
       console.error("Export failed", err);
+      toast.error('Export failed. Please try again.');
     } finally {
       setIsExporting(false);
     }
@@ -113,6 +116,17 @@ export default function SpotlightPage() {
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
       <div className="container mx-auto px-6 pt-8 pb-12">
+
+        {/* Spotlight Description */}
+        <div className="mb-10 p-6 rounded-2xl bg-gradient-to-r from-azure-50 to-primary-50 border border-primary/10 shadow-sm">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-bold text-slate-900 tracking-tight">What is Spotlight?</h2>
+          </div>
+          <p className="text-sm text-slate-700 leading-relaxed max-w-3xl">
+            Spotlight amplifies Kenya's top developers by featuring them on the KEDevs homepage. Featured developers gain premium visibility and attract up to 10x more employer attention. Spotlight slots are available daily and weekly — secure yours to stand out.
+          </p>
+        </div>
 
         {/* Spotlight Grid */}
         <div className="-mx-6">

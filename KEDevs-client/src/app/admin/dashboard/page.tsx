@@ -12,7 +12,8 @@ import {
   Loader2,
   CheckCircle2,
   Activity,
-  Download
+  Download,
+  BarChart3
 } from 'lucide-react';
 import { adminService } from '@/services/adminService';
 import { cn } from '@/lib/utils';
@@ -124,7 +125,11 @@ export default function AdminDashboard() {
 
   // Safe mappings for Pie charts
   const jobTypeData = Object.entries(data?.jobTypeBreakdown || {}).map(([key, val]) => ({
-    name: key.replace('_', ' '),
+    name: key.replace(/_/g, ' '),
+    value: Number(val)
+  }));
+  const workTypeData = Object.entries(data?.workTypeBreakdown || data?.workArrangementBreakdown || {}).map(([key, val]) => ({
+    name: key.replace(/_/g, ' '),
     value: Number(val)
   }));
   const DONUT_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#6366f1', '#ec4899', '#8b5cf6'];
@@ -343,43 +348,6 @@ export default function AdminDashboard() {
 
         {/* Sidebar Controls & KPI metrics */}
         <div className="lg:col-span-4 space-y-8">
-           <Card className="border-border/50 shadow-sm overflow-hidden bg-card">
-              <CardHeader className="p-10 border-b border-slate-50">
-                 <CardTitle className="text-xl font-black text-slate-900">Critical Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="p-8 space-y-4">
-                 <Link href="/admin/verification" className="block group">
-                    <div className="flex items-center justify-between p-4 rounded-2xl bg-danger-50 border border-danger-100 group-hover:bg-danger-50 transition-all">
-                       <div className="flex items-center gap-4">
-                          <div className="h-10 w-10 rounded-xl bg-danger-500 text-white flex items-center justify-center font-black">
-                             {data?.pendingEmployers || 0}
-                          </div>
-                          <div>
-                             <p className="text-sm font-black text-danger-900">Pending Approvals</p>
-                             <p className="text-[10px] font-medium text-danger-700/60 uppercase">Employer Verification</p>
-                          </div>
-                       </div>
-                       <ChevronRight className="h-5 w-5 text-danger-300 group-hover:translate-x-1 transition-all" />
-                    </div>
-                 </Link>
-
-                 <Link href="/admin/flags" className="block group">
-                    <div className="flex items-center justify-between p-4 rounded-2xl bg-azure-50 border border-azure-100 group-hover:bg-azure-50 transition-all">
-                       <div className="flex items-center gap-4">
-                          <div className="h-10 w-10 rounded-xl bg-azure-500 text-white flex items-center justify-center font-black">
-                             {(data?.flaggedJobs || 0) + (data?.flaggedUsers || 0)}
-                          </div>
-                          <div>
-                             <p className="text-sm font-black text-warning-900">Flagged Reports</p>
-                             <p className="text-[10px] font-medium text-azure-700/60 uppercase">Moderation Required</p>
-                          </div>
-                       </div>
-                       <ChevronRight className="h-5 w-5 text-warning-300 group-hover:translate-x-1 transition-all" />
-                    </div>
-                 </Link>
-              </CardContent>
-           </Card>
-
            {/* Quick Summary of Financial Health */}
            <Card className="border-border/50 shadow-sm overflow-hidden bg-primary text-primary-foreground p-8 flex flex-col justify-between h-[250px]">
               <div>
@@ -399,7 +367,7 @@ export default function AdminDashboard() {
       {/* Grid of Double-column Interactive Analytics */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         
-        {/* Chart 3: Job Types Donut Chart */}
+        {/* Chart 3a: Job Type Distribution Donut Chart */}
         <div className="relative group/chart">
           <div className="absolute top-4 right-4 z-10 flex items-center gap-2 opacity-0 group-hover/chart:opacity-100 transition-opacity">
             <label className="flex items-center gap-2 cursor-pointer bg-white/95 backdrop-blur border border-border p-2 rounded-xl shadow-sm hover:bg-slate-50 transition-colors">
@@ -423,8 +391,8 @@ export default function AdminDashboard() {
           </div>
           <Card className="border-border/50 shadow-sm h-[400px] flex flex-col bg-card">
             <CardHeader className="p-8 pb-2">
-              <CardTitle className="text-lg font-black tracking-tight">Job Types &amp; Work Types</CardTitle>
-              <CardDescription className="font-medium text-slate-500">Environment and structural classifications</CardDescription>
+              <CardTitle className="text-lg font-black tracking-tight">Job Type Distribution</CardTitle>
+              <CardDescription className="font-medium text-slate-500">Employment type classifications (full-time, part-time, contract…)</CardDescription>
             </CardHeader>
             <CardContent className="p-6 flex-1 min-h-0 flex items-center justify-center">
               {jobTypeData.length > 0 ? (
@@ -441,6 +409,53 @@ export default function AdminDashboard() {
                 </ResponsiveContainer>
               ) : (
                 <p className="text-slate-500 font-medium text-xs">No job postings recorded.</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Chart 3b: Work Arrangement Types Donut Chart */}
+        <div className="relative group/chart">
+          <div className="absolute top-4 right-4 z-10 flex items-center gap-2 opacity-0 group-hover/chart:opacity-100 transition-opacity">
+            <label className="flex items-center gap-2 cursor-pointer bg-white/95 backdrop-blur border border-border p-2 rounded-xl shadow-sm hover:bg-slate-50 transition-colors">
+              <input 
+                type="checkbox" 
+                checked={selectedCharts.includes('work-types')}
+                onChange={() => toggleSelectChart('work-types')}
+                className="rounded-xl border-slate-300 text-primary focus:ring-primary h-4 w-4"
+              />
+              <span className="text-[10px] font-medium text-slate-700 select-none">Select to Export</span>
+            </label>
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={() => handleExport(['work-types'])} 
+              disabled={isExporting}
+              className="bg-white/95 backdrop-blur border border-border rounded-xl shadow-sm h-8 w-8 hover:bg-slate-50"
+            >
+              <Download className="h-4 w-4 text-slate-700" />
+            </Button>
+          </div>
+          <Card className="border-border/50 shadow-sm h-[400px] flex flex-col bg-card">
+            <CardHeader className="p-8 pb-2">
+              <CardTitle className="text-lg font-black tracking-tight">Work Arrangement Types</CardTitle>
+              <CardDescription className="font-medium text-slate-500">Remote, hybrid, and on-site structural breakdown</CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 flex-1 min-h-0 flex items-center justify-center">
+              {workTypeData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={workTypeData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={4} dataKey="value">
+                      {workTypeData.map((entry, index) => (
+                        <Cell key={`cell-wt-${index}`} fill={DONUT_COLORS[index % DONUT_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend verticalAlign="bottom" height={36} formatter={(value) => <span className="text-xs font-medium text-slate-700 capitalize">{value}</span>} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-slate-500 font-medium text-xs">No work arrangement data recorded.</p>
               )}
             </CardContent>
           </Card>
@@ -611,7 +626,13 @@ export default function AdminDashboard() {
               <CardDescription className="font-medium text-slate-500">Monthly allocations by spotlight, pin, and badges</CardDescription>
             </CardHeader>
             <CardContent className="p-6 flex-1 min-h-0">
-              {flatRevenueByType.length > 0 ? (
+              {(!data?.revenue?.revenueByType || data.revenue.revenueByType.length === 0) && flatRevenueByType.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
+                  <BarChart3 className="w-12 h-12 mb-3 opacity-30" />
+                  <p className="font-medium">No revenue data yet</p>
+                  <p className="text-sm">Revenue streams will appear here once payments are processed</p>
+                </div>
+              ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={flatRevenueByType} margin={{ left: 10, right: 10, top: 10, bottom: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -624,8 +645,6 @@ export default function AdminDashboard() {
                     <Bar dataKey="VERIFIED" name="Verification Badges" stackId="revenue" fill="#10b981" />
                   </BarChart>
                 </ResponsiveContainer>
-              ) : (
-                <p className="text-slate-500 font-medium text-xs flex items-center justify-center h-full">No active revenue logs.</p>
               )}
             </CardContent>
           </Card>

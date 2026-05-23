@@ -111,6 +111,40 @@ public class CsvExportService {
         }
     }
 
+    public byte[] generateAdminPaymentCsv(List<org.moseti.kedevsapi.payments.dto.PaymentDtos.AdminPaymentResponse> payments) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             OutputStreamWriter osw = new OutputStreamWriter(baos, StandardCharsets.UTF_8);
+             CSVWriter writer = new CSVWriter(osw)) {
+
+            writer.writeNext(new String[]{
+                "Transaction ID", "User Name", "Email", "Role", "Service Type", "Amount", "Currency", "Status", "Receipt No", "Phone Number", "Paid At", "Created At"
+            });
+
+            for (org.moseti.kedevsapi.payments.dto.PaymentDtos.AdminPaymentResponse p : payments) {
+                writer.writeNext(new String[]{
+                        p.id() != null ? p.id().toString() : "",
+                        p.userName() != null ? p.userName() : "",
+                        p.userEmail() != null ? p.userEmail() : "",
+                        p.userRole() != null ? p.userRole().name() : "",
+                        p.type() != null ? p.type().name() : "",
+                        p.amount() != null ? p.amount().toString() : "0",
+                        p.currency() != null ? p.currency() : "KES",
+                        p.status() != null ? p.status().name() : "",
+                        p.mpesaReceiptNo() != null ? p.mpesaReceiptNo() : "—",
+                        p.phoneNumber() != null ? p.phoneNumber() : "",
+                        p.paidAt() != null ? p.paidAt().toString() : "",
+                        p.createdAt() != null ? p.createdAt().toString() : ""
+                });
+            }
+
+            writer.flush();
+            return baos.toByteArray();
+        } catch (Exception e) {
+            log.error("Failed to generate Admin Payments CSV export", e);
+            throw new RuntimeException("Failed to generate Admin Payments CSV export", e);
+        }
+    }
+
     public byte[] generateVerificationCsv(List<org.moseti.kedevsapi.admin.dto.AdminDtos.VerificationRequestAdminResponse> requests) {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
              OutputStreamWriter osw = new OutputStreamWriter(baos, StandardCharsets.UTF_8);
