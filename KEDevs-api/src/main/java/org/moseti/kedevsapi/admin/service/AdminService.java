@@ -149,9 +149,11 @@ public class AdminService {
                 : verificationRequestRepository.findByStatus(VerificationStatus.UNDER_REVIEW, Pageable.unpaged()).getContent();
             
             combined.addAll(requests.stream().map(r -> {
-                String name = userRepository.findById(r.getUserId()).map(User::getFullName).orElse("Unknown");
+                User user = userRepository.findById(r.getUserId()).orElse(null);
+                String name = user != null ? user.getFullName() : "Unknown";
+                Role realRole = user != null ? user.getRole() : r.getRole();
                 return new VerificationRequestAdminResponse(
-                        r.getId(), r.getUserId(), name, r.getRole(),
+                        r.getId(), r.getUserId(), name, realRole,
                         r.getStatus().name(), r.getIdDocumentUrl(), r.getPassportPhotoUrl(),
                         r.getCertificateUrls() != null ? new java.util.ArrayList<>(r.getCertificateUrls()) : new java.util.ArrayList<>(),
                         r.getCreatedAt()
@@ -168,10 +170,12 @@ public class AdminService {
                     return user != null && user.getAccountStatus() == AccountStatus.PENDING_APPROVAL;
                 })
                 .map(p -> {
+                    User user = userRepository.findById(p.getUserId()).orElse(null);
+                    Role realRole = user != null ? user.getRole() : Role.EMPLOYER;
                     List<String> certs = new java.util.ArrayList<>();
                     if (p.getBusinessPermitUrl() != null) certs.add(p.getBusinessPermitUrl());
                     return new VerificationRequestAdminResponse(
-                            p.getId(), p.getUserId(), p.getCompanyName(), Role.EMPLOYER, "PENDING_APPROVAL",
+                            p.getId(), p.getUserId(), p.getCompanyName(), realRole, "PENDING_APPROVAL",
                             p.getIncorporationCertificateUrl(), p.getKraPinCertificateUrl(), certs, p.getCreatedAt()
                     );
                 }).toList();
@@ -217,9 +221,11 @@ public class AdminService {
     private List<VerificationRequestAdminResponse> getAllUnifiedVerificationHistory() {
         // 1. Get ALL developers verification records
         List<VerificationRequestAdminResponse> devHistory = verificationRequestRepository.findAll().stream().map(r -> {
-            String name = userRepository.findById(r.getUserId()).map(User::getFullName).orElse("Unknown");
+            User user = userRepository.findById(r.getUserId()).orElse(null);
+            String name = user != null ? user.getFullName() : "Unknown";
+            Role realRole = user != null ? user.getRole() : r.getRole();
             return new VerificationRequestAdminResponse(
-                    r.getId(), r.getUserId(), name, r.getRole(),
+                    r.getId(), r.getUserId(), name, realRole,
                     r.getStatus().name(), r.getIdDocumentUrl(), r.getPassportPhotoUrl(),
                     r.getCertificateUrls() != null ? new java.util.ArrayList<>(r.getCertificateUrls()) : new java.util.ArrayList<>(),
                     r.getCreatedAt()
@@ -228,6 +234,8 @@ public class AdminService {
 
         // 2. Get ALL approved employer records (onboarded)
         List<VerificationRequestAdminResponse> empHistory = employerProfileRepository.findByIsApprovedTrue(Pageable.unpaged()).stream().map(p -> {
+            User user = userRepository.findById(p.getUserId()).orElse(null);
+            Role realRole = user != null ? user.getRole() : Role.EMPLOYER;
             String name = p.getCompanyName();
             java.util.ArrayList<String> certs = new java.util.ArrayList<>();
             if (p.getBusinessPermitUrl() != null) certs.add(p.getBusinessPermitUrl());
@@ -236,7 +244,7 @@ public class AdminService {
                     p.getId(), // using profile ID as proxy ID
                     p.getUserId(),
                     name,
-                    Role.EMPLOYER,
+                    realRole,
                     "APPROVED", // explicitly marked in history
                     p.getIncorporationCertificateUrl(),
                     p.getKraPinCertificateUrl(),

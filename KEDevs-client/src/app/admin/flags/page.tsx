@@ -288,27 +288,27 @@ export default function FlaggedContent() {
                                     {viewHistory ? (
                                        <div className="flex justify-end gap-3 items-center animate-in fade-in duration-300">
                                           {renderStatusBadge(item.flagStatus)}
-                                          <Button size="sm" variant="outline" title="Revert Resolution" className="h-8 px-2 py-1 text-xs rounded-xl border-slate-100 text-slate-600 hover:bg-slate-100 flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'REVERT')}>
+                                          <Button size="sm" className="h-8 px-3 py-1 text-xs font-bold rounded-xl bg-slate-200 text-slate-700 hover:bg-slate-300 shadow-sm flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'REVERT')}>
                                              <RotateCcw className="h-3.5 w-3.5" />
                                              Revert
                                           </Button>
                                        </div>
                                     ) : (
                                        <div className="flex justify-end gap-2">
-                                          <Button size="sm" variant="outline" className="h-8 px-2 py-1 text-xs rounded-xl border-slate-100 hover:bg-slate-50 flex items-center gap-1.5" onClick={() => window.open(getEyeLink(item, tab), '_blank')}>
+                                          <Button size="sm" className="h-8 px-3 py-1 text-xs font-bold rounded-xl bg-white border-2 border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm flex items-center gap-1.5" onClick={() => window.open(getEyeLink(item, tab), '_blank')}>
                                              <Eye className="h-3.5 w-3.5 text-slate-500" />
                                              View
                                           </Button>
 
                                           {tab === 'jobs' && (
                                              <>
-                                                <Button size="sm" variant="outline" title="Keep Job" className="h-8 px-2 py-1 text-xs rounded-xl border-slate-100 text-cyan-600 hover:bg-cyan-50 flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'LEGITIMATE')}>
+                                                <Button size="sm" className="h-8 px-3 py-1 text-xs font-bold rounded-xl bg-cyan-100 text-cyan-700 hover:bg-cyan-200 shadow-sm flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'LEGITIMATE')}>
                                                    <Check className="h-3.5 w-3.5" /> Keep
                                                 </Button>
-                                                <Button size="sm" variant="outline" title="Warn User" className="h-8 px-2 py-1 text-xs rounded-xl border-slate-100 text-azure-500 hover:bg-azure-50 flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'WARN')}>
+                                                <Button size="sm" className="h-8 px-3 py-1 text-xs font-bold rounded-xl bg-azure-100 text-azure-700 hover:bg-azure-200 shadow-sm flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'WARN')}>
                                                    <AlertOctagon className="h-3.5 w-3.5" /> Warn
                                                 </Button>
-                                                <Button size="sm" variant="outline" title="Remove Job" className="h-8 px-2 py-1 text-xs rounded-xl border-slate-100 text-destructive hover:bg-destructive/10 flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'REMOVE')}>
+                                                <Button size="sm" className="h-8 px-3 py-1 text-xs font-bold rounded-xl bg-danger-100 text-danger-700 hover:bg-danger-200 shadow-sm flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'REMOVE')}>
                                                    <Trash2 className="h-3.5 w-3.5" /> Remove
                                                 </Button>
                                              </>
@@ -316,16 +316,16 @@ export default function FlaggedContent() {
 
                                           {tab === 'users' && (
                                              <>
-                                                <Button size="sm" variant="outline" title="Clear Flag" className="h-8 px-2 py-1 text-xs rounded-xl border-slate-100 text-cyan-600 hover:bg-cyan-50 flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'CLEARED')}>
+                                                <Button size="sm" className="h-8 px-3 py-1 text-xs font-bold rounded-xl bg-cyan-100 text-cyan-700 hover:bg-cyan-200 shadow-sm flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'CLEARED')}>
                                                    <Check className="h-3.5 w-3.5" /> Clear
                                                 </Button>
-                                                <Button size="sm" variant="outline" title="Warn User" className="h-8 px-2 py-1 text-xs rounded-xl border-slate-100 text-azure-500 hover:bg-azure-50 flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'WARNED')}>
+                                                <Button size="sm" className="h-8 px-3 py-1 text-xs font-bold rounded-xl bg-azure-100 text-azure-700 hover:bg-azure-200 shadow-sm flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'WARNED')}>
                                                    <AlertOctagon className="h-3.5 w-3.5" /> Warn
                                                 </Button>
-                                                <Button size="sm" variant="outline" title="Suspend User" className="h-8 px-2 py-1 text-xs rounded-xl border-slate-100 text-orange-600 hover:bg-orange-50 flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'SUSPENDED')}>
+                                                <Button size="sm" className="h-8 px-3 py-1 text-xs font-bold rounded-xl bg-orange-100 text-orange-700 hover:bg-orange-200 shadow-sm flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'SUSPENDED')}>
                                                    <Clock className="h-3.5 w-3.5" /> Suspend
                                                 </Button>
-                                                <Button size="sm" variant="outline" title="Ban User" className="h-8 px-2 py-1 text-xs rounded-xl border-slate-100 text-destructive hover:bg-destructive/10 flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'BANNED')}>
+                                                <Button size="sm" className="h-8 px-3 py-1 text-xs font-bold rounded-xl bg-danger-100 text-danger-700 hover:bg-danger-200 shadow-sm flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'BANNED')}>
                                                    <Gavel className="h-3.5 w-3.5" /> Ban
                                                 </Button>
                                              </>
@@ -333,10 +333,10 @@ export default function FlaggedContent() {
 
                                           {tab === 'comments' && (
                                              <>
-                                                <Button size="sm" variant="outline" title="Keep Comment" className="h-8 px-2 py-1 text-xs rounded-xl border-slate-100 text-cyan-600 hover:bg-cyan-50 flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'KEPT')}>
+                                                <Button size="sm" className="h-8 px-3 py-1 text-xs font-bold rounded-xl bg-cyan-100 text-cyan-700 hover:bg-cyan-200 shadow-sm flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'KEPT')}>
                                                    <Check className="h-3.5 w-3.5" /> Keep
                                                 </Button>
-                                                <Button size="sm" variant="outline" title="Remove Comment" className="h-8 px-2 py-1 text-xs rounded-xl border-slate-100 text-destructive hover:bg-destructive/10 flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'REMOVED')}>
+                                                <Button size="sm" className="h-8 px-3 py-1 text-xs font-bold rounded-xl bg-danger-100 text-danger-700 hover:bg-danger-200 shadow-sm flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'REMOVED')}>
                                                    <Trash2 className="h-3.5 w-3.5" /> Remove
                                                 </Button>
                                              </>

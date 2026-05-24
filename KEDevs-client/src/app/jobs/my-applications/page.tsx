@@ -31,7 +31,7 @@ const statusConfig: Record<string, { label: string, color: string, icon: any }> 
   'PENDING': { label: 'Applied', color: 'bg-azure-50 text-azure-500', icon: Clock },
   'VIEWED': { label: 'Viewed', color: 'bg-azure-100 text-azure-600', icon: Loader2 },
   'SHORTLISTED': { label: 'Shortlisted', color: 'bg-cyan-50 text-cyan-600', icon: CheckCircle2 },
-  'REJECTED': { label: 'Closed', color: 'bg-danger-50 text-danger-500', icon: XCircle },
+  'REJECTED': { label: 'Rejected', color: 'bg-danger-100 text-danger-700 border-danger-200', icon: XCircle },
 };
 
 function MyApplicationsContent() {

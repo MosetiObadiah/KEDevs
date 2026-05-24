@@ -449,7 +449,7 @@ start_backend() {
     else
         warn ".env not found at $ROOT_DIR/.env — Spring may fail to resolve secrets."
     fi
-    cd "$BACKEND_DIR" && mvn spring-boot:run >> "$BACKEND_LOG" 2>&1 &
+    cd "$BACKEND_DIR" && mvn spring-boot:run -DskipTests >> "$BACKEND_LOG" 2>&1 &
     BACKEND_PID=$!
     echo "${BE_LABEL}[Backend]${NC} ${GRAY}PID=$BACKEND_PID  •  log: $BACKEND_LOG${NC}"
     echo "${BE_LABEL}[Backend]${NC} ${GRAY}Live stream: ${WHITE}${BE_SHOW_LEVELS}${GRAY} levels only. Use 'lb' for full log.${NC}"

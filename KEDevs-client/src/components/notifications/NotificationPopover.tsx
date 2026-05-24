@@ -156,7 +156,19 @@ const NotificationPopover: React.FC<NotificationPopoverProps> = ({
                  {notifications.map((n) => (
                     <div 
                        key={n.id}
-                       onClick={() => handleMarkAsRead(n.id)}
+                       onClick={() => {
+                          handleMarkAsRead(n.id);
+                          setIsOpen(false);
+                          if (n.category === 'JOB') {
+                             if (n.title.toLowerCase().includes('new application') || n.title.toLowerCase().includes('job post') || n.title.toLowerCase().includes('withdrawn')) {
+                                router.push('/jobs/my-posts');
+                             } else {
+                                router.push('/jobs/my-posts'); // Defaulting to my-posts for employers
+                             }
+                          } else {
+                             router.push('/notifications');
+                          }
+                       }}
                        className={cn(
                           "p-6 flex gap-4 cursor-pointer transition-all hover:bg-slate-50/50 group",
                           !n.isRead && "bg-primary/[0.02]"

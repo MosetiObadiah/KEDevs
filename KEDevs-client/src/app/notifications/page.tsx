@@ -202,12 +202,14 @@ export default function NotificationsPage() {
         }
         break;
       case 'JOB':
-        if (n.title.toLowerCase().includes('new application')) {
+        if (n.title.toLowerCase().includes('new application') || n.title.toLowerCase().includes('job post') || n.title.toLowerCase().includes('withdrawn')) {
           router.push('/jobs/my-posts');
-        } else if (user?.role === 'DEVELOPER') {
-          router.push('/jobs/my-applications');
+        } else if (user?.role === 'EMPLOYER') {
+          router.push('/jobs/my-posts');
         } else if (meta.jobId) {
           router.push(`/jobs/${meta.jobId}/applications`);
+        } else {
+          router.push('/jobs/my-applications');
         }
         break;
       case 'CONTACT':
