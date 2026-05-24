@@ -245,6 +245,43 @@ public class EmailService {
         }
     }
 
+    @Async
+    public void sendSupportReply(String to, String submitterName, String originalSubject, String originalMessage, String replyMessage) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(to);
+            message.setSubject("Re: [KEDevs Support] " + originalSubject);
+            message.setText(String.format("""
+                    Hi %s,
+
+                    Thank you for contacting KEDevs Support. Here is our response to your query:
+
+                    ─────────────────────────────────
+                    YOUR ORIGINAL MESSAGE:
+                    Subject: %s
+
+                    %s
+                    ─────────────────────────────────
+
+                    RESPONSE FROM SUPPORT TEAM:
+
+                    %s
+
+                    ─────────────────────────────────
+
+                    If you have any further questions, please don't hesitate to reach out.
+
+                    Best regards,
+                    The KEDevs Support Team
+                    """, submitterName, originalSubject, originalMessage, replyMessage));
+            mailSender.send(message);
+            log.info("Support reply email sent to: {}", to);
+        } catch (Exception e) {
+            log.error("Failed to send support reply email to: {}", to, e);
+        }
+    }
+
     private String buildVerificationEmail(String fullName, String code) {
         return String.format("""
                 Hi %s,

@@ -13,7 +13,10 @@ import {
   ChevronRight,
   Mail,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Send,
+  CheckCircle2,
+  Reply
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { contactService } from '@/services/contactService';
@@ -23,6 +26,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Table,
   TableBody,
@@ -41,6 +45,8 @@ export default function AdminSupport() {
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [replyTexts, setReplyTexts] = useState<Record<string, string>>({});
+  const [sendingReply, setSendingReply] = useState<string | null>(null);
 
   const fetchMessages = useCallback(async () => {
     setLoading(true);
@@ -63,6 +69,46 @@ export default function AdminSupport() {
   useEffect(() => {
     fetchMessages();
   }, [fetchMessages]);
+
+  // When a row is expanded, auto-mark it as read
+  const handleExpandRow = async (id: string, isRead: boolean) => {
+    const next = expandedRow === id ? null : id;
+    setExpandedRow(next);
+
+    if (next && !isRead) {
+      try {
+        await contactService.markMessageRead(id);
+        setMessages(prev => prev.map(m => m.id === id ? { ...m, isRead: true } : m));
+      } catch {
+        // Silently ignore — not critical
+      }
+    }
+  };
+
+  const handleSendReply = async (msg: any) => {
+    const reply = replyTexts[msg.id]?.trim();
+    if (!reply || reply.length < 5) {
+      toast.error('Please write a reply (at least 5 characters)');
+      return;
+    }
+    setSendingReply(msg.id);
+    try {
+      const res = await contactService.replyToMessage(msg.id, reply);
+      if (res.success) {
+        toast.success(`Reply sent to ${msg.email}`);
+        setMessages(prev => prev.map(m =>
+          m.id === msg.id
+            ? { ...m, adminReply: reply, repliedAt: new Date().toISOString(), isRead: true }
+            : m
+        ));
+        setReplyTexts(prev => ({ ...prev, [msg.id]: '' }));
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to send reply');
+    } finally {
+      setSendingReply(null);
+    }
+  };
 
   const filtered = messages.filter(msg => {
     if (!search) return true;
@@ -126,7 +172,7 @@ export default function AdminSupport() {
                   <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-5 px-6">Sender</TableHead>
                   <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-5 px-6">Subject</TableHead>
                   <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-5 px-6">Status</TableHead>
-                  <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-5 px-6 text-right">Message</TableHead>
+                  <TableHead className="font-black text-[10px] uppercase tracking-widest text-slate-500 py-5 px-6 text-right">View</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -166,8 +212,11 @@ export default function AdminSupport() {
                   filtered.map((msg) => (
                     <React.Fragment key={msg.id}>
                       <TableRow
-                        className="border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer"
-                        onClick={() => setExpandedRow(expandedRow === msg.id ? null : msg.id)}
+                        className={cn(
+                          "border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer",
+                          !msg.isRead && "bg-cyan-50/30"
+                        )}
+                        onClick={() => handleExpandRow(msg.id, msg.isRead)}
                       >
                         <TableCell className="py-4 px-6">
                           <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
@@ -194,11 +243,17 @@ export default function AdminSupport() {
                           </Badge>
                         </TableCell>
                         <TableCell className="py-4 px-6">
-                          {msg.isRead ? (
-                            <Badge className="bg-slate-100 text-slate-600 border-none">Read</Badge>
-                          ) : (
-                            <Badge className="bg-cyan-100 text-cyan-700 border-none">Unread</Badge>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {msg.adminReply ? (
+                              <Badge className="bg-emerald-100 text-emerald-700 border-none flex items-center gap-1">
+                                <CheckCircle2 className="h-3 w-3" /> Replied
+                              </Badge>
+                            ) : msg.isRead ? (
+                              <Badge className="bg-slate-100 text-slate-600 border-none">Read</Badge>
+                            ) : (
+                              <Badge className="bg-cyan-100 text-cyan-700 border-none">Unread</Badge>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="py-4 px-6 text-right">
                           <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-xl hover:bg-slate-100">
@@ -208,14 +263,63 @@ export default function AdminSupport() {
                           </Button>
                         </TableCell>
                       </TableRow>
+
                       {expandedRow === msg.id && (
                         <TableRow className="border-slate-50 bg-slate-50/30">
                           <TableCell colSpan={5} className="py-6 px-10">
-                            <div className="space-y-4">
-                              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Message Content</p>
-                              <p className="text-sm font-medium text-slate-700 bg-white border border-slate-100 px-4 py-4 rounded-xl whitespace-pre-wrap leading-relaxed shadow-sm">
-                                {msg.message}
-                              </p>
+                            <div className="space-y-5">
+                              {/* Original message */}
+                              <div>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Original Message</p>
+                                <p className="text-sm font-medium text-slate-700 bg-white border border-slate-100 px-4 py-4 rounded-xl whitespace-pre-wrap leading-relaxed shadow-sm">
+                                  {msg.message}
+                                </p>
+                              </div>
+
+                              {/* Admin reply section */}
+                              {msg.adminReply ? (
+                                <div>
+                                  <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-2 flex items-center gap-1.5">
+                                    <CheckCircle2 className="h-3.5 w-3.5" />
+                                    Reply Sent — {formatDate(msg.repliedAt)}
+                                  </p>
+                                  <p className="text-sm font-medium text-slate-700 bg-emerald-50 border border-emerald-100 px-4 py-4 rounded-xl whitespace-pre-wrap leading-relaxed shadow-sm">
+                                    {msg.adminReply}
+                                  </p>
+                                </div>
+                              ) : (
+                                <div className="space-y-3">
+                                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-1.5">
+                                    <Reply className="h-3.5 w-3.5" />
+                                    Reply to {msg.name}
+                                  </p>
+                                  <Textarea
+                                    placeholder={`Type your reply to ${msg.name}...`}
+                                    className="min-h-[120px] rounded-xl border-slate-200 font-medium text-sm resize-none focus-visible:ring-primary/20"
+                                    value={replyTexts[msg.id] || ''}
+                                    onChange={(e) => setReplyTexts(prev => ({ ...prev, [msg.id]: e.target.value }))}
+                                    maxLength={2000}
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                  <div className="flex items-center justify-between">
+                                    <p className="text-[10px] text-slate-400 font-medium">
+                                      {(replyTexts[msg.id] || '').length}/2000
+                                    </p>
+                                    <Button
+                                      size="sm"
+                                      className="rounded-xl font-black gap-2 px-6"
+                                      onClick={(e) => { e.stopPropagation(); handleSendReply(msg); }}
+                                      disabled={sendingReply === msg.id}
+                                    >
+                                      {sendingReply === msg.id ? (
+                                        <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Sending...</>
+                                      ) : (
+                                        <><Send className="h-3.5 w-3.5" /> Send Reply</>
+                                      )}
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>

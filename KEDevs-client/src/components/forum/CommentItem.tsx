@@ -70,6 +70,10 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false,
       toast.error('Please login to vote');
       return;
     }
+    if (isAuthor) {
+      toast.error('You cannot vote on your own comment');
+      return;
+    }
     try {
       await forumService.voteComment(comment.id, type);
       onUpdate();
@@ -303,7 +307,7 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false,
                       ? "text-primary bg-primary/10 font-bold"
                       : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
                   )}
-                  disabled={isAuthor || !isLoggedIn}
+                  disabled={!isLoggedIn}
                   title="Upvote"
                 >
                   <ArrowBigUp className={cn("h-4 w-4", comment.currentUserVote === 'UPVOTE' && "fill-current")} />
@@ -318,7 +322,7 @@ export default function CommentItem({ comment, jobId, onUpdate, isReply = false,
                       ? "text-danger-500 bg-danger-50"
                       : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
                   )}
-                  disabled={isAuthor || !isLoggedIn}
+                  disabled={!isLoggedIn}
                   title="Downvote"
                 >
                   <ArrowBigDown className={cn("h-4 w-4", comment.currentUserVote === 'DOWNVOTE' && "fill-current")} />

@@ -26,6 +26,12 @@ public class ContactDtos {
     ) {}
 
     @Builder
+    public record SupportReplyRequest(
+        @NotBlank(message = "Reply message is required")
+        String replyMessage
+    ) {}
+
+    @Builder
     public record ContactMessageResponse(
         UUID id,
         String name,
@@ -33,6 +39,8 @@ public class ContactDtos {
         String subject,
         String message,
         boolean isRead,
+        String adminReply,
+        LocalDateTime repliedAt,
         LocalDateTime createdAt
     ) {}
 }

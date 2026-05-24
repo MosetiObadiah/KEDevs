@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.moseti.kedevsapi.shared.entity.BaseEntity;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @Entity
@@ -28,4 +30,10 @@ public class ContactMessage extends BaseEntity {
     @Builder.Default
     @Column(name = "is_read")
     private boolean isRead = false;
+
+    @Column(name = "admin_reply", columnDefinition = "TEXT")
+    private String adminReply;
+
+    @Column(name = "replied_at")
+    private LocalDateTime repliedAt;
 }

@@ -4,16 +4,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { HeadphonesIcon, Send } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { contactService } from '@/services/contactService';
 
 const ISSUE_TYPES = [
-  { value: 'account', label: 'Account Issue' },
-  { value: 'payment', label: 'Payment Issue' },
-  { value: 'technical', label: 'Technical Problem' },
-  { value: 'verification', label: 'Verification Issue' },
-  { value: 'other', label: 'Other' },
+  { value: 'Account Issue', label: 'Account Issue' },
+  { value: 'Payment Issue', label: 'Payment Issue' },
+  { value: 'Technical Problem', label: 'Technical Problem' },
+  { value: 'Verification Issue', label: 'Verification Issue' },
+  { value: 'Other', label: 'Other' },
 ];
 
 interface ContactSupportDialogProps {
@@ -22,25 +25,35 @@ interface ContactSupportDialogProps {
 }
 
 export function ContactSupportDialog({ open, onOpenChange }: ContactSupportDialogProps) {
+  const { user } = useAuth();
   const [issueType, setIssueType] = useState('');
   const [message, setMessage] = useState('');
+  const [name, setName] = useState(user?.fullName || '');
+  const [email, setEmail] = useState(user?.email || '');
   const [isSending, setIsSending] = useState(false);
 
   const handleSend = async () => {
+    if (!name.trim()) { toast.error('Please enter your name'); return; }
+    if (!email.trim()) { toast.error('Please enter your email'); return; }
     if (!issueType) { toast.error('Please select an issue type'); return; }
     if (!message.trim() || message.trim().length < 10) { toast.error('Please describe your issue (at least 10 characters)'); return; }
     try {
       setIsSending(true);
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/support`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ issueType, message }),
+      const res = await contactService.submitMessage({
+        name: name.trim(),
+        email: email.trim(),
+        subject: issueType,
+        message: message.trim(),
       });
-      toast.success('Support request sent. Our team will respond within 24 hours.');
-      setIssueType('');
-      setMessage('');
-      onOpenChange(false);
+      if (res.success) {
+        toast.success('Support request sent. Our team will respond within 24 hours.');
+        setIssueType('');
+        setMessage('');
+        if (!user) { setName(''); setEmail(''); }
+        onOpenChange(false);
+      } else {
+        toast.error(res.message || 'Failed to send. Please try again.');
+      }
     } catch {
       toast.error('Failed to send. Please try again.');
     } finally {
@@ -61,6 +74,27 @@ export function ContactSupportDialog({ open, onOpenChange }: ContactSupportDialo
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-2">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>Name <span className="text-destructive">*</span></Label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your name"
+                disabled={!!user?.fullName}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Email <span className="text-destructive">*</span></Label>
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
+                disabled={!!user?.email}
+              />
+            </div>
+          </div>
           <div className="space-y-2">
             <Label>Issue Type <span className="text-destructive">*</span></Label>
             <Select value={issueType} onValueChange={setIssueType}>
