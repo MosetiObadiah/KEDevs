@@ -115,6 +115,7 @@ export interface AuthResponse {
   onboarded: boolean;
   isVerified: boolean;
   accountStatus?: string;
+  rejectionReason?: string;
 }
 
 export interface PublicStats {

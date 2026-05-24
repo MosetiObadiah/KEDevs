@@ -49,7 +49,7 @@ public class EmployerProfileService {
     private final org.moseti.kedevsapi.jobs.repository.JobPostRepository jobPostRepository;
     private final PdfExportService pdfExportService;
     private final CompanyInquiryRepository companyInquiryRepository;
-    private final org.moseti.kedevsapi.chat.service.ChatService chatService;
+
 
 
     // ----------------------------------------------------------------
@@ -187,9 +187,7 @@ public class EmployerProfileService {
         contactRequest.setStatus(status);
         contactRequest = contactRequestRepository.save(contactRequest);
 
-        if (status == ContactRequestStatus.ACCEPTED) {
-            chatService.createConversationForAcceptedRequest(contactRequest);
-        }
+
 
         User sender = userRepository.findById(contactRequest.getSenderUserId()).orElse(null);
         if (sender != null) {

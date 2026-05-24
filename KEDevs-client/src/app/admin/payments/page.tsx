@@ -68,8 +68,8 @@ export default function AdminPaymentsPage() {
       const res = await adminService.getPayments(params);
       if (res.success) {
         setPayments(res.data.content);
-        setTotalPages(res.data.page.totalPages);
-        setTotalElements(res.data.page.totalElements);
+        setTotalPages(res.data.totalPages);
+        setTotalElements(res.data.totalElements);
       }
     } catch (error) {
       console.error('Failed to load payments:', error);

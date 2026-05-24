@@ -25,6 +25,8 @@ import {
   Info,
   UserX,
   User,
+  UserCheck,
+  Check,
   MessageSquare,
   ExternalLink,
   Building2
@@ -89,16 +91,11 @@ export default function NotificationsPage() {
       const url = isDeveloper
         ? `/api/v1/employers/contact/requests/${requestId}?status=ACCEPTED`
         : `/api/v1/employers/inquiries/${requestId}?status=ACCEPTED`;
-      
+
       await apiClient.patch<any>(url, {});
-      
+
       toast.success('Connection request accepted!');
       setAcceptedRequests(prev => ({ ...prev, [requestId]: true }));
-      
-      // Trigger real-time chat focus
-      setTimeout(() => {
-        router.push(`/chat?requestId=${requestId}`);
-      }, 500);
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || 'Failed to accept request');
@@ -453,27 +450,7 @@ export default function NotificationsPage() {
                             </p>
                           )}
 
-                          {n.category === 'CONTACT' && n.title === 'Contact Request Update' && n.message.toLowerCase().includes('accepted') && (
-                             <div className="mt-4 flex flex-wrap gap-2">
-                               <Button 
-                                 size="sm" 
-                                 className="h-9 rounded-xl font-medium text-xs bg-primary text-white hover:bg-primary/95 shadow-md shadow-primary/10 border-none px-4 flex items-center gap-1.5" 
-                                 onClick={(e) => {
-                                   e.stopPropagation();
-                                   let meta = n.metadata;
-                                   if (typeof meta === 'string') {
-                                     try { meta = JSON.parse(meta); } catch (err) {}
-                                   }
-                                   const reqId = meta?.requestId;
-                                   if (reqId) {
-                                     router.push(`/chat?requestId=${reqId}&autoAccept=true`);
-                                   }
-                                 }}
-                               >
-                                 <MessageSquare className="h-4 w-4" /> Start Chat
-                               </Button>
-                             </div>
-                           )}
+
 
                           {n.category === 'ENDORSEMENT' && n.metadata?.authorDeveloperId && (
                             <div className="mt-4 flex flex-wrap gap-2">
@@ -513,12 +490,9 @@ export default function NotificationsPage() {
                                     <Button
                                       size="sm"
                                       className="h-9 rounded-xl font-medium text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-500/10 border-none px-4 flex items-center gap-1.5"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        router.push(`/chat?requestId=${targetId}`);
-                                      }}
+                                      disabled
                                     >
-                                      <MessageSquare className="h-4 w-4" /> Connected - Open Chat
+                                      <Check className="h-4 w-4" /> Request Accepted
                                     </Button>
                                   ) : (
                                     <Button
@@ -533,9 +507,9 @@ export default function NotificationsPage() {
                                       {acceptingIds[targetId] ? (
                                         <Loader2 className="h-4 w-4 animate-spin" />
                                       ) : (
-                                        <MessageSquare className="h-4 w-4" />
+                                        <UserCheck className="h-4 w-4" />
                                       )}
-                                      Accept & Start Chat
+                                      Accept Request
                                     </Button>
                                   )
                                 )}

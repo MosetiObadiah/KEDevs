@@ -471,18 +471,7 @@ export default function CompanyProfilePage() {
                   </>
                 )}
 
-                {/* Verified Status Box */}
-                {company.isVerified && (
-                  <div className="p-6 rounded-xl-[1.5rem] bg-slate-900 text-white space-y-3 shadow-xl">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="h-5 w-5 text-emerald-400" />
-                      <span className="font-black text-sm uppercase tracking-wider">Authenticated</span>
-                    </div>
-                    <p className="text-xs font-medium text-slate-500 leading-relaxed">
-                      This entity has undergone formal operational audit by KEDevs compliance teams.
-                    </p>
-                  </div>
-                )}
+
 
                 {/* Flag Action */}
                 {user && !isOwnProfile && (
