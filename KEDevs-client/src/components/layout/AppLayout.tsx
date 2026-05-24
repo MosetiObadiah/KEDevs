@@ -225,6 +225,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (isLoggedIn && (user?.accountStatus === 'BANNED' || user?.accountStatus === 'SUSPENDED')) {
     const isBanned = user.accountStatus === 'BANNED';
+    const isRejectedApplicant = user?.role === 'EMPLOYER' && !user?.isApproved && isBanned;
     
     return (
       <div className="min-h-screen bg-slate-50/50 flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
@@ -233,7 +234,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         
         <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-8 duration-700">
           <div className="text-center mb-6">
-            {isBanned ? (
+            {isRejectedApplicant ? (
+              <>
+                <span className="rounded-xl font-black tracking-widest text-[10px] uppercase bg-danger-50 text-danger-500 border border-danger-100 px-3 py-1.5 mb-4 inline-block">
+                  SECURITY PROTOCOL
+                </span>
+                <h1 className="text-4xl font-black tracking-tight text-slate-900">Application Rejected</h1>
+                <p className="text-slate-500 font-medium mt-2">Your company profile did not pass verification.</p>
+              </>
+            ) : isBanned ? (
               <>
                 <span className="rounded-xl font-black tracking-widest text-[10px] uppercase bg-danger-50 text-danger-500 border border-danger-100 px-3 py-1.5 mb-4 inline-block">
                   PERMANENTLY BANNED
@@ -266,14 +275,28 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
 
               <p className="text-slate-500 font-medium text-center text-sm leading-relaxed">
-                {isBanned ? (
+                {isRejectedApplicant ? (
+                  "Your onboarding application has been reviewed and rejected by the administration team. If you believe this was a mistake, you can contest this decision by submitting an appeal below."
+                ) : isBanned ? (
                   "This account has been permanently restricted due to severe community guideline violations or administrative action. Banned accounts are completely deactivated, final, and cannot be appealed."
                 ) : (
                   "This account has been temporarily restricted by the administration. You can contest this decision and request a reactivation review by submitting an appeal below."
                 )}
               </p>
 
-              {!isBanned && (
+              {isRejectedApplicant && user?.rejectionReason && (
+                <div className="w-full bg-danger-50 border border-danger-100 rounded-2xl p-5 mb-2 text-left space-y-2">
+                  <div className="flex items-center gap-2">
+                    <ShieldAlert className="h-4 w-4 text-danger-600" />
+                    <h3 className="font-black text-danger-900 text-xs uppercase tracking-wider">Reason for Denial</h3>
+                  </div>
+                  <p className="text-sm text-danger-800 font-medium whitespace-pre-wrap">
+                    {user.rejectionReason}
+                  </p>
+                </div>
+              )}
+
+              {(!isBanned || isRejectedApplicant) && (
                 <>
                   {appealSubmitted ? (
                     <div className="w-full bg-cyan-50 border border-emerald-100 rounded-2xl p-6 text-center space-y-3 animate-in fade-in duration-300">

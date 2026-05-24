@@ -29,6 +29,7 @@ public class AuthResponse {
     private boolean onboarded;
     private boolean isVerified;
     private String accountStatus;
+    private String rejectionReason;
 
     /** Returns a copy of this response with tokens stripped — used when tokens are set as httpOnly cookies instead. */
     public AuthResponse withoutTokens() {
@@ -45,6 +46,7 @@ public class AuthResponse {
                 .onboarded(this.onboarded)
                 .isVerified(this.isVerified)
                 .accountStatus(this.accountStatus)
+                .rejectionReason(this.rejectionReason)
                 .build();
     }
 }

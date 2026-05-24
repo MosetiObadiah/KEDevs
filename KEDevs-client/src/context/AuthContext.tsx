@@ -45,13 +45,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             isApproved: !d.requiresApproval,
             isVerified: d.isVerified || !d.requiresApproval,
             spotlightStatus: { isActive: false },
-            accountStatus: d.accountStatus || 'ACTIVE'
+            accountStatus: d.accountStatus || 'ACTIVE',
+            rejectionReason: d.rejectionReason
           };
           setUser(userData);
-          // Restore onboarded state from localStorage (non-sensitive, safe to keep here)
-          setIsOnboarded(localStorage.getItem('isOnboarded') === 'true');
+          // Restore onboarded state from backend (fallback to localStorage if undefined)
+          const isOnboardedTrue = d.onboarded ?? (localStorage.getItem('isOnboarded') === 'true');
+          setIsOnboarded(isOnboardedTrue);
           // Persist user profile info (non-sensitive) for fast renders before /me resolves
           localStorage.setItem('user', JSON.stringify(userData));
+          if (isOnboardedTrue) localStorage.setItem('isOnboarded', 'true');
+          else localStorage.removeItem('isOnboarded');
         } else {
           setUser(null);
           localStorage.removeItem('user');
@@ -209,6 +213,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
+        if (d.onboarded !== undefined) {
+          setIsOnboarded(d.onboarded);
+          if (d.onboarded) localStorage.setItem('isOnboarded', 'true');
+          else localStorage.removeItem('isOnboarded');
+        }
       }
     } catch (e) {
       console.error('Failed to refresh user', e);

@@ -70,6 +70,9 @@ public class JobPost extends BaseEntity {
     @Column(name = "salary_currency")
     private String salaryCurrency = "KES";
 
+    @Column(name = "salary_not_specified", nullable = false)
+    private boolean salaryNotSpecified = false;
+
     @Column(name = "application_deadline")
     private LocalDate applicationDeadline;
 

@@ -33,6 +33,7 @@ public class JobDtos {
             @Schema(description = "URL to external job post (if any)", example = "https://acme.com/jobs/123") String sourceUrl,
             @Schema(description = "Was this job sourced by a community member?", example = "false") boolean isPeerSourced,
             @NotNull @Schema(description = "Who can see this job", example = "PUBLIC") JobVisibility visibility,
+            @Schema(description = "Indicates if the salary was not specified in the external job", example = "false") Boolean salaryNotSpecified,
             @Schema(description = "List of skills/tags", example = "[\"java\", \"spring-boot\"]") List<String> tags
     ) {}
 
@@ -55,6 +56,7 @@ public class JobDtos {
             @Schema(description = "URL to external job post") String sourceUrl,
             @Schema(description = "Was this job sourced by a community member?") Boolean isPeerSourced,
             @Schema(description = "Who can see this job") JobVisibility visibility,
+            @Schema(description = "Indicates if the salary was not specified in the external job") Boolean salaryNotSpecified,
             @Schema(description = "List of skills/tags") List<String> tags
     ) {}
 
@@ -120,6 +122,7 @@ public class JobDtos {
             JobStatus status,
             int upvoteCount,
             boolean isFlagged,
+            boolean salaryNotSpecified,
             List<String> tags,
             LocalDateTime createdAt,
             LocalDateTime updatedAt,
@@ -151,6 +154,7 @@ public class JobDtos {
             int upvoteCount,
             boolean isFlagged,
             boolean isPeerSourced,
+            boolean salaryNotSpecified,
             String sourceUrl,
             List<String> tags,
             java.time.LocalDate applicationDeadline,
@@ -204,6 +208,8 @@ public class JobDtos {
             java.time.LocalDate applicationDeadline,
             java.math.BigDecimal minSalary,
             String salaryCurrency,
+            boolean isPeerSourced,
+            boolean salaryNotSpecified,
             LocalDateTime createdAt,
             int upvoteCount,
             boolean isFlagged,

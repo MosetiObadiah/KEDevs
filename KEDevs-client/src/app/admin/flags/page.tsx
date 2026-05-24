@@ -16,6 +16,7 @@ import {
    Trash2,
    AlertTriangle,
    History,
+   RotateCcw,
    X,
    Download,
    FileSpreadsheet,
@@ -285,53 +286,58 @@ export default function FlaggedContent() {
                                  </TableCell>
                                  <TableCell className="py-5 px-8 text-right">
                                     {viewHistory ? (
-                                       <div className="flex justify-end animate-in fade-in duration-300">
-                                          {renderStatusBadge(item.status)}
+                                       <div className="flex justify-end gap-3 items-center animate-in fade-in duration-300">
+                                          {renderStatusBadge(item.flagStatus)}
+                                          <Button size="sm" variant="outline" title="Revert Resolution" className="h-8 px-2 py-1 text-xs rounded-xl border-slate-100 text-slate-600 hover:bg-slate-100 flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'REVERT')}>
+                                             <RotateCcw className="h-3.5 w-3.5" />
+                                             Revert
+                                          </Button>
                                        </div>
                                     ) : (
                                        <div className="flex justify-end gap-2">
-                                          <Button size="sm" variant="outline" className="h-9 w-9 p-0 rounded-xl border-slate-100 hover:bg-slate-50" onClick={() => window.open(getEyeLink(item, tab), '_blank')}>
-                                             <Eye className="h-4 w-4 text-slate-500" />
+                                          <Button size="sm" variant="outline" className="h-8 px-2 py-1 text-xs rounded-xl border-slate-100 hover:bg-slate-50 flex items-center gap-1.5" onClick={() => window.open(getEyeLink(item, tab), '_blank')}>
+                                             <Eye className="h-3.5 w-3.5 text-slate-500" />
+                                             View
                                           </Button>
 
                                           {tab === 'jobs' && (
                                              <>
-                                                <Button size="sm" variant="outline" title="Keep Job" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-cyan-600 hover:bg-cyan-50" onClick={() => handleReview(item.flagId, 'LEGITIMATE')}>
-                                                   <Check className="h-4 w-4" />
+                                                <Button size="sm" variant="outline" title="Keep Job" className="h-8 px-2 py-1 text-xs rounded-xl border-slate-100 text-cyan-600 hover:bg-cyan-50 flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'LEGITIMATE')}>
+                                                   <Check className="h-3.5 w-3.5" /> Keep
                                                 </Button>
-                                                <Button size="sm" variant="outline" title="Warn User" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-azure-500 hover:bg-azure-50" onClick={() => handleReview(item.flagId, 'WARN')}>
-                                                   <AlertOctagon className="h-4 w-4" />
+                                                <Button size="sm" variant="outline" title="Warn User" className="h-8 px-2 py-1 text-xs rounded-xl border-slate-100 text-azure-500 hover:bg-azure-50 flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'WARN')}>
+                                                   <AlertOctagon className="h-3.5 w-3.5" /> Warn
                                                 </Button>
-                                                <Button size="sm" variant="outline" title="Remove Job" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-destructive hover:bg-destructive/10" onClick={() => handleReview(item.flagId, 'REMOVE')}>
-                                                   <Trash2 className="h-4 w-4" />
+                                                <Button size="sm" variant="outline" title="Remove Job" className="h-8 px-2 py-1 text-xs rounded-xl border-slate-100 text-destructive hover:bg-destructive/10 flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'REMOVE')}>
+                                                   <Trash2 className="h-3.5 w-3.5" /> Remove
                                                 </Button>
                                              </>
                                           )}
 
                                           {tab === 'users' && (
                                              <>
-                                                <Button size="sm" variant="outline" title="Clear Flag" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-cyan-600 hover:bg-cyan-50" onClick={() => handleReview(item.flagId, 'CLEARED')}>
-                                                   <Check className="h-4 w-4" />
+                                                <Button size="sm" variant="outline" title="Clear Flag" className="h-8 px-2 py-1 text-xs rounded-xl border-slate-100 text-cyan-600 hover:bg-cyan-50 flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'CLEARED')}>
+                                                   <Check className="h-3.5 w-3.5" /> Clear
                                                 </Button>
-                                                <Button size="sm" variant="outline" title="Warn User" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-azure-500 hover:bg-azure-50" onClick={() => handleReview(item.flagId, 'WARNED')}>
-                                                   <AlertOctagon className="h-4 w-4" />
+                                                <Button size="sm" variant="outline" title="Warn User" className="h-8 px-2 py-1 text-xs rounded-xl border-slate-100 text-azure-500 hover:bg-azure-50 flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'WARNED')}>
+                                                   <AlertOctagon className="h-3.5 w-3.5" /> Warn
                                                 </Button>
-                                                <Button size="sm" variant="outline" title="Suspend User" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-orange-600 hover:bg-orange-50" onClick={() => handleReview(item.flagId, 'SUSPENDED')}>
-                                                   <Clock className="h-4 w-4" />
+                                                <Button size="sm" variant="outline" title="Suspend User" className="h-8 px-2 py-1 text-xs rounded-xl border-slate-100 text-orange-600 hover:bg-orange-50 flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'SUSPENDED')}>
+                                                   <Clock className="h-3.5 w-3.5" /> Suspend
                                                 </Button>
-                                                <Button size="sm" variant="outline" title="Ban User" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-destructive hover:bg-destructive/10" onClick={() => handleReview(item.flagId, 'BANNED')}>
-                                                   <Gavel className="h-4 w-4" />
+                                                <Button size="sm" variant="outline" title="Ban User" className="h-8 px-2 py-1 text-xs rounded-xl border-slate-100 text-destructive hover:bg-destructive/10 flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'BANNED')}>
+                                                   <Gavel className="h-3.5 w-3.5" /> Ban
                                                 </Button>
                                              </>
                                           )}
 
                                           {tab === 'comments' && (
                                              <>
-                                                <Button size="sm" variant="outline" title="Keep Comment" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-cyan-600 hover:bg-cyan-50" onClick={() => handleReview(item.flagId, 'KEPT')}>
-                                                   <Check className="h-4 w-4" />
+                                                <Button size="sm" variant="outline" title="Keep Comment" className="h-8 px-2 py-1 text-xs rounded-xl border-slate-100 text-cyan-600 hover:bg-cyan-50 flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'KEPT')}>
+                                                   <Check className="h-3.5 w-3.5" /> Keep
                                                 </Button>
-                                                <Button size="sm" variant="outline" title="Remove Comment" className="h-9 w-9 p-0 rounded-xl border-slate-100 text-destructive hover:bg-destructive/10" onClick={() => handleReview(item.flagId, 'REMOVED')}>
-                                                   <Trash2 className="h-4 w-4" />
+                                                <Button size="sm" variant="outline" title="Remove Comment" className="h-8 px-2 py-1 text-xs rounded-xl border-slate-100 text-destructive hover:bg-destructive/10 flex items-center gap-1.5" onClick={() => handleReview(item.flagId, 'REMOVED')}>
+                                                   <Trash2 className="h-3.5 w-3.5" /> Remove
                                                 </Button>
                                              </>
                                           )}

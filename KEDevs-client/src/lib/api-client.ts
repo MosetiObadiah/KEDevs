@@ -2,7 +2,7 @@
 // Auth tokens are now httpOnly cookies — the browser sends them automatically.
 // All fetch calls include credentials: 'include' so cookies cross the origin boundary.
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export interface ApiResponse<T> {
   success: boolean;

@@ -25,7 +25,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [latestNotification, setLatestNotification] = useState<any | null>(null);
 
   const refreshUnreadCount = useCallback(async () => {
-    if (!isLoggedIn || isLoading || user?.accountStatus === 'BANNED' || user?.accountStatus === 'SUSPENDED') return;
+    if (!user || !isLoggedIn || isLoading || user.accountStatus === 'BANNED' || user.accountStatus === 'SUSPENDED') return;
     try {
       const response = await notificationService.getUnreadCount();
       if (response.success && response.data) {
@@ -34,15 +34,17 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     } catch (err) {
       console.error('Failed to fetch unread count:', err);
     }
-  }, [isLoggedIn, isLoading, user?.accountStatus]);
+  }, [user, isLoggedIn, isLoading]);
 
   useEffect(() => {
-    if (isLoggedIn) {
-      refreshUnreadCount();
-    } else {
+    if (!user) {
       setUnreadCount(0);
+      return;
     }
-  }, [isLoggedIn, refreshUnreadCount]);
+    refreshUnreadCount();
+    const interval = setInterval(refreshUnreadCount, 30_000);
+    return () => clearInterval(interval);
+  }, [user, refreshUnreadCount]);
 
   useEffect(() => {
     if (!isLoggedIn || !user || user.accountStatus === 'BANNED' || user.accountStatus === 'SUSPENDED') {
@@ -53,6 +55,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     // ws_token is stored in sessionStorage (tab-scoped) specifically for STOMP handshakes.
     // SockJS/STOMP cannot use httpOnly cookies during the WebSocket upgrade.
     const wsToken = sessionStorage.getItem('ws_token');
+
+    let isDeactivating = false;
 
     const client = new Client({
       webSocketFactory: () => new SockJS('/ws'),
@@ -80,18 +84,25 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     };
 
     client.onStompError = (frame) => {
+      if (isDeactivating) return;
       console.error('STOMP Handshake / Connection Error:', frame.headers['message']);
       console.error('Additional Details:', frame.body);
     };
 
     client.onWebSocketError = (event) => {
-      console.error('WebSocket Error:', event);
+      if (isDeactivating) return;
+      // SockJS tries native WS first, this fires on fallback — not a real error
+      // Only log if STOMP itself isn't connected
+      if (!client.connected) {
+        console.error('WS failed and no fallback connected:', event);
+      }
     };
 
     client.activate();
     setStompClient(client);
 
     return () => {
+      isDeactivating = true;
       client.deactivate();
     };
   }, [isLoggedIn, user?.id, user?.accountStatus, refreshUnreadCount]);

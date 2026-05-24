@@ -1072,7 +1072,11 @@ function JobsPageContent() {
                               <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                               {pJob.locationCity}
                             </span>
-                            {pJob.minSalary && (
+                            {pJob.isPeerSourced && pJob.salaryNotSpecified ? (
+                              <span className="text-slate-700 font-semibold">
+                                Salary not specified
+                              </span>
+                            ) : pJob.minSalary && (
                               <span className="text-slate-700 font-semibold">
                                 Salary: {pJob.salaryCurrency || 'KES'} {Math.round(pJob.minSalary / 1000)}k
                               </span>
@@ -1242,7 +1246,11 @@ function JobsPageContent() {
                               <span className="flex items-center gap-1.5">
                                 <Briefcase className="h-4 w-4" /> {formatExperienceLevel(job.experienceLevel)}
                               </span>
-                              {(job.salaryRangeMin || job.salaryRangeMax) && (
+                              {job.isPeerSourced && job.salaryNotSpecified ? (
+                                <span className="text-azure-500 font-bold">
+                                  Salary not specified
+                                </span>
+                              ) : (job.salaryRangeMin || job.salaryRangeMax) && (
                                 <span className="text-azure-500 font-bold">
                                   Salary: {job.salaryRangeMin && `KES ${job.salaryRangeMin.toLocaleString()}`}
                                   {job.salaryRangeMin && job.salaryRangeMax && ' – '}

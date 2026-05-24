@@ -309,7 +309,12 @@ export default function JobDetailPage() {
                   <BarChart3 className="w-4 h-4 text-slate-400" />
                   Job Level: {formatExperienceLevel(job.experienceLevel)}
                 </span>
-                {(job.salaryRangeMin || job.salaryRangeMax) && (
+                {job.isPeerSourced && job.salaryNotSpecified ? (
+                  <span className="flex items-center gap-2 font-semibold text-azure-500">
+                    <Coins className="w-4 h-4 shrink-0 text-azure-500" />
+                    Salary not specified
+                  </span>
+                ) : (job.salaryRangeMin || job.salaryRangeMax) && (
                   <span className="flex items-center gap-2 font-semibold text-azure-500">
                     <Coins className="w-4 h-4 shrink-0 text-azure-500" />
                     Salary: {job.salaryRangeMin && `KES ${job.salaryRangeMin.toLocaleString()}`}

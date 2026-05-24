@@ -1,0 +1,1 @@
+ALTER TABLE job_posts ADD COLUMN salary_not_specified BOOLEAN NOT NULL DEFAULT FALSE;

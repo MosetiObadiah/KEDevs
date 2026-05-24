@@ -147,6 +147,7 @@ export default function ApplicationsInbox() {
 
          const response = await fetch(fullUrl, {
             headers: apiClient.getHeaders(),
+            credentials: 'include',
          });
 
          if (!response.ok) {

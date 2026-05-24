@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   Sparkles,
   Zap,
@@ -18,19 +18,19 @@ import {
   FileSpreadsheet,
   FileText,
   Calendar,
-  Award
-} from 'lucide-react';
-import { developerService } from '@/services/developerService';
-import SpotlightSection from '@/components/home/SpotlightSection';
-import { cn, formatDateString } from '@/lib/utils';
-import { toast } from 'sonner';
+  Award,
+} from "lucide-react";
+import { developerService } from "@/services/developerService";
+import SpotlightSection from "@/components/home/SpotlightSection";
+import { cn, formatDateString } from "@/lib/utils";
+import { toast } from "sonner";
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,7 +55,7 @@ export default function SpotlightPage() {
           setWeekDev(response.data.weekSlot);
         }
       } catch (err) {
-        console.error('Failed to fetch spotlights', err);
+        console.error("Failed to fetch spotlights", err);
       } finally {
         setLoading(false);
       }
@@ -71,7 +71,7 @@ export default function SpotlightPage() {
           setPastDevs(response.data.content);
         }
       } catch (err) {
-        console.error('Failed to fetch past spotlights', err);
+        console.error("Failed to fetch past spotlights", err);
       } finally {
         setLoadingPast(false);
       }
@@ -79,26 +79,30 @@ export default function SpotlightPage() {
     fetchPastSpotlights();
   }, []);
 
-  const handleExport = async (format: 'csv' | 'pdf') => {
+  const handleExport = async (format: "csv" | "pdf") => {
     setIsExporting(true);
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      const response = await fetch(`${API_URL}/api/v1/spotlight/past/export?format=${format}`, {
-        method: 'GET',
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error('Export failed');
+      const API_URL =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const response = await fetch(
+        `${API_URL}/api/v1/spotlight/past/export?format=${format}`,
+        {
+          method: "GET",
+          credentials: "include",
+        },
+      );
+      if (!response.ok) throw new Error("Export failed");
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = `past_spotlights.${format}`;
       a.click();
       window.URL.revokeObjectURL(url);
-      toast.success('Export successful');
+      toast.success("Export successful");
     } catch (err) {
       console.error("Export failed", err);
-      toast.error('Export failed. Please try again.');
+      toast.error("Export failed. Please try again.");
     } finally {
       setIsExporting(false);
     }
@@ -108,7 +112,9 @@ export default function SpotlightPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center space-y-4">
         <Loader2 className="h-10 w-10 text-primary animate-spin" />
-        <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Illuminating talent...</p>
+        <p className="text-xs font-black text-slate-500 uppercase tracking-widest">
+          Illuminating talent...
+        </p>
       </div>
     );
   }
@@ -116,21 +122,28 @@ export default function SpotlightPage() {
   return (
     <div className="flex flex-col min-h-screen bg-muted/30">
       <div className="container mx-auto px-6 pt-8 pb-12">
-
         {/* Spotlight Description */}
         <div className="mb-10 p-6 rounded-2xl bg-gradient-to-r from-azure-50 to-primary-50 border border-primary/10 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-bold text-slate-900 tracking-tight">What is Spotlight?</h2>
+            <h2 className="text-lg font-bold text-slate-900 tracking-tight">
+              What is Spotlight?
+            </h2>
           </div>
           <p className="text-sm text-slate-700 leading-relaxed max-w-3xl">
-            Spotlight amplifies Kenya's top developers by featuring them on the KEDevs homepage. Featured developers gain premium visibility and attract up to 10x more employer attention. Spotlight slots are available daily and weekly — secure yours to stand out.
+            Spotlight advertises Kenya's top developers by featuring them on the
+            KEDevs homepage. Featured developers gain first visibility and can
+            attract more employer attention.
           </p>
         </div>
 
         {/* Spotlight Grid */}
         <div className="-mx-6">
-          <SpotlightSection dayDev={dayDev} weekDev={weekDev} loading={false} hideTitle={true} />
+          <SpotlightSection
+            dayDev={dayDev}
+            weekDev={weekDev}
+            loading={false}
+            hideTitle={true}
+          />
         </div>
 
         {/* Past Spotlights Section */}
@@ -141,21 +154,40 @@ export default function SpotlightPage() {
                 <Award className="h-5 w-5 text-primary" />
                 <h2 className="text-2xl font-medium tracking-tight">History</h2>
               </div>
-              <p className="text-sm text-muted-foreground">Past featured developers on KEDevs</p>
+              <p className="text-sm text-muted-foreground">
+                Past featured developers on KEDevs
+              </p>
             </div>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="font-medium gap-2 border-primary/20 hover:bg-primary/5" disabled={isExporting}>
-                  <Download className="h-4 w-4 text-primary" /> {isExporting ? 'Exporting...' : 'Export History'}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="font-medium gap-2 border-primary/20 hover:bg-primary/5"
+                  disabled={isExporting}
+                >
+                  <Download className="h-4 w-4 text-primary" />{" "}
+                  {isExporting ? "Exporting..." : "Export History"}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="rounded-xl border-border/50">
-                <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium py-2">
-                  <FileSpreadsheet className="mr-2 h-4 w-4 text-cyan-600" /> Download as CSV
+              <DropdownMenuContent
+                align="end"
+                className="rounded-xl border-border/50"
+              >
+                <DropdownMenuItem
+                  onClick={() => handleExport("csv")}
+                  className="cursor-pointer font-medium py-2"
+                >
+                  <FileSpreadsheet className="mr-2 h-4 w-4 text-cyan-600" />{" "}
+                  Download as CSV
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium py-2">
-                  <FileText className="mr-2 h-4 w-4 text-primary" /> Download as PDF
+                <DropdownMenuItem
+                  onClick={() => handleExport("pdf")}
+                  className="cursor-pointer font-medium py-2"
+                >
+                  <FileText className="mr-2 h-4 w-4 text-primary" /> Download as
+                  PDF
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -166,14 +198,20 @@ export default function SpotlightPage() {
               <table className="w-full text-sm text-left">
                 <thead className="bg-muted/50 border-b border-border/50">
                   <tr>
-                    <th className="px-6 py-4 font-medium text-[10px] uppercase tracking-widest text-muted-foreground">Developer</th>
-                    <th className="px-6 py-4 font-medium text-[10px] uppercase tracking-widest text-muted-foreground">Spotlight Type</th>
-                    <th className="px-6 py-4 font-medium text-[10px] uppercase tracking-widest text-muted-foreground text-right">Dates</th>
+                    <th className="px-6 py-4 font-medium text-[10px] uppercase tracking-widest text-muted-foreground">
+                      Developer
+                    </th>
+                    <th className="px-6 py-4 font-medium text-[10px] uppercase tracking-widest text-muted-foreground">
+                      Spotlight Type
+                    </th>
+                    <th className="px-6 py-4 font-medium text-[10px] uppercase tracking-widest text-muted-foreground text-right">
+                      Dates
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
                   {loadingPast ? (
-                    [1, 2, 3].map(i => (
+                    [1, 2, 3].map((i) => (
                       <tr key={i}>
                         <td className="px-6 py-4 flex items-center gap-3">
                           <Skeleton className="h-8 w-8 rounded-full" />
@@ -182,15 +220,25 @@ export default function SpotlightPage() {
                             <Skeleton className="h-3 w-16" />
                           </div>
                         </td>
-                        <td className="px-6 py-4"><Skeleton className="h-5 w-20 rounded-xl" /></td>
-                        <td className="px-6 py-4 text-right"><Skeleton className="h-4 w-32 ml-auto" /></td>
+                        <td className="px-6 py-4">
+                          <Skeleton className="h-5 w-20 rounded-xl" />
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <Skeleton className="h-4 w-32 ml-auto" />
+                        </td>
                       </tr>
                     ))
                   ) : pastDevs.length > 0 ? (
                     pastDevs.map((spot) => (
-                      <tr key={spot.slotId} className="hover:bg-muted/30 transition-colors group">
+                      <tr
+                        key={spot.slotId}
+                        className="hover:bg-muted/30 transition-colors group"
+                      >
                         <td className="px-6 py-4">
-                          <Link href={`/developers/${spot.developerId}`} className="flex items-center gap-3">
+                          <Link
+                            href={`/developers/${spot.developerId}`}
+                            className="flex items-center gap-3"
+                          >
                             <Avatar className="h-9 w-9 border-2 border-background shadow-sm group-hover:border-primary/20 transition-all">
                               <AvatarImage src={spot.profilePhoto} />
                               <AvatarFallback className="text-xs font-black bg-primary text-primary-foreground">
@@ -198,29 +246,42 @@ export default function SpotlightPage() {
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="font-medium group-hover:text-primary transition-colors text-slate-900">{spot.developerName}</p>
-                              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-wider">{spot.currentLastRole}</p>
+                              <p className="font-medium group-hover:text-primary transition-colors text-slate-900">
+                                {spot.developerName}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-wider">
+                                {spot.currentLastRole}
+                              </p>
                             </div>
                           </Link>
                         </td>
                         <td className="px-6 py-4">
-                          <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest bg-primary/5 text-primary border-none">
+                          <Badge
+                            variant="secondary"
+                            className="text-[10px] font-black uppercase tracking-widest bg-primary/5 text-primary border-none"
+                          >
                             {spot.type}
                           </Badge>
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
                             <Calendar className="h-3 w-3 text-primary" />
-                            {formatDateString(spot.startDate)} — {formatDateString(spot.endDate)}
+                            {formatDateString(spot.startDate)} —{" "}
+                            {formatDateString(spot.endDate)}
                           </div>
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={3} className="px-6 py-20 text-center flex flex-col items-center">
+                      <td
+                        colSpan={3}
+                        className="px-6 py-20 text-center flex flex-col items-center"
+                      >
                         <Award className="h-12 w-12 text-muted/20 mb-4" />
-                        <p className="text-sm text-muted-foreground font-medium italic">No past spotlights recorded yet.</p>
+                        <p className="text-sm text-muted-foreground font-medium italic">
+                          No past spotlights recorded yet.
+                        </p>
                       </td>
                     </tr>
                   )}
@@ -229,7 +290,6 @@ export default function SpotlightPage() {
             </div>
           </Card>
         </div>
-
       </div>
     </div>
   );

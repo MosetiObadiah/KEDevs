@@ -328,6 +328,7 @@ public class AuthService {
         boolean onboarded = false;
         boolean isVerified = user.isApprovedByAdmin();
         boolean employerApproved = false;
+        String rejectionReason = null;
 
         if (user.getRole() == Role.DEVELOPER) {
             var profile = developerProfileRepository.findByUserId(user.getId());
@@ -341,6 +342,7 @@ public class AuthService {
             if (profile.isPresent()) {
                 employerApproved = profile.get().isApproved();
                 isVerified = employerApproved;
+                rejectionReason = profile.get().getRejectionReason();
             }
         }
 
@@ -359,6 +361,7 @@ public class AuthService {
                 .onboarded(onboarded)
                 .isVerified(isVerified)
                 .accountStatus(user.getAccountStatus().name())
+                .rejectionReason(rejectionReason)
                 .build();
     }
 

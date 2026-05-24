@@ -202,7 +202,9 @@ export default function NotificationsPage() {
         }
         break;
       case 'JOB':
-        if (user?.role === 'DEVELOPER') {
+        if (n.title.toLowerCase().includes('new application')) {
+          router.push('/jobs/my-posts');
+        } else if (user?.role === 'DEVELOPER') {
           router.push('/jobs/my-applications');
         } else if (meta.jobId) {
           router.push(`/jobs/${meta.jobId}/applications`);

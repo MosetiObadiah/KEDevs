@@ -23,6 +23,7 @@ export interface JobSummary {
   status: JobStatus;
   upvoteCount: number;
   isPeerSourced: boolean;
+  salaryNotSpecified?: boolean;
   sourceUrl: string;
   tags: string[];
   createdAt: string;
@@ -98,6 +99,7 @@ export interface User {
     type?: "Day" | "Week";
   };
   accountStatus?: string;
+  rejectionReason?: string;
   skills?: string[];
 }
 

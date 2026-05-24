@@ -63,4 +63,7 @@ public class EmployerProfile extends BaseEntity {
 
     @Column(name = "is_verified", nullable = false)
     private boolean isVerified = false;
+
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
+    private String rejectionReason;
 }

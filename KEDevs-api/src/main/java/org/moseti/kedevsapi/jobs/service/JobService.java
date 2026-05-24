@@ -162,6 +162,9 @@ public class JobService {
         job.setMinExperienceYears(request.minExperienceYears());
         job.setSalaryRangeMin(request.salaryRangeMin());
         job.setSalaryRangeMax(request.salaryRangeMax());
+        if (request.salaryNotSpecified() != null) {
+            job.setSalaryNotSpecified(request.salaryNotSpecified());
+        }
         job.setSalaryCurrency(request.salaryCurrency() != null ? request.salaryCurrency() : "KES");
         job.setApplicationDeadline(request.applicationDeadline());
         job.setVisibility(request.visibility());
@@ -218,6 +221,7 @@ public class JobService {
                 base.id(), base.title(), base.companyName(), base.locationCity(), base.locationCountry(),
                 base.jobType(), base.workType(), base.experienceLevel(), base.salaryRangeMin(), base.salaryRangeMax(),
                 base.visibility(), base.status(), base.upvoteCount(), base.isFlagged(), base.isPeerSourced(),
+                base.salaryNotSpecified(),
                 base.sourceUrl(), base.tags(), base.applicationDeadline(), base.createdAt(), base.postedByRole(),
                 base.isPinned(), base.pinnedUntil(), currentUserVote, isCurrentUserFlagged, flagStatus
         );
@@ -419,6 +423,8 @@ public class JobService {
             job.setSalaryRangeMin(request.salaryRangeMin());
         if (request.salaryRangeMax() != null)
             job.setSalaryRangeMax(request.salaryRangeMax());
+        if (request.salaryNotSpecified() != null)
+            job.setSalaryNotSpecified(request.salaryNotSpecified());
         if (request.salaryCurrency() != null)
             job.setSalaryCurrency(request.salaryCurrency());
         if (request.applicationDeadline() != null)
@@ -929,6 +935,7 @@ public class JobService {
                 job.getStatus(),
                 job.getUpvoteCount(),
                 job.isFlagged(),
+                job.isSalaryNotSpecified(),
                 tags,
                 job.getCreatedAt(),
                 job.getUpdatedAt(),
@@ -983,6 +990,7 @@ public class JobService {
                 job.getUpvoteCount(),
                 job.isFlagged(),
                 job.isPeerSourced(),
+                job.isSalaryNotSpecified(),
                 job.getSourceUrl(),
                 tags,
                 job.getApplicationDeadline(),
@@ -1070,6 +1078,8 @@ public class JobService {
                             job.getApplicationDeadline(),
                             job.getSalaryRangeMin(),
                             job.getSalaryCurrency(),
+                            job.isPeerSourced(),
+                            job.isSalaryNotSpecified(),
                             job.getCreatedAt(),
                             job.getUpvoteCount(),
                             job.isFlagged(),

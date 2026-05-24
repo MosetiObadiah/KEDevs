@@ -59,6 +59,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 
@@ -85,6 +86,7 @@ interface FormState {
   applicationDeadline: string | null;
   sourceUrl: string;
   isPeerSourced: boolean;
+  salaryNotSpecified: boolean;
   visibility: JobVisibility | null;
   tags: string[];
 }
@@ -107,6 +109,7 @@ const initialFormState: FormState = {
   applicationDeadline: null,
   sourceUrl: '',
   isPeerSourced: false,
+  salaryNotSpecified: false,
   visibility: 'PUBLIC',
   tags: [],
 };
@@ -555,7 +558,17 @@ export default function CreateJobPostPage() {
                         {formState.tags.map(tag => (
                            <Badge key={tag} className="h-8 px-2.5 rounded-lg bg-slate-100 text-slate-700 font-semibold border-none flex items-center gap-1 group transition-all text-sm">
                               {tag}
-                              <X className="h-3.5 w-3.5 cursor-pointer hover:text-danger-500" onClick={() => dispatch({ type: 'UPDATE_FIELD', field: 'tags', value: formState.tags.filter(t => t !== tag) })} />
+                              <button
+                                type="button"
+                                className="ml-0.5 rounded-full p-0.5 hover:bg-slate-200 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  dispatch({ type: 'UPDATE_FIELD', field: 'tags', value: formState.tags.filter(t => t !== tag) });
+                                }}
+                                aria-label={`Remove tag ${tag}`}
+                              >
+                                <X className="h-3.5 w-3.5 text-slate-500 hover:text-rose-500" />
+                              </button>
                            </Badge>
                         ))}
                      </div>
@@ -658,15 +671,35 @@ export default function CreateJobPostPage() {
                 <Separator className="bg-slate-100" />
                 
                 <div className="space-y-3">
-                   <Label className="text-sm font-semibold text-slate-700">Salary Range & Currency</Label>
+                   <div className="flex items-center justify-between">
+                      <Label className="text-sm font-semibold text-slate-700">Salary Range & Currency</Label>
+                      {formState.isPeerSourced && (
+                        <div className="flex items-center space-x-2">
+                           <Switch 
+                              id="salary-not-specified"
+                              checked={formState.salaryNotSpecified}
+                              onCheckedChange={(checked) => {
+                                 dispatch({ type: 'UPDATE_FIELD', field: 'salaryNotSpecified', value: checked });
+                                 if (checked) {
+                                    dispatch({ type: 'UPDATE_FIELD', field: 'salaryRangeMin', value: null });
+                                    dispatch({ type: 'UPDATE_FIELD', field: 'salaryRangeMax', value: null });
+                                 }
+                              }}
+                           />
+                           <Label htmlFor="salary-not-specified" className="text-sm font-medium text-slate-600 cursor-pointer">
+                              Salary not specified
+                           </Label>
+                        </div>
+                      )}
+                   </div>
                    <div className="grid grid-cols-3 gap-3">
                       <div className="relative">
                          <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                         <Input type="number" className="pl-8 h-11 rounded-xl border-border/50 font-medium text-base focus-visible:ring-primary/20" placeholder="Min" value={formState.salaryRangeMin || ''} onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'salaryRangeMin', value: e.target.value ? Number(e.target.value) : null })} />
+                         <Input type="number" disabled={formState.salaryNotSpecified} className="pl-8 h-11 rounded-xl border-border/50 font-medium text-base focus-visible:ring-primary/20 disabled:opacity-50 disabled:bg-slate-50" placeholder="Min" value={formState.salaryRangeMin || ''} onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'salaryRangeMin', value: e.target.value ? Number(e.target.value) : null })} />
                       </div>
                       <div className="relative">
                          <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                         <Input type="number" className="pl-8 h-11 rounded-xl border-border/50 font-medium text-base focus-visible:ring-primary/20" placeholder="Max" value={formState.salaryRangeMax || ''} onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'salaryRangeMax', value: e.target.value ? Number(e.target.value) : null })} />
+                         <Input type="number" disabled={formState.salaryNotSpecified} className="pl-8 h-11 rounded-xl border-border/50 font-medium text-base focus-visible:ring-primary/20 disabled:opacity-50 disabled:bg-slate-50" placeholder="Max" value={formState.salaryRangeMax || ''} onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'salaryRangeMax', value: e.target.value ? Number(e.target.value) : null })} />
                       </div>
                       <Input className="h-11 rounded-xl border-border/50 font-bold uppercase tracking-widest text-center text-sm focus-visible:ring-primary/20" value={formState.salaryCurrency} onChange={(e) => dispatch({ type: 'UPDATE_FIELD', field: 'salaryCurrency', value: e.target.value })} />
                    </div>
@@ -712,7 +745,7 @@ export default function CreateJobPostPage() {
                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500 font-medium font-sans">
                         <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-primary" /> {formState.locationCity}, {formState.locationCountry}</span>
                         <span className="flex items-center gap-1"><Briefcase className="h-3.5 w-3.5 text-primary" /> {formState.experienceLevel?.replace('_', ' ')}</span>
-                        <span className="flex items-center gap-1"><DollarSign className="h-3.5 w-3.5 text-primary" /> {formState.salaryRangeMin && formState.salaryRangeMax ? `${formState.salaryRangeMin} - ${formState.salaryRangeMax} ${formState.salaryCurrency}` : 'Confidential'}</span>
+                        <span className="flex items-center gap-1"><DollarSign className="h-3.5 w-3.5 text-primary" /> {formState.salaryNotSpecified ? 'Salary not specified' : (formState.salaryRangeMin && formState.salaryRangeMax ? `${formState.salaryRangeMin} - ${formState.salaryRangeMax} ${formState.salaryCurrency}` : 'Confidential')}</span>
                      </div>
                   </div>
                 </div>

@@ -107,6 +107,7 @@ public class AdminService {
 
         if (request.approved()) {
             profile.setApproved(true);
+            profile.setRejectionReason(null);
             user.setAccountStatus(AccountStatus.ACTIVE);
             notificationService.notify(user.getId(), NotificationCategory.ADMIN,
                     "Account Approved",
@@ -115,6 +116,7 @@ public class AdminService {
             outcome = "APPROVED";
         } else {
             user.setAccountStatus(AccountStatus.BANNED);
+            profile.setRejectionReason(request.notes());
             notificationService.notify(user.getId(), NotificationCategory.ADMIN,
                     "Account Rejected",
                     "Your employer account application was not approved.", null);
@@ -304,6 +306,14 @@ public class AdminService {
                 performBadgeAction(adminId, vr.getUserId(), new BadgeActionRequest("REVOKE", "Verification decision reverted: " + request.reason()));
             }
             
+            // Explicitly reject the employer account if they are an employer
+            if (user.getRole() == Role.EMPLOYER) {
+                var profileOpt = employerProfileRepository.findByUserId(user.getId());
+                if (profileOpt.isPresent()) {
+                    approveEmployer(adminId, profileOpt.get().getId(), new ApproveEmployerRequest(false, request.reason()));
+                }
+            }
+
             logAction(adminId, AdminActionTypes.REJECT_VERIFICATION, "VERIFICATION", vr.getId(), request.reason(), "REJECTED");
             notificationService.notify(vr.getUserId(), NotificationCategory.ADMIN, 
                     "Verification Denied", 
@@ -433,6 +443,11 @@ public class AdminService {
             notificationService.notify(job.getPostedById(), NotificationCategory.FLAG,
                     "Job Post Warning",
                     "Your job post '" + job.getTitle() + "' has been flagged. Please ensure it follows guidelines.", null);
+        } else if ("REVERT".equals(outcome)) {
+            flag.setStatus(FlagStatus.PENDING);
+            if (job.getStatus() == JobStatus.REMOVED) {
+                job.setStatus(JobStatus.OPEN);
+            }
         } else {
             throw new InvalidAdminActionException("Invalid outcome: " + outcome);
         }
@@ -486,6 +501,10 @@ public class AdminService {
                 status = UserFlagStatus.REVIEWED_BANNED;
                 performUserAction(adminId, flag.getFlaggedUserId(), new UserActionRequest("BAN", request.notes()));
             }
+            case "REVERT" -> {
+                status = UserFlagStatus.PENDING;
+                performUserAction(adminId, flag.getFlaggedUserId(), new UserActionRequest("REACTIVATE", "Flag resolution reverted"));
+            }
             default -> throw new InvalidAdminActionException("Invalid outcome: " + outcome);
         }
 
@@ -534,6 +553,9 @@ public class AdminService {
         } else if ("KEPT".equals(outcome)) {
             flag.setStatus(CommentFlagStatus.REVIEWED_KEPT);
             comment.setFlagged(false);
+        } else if ("REVERT".equals(outcome)) {
+            flag.setStatus(CommentFlagStatus.PENDING);
+            comment.setHidden(false);
         }
 
         flag.setReviewedById(adminId);

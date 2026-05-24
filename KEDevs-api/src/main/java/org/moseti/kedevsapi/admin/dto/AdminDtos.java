@@ -29,17 +29,17 @@ public class AdminDtos {
     ) {}
 
     public record ReviewJobFlagRequest(
-            @NotBlank @Schema(description = "Outcome of the review", allowableValues = {"LEGITIMATE", "REMOVED"}, example = "LEGITIMATE") String outcome,
+            @NotBlank @Schema(description = "Outcome of the review", allowableValues = {"LEGITIMATE", "REMOVED", "REVERT"}, example = "LEGITIMATE") String outcome,
             @NotBlank @Schema(description = "Review notes", example = "The job post is valid and follows guidelines.") String notes
     ) {}
 
     public record ReviewUserFlagRequest(
-            @NotBlank @Schema(description = "Outcome of the review", allowableValues = {"CLEARED", "WARNED", "SUSPENDED", "BANNED"}, example = "WARNED") String outcome,
+            @NotBlank @Schema(description = "Outcome of the review", allowableValues = {"CLEARED", "WARNED", "SUSPENDED", "BANNED", "REVERT"}, example = "WARNED") String outcome,
             @NotBlank @Schema(description = "Review notes", example = "User warned about behavior.") String notes
     ) {}
 
     public record ReviewCommentFlagRequest(
-            @NotBlank @Schema(description = "Outcome of the review", allowableValues = {"KEPT", "REMOVED"}, example = "KEPT") String outcome,
+            @NotBlank @Schema(description = "Outcome of the review", allowableValues = {"KEPT", "REMOVED", "REVERT"}, example = "KEPT") String outcome,
             @NotBlank @Schema(description = "Review notes", example = "Comment does not violate policies.") String notes
     ) {}
 

@@ -87,6 +87,8 @@ class JobServiceTest {
         lenient().when(jobApplicationRepository.findByJobId(any(), any())).thenReturn(Page.empty());
         lenient().when(developerProfileRepository.findByUserId(any())).thenReturn(Optional.empty());
         lenient().when(employerProfileRepository.findByUserId(any())).thenReturn(Optional.empty());
+        
+        org.springframework.test.util.ReflectionTestUtils.setField(jobService, "self", jobService);
     }
 
     // 1. createJobPost_success_developer
@@ -94,7 +96,7 @@ class JobServiceTest {
     void createJobPost_success_developer() {
         CreateJobPostRequest request = new CreateJobPostRequest("Title", "Sum", "Desc", "Comp", "City", "Country",
                 JobType.FULL_TIME, WorkType.REMOTE, ExperienceLevel.MID, "BSc", 3,
-                BigDecimal.valueOf(100), BigDecimal.valueOf(200), "KES", null, null, false, JobVisibility.PUBLIC, List.of("Java"));
+                BigDecimal.valueOf(100), BigDecimal.valueOf(200), "KES", null, null, false, JobVisibility.PUBLIC, null, List.of("Java"));
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(developer));
         when(jobPostRepository.save(any(JobPost.class))).thenAnswer(i -> {
@@ -115,7 +117,7 @@ class JobServiceTest {
     void createJobPost_success_employer() {
         CreateJobPostRequest request = new CreateJobPostRequest("Title", "Sum", "Desc", "Overridden", "City", "Country",
                 JobType.FULL_TIME, WorkType.REMOTE, ExperienceLevel.MID, "BSc", 3,
-                BigDecimal.valueOf(100), BigDecimal.valueOf(200), "KES", null, null, false, JobVisibility.PUBLIC, null);
+                BigDecimal.valueOf(100), BigDecimal.valueOf(200), "KES", null, null, false, JobVisibility.PUBLIC, null, null);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(employer));
         when(employerProfileService.getProfileByUserId(userId)).thenReturn(
@@ -137,7 +139,7 @@ class JobServiceTest {
     void createJobPost_peerSourced_requiresSourceUrl() {
         CreateJobPostRequest request = new CreateJobPostRequest("Title", "Sum", "Desc", "Comp", "City", "Country",
                 JobType.FULL_TIME, WorkType.REMOTE, ExperienceLevel.MID, "BSc", 3,
-                null, null, "KES", null, null, true, JobVisibility.PUBLIC, null);
+                null, null, "KES", null, null, true, JobVisibility.PUBLIC, null, null);
 
         assertThatThrownBy(() -> jobService.createJobPost(userId, request))
                 .isInstanceOf(BadRequestException.class);
@@ -191,7 +193,7 @@ class JobServiceTest {
     // 7. updateJobPost_success_owner
     @Test
     void updateJobPost_success_owner() {
-        UpdateJobPostRequest request = new UpdateJobPostRequest("NewTitle", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        UpdateJobPostRequest request = new UpdateJobPostRequest("NewTitle", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
         when(jobPostRepository.findById(jobId)).thenReturn(Optional.of(jobPost));
         when(userRepository.findById(userId)).thenReturn(Optional.of(employer));
         when(jobPostRepository.save(any(JobPost.class))).thenAnswer(i -> i.getArgument(0));
