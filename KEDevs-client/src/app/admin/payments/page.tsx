@@ -66,10 +66,10 @@ export default function AdminPaymentsPage() {
       }
 
       const res = await adminService.getPayments(params);
-      if (res.data?.success) {
-        setPayments(res.data.data.content);
-        setTotalPages(res.data.data.totalPages);
-        setTotalElements(res.data.data.totalElements);
+      if (res.success) {
+        setPayments(res.data.content);
+        setTotalPages(res.data.page.totalPages);
+        setTotalElements(res.data.page.totalElements);
       }
     } catch (error) {
       console.error('Failed to load payments:', error);
@@ -131,19 +131,17 @@ export default function AdminPaymentsPage() {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button className="font-medium bg-slate-900 hover:bg-slate-800 text-white gap-2 rounded-xl h-10 px-4" disabled={isExporting || totalElements === 0}>
-              {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            <Button variant="outline" className="font-semibold border-slate-200 hover:bg-slate-50 h-10 px-4 rounded-xl text-xs" disabled={isExporting || totalElements === 0}>
+              <Download className="mr-2 h-4 w-4 text-primary" />
               {isExporting ? 'Exporting...' : 'Export'}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40 rounded-xl p-2 shadow-xl border-slate-100">
-            <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium text-xs py-2.5 rounded-lg flex items-center gap-2">
-              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-              Export CSV
+          <DropdownMenuContent align="end" className="rounded-xl border-slate-200">
+            <DropdownMenuItem onClick={() => handleExport('csv')} className="cursor-pointer font-medium text-xs">
+              <FileSpreadsheet className="mr-2 h-4 w-4" /> Download as CSV
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium text-xs py-2.5 rounded-lg flex items-center gap-2">
-              <FileText className="w-4 h-4 text-rose-600" />
-              Export PDF
+            <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer font-medium text-xs">
+              <FileText className="mr-2 h-4 w-4" /> Download as PDF
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
