@@ -1,105 +1,103 @@
-'use client';
-
 import React from 'react';
-import { Shield, Scale, Info, CheckCircle2, FileText, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Metadata } from 'next';
 
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+export const metadata: Metadata = {
+  title: 'Terms and Conditions | KEDevs',
+  description: 'Terms and Conditions for using the KEDevs platform',
+};
 
-export default function TermsOfServicePage() {
+export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-20 pt-32 animate-in fade-in duration-700">
-      <div className="container mx-auto px-4 max-w-4xl">
-        <div className="text-center mb-16 space-y-4">
-           <Badge variant="outline" className="rounded-xl font-black tracking-widest text-[10px] uppercase bg-primary/5 text-primary border-primary/10 px-3 py-1">
-              LEGAL FRAMEWORK
-           </Badge>
-           <h1 className="text-5xl md:text-6xl font-black text-slate-900 tracking-tight">Terms of Service</h1>
-           <p className="text-slate-500 font-medium uppercase text-[10px] tracking-[0.2em]">Effective Date: May 7, 2026</p>
-        </div>
-
-        <Card className="rounded-xl-[3rem] border-none shadow-2xl shadow-slate-200/50 overflow-hidden bg-white">
-          <CardContent className="p-12 md:p-20 space-y-12">
-            <section className="space-y-6">
-              <div className="flex items-center gap-4">
-                 <div className="h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
-                    <Scale className="h-5 w-5" />
-                 </div>
-                 <h2 className="text-2xl font-black text-slate-900">1. Agreement to Terms</h2>
-              </div>
-              <p className="text-lg text-slate-700 font-medium leading-relaxed">
-                By accessing or using our Services, you agree to be bound by these Terms. If you disagree with any part of the terms,
-                then you may not access the Services.
-              </p>
-            </section>
-
-            <Separator className="bg-slate-50" />
-
-            <section className="space-y-6">
-              <div className="flex items-center gap-4">
-                 <div className="h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
-                    <FileText className="h-5 w-5" />
-                 </div>
-                 <h2 className="text-2xl font-black text-slate-900">2. User Accounts</h2>
-              </div>
-              <p className="text-lg text-slate-700 font-medium leading-relaxed">
-                When you create an account with us, you must provide us information that is accurate, complete, and current at all times.
-                Failure to do so constitutes a breach of the Terms, which may result in immediate termination of your account on our Service.
-              </p>
-            </section>
-
-            <Separator className="bg-slate-50" />
-
-            <section className="space-y-6">
-              <div className="flex items-center gap-4">
-                 <div className="h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
-                    <Info className="h-5 w-5" />
-                 </div>
-                 <h2 className="text-2xl font-black text-slate-900">3. Content</h2>
-              </div>
-              <p className="text-lg text-slate-700 font-medium leading-relaxed">
-                Our Service allows you to post, link, store, share and otherwise make available certain information, text, graphics, videos, or other material.
-                You are responsible for the Content that you post to the Service, including its legality, reliability, and appropriateness.
-              </p>
-            </section>
-
-            <Separator className="bg-slate-50" />
-
-            <section className="space-y-6">
-              <div className="flex items-center gap-4">
-                 <div className="h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
-                    <Shield className="h-5 w-5" />
-                 </div>
-                 <h2 className="text-2xl font-black text-slate-900">4. Limitation of Liability</h2>
-              </div>
-              <p className="text-lg text-slate-700 font-medium leading-relaxed">
-                In no event shall KEDevs-Connect, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect,
-                incidental, special, consequential or punitive damages resulting from your access to or use of the Service.
-              </p>
-            </section>
-
-            <Separator className="bg-slate-50" />
-
-            <section className="space-y-6">
-              <div className="flex items-center gap-4">
-                 <div className="h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
-                    <CheckCircle2 className="h-5 w-5" />
-                 </div>
-                 <h2 className="text-2xl font-black text-slate-900">5. Governing Law</h2>
-              </div>
-              <p className="text-lg text-slate-700 font-medium leading-relaxed">
-                These Terms shall be governed and construed in accordance with the laws of Kenya,
-                without regard to its conflict of law provisions.
-              </p>
-            </section>
-          </CardContent>
-        </Card>
+    <div className="max-w-4xl mx-auto py-16 px-6">
+      <h1 className="text-4xl font-bold mb-8">Terms and Conditions</h1>
+      <div className="prose prose-slate dark:prose-invert max-w-none space-y-6">
+        <p className="text-muted-foreground">Last Updated: {new Date().toLocaleDateString()}</p>
         
-        <div className="mt-12 text-center">
-           <p className="text-sm font-medium text-slate-500">Questions about our terms? <a href="/contact" className="text-primary hover:underline">Contact Legal Team</a></p>
-        </div>
+        <section>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">1. Acceptance of Terms</h2>
+          <p>
+            By accessing or using KEDevs ("the Platform"), you agree to be bound by these Terms and Conditions. 
+            If you do not agree to all of these terms, do not use the Platform. These terms are governed by the laws 
+            of the Republic of Kenya.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">2. User Accounts</h2>
+          <ul className="list-disc pl-6 space-y-2">
+            <li><strong>Eligibility:</strong> You must be at least 18 years old to create an account.</li>
+            <li><strong>Accuracy:</strong> You must provide accurate, current, and complete information during registration and keep it updated.</li>
+            <li><strong>Security:</strong> You are responsible for safeguarding your password and any activities or actions under your account.</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">3. User Obligations</h2>
+          <h3 className="text-xl font-medium mt-4 mb-2">3.1 Developers</h3>
+          <p>
+            As a developer on KEDevs, you agree to honestly represent your skills, experience, and qualifications. 
+            Creating fraudulent profiles or falsely claiming credentials may result in immediate suspension or termination of your account.
+          </p>
+          <h3 className="text-xl font-medium mt-4 mb-2">3.2 Employers</h3>
+          <p>
+            Employers must post legitimate job opportunities. You agree not to post discriminatory, offensive, or misleading job descriptions. 
+            You must respect candidate privacy and use developer data solely for recruitment purposes.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">4. Peer-Sourced Jobs</h2>
+          <p>
+            KEDevs allows users to share ("peer-source") publicly available job roles. KEDevs does not guarantee the accuracy, 
+            validity, or availability of these third-party roles. Users interact with peer-sourced jobs at their own discretion.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">5. Payments and Fees</h2>
+          <p>
+            Certain features, such as Verified Badges, Spotlight (Dev of the Day/Week), and Pinned Jobs, require payment. 
+            All payments are processed via Safaricom M-Pesa. By initiating a transaction, you agree to the stated fees.
+          </p>
+          <p className="mt-2 font-medium">
+            <strong>Refund Policy:</strong> Payments for Verified Badges (review fees), Spotlight features, and Pinned Jobs are non-refundable once the service has been activated or the review process has begun, except where mandated by Kenyan consumer protection laws.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">6. Intellectual Property</h2>
+          <p>
+            The KEDevs brand, logo, and original content are the intellectual property of KEDevs. By posting content 
+            (such as profile details or job listings), you grant KEDevs a non-exclusive, worldwide, royalty-free license to display, 
+            reproduce, and distribute your content on the Platform.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">7. Termination</h2>
+          <p>
+            KEDevs reserves the right, at its sole discretion, to suspend or terminate your account and access to the Platform 
+            without notice for any violation of these Terms, including but not limited to fraudulent activity or abusive behavior.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">8. Limitation of Liability</h2>
+          <p>
+            To the maximum extent permitted by Kenyan law, KEDevs shall not be liable for any indirect, incidental, special, 
+            consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, 
+            resulting from your use of the Platform or interactions with other users.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">9. Governing Law</h2>
+          <p>
+            These Terms shall be governed by and construed in accordance with the laws of the Republic of Kenya. 
+            Any disputes arising under or in connection with these Terms shall be subject to the exclusive jurisdiction 
+            of the Kenyan courts.
+          </p>
+        </section>
       </div>
     </div>
   );

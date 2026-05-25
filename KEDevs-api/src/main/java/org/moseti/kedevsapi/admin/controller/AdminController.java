@@ -150,6 +150,25 @@ public class AdminController {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Users retrieved", adminService.getAllUsers(role, status, pageable)));
     }
 
+    @Operation(summary = "Admin: export filtered users to PDF")
+    @GetMapping("/users/export/pdf")
+    public ResponseEntity<org.springframework.core.io.Resource> exportUsersPdf(
+            @RequestParam(required = false) Role role,
+            @RequestParam(required = false) AccountStatus status) {
+        
+        List<UserSummaryResponse> users = adminService.getAllUsers(role, status, Pageable.unpaged()).getContent();
+        
+        StringBuilder filterSummary = new StringBuilder();
+        if (role != null) filterSummary.append("Role: ").append(role).append("; ");
+        if (status != null) filterSummary.append("Status: ").append(status).append("; ");
+        
+        byte[] pdf = pdfExportService.generateUsersPdf(users, filterSummary.toString());
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=users-export.pdf")
+                .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
+                .body(new org.springframework.core.io.ByteArrayResource(pdf));
+    }
+
     @Operation(summary = "Admin: get user details by ID")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "User retrieved successfully"),
@@ -459,6 +478,25 @@ public class AdminController {
             @RequestParam(required = false) UUID actorId) {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success(
                 "Audit log retrieved", adminService.getFilteredActionLog(action, actorId, pageable)));
+    }
+
+    @Operation(summary = "Admin: export filtered audit log to PDF")
+    @GetMapping("/audit/export/pdf")
+    public ResponseEntity<org.springframework.core.io.Resource> exportAuditPdf(
+            @RequestParam(required = false) String action,
+            @RequestParam(required = false) UUID actorId) {
+        
+        List<AdminActionResponse> logs = adminService.getFilteredActionLog(action, actorId, Pageable.unpaged()).getContent();
+        
+        StringBuilder filterSummary = new StringBuilder();
+        if (action != null && !action.isBlank()) filterSummary.append("Action: ").append(action).append("; ");
+        if (actorId != null) filterSummary.append("Actor ID: ").append(actorId).append("; ");
+        
+        byte[] pdf = pdfExportService.generateAuditPdf(logs, filterSummary.toString());
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=audit-export.pdf")
+                .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
+                .body(new org.springframework.core.io.ByteArrayResource(pdf));
     }
 
     private UUID getCurrentAdminId() {

@@ -196,29 +196,15 @@ export default function PaymentsPage() {
   const handlePrintReceipt = async () => {
     if (!selectedPayment) return;
     try {
-      const { jsPDF } = await import('jspdf');
-      const doc = new jsPDF();
-      doc.setFillColor(15, 23, 42);
-      doc.rect(0, 0, 210, 30, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(20);
-      doc.setFont('helvetica', 'bold');
-      doc.text('KEDevs', 14, 20);
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'normal');
-      doc.text('PAYMENT RECEIPT', 140, 20);
-      doc.setTextColor(0, 0, 0);
-      doc.setFontSize(11);
-      doc.text(`Receipt No: ${selectedPayment.mpesaReceiptNo || 'N/A'}`, 14, 50);
-      doc.text(`Date: ${formatDate(selectedPayment.paidAt || selectedPayment.createdAt)}`, 14, 60);
-      doc.text(`Service: ${selectedPayment.type?.split('_').map((w: string) => w.charAt(0) + w.slice(1).toLowerCase()).join(' ') || 'Platform Service'}`, 14, 70);
-      doc.text(`Amount: KES ${Number(selectedPayment.amount || 0).toLocaleString()}`, 14, 80);
-      doc.text(`Phone: ${selectedPayment.phoneNumber || 'N/A'}`, 14, 90);
-      doc.text(`Status: ${selectedPayment.status}`, 14, 100);
-      doc.setTextColor(128, 128, 128);
-      doc.setFontSize(9);
-      doc.text("KEDevs - Kenya's Premier Tech Talent Network", 14, 130);
-      doc.save(`receipt-${selectedPayment.mpesaReceiptNo || 'draft'}.pdf`);
+      const blob = await paymentService.exportPaymentReceiptPdf(selectedPayment.id);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `receipt-${selectedPayment.mpesaReceiptNo || 'draft'}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
     } catch(e) {
        toast.error("Failed to generate PDF");
     }

@@ -212,4 +212,21 @@ public class PaymentController {
 
         return ResponseEntity.badRequest().build();
     }
+
+    @Operation(summary = "Export individual payment receipt")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Receipt exported successfully"),
+        @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+        @ApiResponse(responseCode = "403", description = "Not authorized to view this payment"),
+        @ApiResponse(responseCode = "404", description = "Payment not found")
+    })
+    @GetMapping("/{id}/receipt/pdf")
+    public ResponseEntity<byte[]> exportPaymentReceipt(@PathVariable UUID id) {
+        Payment payment = paymentService.getPaymentEntityByIdAndUserId(id, getCurrentUserId());
+        byte[] pdf = pdfExportService.generatePaymentReceiptPdf(payment);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"receipt_" + payment.getMpesaReceiptNo() + ".pdf\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
+    }
 }

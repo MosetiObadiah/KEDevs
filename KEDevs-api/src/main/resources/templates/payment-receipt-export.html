@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Payment Receipt</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #334155;
+            margin: 0;
+            padding: 30px;
+            font-size: 12px;
+        }
+        .meta-bar {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table.data-table th, table.data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        table.data-table th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 0.05em;
+            width: 30%;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 15px;
+            border-top: 2px solid #e2e8f0;
+            text-align: center;
+        }
+        .footer-cta {
+            color: #0284c7;
+            font-weight: bold;
+            font-size: 13px;
+            margin: 0 0 4px 0;
+        }
+        .footer-sub {
+            color: #94a3b8;
+            font-size: 9px;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Branded Header -->
+    <table style="width: 100%; border: none; border-collapse: collapse; margin-bottom: 15px;">
+        <tr style="border: none;">
+            <td style="border: none; width: 60%; padding: 0; text-align: left; vertical-align: middle;">
+                <img th:if="${base64Logo != null and !base64Logo.isEmpty()}" th:src="${base64Logo}" style="max-height: 45px; display: inline-block; vertical-align: middle;" />
+                <span style="font-size: 22px; font-weight: bold; color: #0f172a; margin-left: 10px; display: inline-block; vertical-align: middle;" th:text="${companyName}">KEDevs</span>
+            </td>
+            <td style="border: none; width: 40%; padding: 0; text-align: right; vertical-align: middle; color: #64748b; font-size: 11px;">
+                <div>Date: <strong th:text="${#temporals.format(payment.paidAt != null ? payment.paidAt : payment.createdAt, 'dd MMM yyyy, HH:mm')}">2026-05-14</strong></div>
+                <div style="font-weight: bold; color: #0f172a; margin-top: 2px;">PAYMENT RECEIPT</div>
+            </td>
+        </tr>
+    </table>
+
+    <table class="data-table">
+        <tbody>
+            <tr>
+                <th>Receipt No</th>
+                <td th:text="${payment.mpesaReceiptNo != null ? payment.mpesaReceiptNo : 'N/A'}">Receipt No</td>
+            </tr>
+            <tr>
+                <th>Service</th>
+                <td th:text="${payment.type}">Service</td>
+            </tr>
+            <tr>
+                <th>Amount</th>
+                <td th:text="${payment.currency + ' ' + payment.amount}">KES 0</td>
+            </tr>
+            <tr>
+                <th>Phone</th>
+                <td th:text="${payment.phoneNumber != null ? payment.phoneNumber : 'N/A'}">Phone</td>
+            </tr>
+            <tr>
+                <th>Status</th>
+                <td th:text="${payment.status}">Status</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Branded Footer CTA -->
+    <div class="footer">
+        <p class="footer-cta">Thank you for your business. For any queries, contact support.</p>
+        <p class="footer-sub">&copy; 2026 KEDevs. System Generated Administrative Document.</p>
+    </div>
+</body>
+</html>

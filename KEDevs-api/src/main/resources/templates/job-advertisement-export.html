@@ -94,8 +94,8 @@
                 <td th:text="${s.jobTitle}">Job Title</td>
                 <td th:text="${s.employerName}">Employer Name</td>
                 <td th:text="${s.durationType}">Type</td>
-                <td th:text="${#temporals.format(s.startDate, 'dd MMM yyyy, HH:mm')}">Start</td>
-                <td th:text="${#temporals.format(s.endDate, 'dd MMM yyyy, HH:mm')}">End</td>
+                <td th:text="${s.startDate != null ? #temporals.format(s.startDate, 'dd MMM yyyy, HH:mm') : 'N/A'}">Start</td>
+                <td th:text="${s.endDate != null ? #temporals.format(s.endDate, 'dd MMM yyyy, HH:mm') : 'N/A'}">End</td>
             </tr>
         </tbody>
     </table>

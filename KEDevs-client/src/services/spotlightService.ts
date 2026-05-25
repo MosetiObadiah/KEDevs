@@ -20,4 +20,11 @@ export const spotlightService = {
   async adminOverride(slotId: string, reason: string): Promise<ApiResponse<any>> {
     return apiClient.patch<ApiResponse<any>>(`/api/v1/spotlight/admin/slots/${slotId}/override`, { reason });
   },
+
+  async exportAdminSlotsPdf(): Promise<Blob> {
+    const response = await apiClient.get<Blob>('/api/v1/spotlight/admin/slots/export/pdf', {
+      responseType: 'blob'
+    });
+    return response as unknown as Blob;
+  },
 };

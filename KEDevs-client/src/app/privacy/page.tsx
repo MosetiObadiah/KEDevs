@@ -1,131 +1,105 @@
-'use client';
-
 import React from 'react';
-import { Shield, Eye, Users, Share2, Mail, Lock, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Metadata } from 'next';
 
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+export const metadata: Metadata = {
+  title: 'Privacy Policy | KEDevs',
+  description: 'Privacy Policy outlining how KEDevs handles your personal data.',
+};
 
-export default function PrivacyPolicyPage() {
+export default function PrivacyPage() {
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-20 pt-32 animate-in fade-in duration-700">
-      <div className="container mx-auto px-4 max-w-4xl">
-        <div className="text-center mb-16 space-y-4">
-           <Badge variant="outline" className="rounded-xl font-black tracking-widest text-[10px] uppercase bg-cyan-50 text-cyan-600 border-emerald-100 px-3 py-1">
-              DATA SOVEREIGNTY
-           </Badge>
-           <h1 className="text-5xl md:text-6xl font-black text-slate-900 tracking-tight">Privacy Policy</h1>
-           <p className="text-slate-500 font-medium uppercase text-[10px] tracking-[0.2em]">Last Updated: May 7, 2026</p>
-        </div>
+    <div className="max-w-4xl mx-auto py-16 px-6">
+      <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
+      <div className="prose prose-slate dark:prose-invert max-w-none space-y-6">
+        <p className="text-muted-foreground">Last Updated: {new Date().toLocaleDateString()}</p>
+        
+        <p>
+          At KEDevs, we take your privacy seriously. This Privacy Policy outlines how we collect, use, 
+          disclose, and safeguard your personal information when you use our platform. This policy is designed 
+          to comply with the Kenya Data Protection Act, 2019 (DPA).
+        </p>
 
-        <Card className="rounded-xl-[3rem] border-none shadow-2xl shadow-slate-200/50 overflow-hidden bg-white">
-          <CardContent className="p-12 md:p-20 space-y-12">
-            <section className="space-y-6">
-              <div className="flex items-center gap-4">
-                 <div className="h-10 w-10 rounded-xl bg-cyan-600 text-white flex items-center justify-center">
-                    <Shield className="h-5 w-5" />
-                 </div>
-                 <h2 className="text-2xl font-black text-slate-900">1. Introduction</h2>
-              </div>
-              <p className="text-lg text-slate-700 font-medium leading-relaxed">
-                Welcome to KEDevs-Connect. We are committed to protecting your personal information and your right to privacy.
-                If you have any questions or concerns about our policy, or our practices with regards to your personal information,
-                please contact us at <span className="text-primary font-medium">privacy@kedevs.com</span>.
-              </p>
-            </section>
+        <section>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">1. Data Controller</h2>
+          <p>
+            KEDevs acts as the Data Controller for the personal data collected through the Platform. 
+            For any privacy-related inquiries, please contact our support team.
+          </p>
+        </section>
 
-            <Separator className="bg-slate-50" />
+        <section>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">2. Personal Data We Collect</h2>
+          <p>We may collect the following types of personal data:</p>
+          <ul className="list-disc pl-6 space-y-2">
+            <li><strong>Identity Data:</strong> Full name, professional titles.</li>
+            <li><strong>Contact Data:</strong> Email address, phone number (required for M-Pesa payments).</li>
+            <li><strong>Professional Data:</strong> Resume/CV, bio, skills, GitHub URLs, LinkedIn URLs, tech stack.</li>
+            <li><strong>Verification Data:</strong> For employers, we collect KRA PINs and Certificates of Incorporation to verify business legitimacy.</li>
+            <li><strong>Technical Data:</strong> IP address, browser type, device information, and usage metrics.</li>
+          </ul>
+        </section>
 
-            <section className="space-y-6">
-              <div className="flex items-center gap-4">
-                 <div className="h-10 w-10 rounded-xl bg-cyan-600 text-white flex items-center justify-center">
-                    <Eye className="h-5 w-5" />
-                 </div>
-                 <h2 className="text-2xl font-black text-slate-900">2. Information We Collect</h2>
-              </div>
-              <p className="text-lg text-slate-700 font-medium leading-relaxed">
-                We collect personal information that you voluntarily provide to us when registering at the Services,
-                expressing an interest in obtaining information about us or our products and services.
-              </p>
-              <div className="p-8 rounded-xl-[2rem] bg-slate-50 border border-slate-100">
-                 <p className="text-sm font-medium text-slate-500 italic">
-                    The personal information that we collect depends on the context of your interactions with us and the choices you make.
-                 </p>
-              </div>
-            </section>
+        <section>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">3. How We Use Your Data</h2>
+          <p>We process your personal data under the following lawful bases: Consent, Contract Performance, and Legitimate Interest.</p>
+          <ul className="list-disc pl-6 space-y-2">
+            <li><strong>Matchmaking:</strong> To connect developers with relevant job opportunities and employers.</li>
+            <li><strong>Payments:</strong> To process payments for premium features (Spotlight, Pinned Jobs, Verifications) securely via Safaricom M-Pesa.</li>
+            <li><strong>Platform Operations:</strong> To send account notifications, security alerts, and system updates.</li>
+            <li><strong>Fraud Prevention:</strong> To verify employer legitimacy and prevent fraudulent developer profiles.</li>
+          </ul>
+        </section>
 
-            <Separator className="bg-slate-50" />
+        <section>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">4. Data Sharing and Disclosure</h2>
+          <p>We do not sell your personal data. We may share your data with:</p>
+          <ul className="list-disc pl-6 space-y-2">
+            <li><strong>Employers:</strong> If you are a developer, your public profile and job application data are visible to employers.</li>
+            <li><strong>Payment Processors:</strong> Safaricom (M-Pesa) for processing transactions.</li>
+            <li><strong>Service Providers:</strong> Cloud hosting providers (e.g., AWS/GCP) necessary for platform operation.</li>
+            <li><strong>Legal Authorities:</strong> When required by Kenyan law or to protect our legal rights.</li>
+          </ul>
+        </section>
 
-            <section className="space-y-6">
-              <div className="flex items-center gap-4">
-                 <div className="h-10 w-10 rounded-xl bg-cyan-600 text-white flex items-center justify-center">
-                    <Users className="h-5 w-5" />
-                 </div>
-                 <h2 className="text-2xl font-black text-slate-900">3. How We Use Your Data</h2>
-              </div>
-              <p className="text-lg text-slate-700 font-medium leading-relaxed mb-6">
-                We use personal information collected via our Services for a variety of business purposes described below:
-              </p>
-              <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 {[
-                    'Facilitate account creation',
-                    'Marketing and promotional intent',
-                    'Administrative updates',
-                    'Fulfill and manage orders',
-                    'Post public testimonials'
-                 ].map(item => (
-                    <li key={item} className="flex items-center gap-3 text-slate-700 font-medium text-sm">
-                       <div className="h-2 w-2 rounded-full bg-cyan-600" /> {item}
-                    </li>
-                 ))}
-              </ul>
-            </section>
+        <section>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">5. Data Subject Rights</h2>
+          <p>Under the Kenya Data Protection Act, you have the right to:</p>
+          <ul className="list-disc pl-6 space-y-2">
+            <li><strong>Right to be Informed:</strong> To know how your data is being used.</li>
+            <li><strong>Right of Access:</strong> To request a copy of the personal data we hold about you.</li>
+            <li><strong>Right to Rectification:</strong> To correct inaccurate or incomplete data.</li>
+            <li><strong>Right to Erasure (Right to be Forgotten):</strong> To request deletion of your personal data.</li>
+            <li><strong>Right to Data Portability:</strong> To receive your data in a structured, machine-readable format.</li>
+            <li><strong>Right to Object:</strong> To object to processing based on legitimate interests or for direct marketing.</li>
+          </ul>
+          <p className="mt-2">To exercise any of these rights, please contact our support team.</p>
+        </section>
 
-            <Separator className="bg-slate-50" />
+        <section>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">6. Data Retention</h2>
+          <p>
+            We retain your personal data only for as long as necessary to fulfill the purposes outlined in this policy. 
+            Account data is retained while your account is active. Transaction records (e.g., M-Pesa payment logs) may be 
+            retained for up to seven (7) years to comply with Kenyan tax and accounting laws.
+          </p>
+        </section>
 
-            <section className="space-y-6">
-               <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-xl bg-cyan-600 text-white flex items-center justify-center">
-                     <Share2 className="h-5 w-5" />
-                  </div>
-                  <h2 className="text-2xl font-black text-slate-900">4. Data Sharing</h2>
-               </div>
-               <p className="text-lg text-slate-700 font-medium leading-relaxed">
-                 We only share information with your consent, to comply with laws, to provide you with services,
-                 to protect your rights, or to fulfill business obligations.
-               </p>
-            </section>
+        <section>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">7. Security Measures</h2>
+          <p>
+            We implement robust technical and organizational measures to protect your data, including JWT-based authentication, 
+            encryption of sensitive data in transit (HTTPS), and restricted access controls. While we strive to protect your data, 
+            no system is 100% secure.
+          </p>
+        </section>
 
-            <Separator className="bg-slate-50" />
-
-            <section className="space-y-8">
-               <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
-                     <Mail className="h-5 w-5" />
-                  </div>
-                  <h2 className="text-2xl font-black text-slate-900">5. Contact Us</h2>
-               </div>
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="p-8 rounded-xl-[2rem] bg-slate-900 text-white space-y-4">
-                     <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Official Correspondence</p>
-                     <p className="text-sm font-medium leading-relaxed italic">
-                        KEDevs Connect Ltd.<br />
-                        P.O. Box 12345-00100<br />
-                        Nairobi, Kenya
-                     </p>
-                  </div>
-                  <div className="flex flex-col justify-center">
-                     <p className="text-sm text-slate-500 font-medium">
-                        For immediate privacy requests or data deletion, please email our Data Protection Officer at:
-                     </p>
-                     <p className="text-lg font-black text-primary mt-2">dpo@kedevs.com</p>
-                  </div>
-               </div>
-            </section>
-          </CardContent>
-        </Card>
+        <section>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">8. Changes to this Policy</h2>
+          <p>
+            We may update this Privacy Policy from time to time. We will notify you of any significant changes by posting the 
+            new policy on the Platform and updating the "Last Updated" date.
+          </p>
+        </section>
       </div>
     </div>
   );

@@ -60,9 +60,39 @@ export const adminService = {
     return apiClient.get<ApiResponse<PaginatedResponse<any>>>(`/api/v1/admin/audit?${q.toString()}`);
   },
 
+  async exportAuditPdf(params: { action?: string; actorId?: string } = {}): Promise<Blob> {
+    const headers = apiClient.getHeaders();
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+    const q = new URLSearchParams();
+    if (params.action) q.append('action', params.action);
+    if (params.actorId) q.append('actorId', params.actorId);
+    const response = await fetch(`${baseUrl}/api/v1/admin/audit/export/pdf?${q.toString()}`, {
+      method: 'GET',
+      headers,
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to export audit logs to PDF: ${response.statusText}`);
+    }
+    return response.blob();
+  },
+
   async getUsers(filters: Record<string, any> = {}): Promise<ApiResponse<PaginatedResponse<any>>> {
     const query = new URLSearchParams(Object.entries(filters).filter(([_, value]) => value != null) as any).toString();
     return apiClient.get<ApiResponse<PaginatedResponse<any>>>(`/api/v1/admin/users${query ? `?${query}` : ''}`);
+  },
+
+  async exportUsersPdf(filters: Record<string, any> = {}): Promise<Blob> {
+    const headers = apiClient.getHeaders();
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+    const query = new URLSearchParams(Object.entries(filters).filter(([_, value]) => value != null) as any).toString();
+    const response = await fetch(`${baseUrl}/api/v1/admin/users/export/pdf${query ? `?${query}` : ''}`, {
+      method: 'GET',
+      headers,
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to export users to PDF: ${response.statusText}`);
+    }
+    return response.blob();
   },
 
   async getUserById(userId: string): Promise<ApiResponse<any>> {

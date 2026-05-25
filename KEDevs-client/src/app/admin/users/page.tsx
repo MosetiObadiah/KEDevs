@@ -80,6 +80,7 @@ export default function UserManagement() {
   const [filterAuthProvider, setFilterAuthProvider] = useState('ALL');
   const [dateAfter, setDateAfter] = useState('');
   const [dateBefore, setDateBefore] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
 
   // Confirmation Modals State
   const [isDeactivateConfirmOpen, setIsDeactivateConfirmOpen] = useState(false);
@@ -131,177 +132,29 @@ export default function UserManagement() {
 
   const handleExport = async (format: 'csv' | 'pdf') => {
     if (format === 'pdf') {
-       const { jsPDF } = await import('jspdf');
-       const doc = new jsPDF({
-          orientation: 'portrait',
-          unit: 'mm',
-          format: 'a4'
-       });
+      try {
+        setIsExporting(true);
+        const params: any = {};
+        if (filterRole !== 'ALL') params.role = filterRole;
+        if (filterStatus !== 'ALL') params.status = filterStatus;
 
-       const drawHeader = (pageNum: number) => {
-          // Header Strip
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(16);
-          doc.setTextColor(16, 185, 129); // emerald-500 KEDevs Brand
-          doc.text('KEDevs', 15, 18);
-
-          doc.setFontSize(13);
-          doc.setTextColor(15, 23, 42); // slate-900
-          doc.text('USER DATABASE REPORT', 105, 18, { align: 'center' });
-
-          doc.setFontSize(8);
-          doc.setTextColor(100, 116, 139); // slate-500
-          const exportDate = formatDateString(new Date()) + ' ' + formatTimeString(new Date());
-          doc.text(`EXPORTED: ${exportDate}`, 195, 15, { align: 'right' });
-          doc.text(`PAGE: ${pageNum}`, 195, 20, { align: 'right' });
-
-          // Border bottom of header
-          doc.setDrawColor(15, 23, 42); // slate-900
-          doc.setLineWidth(0.5);
-          doc.line(15, 24, 195, 24);
-       };
-
-       const drawFooter = (pageNum: number) => {
-          const footerY = 278;
-          // Divider
-          doc.setDrawColor(226, 232, 240); // slate-200
-          doc.setLineWidth(0.3);
-          doc.line(15, footerY - 4, 195, footerY - 4);
-
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(10);
-          doc.setTextColor(37, 99, 235); // blue-600
-          doc.text("KEDevs - Kenya's Premier Tech Talent Network", 105, footerY, { align: 'center' });
-
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(8);
-          doc.setTextColor(100, 116, 139); // slate-500
-          doc.text("© 2026 KEDevs. This report is system generated and contains up-to-date market data.", 105, footerY + 4, { align: 'center' });
-
-          doc.setFontSize(7);
-          doc.setTextColor(148, 163, 184); // slate-400
-          doc.text("VERIFIED TECH ECOSYSTEM REPORT", 105, footerY + 8, { align: 'center' });
-       };
-
-       let pageNum = 1;
-       drawHeader(pageNum);
-
-       // Active Filters Metadata (Meta Bar)
-       doc.setFillColor(248, 250, 252); // slate-50
-       doc.setDrawColor(226, 232, 240); // slate-200
-       doc.setLineWidth(0.3);
-       doc.roundedRect(15, 28, 180, 22, 3, 3, 'FD');
-
-       doc.setFont('helvetica', 'bold');
-       doc.setFontSize(8);
-       doc.setTextColor(71, 85, 105); // slate-600
-       doc.text("DATABASE SEARCH CONTEXT & ACTIVE FILTERS", 20, 34);
-
-       doc.setFont('helvetica', 'normal');
-       doc.setFontSize(9);
-       doc.setTextColor(15, 23, 42); // slate-900
-       const roleLabel = filterRole === 'ALL' ? 'All Roles' : filterRole.charAt(0) + filterRole.slice(1).toLowerCase();
-       const statusLabel = filterStatus === 'ALL' ? 'All Statuses' : filterStatus === 'BANNED' ? 'Deactivated' : filterStatus.charAt(0) + filterStatus.slice(1).toLowerCase();
-       const providerLabel = filterAuthProvider === 'ALL' ? 'All Providers' : filterAuthProvider.charAt(0) + filterAuthProvider.slice(1).toLowerCase();
-       
-       const filterText = `Role: ${roleLabel}  |  Status: ${statusLabel}  |  Auth Provider: ${providerLabel}`;
-       doc.text(filterText, 20, 39);
-
-       doc.setFontSize(8);
-       doc.setTextColor(100, 116, 139); // slate-500
-       doc.text(`Found `, 20, 44);
-       doc.setFont('helvetica', 'bold');
-       doc.setTextColor(15, 23, 42);
-       doc.text(`${filteredUsers.length}`, 30, 44);
-       doc.setFont('helvetica', 'normal');
-       doc.setTextColor(100, 116, 139);
-       doc.text(` active user records matching these criteria.`, 38, 44);
-
-       // Table Header
-       const drawTableHeader = (startY: number) => {
-          doc.setFillColor(241, 245, 249); // slate-100
-          doc.rect(15, startY, 180, 8, 'F');
-
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(8);
-          doc.setTextColor(71, 85, 105); // slate-600
-          doc.text('FULL NAME', 18, startY + 5.5);
-          doc.text('EMAIL ADDRESS', 65, startY + 5.5);
-          doc.text('ROLE', 115, startY + 5.5);
-          doc.text('STATUS', 140, startY + 5.5);
-          doc.text('DATE JOINED', 165, startY + 5.5);
-
-          doc.setDrawColor(226, 232, 240); // slate-200
-          doc.setLineWidth(0.3);
-          doc.line(15, startY + 8, 195, startY + 8);
-       };
-
-       let y = 56;
-       drawTableHeader(y);
-       y += 14;
-
-       // Rows
-       doc.setFont('helvetica', 'normal');
-       doc.setFontSize(9);
-
-       filteredUsers.forEach((u) => {
-          if (y > 265) {
-             drawFooter(pageNum);
-             doc.addPage();
-             pageNum++;
-             y = 28;
-             drawHeader(pageNum);
-             drawTableHeader(y);
-             y += 14;
-          }
-
-          // User details
-          const name = u.fullName || 'Unknown';
-          doc.setFont('helvetica', 'bold');
-          doc.setTextColor(15, 23, 42); // slate-900
-          doc.text(name.length > 22 ? name.substring(0, 20) + '..' : name, 18, y);
-
-          // Email
-          doc.setFont('helvetica', 'normal');
-          doc.setTextColor(71, 85, 105); // slate-600
-          const email = u.email || '';
-          doc.text(email.length > 24 ? email.substring(0, 22) + '..' : email, 65, y);
-
-          // Role
-          const roleText = u.role === 'DEVELOPER' ? 'Developer' : u.role === 'EMPLOYER' ? 'Employer' : u.role === 'ADMIN' ? 'Admin' : u.role;
-          doc.text(roleText, 115, y);
-
-          // Status
-          doc.setFont('helvetica', 'bold');
-          if (u.accountStatus === 'ACTIVE') {
-             doc.setTextColor(16, 124, 65); // emerald-600
-             doc.text('Active', 140, y);
-          } else if (u.accountStatus === 'SUSPENDED') {
-             doc.setTextColor(217, 119, 6); // amber-600
-             doc.text('Suspended', 140, y);
-          } else {
-             doc.setTextColor(220, 38, 38); // red-600
-             doc.text('Deactivated', 140, y);
-          }
-
-          // Joined Date
-          doc.setFont('helvetica', 'normal');
-          doc.setTextColor(71, 85, 105);
-          doc.text(formatDateString(u.createdAt), 165, y);
-
-          // Divider line
-          doc.setDrawColor(241, 245, 249); // slate-50
-          doc.setLineWidth(0.2);
-          doc.line(15, y + 6, 195, y + 6);
-
-          y += 10;
-       });
-
-       drawFooter(pageNum);
-
-       doc.save(`users_report_${new Date().toISOString().split('T')[0]}.pdf`);
-       toast.success('PDF Database Report generated successfully');
-       return;
+        const blob = await adminService.exportUsersPdf(params);
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `users_report_${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        window.URL.revokeObjectURL(url);
+        link.remove();
+        toast.success('PDF Database Report generated successfully');
+      } catch (e) {
+        console.error(e);
+        toast.error('Failed to export PDF');
+      } finally {
+        setIsExporting(false);
+      }
+      return;
     }
 
     const headers = ['FullName', 'Email', 'Role', 'Status', 'JoinedAt'];

@@ -201,6 +201,33 @@ public class SpotlightService {
         });
     }
 
+    public List<SpotlightSlotResponse> getAdminSlotsForExport() {
+        List<SpotlightSlot> slots = spotlightSlotRepository.findAll();
+        
+        Set<UUID> devIds = slots.stream().map(SpotlightSlot::getDeveloperId).collect(Collectors.toSet());
+        Map<UUID, User> userMap = userRepository.findAllById(devIds).stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
+
+        return slots.stream().map(slot -> {
+            String devName = userMap.containsKey(slot.getDeveloperId())
+                    ? userMap.get(slot.getDeveloperId()).getFullName()
+                    : "Unknown Developer";
+
+            return new SpotlightSlotResponse(
+                    slot.getId(),
+                    slot.getDeveloperId(),
+                    devName,
+                    slot.getType(),
+                    slot.getStartDate(),
+                    slot.getEndDate(),
+                    slot.isActive(),
+                    slot.isOverriddenByAdmin(),
+                    slot.getPaymentId(),
+                    slot.getCreatedAt()
+            );
+        }).toList();
+    }
+
     public Page<PastSpotlightResponse> getPastSpotlights(Pageable pageable) {
         Page<SpotlightSlot> slots = spotlightSlotRepository
                 .findAllByIsActiveFalseAndOverriddenByAdminFalseOrderByEndDateDesc(pageable);

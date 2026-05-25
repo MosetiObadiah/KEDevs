@@ -121,100 +121,15 @@ export default function MyJobPosts() {
     setIsExporting(true);
     try {
       if (format === 'pdf') {
-        const { jsPDF } = await import('jspdf');
-        const doc = new jsPDF({
-          orientation: 'portrait',
-          unit: 'mm',
-          format: 'a4'
-        });
-
-        // Header Strip
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(16);
-        doc.setTextColor(16, 185, 129); // emerald-500 KEDevs Brand
-        doc.text('KEDevs', 15, 18);
-
-        doc.setFontSize(13);
-        doc.setTextColor(15, 23, 42); // slate-900
-        doc.text('MY JOB POSTINGS REPORT', 105, 18, { align: 'center' });
-
-        doc.setFontSize(8);
-        doc.setTextColor(100, 116, 139); // slate-505
-        const exportDate = formatDateString(new Date());
-        doc.text(`EXPORTED: ${exportDate}`, 195, 18, { align: 'right' });
-
-        // Divider line
-        doc.setDrawColor(15, 23, 42);
-        doc.setLineWidth(0.5);
-        doc.line(15, 24, 195, 24);
-
-        // Active Filters Metadata block
-        doc.setFillColor(248, 250, 252); // slate-50
-        doc.setDrawColor(226, 232, 240); // slate-200
-        doc.setLineWidth(0.3);
-        doc.roundedRect(15, 28, 180, 18, 3, 3, 'FD');
-
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(8);
-        doc.setTextColor(71, 85, 105);
-        doc.text("FILTERS CONTEXT", 20, 33);
-
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(9);
-        doc.setTextColor(15, 23, 42);
-        doc.text(`Search: ${searchTerm || 'None'}  |  Status: ${statusFilter}  |  Type: ${typeFilter}  |  Date range: ${dateFilter}`, 20, 39);
-
-        // Table Header
-        let y = 56;
-        doc.setFillColor(241, 245, 249);
-        doc.rect(15, y, 180, 8, 'F');
-
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(8);
-        doc.setTextColor(71, 85, 105);
-        doc.text('JOB TITLE', 18, y + 5.5);
-        doc.text('COMPANY / POSTER', 70, y + 5.5);
-        doc.text('JOB TYPE / WORK TYPE', 120, y + 5.5);
-        doc.text('STATUS', 170, y + 5.5);
-
-        doc.setDrawColor(226, 232, 240);
-        doc.setLineWidth(0.3);
-        doc.line(15, y + 8, 195, y + 8);
-        
-        y += 14;
-
-        filteredPosts.forEach((post) => {
-          if (y > 270) {
-            doc.addPage();
-            y = 25;
-          }
-
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(9);
-          doc.setTextColor(15, 23, 42);
-          const title = post.title || '';
-          doc.text(title.length > 25 ? title.substring(0, 23) + '..' : title, 18, y);
-
-          doc.setFont('helvetica', 'normal');
-          doc.setTextColor(71, 85, 105);
-          const company = post.isPeerSourced || post.postedByRole !== 'EMPLOYER' ? (post.postedByName || 'Community') : post.companyName;
-          doc.text(company.length > 25 ? company.substring(0, 23) + '..' : company, 70, y);
-
-          const typeText = `${formatJobType(post.jobType)} (${post.workType})`;
-          doc.text(typeText, 120, y);
-
-          const isExpired = isJobExpired(post.applicationDeadline);
-          const statusText = post.status === 'REMOVED' ? 'REMOVED' : isExpired ? 'EXPIRED' : post.status === 'OPEN' ? 'ACTIVE' : 'CLOSED';
-          doc.text(statusText, 170, y);
-
-          doc.setDrawColor(241, 245, 249);
-          doc.setLineWidth(0.2);
-          doc.line(15, y + 4, 195, y + 4);
-
-          y += 10;
-        });
-
-        doc.save(`my_job_posts_report_${new Date().toISOString().split('T')[0]}.pdf`);
+        const blob = await jobService.exportMyPostsPdf();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `my_job_posts_report_${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
         toast.success('PDF Report generated successfully');
         return;
       }

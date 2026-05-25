@@ -171,8 +171,8 @@
                     <div th:if="${dev.publicPhone != null and !dev.publicPhone.isEmpty()}" style="font-size: 9px; color: #64748b;" th:text="${dev.publicPhone}">+254...</div>
                 </td>
                 <td>
-                    <span th:class="${'badge ' + (dev.availabilityStatus == 'OPEN_TO_OFFERS' ? 'status-open' : 'status-closed')}" 
-                          th:text="${dev.availabilityStatus == 'OPEN_TO_OFFERS' ? 'Open to offers' : 'Not available'}">Open to offers</span>
+                    <span th:class="${'badge ' + (dev.availabilityStatus != null and dev.availabilityStatus.name() == 'OPEN_TO_OFFERS' ? 'status-open' : 'status-closed')}" 
+                          th:text="${dev.availabilityStatus != null and dev.availabilityStatus.name() == 'OPEN_TO_OFFERS' ? 'Open to offers' : 'Not available'}">Open to offers</span>
                 </td>
                 <td>
                     <span th:each="skill : ${dev.skills}" class="skill-badge" th:text="${skill}">Java</span>

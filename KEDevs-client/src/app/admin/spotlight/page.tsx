@@ -10,8 +10,6 @@ import {
 } from 'lucide-react';
 import { cn, formatDateString } from '@/lib/utils';
 import { toast } from 'sonner';
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -84,39 +82,17 @@ export default function SpotlightManagement() {
     }
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     try {
-      const doc = new jsPDF();
-      doc.setFillColor(15, 23, 42);
-      doc.rect(0, 0, doc.internal.pageSize.width, 24, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
-      doc.text('KEDevs', 14, 16);
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-      doc.text('SPOTLIGHT REGISTRY EXPORT', doc.internal.pageSize.width - 14, 16, { align: 'right' });
-      
-      const tableData = slots.map(slot => [
-        slot.developerName || 'Unknown',
-        slot.type,
-        slot.isActive ? 'Active' : (slot.overriddenByAdmin ? 'Cleared' : 'Expired'),
-        formatDateString(slot.endDate)
-      ]);
-
-      (doc as any).autoTable({
-        startY: 30,
-        head: [['Developer', 'Package Tier', 'Status', 'Expiration']],
-        body: tableData,
-        theme: 'striped',
-        headStyles: { fillColor: [14, 165, 233] }
-      });
-
-      doc.setFontSize(8);
-      doc.setTextColor(100, 100, 100);
-      doc.text("KEDevs — Kenya's Premier Tech Talent Network", 14, doc.internal.pageSize.height - 10);
-      
-      doc.save(`kedevs-spotlight-export-${new Date().getTime()}.pdf`);
+      const blob = await spotlightService.exportAdminSlotsPdf();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `spotlight_registry_${new Date().getTime()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
       toast.success('PDF generated successfully');
     } catch (e) {
       console.error(e);

@@ -116,6 +116,28 @@ export const jobService = {
     return response.blob();
   },
 
+  async exportMyPostsPdf(): Promise<Blob> {
+    const headers = apiClient.getHeaders();
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+    const response = await fetch(`${baseUrl}/api/v1/jobs/my-posts/export/pdf`, {
+      method: 'GET',
+      headers,
+    });
+    if (!response.ok) throw new Error('Failed to export my posts to PDF');
+    return response.blob();
+  },
+
+  async exportJobApplicationsPdf(jobId: string): Promise<Blob> {
+    const headers = apiClient.getHeaders();
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+    const response = await fetch(`${baseUrl}/api/v1/jobs/${jobId}/applications/export/pdf`, {
+      method: 'GET',
+      headers,
+    });
+    if (!response.ok) throw new Error('Failed to export job applications to PDF');
+    return response.blob();
+  },
+
   async getPinnedSlotAvailability(): Promise<ApiResponse<any>> {
     return apiClient.get<ApiResponse<any>>('/api/v1/jobs/pinned/slots');
   }

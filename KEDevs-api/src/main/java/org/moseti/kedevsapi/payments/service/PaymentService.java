@@ -584,6 +584,15 @@ public class PaymentService {
                 userId, PaymentType.VERIFIED_BADGE, PaymentStatus.COMPLETED);
     }
 
+    public Payment getPaymentEntityByIdAndUserId(UUID paymentId, UUID userId) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
+        if (!payment.getUserId().equals(userId)) {
+            throw new ForbiddenException("Not authorized to view this payment");
+        }
+        return payment;
+    }
+
     // ====================== Private Helpers ======================
 
     /** Fallback — returns an empty string when phone number is not in scope. */

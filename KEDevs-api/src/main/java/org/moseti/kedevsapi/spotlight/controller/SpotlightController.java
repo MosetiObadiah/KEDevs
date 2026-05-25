@@ -129,4 +129,17 @@ public class SpotlightController {
                 .contentType(MediaType.parseMediaType(contentType))
                 .body(new ByteArrayResource(file));
     }
+
+    @Operation(summary = "Admin: export paginated spotlight slot history", description = "Requires ADMIN role.")
+    @GetMapping("/admin/slots/export/pdf")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<byte[]> exportAdminSlotsPdf() {
+        var slots = spotlightService.getAdminSlotsForExport();
+        byte[] pdfBytes = pdfExportService.generateAdminSpotlightPdf(slots);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"spotlight_registry.pdf\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdfBytes);
+    }
 }

@@ -37,6 +37,20 @@ export const paymentService = {
     return apiClient.get<ApiResponse<any>>(`/api/v1/payments/history?page=${page}&size=${size}`);
   },
 
+  async exportPaymentReceiptPdf(paymentId: string): Promise<Blob> {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+    const headers: Record<string, string> = {};
+    const response = await fetch(`${baseUrl}/api/v1/payments/${paymentId}/receipt/pdf`, {
+      method: 'GET',
+      credentials: 'include',
+      headers,
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to export payment receipt: ${response.statusText}`);
+    }
+    return response.blob();
+  },
+
   async confirmSpotlight(): Promise<ApiResponse<any>> {
     return apiClient.post<ApiResponse<any>>('/api/v1/payments/confirm-spotlight', {});
   },

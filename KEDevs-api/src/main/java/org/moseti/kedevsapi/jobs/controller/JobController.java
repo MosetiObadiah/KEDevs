@@ -130,6 +130,16 @@ public class JobController {
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("My job posts fetched", response));
     }
 
+    @Operation(summary = "Export own job posts to PDF", description = "Requires authenticated user.")
+    @GetMapping("/my-posts/export/pdf")
+    public ResponseEntity<Resource> exportMyJobPostsToPdf() {
+        byte[] pdf = jobService.exportMyJobPostsToPdf(getCurrentUserId());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"my_job_posts.pdf\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(new ByteArrayResource(pdf));
+    }
+
     @Operation(summary = "List own job applications", description = "Requires DEVELOPER role.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "My applications fetched successfully"),
@@ -259,6 +269,17 @@ public class JobController {
             @PageableDefault(size = 10) Pageable pageable) {
         Page<JobApplicationResponse> response = jobService.getJobApplications(getCurrentUserId(), id, pageable);
         return ResponseEntity.ok(org.moseti.kedevsapi.shared.dto.ApiResponse.success("Applications fetched", response));
+    }
+
+    @Operation(summary = "Export applications for a job to PDF", description = "Requires ownership of the post.")
+    @GetMapping("/{id}/applications/export/pdf")
+    public ResponseEntity<Resource> exportJobApplicationsToPdf(
+            @Parameter(description = "ID of the job post") @PathVariable UUID id) {
+        byte[] pdf = jobService.exportJobApplicationsToPdf(getCurrentUserId(), id);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"job_applications.pdf\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(new ByteArrayResource(pdf));
     }
 
     @Operation(summary = "Update application status", description = "Requires ownership of the job post.")

@@ -88,6 +88,20 @@ public class PdfExportService {
         }
     }
 
+    public byte[] generateAdminSpotlightPdf(List<org.moseti.kedevsapi.spotlight.dto.SpotlightDtos.SpotlightSlotResponse> slots) {
+        try {
+            Context context = new Context();
+            context.setVariable("slots", slots);
+            enrichContext(context, "None (Full Registry)");
+
+            String html = templateEngine.process("admin-spotlight-export", context);
+            return renderPdf(html);
+        } catch (Exception e) {
+            log.error("Failed to generate Admin Spotlight PDF export", e);
+            throw new RuntimeException("Failed to generate Admin Spotlight PDF export", e);
+        }
+    }
+
     public byte[] generatePastJobAdvertisementsPdf(List<org.moseti.kedevsapi.jobs.dto.PinnedJobSlotDtos.PastPinnedJobSlotResponse> slots) {
         try {
             Context context = new Context();
@@ -113,6 +127,20 @@ public class PdfExportService {
         } catch (Exception e) {
             log.error("Failed to generate Payment PDF export", e);
             throw new RuntimeException("Failed to generate Payment PDF export", e);
+        }
+    }
+
+    public byte[] generatePaymentReceiptPdf(Payment payment) {
+        try {
+            Context context = new Context();
+            context.setVariable("payment", payment);
+            enrichContext(context, "Payment Receipt");
+
+            String html = templateEngine.process("payment-receipt-export", context);
+            return renderPdf(html);
+        } catch (Exception e) {
+            log.error("Failed to generate Payment Receipt PDF export", e);
+            throw new RuntimeException("Failed to generate Payment Receipt PDF export", e);
         }
     }
 
@@ -245,6 +273,49 @@ public class PdfExportService {
         } catch (Exception e) {
             log.error("Failed to generate Flags PDF export", e);
             throw new RuntimeException("Failed to generate Flags PDF export", e);
+        }
+    }
+
+    public byte[] generateAuditPdf(List<org.moseti.kedevsapi.admin.dto.AdminDtos.AdminActionResponse> logs, String filterSummary) {
+        try {
+            Context context = new Context();
+            context.setVariable("logs", logs);
+            enrichContext(context, filterSummary != null && !filterSummary.isBlank() ? filterSummary : "None (All logs)");
+
+            String html = templateEngine.process("audit-export", context);
+            return renderPdf(html);
+        } catch (Exception e) {
+            log.error("Failed to generate Audit PDF export", e);
+            throw new RuntimeException("Failed to generate Audit PDF export", e);
+        }
+    }
+
+    public byte[] generateUsersPdf(List<org.moseti.kedevsapi.admin.dto.AdminDtos.UserSummaryResponse> users, String filterSummary) {
+        try {
+            Context context = new Context();
+            context.setVariable("users", users);
+            enrichContext(context, filterSummary != null && !filterSummary.isBlank() ? filterSummary : "None (All users)");
+
+            String html = templateEngine.process("users-export", context);
+            return renderPdf(html);
+        } catch (Exception e) {
+            log.error("Failed to generate Users PDF export", e);
+            throw new RuntimeException("Failed to generate Users PDF export", e);
+        }
+    }
+
+    public byte[] generateApplicationsPdf(List<org.moseti.kedevsapi.jobs.dto.JobDtos.JobApplicationResponse> applications, String filterSummary, String jobTitle) {
+        try {
+            Context context = new Context();
+            context.setVariable("applications", applications);
+            context.setVariable("jobTitle", jobTitle != null && !jobTitle.isBlank() ? jobTitle : "Unknown Job");
+            enrichContext(context, filterSummary != null && !filterSummary.isBlank() ? filterSummary : "None (All applicants)");
+
+            String html = templateEngine.process("applications-export", context);
+            return renderPdf(html);
+        } catch (Exception e) {
+            log.error("Failed to generate Applications PDF export", e);
+            throw new RuntimeException("Failed to generate Applications PDF export", e);
         }
     }
 }

@@ -109,6 +109,33 @@ public class JobService {
         return pdfExportService.generateJobPdf(jobs, request, generatedBy);
     }
 
+    public byte[] exportMyJobPostsToPdf(UUID currentUserId) {
+        Page<JobSummaryResponse> jobsPage = getMyJobPosts(currentUserId, Pageable.unpaged());
+        List<JobSummaryResponse> jobs = jobsPage.getContent();
+
+        String generatedBy = "Guest User";
+        if (currentUserId != null) {
+            generatedBy = userRepository.findById(currentUserId).map(User::getFullName).orElse("Unknown User");
+        }
+
+        return pdfExportService.generateJobPdf(jobs, null, generatedBy);
+    }
+
+    public byte[] exportJobApplicationsToPdf(UUID currentUserId, UUID jobId) {
+        JobPost job = jobPostRepository.findById(jobId)
+                .orElseThrow(() -> new JobNotFoundException("Job not found"));
+
+        if (!job.getPostedById().equals(currentUserId)) {
+            throw new ForbiddenException("Not authorized to view these applications");
+        }
+
+        Page<JobApplicationResponse> appsPage = jobApplicationRepository.findByJobId(jobId, Pageable.unpaged())
+                .map(this::toJobApplicationResponse);
+        List<JobApplicationResponse> applications = appsPage.getContent();
+
+        return pdfExportService.generateApplicationsPdf(applications, "None (All applicants)", job.getTitle());
+    }
+
     public JobFilterMetadataResponse getFilterMetadata() {
         return new JobFilterMetadataResponse(
                 jobPostRepository.findUniqueQualifications(),

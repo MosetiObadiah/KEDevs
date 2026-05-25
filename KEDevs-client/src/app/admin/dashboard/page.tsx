@@ -414,52 +414,7 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        {/* Chart 3b: Work Arrangement Types Donut Chart */}
-        <div className="relative group/chart">
-          <div className="absolute top-4 right-4 z-10 flex items-center gap-2 opacity-0 group-hover/chart:opacity-100 transition-opacity">
-            <label className="flex items-center gap-2 cursor-pointer bg-white/95 backdrop-blur border border-border p-2 rounded-xl shadow-sm hover:bg-slate-50 transition-colors">
-              <input 
-                type="checkbox" 
-                checked={selectedCharts.includes('work-types')}
-                onChange={() => toggleSelectChart('work-types')}
-                className="rounded-xl border-slate-300 text-primary focus:ring-primary h-4 w-4"
-              />
-              <span className="text-[10px] font-medium text-slate-700 select-none">Select to Export</span>
-            </label>
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={() => handleExport(['work-types'])} 
-              disabled={isExporting}
-              className="bg-white/95 backdrop-blur border border-border rounded-xl shadow-sm h-8 w-8 hover:bg-slate-50"
-            >
-              <Download className="h-4 w-4 text-slate-700" />
-            </Button>
-          </div>
-          <Card className="border-border/50 shadow-sm h-[400px] flex flex-col bg-card">
-            <CardHeader className="p-8 pb-2">
-              <CardTitle className="text-lg font-black tracking-tight">Work Arrangement Types</CardTitle>
-              <CardDescription className="font-medium text-slate-500">Remote, hybrid, and on-site structural breakdown</CardDescription>
-            </CardHeader>
-            <CardContent className="p-6 flex-1 min-h-0 flex items-center justify-center">
-              {workTypeData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={workTypeData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={4} dataKey="value">
-                      {workTypeData.map((entry, index) => (
-                        <Cell key={`cell-wt-${index}`} fill={DONUT_COLORS[index % DONUT_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend verticalAlign="bottom" height={36} formatter={(value) => <span className="text-xs font-medium text-slate-700 capitalize">{value}</span>} />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <p className="text-slate-500 font-medium text-xs">No work arrangement data recorded.</p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+
 
         {/* Chart 4: Developer Availability Donut Chart */}
         <div className="relative group/chart">
@@ -553,102 +508,9 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        {/* Chart 6: Geographic Distribution (Horizontal Bar Chart) */}
-        <div className="relative group/chart">
-          <div className="absolute top-4 right-4 z-10 flex items-center gap-2 opacity-0 group-hover/chart:opacity-100 transition-opacity">
-            <label className="flex items-center gap-2 cursor-pointer bg-white/95 backdrop-blur border border-border p-2 rounded-xl shadow-sm hover:bg-slate-50 transition-colors">
-              <input 
-                type="checkbox" 
-                checked={selectedCharts.includes('geographic-distribution')}
-                onChange={() => toggleSelectChart('geographic-distribution')}
-                className="rounded-xl border-slate-300 text-primary focus:ring-primary h-4 w-4"
-              />
-              <span className="text-[10px] font-medium text-slate-700 select-none">Select to Export</span>
-            </label>
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={() => handleExport(['geographic-distribution'])} 
-              disabled={isExporting}
-              className="bg-white/95 backdrop-blur border border-border rounded-xl shadow-sm h-8 w-8 hover:bg-slate-50"
-            >
-              <Download className="h-4 w-4 text-slate-700" />
-            </Button>
-          </div>
-          <Card className="border-border/50 shadow-sm h-[400px] flex flex-col bg-card">
-            <CardHeader className="p-8 pb-2">
-              <CardTitle className="text-lg font-black tracking-tight">Geographic Distribution</CardTitle>
-              <CardDescription className="font-medium text-slate-500">Developer concentration by metropolitan area</CardDescription>
-            </CardHeader>
-            <CardContent className="p-6 flex-1 min-h-0">
-              {locations.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={locations} layout="vertical" margin={{ left: 20, right: 20, top: 10, bottom: 10 }}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                    <XAxis type="number" tick={{fontSize: 9, fontWeight: 900, fill: '#94a3b8'}} axisLine={false} tickLine={false} />
-                    <YAxis dataKey="city" type="category" tick={{fontSize: 9, fontWeight: 900, fill: '#475569'}} axisLine={false} tickLine={false} width={80} />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#8b5cf6" radius={[0, 8, 8, 0]} name="Developers" />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <p className="text-slate-500 font-medium text-xs flex items-center justify-center h-full">No location parameters loaded.</p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
 
-        {/* Chart 7: Stacked Revenue by Payment Type (Bar Chart) */}
-        <div className="relative group/chart">
-          <div className="absolute top-4 right-4 z-10 flex items-center gap-2 opacity-0 group-hover/chart:opacity-100 transition-opacity">
-            <label className="flex items-center gap-2 cursor-pointer bg-white/95 backdrop-blur border border-border p-2 rounded-xl shadow-sm hover:bg-slate-50 transition-colors">
-              <input 
-                type="checkbox" 
-                checked={selectedCharts.includes('revenue-by-type')}
-                onChange={() => toggleSelectChart('revenue-by-type')}
-                className="rounded-xl border-slate-300 text-primary focus:ring-primary h-4 w-4"
-              />
-              <span className="text-[10px] font-medium text-slate-700 select-none">Select to Export</span>
-            </label>
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={() => handleExport(['revenue-by-type'])} 
-              disabled={isExporting}
-              className="bg-white/95 backdrop-blur border border-border rounded-xl shadow-sm h-8 w-8 hover:bg-slate-50"
-            >
-              <Download className="h-4 w-4 text-slate-700" />
-            </Button>
-          </div>
-          <Card className="border-border/50 shadow-sm h-[400px] flex flex-col bg-card">
-            <CardHeader className="p-8 pb-2">
-              <CardTitle className="text-lg font-black tracking-tight">Revenue Streams Breakdown</CardTitle>
-              <CardDescription className="font-medium text-slate-500">Monthly allocations by spotlight, pin, and badges</CardDescription>
-            </CardHeader>
-            <CardContent className="p-6 flex-1 min-h-0">
-              {(!data?.revenue?.revenueByType || data.revenue.revenueByType.length === 0) && flatRevenueByType.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
-                  <BarChart3 className="w-12 h-12 mb-3 opacity-30" />
-                  <p className="font-medium">No revenue data yet</p>
-                  <p className="text-sm">Revenue streams will appear here once payments are processed</p>
-                </div>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={flatRevenueByType} margin={{ left: 10, right: 10, top: 10, bottom: 10 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="month" tick={{fontSize: 9, fontWeight: 900, fill: '#94a3b8'}} axisLine={false} tickLine={false} />
-                    <YAxis tick={{fontSize: 9, fontWeight: 900, fill: '#94a3b8'}} axisLine={false} tickLine={false} />
-                    <Tooltip />
-                    <Legend formatter={(value) => <span className="text-xs font-medium text-slate-700">{value}</span>} />
-                    <Bar dataKey="SPOTLIGHT" name="Spotlight Postings" stackId="revenue" fill="#3b82f6" />
-                    <Bar dataKey="PINNED" name="Pinned Listings" stackId="revenue" fill="#f59e0b" />
-                    <Bar dataKey="VERIFIED" name="Verification Badges" stackId="revenue" fill="#10b981" />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+
+
 
         {/* Chart 8: Verification Requests & Processing Rates (Grouped Bar Chart) */}
         <div className="relative group/chart">
