@@ -9,6 +9,10 @@ import org.moseti.kedevsapi.contact.dto.ContactDtos.ContactSubmissionRequest;
 import org.moseti.kedevsapi.contact.entity.ContactMessage;
 import org.moseti.kedevsapi.contact.repository.ContactMessageRepository;
 import org.moseti.kedevsapi.shared.dto.ApiResponse;
+import org.moseti.kedevsapi.notifications.service.NotificationService;
+import org.moseti.kedevsapi.shared.enums.NotificationCategory;
+import org.moseti.kedevsapi.users.entity.User;
+import org.moseti.kedevsapi.users.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
@@ -17,6 +21,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -26,6 +31,8 @@ public class ContactService {
 
     private final ContactMessageRepository contactMessageRepository;
     private final EmailService emailService;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     @Transactional
     public ApiResponse<ContactMessageResponse> submitMessage(ContactSubmissionRequest request) {
@@ -79,6 +86,18 @@ public class ContactService {
             message.getMessage(),
             replyMessage
         );
+
+        // Send in-app notification if user exists
+        Optional<User> optionalUser = userRepository.findByEmail(message.getEmail());
+        if (optionalUser.isPresent()) {
+            notificationService.notify(
+                optionalUser.get().getId(),
+                NotificationCategory.CONTACT,
+                "Support Ticket Reply",
+                "An admin has replied to your support ticket regarding '" + message.getSubject() + "'.",
+                null
+            );
+        }
 
         log.info("Support reply sent for message {} to {}", id, message.getEmail());
         return ApiResponse.success("Reply sent successfully", mapToResponse(saved));

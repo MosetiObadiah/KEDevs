@@ -20,7 +20,8 @@ import {
   Bell,
   PanelLeftClose,
   PanelLeftOpen,
-  CreditCard
+  CreditCard,
+  MessageSquare
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
@@ -46,6 +47,7 @@ const menuItems = [
   { text: 'Flagged Content', icon: Flag, path: '/admin/flags' },
   { text: 'Job Advertisements', icon: Megaphone, path: '/admin/job-advertisements' },
   { text: 'Spotlight', icon: Sparkles, path: '/admin/spotlight' },
+  { text: 'Support Tickets', icon: MessageSquare, path: '/admin/support' },
   { text: 'Audit Log', icon: History, path: '/admin/audit' },
   { text: 'Settings', icon: Settings, path: '/admin/settings' },
 ];
